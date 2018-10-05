@@ -67,6 +67,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "kernel_compatibility.h"
 
 static struct drm_driver pvr_drm_platform_driver;
+static int pvr_drm_init_done = 0;
 
 #if defined(MODULE) && !defined(PVR_LDM_PLATFORM_PRE_REGISTERED)
 /*
@@ -165,6 +166,11 @@ static int pvr_probe(struct platform_device *pdev)
 	struct drm_device *ddev;
 	int ret;
 
+	/* HACK: check and return if probe is already completed */
+	if (pvr_drm_init_done) {
+		return 0;
+	}
+
 	DRM_DEBUG_DRIVER("device %p\n", &pdev->dev);
 
 	ddev = drm_dev_alloc(&pvr_drm_platform_driver, &pdev->dev);
@@ -204,6 +210,8 @@ static int pvr_probe(struct platform_device *pdev)
 		pvr_drm_platform_driver.date,
 		ddev->primary->index);
 #endif
+	pvr_drm_init_done = 1;
+
 	return 0;
 
 err_drm_dev_unload:
@@ -237,6 +245,8 @@ static int pvr_remove(struct platform_device *pdev)
 #else
 	drm_put_dev(ddev);
 #endif
+
+	pvr_drm_init_done = 0;
 	return 0;
 }
 
@@ -294,6 +304,7 @@ static int __init pvr_init(void)
 
 	DRM_DEBUG_DRIVER("\n");
 
+	pvr_drm_init_done = 0;
 	pvr_drm_platform_driver = pvr_drm_generic_driver;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)) && \
 	(LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
