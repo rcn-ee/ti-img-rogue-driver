@@ -52,9 +52,11 @@ ifeq ($(SUPPORT_KMS),1)
  DISPLAY_CONTROLLER := drm_nulldisp
 else
  ifeq ($(SUPPORT_DISPLAY_CLASS),1)
-  DISPLAY_CONTROLLER := dc_example
+  DISPLAY_CONTROLLER := dc_fbdev
  endif
 endif
+
+DC_FBDEV_NUM_PREFERRED_BUFFERS := 2
 
 KERNEL_COMPONENTS := srvkm $(DISPLAY_CONTROLLER)
 
