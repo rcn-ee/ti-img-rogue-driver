@@ -85,7 +85,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * and using our dmabuf.
  */
 
-static int PVRDmaBufOpsAttach(struct dma_buf *psDmaBuf, struct device *psDev,
+static int PVRDmaBufOpsAttach(struct dma_buf *psDmaBuf,
                            struct dma_buf_attachment *psAttachment)
 {
 	return -ENOSYS;
@@ -111,11 +111,6 @@ static void PVRDmaBufOpsRelease(struct dma_buf *psDmaBuf)
 	PMRUnrefPMR(psPMR);
 }
 
-static void *PVRDmaBufOpsKMap(struct dma_buf *psDmaBuf, unsigned long uiPageNum)
-{
-	return ERR_PTR(-ENOSYS);
-}
-
 static int PVRDmaBufOpsMMap(struct dma_buf *psDmaBuf, struct vm_area_struct *psVMA)
 {
 	return -ENOSYS;
@@ -127,13 +122,6 @@ static const struct dma_buf_ops sPVRDmaBufOps =
 	.map_dma_buf   = PVRDmaBufOpsMap,
 	.unmap_dma_buf = PVRDmaBufOpsUnmap,
 	.release       = PVRDmaBufOpsRelease,
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0))
-	.map_atomic    = PVRDmaBufOpsKMap,
-	.map           = PVRDmaBufOpsKMap,
-#else
-	.kmap_atomic   = PVRDmaBufOpsKMap,
-	.kmap          = PVRDmaBufOpsKMap,
-#endif
 	.mmap          = PVRDmaBufOpsMMap,
 };
 
