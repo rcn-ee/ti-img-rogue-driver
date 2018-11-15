@@ -1002,8 +1002,10 @@ PVRSRV_ERROR _DevmemImportStructCPUMap(DEVMEM_IMPORT *psImport)
 			goto failMap;
 		}
 
+#if !defined(SUPPORT_64K_PAGE_KERNEL)
 		/* There is no reason the mapping length is different to the size */
 		PVR_ASSERT(uiMappingLength == psImport->uiSize);
+#endif
 	}
 	OSLockRelease(psCPUImport->hLock);
 

@@ -804,6 +804,10 @@ Poison on alloc value))
 $(eval $(call TunableBothConfigC,PVRSRV_POISON_ON_FREE_VALUE,0x63,\
 Poison on free value))
 
+$(eval $(call TunableBothConfigC,SUPPORT_64K_PAGE_KERNEL,,\
+Enable fixes to support a kernel using 64K pages by default._\
+))
+
 #
 # GPU virtualization support
 #

@@ -850,6 +850,10 @@ static PVRSRV_ERROR RGXGetPageSizeConfigCB(IMG_UINT32 uiLog2DataPageSize,
 
 	switch (uiLog2DataPageSize)
 	{
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+	case RGXMIPSFW_LOG2_PAGE_SIZE_64K:
+		/* FW will use 4k and GPU 64k */
+#endif
 	case RGXMIPSFW_LOG2_PAGE_SIZE:
 		psPageSizeConfig = &gsPageSizeConfig4KB;
 		break;
@@ -900,6 +904,10 @@ static PVRSRV_ERROR RGXPutPageSizeConfigCB(IMG_HANDLE hPriv)
 
 	switch (uiLog2DataPageSize)
 	{
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+	case RGXMIPSFW_LOG2_PAGE_SIZE_64K:
+		/* FW will use 4k and GPU 64k */
+#endif
 	case RGXMIPSFW_LOG2_PAGE_SIZE:
 		psPageSizeConfig = &gsPageSizeConfig4KB;
 		break;
