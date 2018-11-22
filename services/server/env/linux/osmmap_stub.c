@@ -100,7 +100,15 @@ OSMMapPMR(IMG_HANDLE hBridge,
     *ppvMappingAddressOut = pvKernelAddress;
     *puiMappingLengthOut = uiLength;
 
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+	if (*puiMappingLengthOut != uiPMRSize)
+	{
+		PVR_DPF((PVR_DBG_MESSAGE, "%s: Mapping length %u != PMR size %u",
+				 __func__, (IMG_UINT32) *puiMappingLengthOut, (IMG_UINT32) uiPMRSize));
+	}
+#else
     PVR_ASSERT(*puiMappingLengthOut == uiPMRSize);
+#endif
 
     return PVRSRV_OK;
 

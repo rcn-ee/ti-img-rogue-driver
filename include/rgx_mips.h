@@ -134,7 +134,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define RGXMIPSFW_CODE_BASE_PAGE                 (0x0)
 #define RGXMIPSFW_CODE_OFFSET                    (RGXMIPSFW_CODE_BASE_PAGE << RGXMIPSFW_LOG2_PAGE_SIZE)
-#if defined(SUPPORT_TRUSTED_DEVICE)
+#if defined(SUPPORT_TRUSTED_DEVICE) || defined(SUPPORT_64K_PAGE_KERNEL)
 /* Clean way of getting a 256K allocation (62 + 1 + 1 pages) without using too many ifdefs */
 /* This will need to be changed if the non-secure builds reach this amount of pages */
 #define RGXMIPSFW_CODE_NUMPAGES                  (62)
@@ -156,7 +156,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define RGXMIPSFW_DATA_BASE_PAGE                 (0x0)
 #define RGXMIPSFW_DATA_OFFSET                    (RGXMIPSFW_DATA_BASE_PAGE << RGXMIPSFW_LOG2_PAGE_SIZE)
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+/* Clean way of getting a 64K allocation (14 + 1 + 1 pages) without using too many ifdefs */
+#define RGXMIPSFW_DATA_NUMPAGES                  (14)
+#else
 #define RGXMIPSFW_DATA_NUMPAGES                  (7)
+#endif
 #define RGXMIPSFW_DATA_SIZE                      (RGXMIPSFW_DATA_NUMPAGES << RGXMIPSFW_LOG2_PAGE_SIZE)
 
 #define RGXMIPSFW_BOOT_NMI_DATA_BASE_PAGE        (RGXMIPSFW_DATA_BASE_PAGE + RGXMIPSFW_DATA_NUMPAGES)

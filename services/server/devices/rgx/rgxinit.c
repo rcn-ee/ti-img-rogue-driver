@@ -3717,6 +3717,15 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 		OSFreeKMAppHintState(pvAppHintState);
 	}
 
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+	if (OSStringCompare(name, RGX_FIRMWARE_MAIN_HEAP_IDENT) == 0 ||
+	    OSStringCompare(name, RGX_FIRMWARE_CONFIG_HEAP_IDENT) == 0 ||
+	    OSStringCompare(name, RGX_FIRMWARE_GUEST_RAW_HEAP_IDENT) == 0  )
+	{
+		b.uiLog2DataPageSize = RGX_HEAP_4KB_PAGE_SHIFT;
+	}
+#endif
+
 	return b;
 }
 

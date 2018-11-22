@@ -2559,7 +2559,9 @@ PMRPDumpLoadMem(PMR *psPMR,
 		                               &uiOutOffset,
 		                               &uiNextSymName);
 		PVR_ASSERT(eError == PVRSRV_OK);
+#if !defined(SUPPORT_64K_PAGE_KERNEL)
 		PVR_ASSERT((uiNextSymName - uiCurrentOffset) <= uiBufSz);
+#endif
 
 		PMR_IsOffsetValid(psPMR,
 		                  0,

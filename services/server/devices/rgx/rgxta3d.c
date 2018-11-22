@@ -522,7 +522,19 @@ PVRSRV_ERROR RGXGrowFreeList(RGX_FREELIST *psFreeList,
 	 *  of pages is the first one and there is no ability to grow, then
 	 *  we can skip allocating one 4K page for the lowest entry.
 	 */
-	psPMRNode->bFirstPageMissing = (psFreeList->ui32GrowFLPages == 0  &&  ui32NumPages > 1);
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+	if (OSGetPageSize() > RGX_BIF_PM_PHYSICAL_PAGE_SIZE)
+	{
+		/* Allocation size will be rounded up to the OS page size,
+		 * any attempt to change it a bit now will be invalidated later. */
+		psPMRNode->bFirstPageMissing = IMG_FALSE;
+	}
+	else
+#endif
+	{
+		psPMRNode->bFirstPageMissing = (psFreeList->ui32GrowFLPages == 0  &&  ui32NumPages > 1);
+	}
+
 	psPMRNode->ui32NumPages = ui32NumPages;
 	psPMRNode->psFreeList = psFreeList;
 
@@ -1526,6 +1538,34 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 	DEVMEM_MEMDESC				*psFWFreelistMemDesc;
 	RGX_FREELIST				*psFreeList;
 	PVRSRV_RGXDEV_INFO			*psDevInfo = psDeviceNode->pvDevice;
+
+#if defined(SUPPORT_64K_PAGE_KERNEL)
+	if (OSGetPageShift() > RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT)
+	{
+		IMG_UINT32 ui32Size, ui32NewInitFLPages, ui32NewMaxFLPages, ui32NewGrowFLPages;
+
+		/* Round up number of FL pages to the next multiple of the OS page size */
+
+		ui32Size = ui32InitFLPages << RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+		ui32Size = PVR_ALIGN(ui32Size, (IMG_DEVMEM_SIZE_T)OSGetPageSize());
+		ui32NewInitFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+
+		ui32Size = ui32GrowFLPages << RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+		ui32Size = PVR_ALIGN(ui32Size, (IMG_DEVMEM_SIZE_T)OSGetPageSize());
+		ui32NewGrowFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+
+		ui32Size = ui32MaxFLPages << RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+		ui32Size = PVR_ALIGN(ui32Size, (IMG_DEVMEM_SIZE_T)OSGetPageSize());
+		ui32NewMaxFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+
+		PVR_DPF((PVR_DBG_WARNING, "%s: Increased number of PB pages: Init %u -> %u, Grow %u -> %u, Max %u -> %u",
+				 __func__, ui32InitFLPages, ui32NewInitFLPages, ui32GrowFLPages, ui32NewGrowFLPages, ui32MaxFLPages, ui32NewMaxFLPages));
+
+		ui32InitFLPages = ui32NewInitFLPages;
+		ui32GrowFLPages = ui32NewGrowFLPages;
+		ui32MaxFLPages = ui32NewMaxFLPages;
+	}
+#endif
 
 	/* Allocate kernel freelist struct */
 	psFreeList = OSAllocZMem(sizeof(*psFreeList));
