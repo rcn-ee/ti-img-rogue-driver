@@ -243,9 +243,8 @@ void PDumpOSVerifyLineEnding(IMG_HANDLE hBuffer, IMG_UINT32 ui32BufferSizeMax)
 }
 
 
-
 /*!
- * \name	PDumpOSGetStreamOffset
+ * \name	PDumpOSSetSplitMarker
  */
 IMG_BOOL PDumpOSSetSplitMarker(IMG_HANDLE hStream, IMG_UINT32 ui32Marker)
 {
@@ -254,6 +253,18 @@ IMG_BOOL PDumpOSSetSplitMarker(IMG_HANDLE hStream, IMG_UINT32 ui32Marker)
 	PVR_ASSERT(gpfnDbgDrv);
 	gpfnDbgDrv->pfnSetMarker(psStream, ui32Marker);
 	return IMG_TRUE;
+}
+
+
+/*!
+ * \name	PDumpOSGetSplitMarker
+ */
+IMG_UINT32 PDumpOSGetSplitMarker(IMG_HANDLE hStream)
+{
+	PDBG_STREAM psStream = (PDBG_STREAM) hStream;
+
+	PVR_ASSERT(gpfnDbgDrv);
+	return gpfnDbgDrv->pfnGetMarker(psStream);
 }
 
 /*!
@@ -283,7 +294,7 @@ void PDumpOSReleaseExecution(void)
  * Description    : Reset connection to vldbgdrv
  *					Then try to connect to PDUMP streams
 **************************************************************************/
-PVRSRV_ERROR PDumpOSInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript,
+PVRSRV_ERROR PDumpOSInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript, PDUMP_CHANNEL* psBlkScript,
 		IMG_UINT32* pui32InitCapMode, IMG_CHAR** ppszEnvComment)
 {
 	PVRSRV_ERROR     eError;
@@ -345,20 +356,27 @@ PVRSRV_ERROR PDumpOSInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript,
 			goto init_failed;
 		}
 		gsDBGPdumpState.psStream[PDUMP_CHANNEL_SCRIPT] = psScript->hMain;
+
+		if (!gpfnDbgDrv->pfnCreateStream(PDUMP_BLKSCRIPT_CHANNEL_NAME, 0, 10, &psBlkScript->hInit, &psBlkScript->hMain, &psBlkScript->hDeinit))
+		{
+			goto init_failed;
+		}
+		gsDBGPdumpState.psStream[PDUMP_CHANNEL_BLKSCRIPT] = psBlkScript->hMain;
 	}
 
 	return PVRSRV_OK;
 
 init_failed:
-	PDumpOSDeInit(psParam, psScript);
+	PDumpOSDeInit(psParam, psScript, psBlkScript);
 	return eError;
 }
 
 
-void PDumpOSDeInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript)
+void PDumpOSDeInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript, PDUMP_CHANNEL* psBlkScript)
 {
 	gpfnDbgDrv->pfnDestroyStream(psScript->hInit, psScript->hMain, psScript->hDeinit);
-	gpfnDbgDrv->pfnDestroyStream(psParam->hInit, psParam->hMain, psParam->hDeinit);
+	gpfnDbgDrv->pfnDestroyStream(psBlkScript->hInit,  psBlkScript->hMain, psBlkScript->hDeinit);
+	gpfnDbgDrv->pfnDestroyStream(psParam->hInit,  psParam->hMain, psParam->hDeinit);
 
 	if(gsDBGPdumpState.pszFile)
 	{

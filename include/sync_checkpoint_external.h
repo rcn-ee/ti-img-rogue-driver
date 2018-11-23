@@ -65,7 +65,8 @@ typedef enum
     PVRSRV_SYNC_CHECKPOINT_ERRORED       = 0xeff   /*!< checkpoint has been errored */
 } PVRSRV_SYNC_CHECKPOINT_STATE;
 
-#define PVRSRV_UFO_IS_SYNC_CHECKPOINT(ufoptr)	(((ufoptr)->puiAddrUFO.ui32Addr) & 0x1)
+#define PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR(fwaddr)	((fwaddr) & 0x1)
+#define PVRSRV_UFO_IS_SYNC_CHECKPOINT(ufoptr)			(PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR((ufoptr)->puiAddrUFO.ui32Addr))
 
 /* Maximum number of sync checkpoints the firmware supports in one fence */
 #define MAX_SYNC_CHECKPOINTS_PER_FENCE 32

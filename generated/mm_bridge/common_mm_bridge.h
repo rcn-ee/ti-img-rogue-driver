@@ -89,7 +89,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PVRSRV_BRIDGE_MM_HEAPCFGHEAPDETAILS			PVRSRV_BRIDGE_MM_CMD_FIRST+31
 #define PVRSRV_BRIDGE_MM_DEVMEMINTREGISTERPFNOTIFYKM			PVRSRV_BRIDGE_MM_CMD_FIRST+32
 #define PVRSRV_BRIDGE_MM_GETMAXDEVMEMSIZE			PVRSRV_BRIDGE_MM_CMD_FIRST+33
-#define PVRSRV_BRIDGE_MM_CMD_LAST			(PVRSRV_BRIDGE_MM_CMD_FIRST+33)
+#define PVRSRV_BRIDGE_MM_DEVMEMGETFAULTADDRESS			PVRSRV_BRIDGE_MM_CMD_FIRST+34
+#define PVRSRV_BRIDGE_MM_CMD_LAST			(PVRSRV_BRIDGE_MM_CMD_FIRST+34)
 
 
 /*******************************************
@@ -758,6 +759,24 @@ typedef struct PVRSRV_BRIDGE_OUT_GETMAXDEVMEMSIZE_TAG
 	IMG_DEVMEM_SIZE_T uiUMASize;
 	PVRSRV_ERROR eError;
 } __attribute__((packed)) PVRSRV_BRIDGE_OUT_GETMAXDEVMEMSIZE;
+
+
+/*******************************************
+            DevmemGetFaultAddress          
+ *******************************************/
+
+/* Bridge in structure for DevmemGetFaultAddress */
+typedef struct PVRSRV_BRIDGE_IN_DEVMEMGETFAULTADDRESS_TAG
+{
+	IMG_HANDLE hDevmemCtx;
+} __attribute__((packed)) PVRSRV_BRIDGE_IN_DEVMEMGETFAULTADDRESS;
+
+/* Bridge out structure for DevmemGetFaultAddress */
+typedef struct PVRSRV_BRIDGE_OUT_DEVMEMGETFAULTADDRESS_TAG
+{
+	IMG_DEV_VIRTADDR sFaultAddress;
+	PVRSRV_ERROR eError;
+} __attribute__((packed)) PVRSRV_BRIDGE_OUT_DEVMEMGETFAULTADDRESS;
 
 
 #endif /* COMMON_MM_BRIDGE_H */

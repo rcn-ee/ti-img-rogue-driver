@@ -1799,18 +1799,6 @@ PVRSRV_ERROR OSDebugSignalPID(IMG_UINT32 ui32PID);
 #define OSWarnOn(a) do { if ((a)) { OSDumpStack(); } } while(0)
 #endif
 
-#if defined(CONFIG_L4)
-#include <asm/api-l4env/api.h>
-#include <asm/io.h>
-
-#if defined(page_to_phys)
-#undef page_to_phys
-#define page_to_phys(x) l4x_virt_to_phys(x)
-#else
-#error "Unable to override page_to_phys() implementation"
-#endif
-#endif
-
 /*************************************************************************/ /*!
 @Function       OSThreadDumpInfo
 @Description    Traverse the thread list and call each of the stored

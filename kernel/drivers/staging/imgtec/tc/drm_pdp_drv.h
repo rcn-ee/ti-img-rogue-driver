@@ -54,7 +54,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <drm/drm_fb_helper.h>
 #include <drm/drm_mm.h>
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
+#include <drm/drm_plane.h>
+#endif
+
 #include "pdp_common.h"
+
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))
+#define PDP_USE_ATOMIC
+#endif
 
 struct pdp_gem_context;
 enum pdp_crtc_flip_status;
@@ -76,6 +84,7 @@ struct pdp_drm_private {
 	struct pdp_gem_private	*gem_priv;
 
 	/* initialised by pdp_modeset_early_init */
+	struct drm_plane *plane;
 	struct drm_crtc *crtc;
 	struct drm_connector *connector;
 	struct drm_encoder *encoder;
@@ -112,25 +121,53 @@ struct pdp_crtc {
 	struct drm_framebuffer *old_fb;
 	struct pdp_flip_data *flip_data;
 	bool flip_async;
-	bool reduced_blanking;
-
-	struct drm_plane *primary_plane;
-};
-
-struct pdp_framebuffer {
-	struct drm_framebuffer base;
-	struct drm_gem_object *obj;
 };
 
 #define to_pdp_crtc(crtc) container_of(crtc, struct pdp_crtc, base)
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
+struct pdp_framebuffer {
+	struct drm_framebuffer base;
+	struct drm_gem_object *obj[1];
+};
+
 #define to_pdp_framebuffer(fb) container_of(fb, struct pdp_framebuffer, base)
+#else
+#define pdp_framebuffer drm_framebuffer
+#define to_pdp_framebuffer(fb) (fb)
+#endif
+
+static inline u32 pdp_drm_fb_cpp(struct drm_framebuffer *fb)
+{
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0))
+	return fb->format->cpp[0];
+#else
+	return fb->bits_per_pixel / 8;
+#endif
+}
+
+static inline u32 pdp_drm_fb_format(struct drm_framebuffer *fb)
+{
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0))
+	return fb->format->format;
+#else
+	return fb->pixel_format;
+#endif
+}
 
 int pdp_debugfs_init(struct drm_minor *minor);
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
 void pdp_debugfs_cleanup(struct drm_minor *minor);
 #endif
 
-struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number);
+struct drm_plane *pdp_plane_create(struct drm_device *dev,
+				   enum drm_plane_type type);
+void pdp_plane_set_surface(struct drm_crtc *crtc, struct drm_plane *plane,
+			   struct drm_framebuffer *fb,
+			   const uint32_t src_x, const uint32_t src_y);
+
+struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
+				 struct drm_plane *primary_plane);
 void pdp_crtc_set_plane_enabled(struct drm_crtc *crtc, bool enable);
 void pdp_crtc_set_vblank_enabled(struct drm_crtc *crtc, bool enable);
 void pdp_crtc_irq_handler(struct drm_crtc *crtc);

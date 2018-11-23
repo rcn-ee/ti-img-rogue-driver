@@ -884,6 +884,27 @@ PVRSRVRegisterDevmemPageFaultNotify(PVRSRV_DEVMEMCTX psDevmemCtx);
 IMG_EXPORT PVRSRV_ERROR
 PVRSRVUnregisterDevmemPageFaultNotify(PVRSRV_DEVMEMCTX psDevmemCtx);
 
+/**************************************************************************/ /*!
+@Function       PVRSRVGetRemoteDeviceMemFaultAddress
+@Description    Returns the device virtual address of a page fault
+                on a given remote memory context.
+                Only one address is stored at a time until consumed.
+
+                This method is intended to be called by a process that imported
+                another process' memory context, hence the expected
+                PVRSRV_REMOTE_DEVMEMCTX parameter.
+
+                See PVRSRVAcquireRemoteDevMemContext for details about
+                importing memory contexts.
+
+@Input          hContext handle to memory context.
+@Output         psFaultAddress device 40bit virtual memory address.
+@Return         PVRSRV_OK if an address is returned,
+                PVRSRV_ERROR_RESOURCE_UNAVAILABLE otherwise.
+*/ /***************************************************************************/
+IMG_EXPORT PVRSRV_ERROR PVRSRVGetRemoteDeviceMemFaultAddress(PVRSRV_REMOTE_DEVMEMCTX hContext,
+                                                             IMG_DEV_VIRTADDR *psFaultAddress);
+
 #if defined __cplusplus
 };
 #endif

@@ -448,7 +448,8 @@ static INLINE void GetApphints(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_SRVINIT_APPHIN
 		}
 		else if (ui32ParamTemp == 0 /* NONE */)
 		{
-			ui32LogType = RGXFWIF_LOG_TYPE_NONE;
+			/* "NONE" means "TRACE without any log groups enabled */
+			ui32LogType = RGXFWIF_LOG_TYPE_TRACE;
 		}
 
 		psHints->ui32LogType = ui32LogType;
@@ -530,6 +531,7 @@ static INLINE void GetFWConfigFlags(RGX_SRVINIT_APPHINTS *psHints,
 
 	*pui32FWConfigFlags    = ui32FWConfigFlags;
 	*pui32FWConfigFlagsExt = psHints->ui32FWContextSwitchCrossDM;
+	*pui32FWConfigFlagsExt |= RGXFWIF_INICFG_EXT_HWPERF_FEATURE_FLAGS;
 }
 
 

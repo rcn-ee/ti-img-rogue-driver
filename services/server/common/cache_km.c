@@ -912,7 +912,7 @@ static void CacheOpConfigUpdate(IMG_UINT32 ui32Config)
 
 	/* Step 4, if no UM support, all requests are done in KM so zero these forcing all client requests
 	   to come down into the KM for maintenance */
-	gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD] = (IMG_UINT32)0;
+	gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD] = 0;
 	gsCwq.pui32InfoPage[CACHEOP_INFO_UMRBFONLY] = 0;
 	if (gsCwq.bSupportsUMFlush)
 	{
@@ -941,7 +941,6 @@ static void CacheOpConfigUpdate(IMG_UINT32 ui32Config)
 			   or fragmented VMALLOC kernel VA space */
 			gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD] = gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD];
 #endif
-			gsCwq.pui32InfoPage[CACHEOP_INFO_UMRBFONLY] = 0;
 		}
 	}
 
@@ -980,11 +979,10 @@ static INLINE PVRSRV_ERROR CacheOpConfigQuery(const PVRSRV_DEVICE_NODE *psDevNod
 
 		case APPHINT_ID_CacheOpGFThresholdSize:
 			*pui32Value = gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD];
-			if (gsCwq.bSupportsUMFlush)
-			{
-				/* Return UM/KM threshold here, this indicates GF threshold */
-				*pui32Value = gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD];		
-			}
+			break;
+
+		case APPHINT_ID_CacheOpUMKMThresholdSize:
+			*pui32Value = gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD];
 			break;
 
 		default:
@@ -1009,9 +1007,9 @@ static INLINE PVRSRV_ERROR CacheOpConfigSet(const PVRSRV_DEVICE_NODE *psDevNode,
 
 		case APPHINT_ID_CacheOpGFThresholdSize:
 		{
-			if (gsCwq.bNoGlobalFlushImpl)
+			if (!ui32Value || gsCwq.bNoGlobalFlushImpl)
 			{
-				/* CPU ISA does not support GF, silently ignore */
+				/* CPU ISA does not support GF, silently ignore request to adjust threshold */
 				PVR_ASSERT(gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD] == (IMG_UINT32)~0);
 				break;
 			}
@@ -1024,14 +1022,45 @@ static INLINE PVRSRV_ERROR CacheOpConfigSet(const PVRSRV_DEVICE_NODE *psDevNode,
 			/* Align to OS page size */
 			ui32Value &= ~(gsCwq.uiPageSize - 1);
 
-			/* KM deferred threshold is derived from KM global threshold */
-			if (ui32Value < gsCwq.pui32InfoPage[CACHEOP_INFO_KMDFTHRESHLD])
+			/* Adjust KM deferred threshold given this updated KM global threshold */
+			if (ui32Value == gsCwq.uiPageSize || ui32Value < gsCwq.pui32InfoPage[CACHEOP_INFO_KMDFTHRESHLD])
 			{
-				gsCwq.pui32InfoPage[CACHEOP_INFO_KMDFTHRESHLD] = ui32Value >> 2;			
+				gsCwq.pui32InfoPage[CACHEOP_INFO_KMDFTHRESHLD] = ui32Value >> 2;
 			}
 
-			/* Tweak the default by updating both notions of GF threshold */
 			gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD] = ui32Value;
+
+			break;
+		}
+
+		case APPHINT_ID_CacheOpUMKMThresholdSize:
+		{
+			if (!ui32Value || !gsCwq.bSupportsUMFlush)
+			{
+				/* CPU ISA does not support UM flush, therefore every request goes down into
+				   the KM, silently ignore request to adjust threshold */
+				PVR_ASSERT(! gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD]);
+				break;
+			}
+			else if (ui32Value < gsCwq.uiPageSize)
+			{
+				/* Silently round-up to OS page size */
+				ui32Value = gsCwq.uiPageSize;
+			}
+
+			/* Align to OS page size */
+			ui32Value &= ~(gsCwq.uiPageSize - 1);
+
+			if (gsCwq.bNoGlobalFlushImpl || ui32Value < gsCwq.pui32InfoPage[CACHEOP_INFO_KMDFTHRESHLD])
+			{
+				/* CPU ISA does not support GF also, therefore it seems there is no benefit to
+				   re-routing this to KM as request won't be promoted to GF but request can
+				   benefit from KM async. execution so ensure KM deferred threshold applies */
+				PVR_ASSERT(gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD] == (IMG_UINT32)~0);
+				gsCwq.pui32InfoPage[CACHEOP_INFO_KMDFTHRESHLD] = ui32Value >> 1;
+				break;
+			}
+
 			gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD] = ui32Value;
 
 			break;
@@ -3322,6 +3351,12 @@ PVRSRV_ERROR CacheOpInit2 (void)
 										CacheOpConfigSet,
 										APPHINT_OF_DRIVER_NO_DEVICE,
 										(void *) APPHINT_ID_CacheOpGFThresholdSize);
+
+	PVRSRVAppHintRegisterHandlersUINT32(APPHINT_ID_CacheOpUMKMThresholdSize,
+										CacheOpConfigQuery,
+										CacheOpConfigSet,
+										APPHINT_OF_DRIVER_NO_DEVICE,
+										(void *) APPHINT_ID_CacheOpUMKMThresholdSize);
 
 	return PVRSRV_OK;
 e0:

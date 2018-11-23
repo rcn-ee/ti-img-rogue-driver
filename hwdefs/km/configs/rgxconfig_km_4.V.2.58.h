@@ -39,11 +39,11 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCONFIG_KM_4_V_2_58_H_
-#define _RGXCONFIG_KM_4_V_2_58_H_
+#ifndef RGXCONFIG_KM_4_V_2_58_H
+#define RGXCONFIG_KM_4_V_2_58_H
 
-/***** Automatically generated file (04/06/2018 07:01:05): Do not edit manually ********************/
-/***** Timestamp:  (04/06/2018 07:01:05)************************************************************/
+/***** Automatically generated file (10/10/2018 09:01:02): Do not edit manually ********************/
+/***** Timestamp:  (10/10/2018 09:01:02)************************************************************/
 
 #define RGX_BNC_KM_B 4
 #define RGX_BNC_KM_N 2
@@ -62,6 +62,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_PERFBUS 
 #define RGX_FEATURE_GS_RTA_SUPPORT 
 #define RGX_FEATURE_COMPUTE 
+#define RGX_FEATURE_PERF_COUNTER_BATCH 
 #define RGX_FEATURE_DYNAMIC_DUST_POWER 
 #define RGX_FEATURE_COMPUTE_MORTON_CAPABLE 
 #define RGX_FEATURE_COMPUTE_OVERLAP 
@@ -78,4 +79,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_GPU_VIRTUALISATION_NUM_OS (8)
 
 
-#endif /* _RGXCONFIG_4_V_2_58_H_ */
+#endif /* RGXCONFIG_4_V_2_58_H */

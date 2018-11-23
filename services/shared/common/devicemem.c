@@ -2888,6 +2888,16 @@ DevmemIsDevVirtAddrValid(DEVMEM_CONTEXT *psContext,
 			sDevVAddr);
 }
 
+
+IMG_INTERNAL PVRSRV_ERROR
+DevmemGetFaultAddress(DEVMEM_CONTEXT *psContext,
+		IMG_DEV_VIRTADDR *psFaultAddress)
+{
+	return BridgeDevmemGetFaultAddress(psContext->hDevConnection,
+			psContext->hDevMemServerContext,
+			psFaultAddress);
+}
+
 IMG_INTERNAL IMG_UINT32
 DevmemGetHeapLog2PageSize(DEVMEM_HEAP *psHeap)
 {

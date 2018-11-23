@@ -389,6 +389,36 @@ RGXConfigCustomCounters_exit:
 }
 
 
+static IMG_INT
+PVRSRVBridgeRGXGetHWPerfBvncFeatureFlags(IMG_UINT32 ui32DispatchTableEntry,
+					  PVRSRV_BRIDGE_IN_RGXGETHWPERFBVNCFEATUREFLAGS *psRGXGetHWPerfBvncFeatureFlagsIN,
+					  PVRSRV_BRIDGE_OUT_RGXGETHWPERFBVNCFEATUREFLAGS *psRGXGetHWPerfBvncFeatureFlagsOUT,
+					 CONNECTION_DATA *psConnection)
+{
+
+
+
+	PVR_UNREFERENCED_PARAMETER(psRGXGetHWPerfBvncFeatureFlagsIN);
+
+
+
+
+
+	psRGXGetHWPerfBvncFeatureFlagsOUT->eError =
+		PVRSRVRGXGetHWPerfBvncFeatureFlagsKM(psConnection, OSGetDevData(psConnection),
+					&psRGXGetHWPerfBvncFeatureFlagsOUT->ui32FeatureFlags);
+
+
+
+
+
+
+
+
+	return 0;
+}
+
+
 
 
 /* *************************************************************************** 
@@ -418,6 +448,9 @@ PVRSRV_ERROR InitRGXHWPERFBridge(void)
 	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGCUSTOMCOUNTERS, PVRSRVBridgeRGXConfigCustomCounters,
 					NULL, bUseLock);
 
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXGETHWPERFBVNCFEATUREFLAGS, PVRSRVBridgeRGXGetHWPerfBvncFeatureFlags,
+					NULL, bUseLock);
+
 
 	return PVRSRV_OK;
 }
@@ -435,6 +468,8 @@ PVRSRV_ERROR DeinitRGXHWPERFBridge(void)
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERFCOUNTERS);
 
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGCUSTOMCOUNTERS);
+
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXGETHWPERFBVNCFEATUREFLAGS);
 
 
 

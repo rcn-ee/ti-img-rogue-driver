@@ -630,6 +630,10 @@ IMG_INTERNAL PVRSRV_ERROR
 DevmemIsDevVirtAddrValid(DEVMEM_CONTEXT *psContext,
                          IMG_DEV_VIRTADDR sDevVAddr);
 
+IMG_INTERNAL PVRSRV_ERROR
+DevmemGetFaultAddress(DEVMEM_CONTEXT *psContext,
+                      IMG_DEV_VIRTADDR *psFaultAddress);
+
 /* DevmemGetHeapLog2PageSize()
  *
  * Get the page size used for a certain heap.

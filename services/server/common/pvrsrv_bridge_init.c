@@ -108,10 +108,8 @@ PVRSRV_ERROR InitTIMERQUERYBridge(void);
 PVRSRV_ERROR DeinitTIMERQUERYBridge(void);
 PVRSRV_ERROR InitRGXKICKSYNCBridge(void);
 PVRSRV_ERROR DeinitRGXKICKSYNCBridge(void);
-#if defined(SUPPORT_SIGNAL_FILTER)
 PVRSRV_ERROR InitRGXSIGNALSBridge(void);
 PVRSRV_ERROR DeinitRGXSIGNALSBridge(void);
-#endif
 #endif /* SUPPORT_RGX */
 PVRSRV_ERROR InitCACHEBridge(void);
 PVRSRV_ERROR DeinitCACHEBridge(void);
@@ -456,13 +454,11 @@ DeviceDepBridgeInit(IMG_UINT64 ui64Features)
 		PVR_LOGR_IF_ERROR(eError, "InitRGXCMPBridge");
 	}
 
-#if defined(SUPPORT_SIGNAL_FILTER)
 	if(ui64Features & RGX_FEATURE_SIGNAL_SNOOPING_BIT_MASK)
 	{
 		eError = InitRGXSIGNALSBridge();
 		PVR_LOGR_IF_ERROR(eError, "InitRGXCMPBridge");
 	}
-#endif
 
 #if defined(RGX_FEATURE_RAY_TRACING)
 	if(ui64Features & RGX_FEATURE_RAY_TRACING_DEPRECATED_BIT_MASK)
@@ -492,13 +488,11 @@ DeviceDepBridgeDeInit(IMG_UINT64 ui64Features)
 		PVR_LOGR_IF_ERROR(eError, "DeinitRGXCMPBridge");
 	}
 
-#if defined(SUPPORT_SIGNAL_FILTER)
 	if(ui64Features & RGX_FEATURE_SIGNAL_SNOOPING_BIT_MASK)
 	{
 		eError = DeinitRGXSIGNALSBridge();
 		PVR_LOGR_IF_ERROR(eError, "DeinitRGXSIGNALSBridge");
 	}
-#endif
 
 #if defined(RGX_FEATURE_RAY_TRACING)
 	if(ui64Features & RGX_FEATURE_RAY_TRACING_DEPRECATED_BIT_MASK)

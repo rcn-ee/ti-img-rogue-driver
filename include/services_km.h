@@ -127,12 +127,23 @@ typedef struct _PVRSRV_DEV_CONNECTION_ PVRSRV_DEV_CONNECTION;
 */
 #define PDUMP_NONE          0x00000000UL /*<! No flags */
 
+#define PDUMP_BLKDATA       0x10000000UL /*<! This flag indicates block-mode PDump data to be recorded in 
+                                                          Block script stream in addition to Main script stream. */
+
 #define PDUMP_CONT          0x40000000UL /*<! Output this entry always regardless of framed capture range,
                                                           used by client applications being dumped. */
 #define PDUMP_PERSIST       0x80000000UL /*<! Output this entry always regardless of app and range,
                                                           used by persistent resources created after 
                                                           driver initialisation that must appear in 
                                                           all PDump captures in that session. */
+
+/* Valid range of values for pdump block length used in 'block' mode of PDump */
+#define PDUMP_BLOCKLEN_MIN          10
+#define PDUMP_BLOCKLEN_MAX          1000
+
+#define PDUMP_FRAME_MIN             0
+#define PDUMP_FRAME_MAX             (IMG_UINT32_MAX - 1)
+#define PDUMP_FRAME_UNSET           IMG_UINT32_MAX
 
 /* Status of the device. */
 typedef enum

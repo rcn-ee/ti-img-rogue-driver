@@ -179,6 +179,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define	RGX_FEATURE_TDM_PDS_CHECKSUM_POS                            	(40U)
 #define	RGX_FEATURE_TDM_PDS_CHECKSUM_BIT_MASK                       	(IMG_UINT64_C(0x0000010000000000))
 
+#define	RGX_FEATURE_PERF_COUNTER_BATCH_POS                          	(41U)
+#define	RGX_FEATURE_PERF_COUNTER_BATCH_BIT_MASK                     	(IMG_UINT64_C(0x0000020000000000))
+
+#define	RGX_FEATURE_DUST_POWER_ISLAND_S7_POS                        	(42U)
+#define	RGX_FEATURE_DUST_POWER_ISLAND_S7_BIT_MASK                   	(IMG_UINT64_C(0x0000040000000000))
+
 
 /******************************************************************************
  * Features with values indexes
@@ -299,6 +305,9 @@ typedef enum _RGX_FEATURE_WITH_VALUE_INDEX_ {
 
 #define	FIX_HW_BRN_64839_POS                                        	(28U)
 #define	FIX_HW_BRN_64839_BIT_MASK                                   	(IMG_UINT64_C(0x0000000010000000))
+
+#define	FIX_HW_BRN_67349_POS                                        	(29U)
+#define	FIX_HW_BRN_67349_BIT_MASK                                   	(IMG_UINT64_C(0x0000000020000000))
 
 /* Macro used for padding the unavailable values for features with values */
 #define RGX_FEATURE_VALUE_INVALID	(0xFFFFFFFE)

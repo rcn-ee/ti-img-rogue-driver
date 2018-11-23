@@ -249,36 +249,48 @@ PVRSYNC_MODNAME := pvr_sync
 # components list. Make sure these are defined early enough to make this
 # possible.
 #
+
+# Client drivers and libsrvum need this make macro. 
 SUPPORT_RAY_TRACING := \
  $(shell grep -qw RGX_FEATURE_RAY_TRACING $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Only the Firmware needs this make macro. 
 SUPPORT_META_DMA :=\
  $(shell grep -qw RGX_FEATURE_META_DMA $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Only the Firmware needs this make macro. 
 SUPPORT_META_COREMEM :=\
  $(shell grep -qe 'RGX_FEATURE_META_COREMEM_SIZE ([123456789][1234567890]*)' $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Client drivers, firmware and libsrvum need this make macro. 
 SUPPORT_COMPUTE := \
  $(shell grep -qw RGX_FEATURE_COMPUTE $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Macro used by client driver makefiles only. 
 SUPPORT_OPENCL_2_X ?= \
  $(shell grep -qw "RGX_FEATURE_CDM_CONTROL_STREAM_FORMAT (2)" $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Macro used by client driver makefiles only. 
 OPENCL_CDM_FORMAT_2 ?= \
  $(shell grep -qw "RGX_FEATURE_CDM_CONTROL_STREAM_FORMAT (2)" $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Only the Firmware needs this make macro. 
 SUPPORT_MIPS_FIRMWARE :=\
  $(shell grep -qw RGX_FEATURE_MIPS $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Firmware and libsrvum need this make macro. 
 SUPPORT_TLA :=\
  $(shell grep -qw RGX_FEATURE_TLA $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Firmware and libsrvum need this make macro. 
 SUPPORT_FASTRENDER_DM :=\
  $(shell grep -qw RGX_FEATURE_FASTRENDER_DM $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Firmware and libsrvum need this make macro. 
 SUPPORT_SIGNAL_FILTER := \
  $(shell grep -qw RGX_FEATURE_SIGNAL_SNOOPING $(RGX_BNC_CONFIG_KM) && echo 1)
 
+# Macro used by client driver makefiles only. 
 ifneq ($(wildcard $(RGX_BNC_CONFIG_H)),)
  SUPPORT_ES32 :=\
     $(shell grep -qw RGX_FEATURE_ASTC $(RGX_BNC_CONFIG_H) && grep -qw RGX_FEATURE_GS_RTA_SUPPORT $(RGX_BNC_CONFIG_KM) && echo 1)
@@ -317,7 +329,7 @@ endif
 #
 ifeq ($(SUPPORT_KERNEL_HWPERF_TEST),1)
 KERNEL_COMPONENTS += rgxhwpdrv
-$(eval $(call KernelConfigC,SUPPORT_KERNEL_HWPERF_TEST,1))
+$(eval $(call BothConfigC,SUPPORT_KERNEL_HWPERF_TEST,1))
 endif
 
 # pvr-gdb needs extra components
@@ -462,7 +474,7 @@ ifneq ($(SUPPORT_ANDROID_PLATFORM),1)
  ifeq ($(wildcard ${TOP}/build/linux/tools/prepare-llvm.sh),)
   # No facility for using LLVM in this package.
  else ifeq ($(LLVM_BUILD_DIR),)
-  $(warning LLVM_BUILD_DIR is not set. Components that use it (e.g., OpenCL, Vulkan) cannot be built)
+  $(warning LLVM_BUILD_DIR is not set. Components that use it (e.g. OpenCL, Vulkan) cannot be built)
  else
   override LLVM_BUILD_DIR := $(abspath $(LLVM_BUILD_DIR))
   LLVM_MESSAGE=$(shell ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${TOP}/build/linux/tools/prepare-llvm.sh -c $(LLVM_BUILD_DIR))
@@ -502,6 +514,35 @@ endif
 
 
 
+
+
+
+ifneq ($(SUPPORT_ANDROID_PLATFORM),1)
+ ifeq ($(wildcard ${TOP}/build/linux/tools/prepare-nnvm.sh),)
+  # No facility for using NNVM in this package.
+ else ifeq ($(NNVM_BUILD_DIR),)
+  $(warning NNVM_BUILD_DIR is not set. Components that use it (e.g. IMGDNN) cannot be built)
+ else
+  override NNVM_BUILD_DIR := $(abspath $(NNVM_BUILD_DIR))
+  NNVM_MESSAGE=$(shell ARCH=${ARCH} CROSS_COMPILE=${CROSS_COMPILE} ${TOP}/build/linux/tools/prepare-nnvm.sh -c $(NNVM_BUILD_DIR))
+
+  ifneq ($(filter Error:,$(firstword $(NNVM_MESSAGE))),)
+   $(info  *** prepare-nnvm.sh: $(NNVM_MESSAGE))
+   $(error *** NNVM_BUILD_DIR $(NNVM_BUILD_DIR) is not suitable)
+  endif
+
+  ifneq ($(filter Warning:,$(firstword $(NNVM_MESSAGE))),)
+   $(info  *** prepare-nnvm.sh: $(NNVM_MESSAGE))
+  endif
+
+  # Because we need to handle MULTIARCH builds, we can't work out the
+  # architecture to use in the paths until compile-time.  So leave
+  # _NNVM_ARCH_ as a placeholder that will be replaced in the
+  # moduledef.
+  NNVM_INCLUDE_PATH := $(NNVM_BUILD_DIR)/nnvm.src/include
+  NNVM_LIB_PATH := $(NNVM_BUILD_DIR)/nnvm._NNVM_ARCH_/lib/
+ endif
+endif
 
 
 
@@ -777,6 +818,14 @@ $(eval $(call TunableBothConfigC,SUPPORT_TRUSTED_DEVICE,,\
 Enable a build mode targeting an REE._\
 ))
 
+ifeq ($(SUPPORT_TRUSTED_DEVICE),1)
+override SUPPORT_MIPS_CONTIGUOUS_FW_CODE := 1
+endif
+
+$(eval $(call TunableBothConfigC,SUPPORT_MIPS_CONTIGUOUS_FW_CODE,,\
+Use a single big allocation for the FW code._\
+))
+
 $(eval $(call TunableBothConfigC,METRICS_USE_ARM_COUNTERS,,\
 Enable usage of hardware performance counters for metrics on ARM platforms._\
 ))
@@ -965,39 +1014,21 @@ endif
 ifeq ($(SUPPORT_VK_TRACING_EXT),1)
 endif
 
+ifeq ($(PVR_BLOB_CACHE_DEBUG),1)
+$(eval $(call BothConfigC,BLOB_CACHE_DEBUG,))
+endif
+
+$(eval $(call TunableBothConfigC,PVR_LINUX_BLOB_CACHE_SIZE_MEGABYTES,20,\
+Set the Linux blob cache size in number of megabytes._\
+))
+
 $(eval $(call TunableBothConfigMake,PDUMP,))
 $(eval $(call TunableBothConfigMake,SUPPORT_INSECURE_EXPORT,))
 $(eval $(call TunableBothConfigMake,SUPPORT_SECURE_EXPORT,))
 $(eval $(call TunableBothConfigMake,SUPPORT_DISPLAY_CLASS,))
-$(eval $(call TunableBothConfigMake,SUPPORT_RAY_TRACING,,\
-Enable support for ray tracing feature in the DDK._\
-))
-$(eval $(call TunableBothConfigMake,SUPPORT_COMPUTE,,\
-Enable support for compute data master in the DDK. Only applicable on cores_\
-supporting CDM feature._\
-))
-$(eval $(call TunableBothConfigMake,SUPPORT_OPENCL_2_X,,\
-Enable support for OpenCL 2.x features on any core._\
-))
-$(eval $(call TunableBothConfigC,SUPPORT_OPENCL_2_X,,\
-Enable support for OpenCL 2.x features on any core._\
-))
-$(eval $(call TunableBothConfigMake,OPENCL_CDM_FORMAT_2,,\
-Determine whether we are a CDM 2 core in the build system._\
-))
 $(eval $(call TunableBothConfigMake,CLDNN,,\
 Build CLDNN graph libraries._\
 ))
-$(eval $(call TunableBothConfigMake,SUPPORT_TLA,,\
-Enable support for TLA in the DDK. Only applicable on cores supporting TLA_\
-feature._\
-))
-$(eval $(call TunableBothConfigMake,SUPPORT_MIPS_FIRMWARE,,\
-Internal use only._\
-))
-$(eval $(call TunableBothConfigMake,SUPPORT_ES32,))
-$(eval $(call TunableBothConfigMake,SUPPORT_SIGNAL_FILTER,))
-$(eval $(call TunableBothConfigC,SUPPORT_SIGNAL_FILTER,))
 $(eval $(call TunableBothConfigC,FORCE_DM_OVERLAP,))
 $(eval $(call TunableBothConfigC,SUPPORT_EXTRA_METASP_DEBUG,,\
 Enable extra debug information using the META Slave Port._\
@@ -1198,6 +1229,8 @@ $(eval $(call AppHintConfigC,PVRSRV_APPHINT_CACHEOPCONFIG,0,\
 CPU d-cache maintenance framework <CacheOp> flush type configuration))
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_CACHEOPGFTHRESHOLDSIZE,0,\
 CPU d-cache maintenance framework <CacheOp> global flush threshold configuration))
+$(eval $(call AppHintConfigC,PVRSRV_APPHINT_CACHEOPUMKMHRESHOLDSIZE,0,\
+CPU d-cache maintenance framework <CacheOp> UM/KM threshold configuration))
 
 # GLSL compiler options
 ifeq ($(BUILD),debug)
@@ -1801,4 +1834,3 @@ build kbuild install: autogen
 
 %: autogen
 	@$(if $(MAKECMDGOALS),$(MAKE) $(MAKE_ETC) $(MAKECMDGOALS) $(eval MAKECMDGOALS :=),:)
-

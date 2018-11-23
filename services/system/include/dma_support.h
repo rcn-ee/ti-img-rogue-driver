@@ -53,6 +53,7 @@ typedef struct _DMA_ALLOC_
 	IMG_UINT64	ui64Size;
 	IMG_CPU_VIRTADDR pvVirtAddr;
 	IMG_DEV_PHYADDR	 sBusAddr;
+	IMG_HANDLE hHandle;
 	void *pvOSDevice;
 } DMA_ALLOC;
 

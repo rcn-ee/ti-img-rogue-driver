@@ -365,7 +365,7 @@ X(14, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_SKIP_FRAME_CHECK, "SR: Skip frame check
 X(15, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_SKIP_REMAINING_STRIPS, "SR: Skip remaining strip %d in frame\n", 1) \
 X(16, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_FRAME_SKIP_NEW_FRAME, "SR: Inform HW that strip %d is a new frame\n", 1) \
 X(17, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_SKIP_FRAME_TIMEOUT, "SR: Timeout waiting for INTERRUPT_FRAME_SKIP (after %d ticks)\n", 1) \
-X(18, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_STRIP_HEIGHT, "SR: Strip height is %d\n", 1) \
+X(18, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_STRIP_MODE, "SR: Strip mode is %d\n", 1) \
 X(19, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_STRIP_INDEX, "SR: Strip Render start (strip %d)\n", 1) \
 X(20, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_BUFFER_RENDERED, "SR: Strip Render complete (buffer %d)\n", 1) \
 X(21, RGXFW_GROUP_MISC, RGXFW_SF_MISC_SR_BUFFER_FAULT, "SR: Strip Render fault (buffer %d)\n", 1) \
