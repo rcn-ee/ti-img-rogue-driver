@@ -52,6 +52,10 @@
 #    Use $(libmylib_ldflags) if that variable is defined (empty counts as
 #    defined). Otherwise use -lmylib
 #
+#  module_whole_extlibs := mylib
+#    Same as module_extlibs, but surround with -Wl,--whole-archive and
+#    -Wl,--no-whole-archive.
+#
 #  module_libs := :mylib
 #    Use -l:mylib.so
 #
@@ -87,7 +91,8 @@ MODULE_LIBRARY_FLAGS += \
  $(if $(MODULE_HOST_BUILD),,$(MODULE_LIBGCC)) \
  $(addprefix -l, $(filter-out :%, $($(THIS_MODULE)_libs))) \
  $(addprefix -l, $(addsuffix .so, $(filter :%,$($(THIS_MODULE)_libs)))) \
- $(foreach _lib,$(filter-out :%.a, $($(THIS_MODULE)_extlibs)),$(if $(or $(MODULE_HOST_BUILD),$(filter undefined,$(origin lib$(_lib)_ldflags))),-l$(_lib),$(lib$(_lib)_ldflags)))
+ $(foreach _lib,$(filter-out :%.a, $($(THIS_MODULE)_extlibs)),$(if $(or $(MODULE_HOST_BUILD),$(filter undefined,$(origin lib$(_lib)_ldflags))),-l$(_lib),$(lib$(_lib)_ldflags))) \
+ $(foreach _lib,$($(THIS_MODULE)_whole_extlibs),-Wl,--whole-archive $(if $(or $(MODULE_HOST_BUILD),$(filter undefined,$(origin lib$(_lib)_ldflags))),-l$(_lib),$(lib$(_lib)_ldflags)) -Wl,--no-whole-archive)
 
 ifneq ($(MODULE_LIBRARY_FLAGS_SUBST),)
 $(foreach _s,$(MODULE_LIBRARY_FLAGS_SUBST),$(eval \
@@ -141,4 +146,7 @@ endif
 ifneq ($(MODULE_ARCH_TAG),)
  MODULE_LIBRARY_DIR_FLAGS := $(subst _LLVM_ARCH_,$(MODULE_ARCH_TAG),$(MODULE_LIBRARY_DIR_FLAGS))
  MODULE_INCLUDE_FLAGS     := $(subst _LLVM_ARCH_,$(MODULE_ARCH_TAG),$(MODULE_INCLUDE_FLAGS))
+
+ MODULE_LIBRARY_DIR_FLAGS := $(subst _NNVM_ARCH_,$(MODULE_ARCH_TAG),$(MODULE_LIBRARY_DIR_FLAGS))
+ MODULE_INCLUDE_FLAGS     := $(subst _NNVM_ARCH_,$(MODULE_ARCH_TAG),$(MODULE_INCLUDE_FLAGS))
 endif

@@ -86,6 +86,7 @@ typedef struct _PMR_LMALLOCARRAY_DATA_ {
 	IMG_BOOL bPoisonOnAlloc;
 	IMG_BOOL bFwLocalAlloc;
 	IMG_BOOL bFwConfigAlloc;
+	IMG_BOOL bFwGuestAlloc;
 
 	IMG_BOOL bOnDemand;
 
@@ -229,6 +230,7 @@ _AllocLMPageArray(PVRSRV_DEVICE_NODE *psDevNode,
 			  IMG_BOOL bOnDemand,
 			  IMG_BOOL bFwLocalAlloc,
 			  IMG_BOOL bFwConfigAlloc,
+			  IMG_BOOL bFwGuestAlloc,
 			  PHYS_HEAP* psPhysHeap,
 			  PVRSRV_MEMALLOCFLAGS_T uiAllocFlags,
 			  IMG_PID uiPid,
@@ -307,6 +309,7 @@ _AllocLMPageArray(PVRSRV_DEVICE_NODE *psDevNode,
 	psPageArrayData->bFwConfigAlloc = bFwConfigAlloc;
 	psPageArrayData->psPhysHeap = psPhysHeap;
 	psPageArrayData->uiAllocFlags = uiAllocFlags;
+	psPageArrayData->bFwGuestAlloc = bFwGuestAlloc;
 
 	*ppsPageArrayDataPtr = psPageArrayData;
 
@@ -351,13 +354,36 @@ _AllocLMPages(PMR_LMALLOCARRAY_DATA *psPageArrayData, IMG_UINT32 *pui32MapTable)
 
 	if (!PVRSRV_VZ_MODE_IS(DRIVER_MODE_NATIVE) && psPageArrayData->bFwLocalAlloc)
 	{
-		PVR_ASSERT(psDevNode->uiKernelFwRAIdx < RGXFW_NUM_OS);
+		if (! psPageArrayData->bFwGuestAlloc)
+		{
+			pArena = psPageArrayData->bFwConfigAlloc ?
+									psDevNode->psKernelFwConfigMemArena[0] :
+									psDevNode->psKernelFwMainMemArena[0];
+		}
+		else
+		{
+			PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eHeapOrigin;
+			PVR_ASSERT(PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST));
+			PVR_ASSERT(psDevNode->uiKernelFwRAIdx && psDevNode->uiKernelFwRAIdx < RGXFW_NUM_OS);
 
-		pArena = (psPageArrayData->bFwConfigAlloc) ?
-				(psDevNode->psKernelFwConfigMemArena[psDevNode->uiKernelFwRAIdx]) :
-				(psDevNode->psKernelFwMainMemArena[psDevNode->uiKernelFwRAIdx]);
+			SysVzGetPhysHeapOrigin(psDevNode->psDevConfig,
+								   PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL,
+								   &eHeapOrigin);
 
-		psDevNode->uiKernelFwRAIdx = 0;
+			if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST)
+			{
+				pArena = psDevNode->psKernelFwRawMemArena[psDevNode->uiKernelFwRAIdx];
+			}
+			else
+			{
+				pArena = psPageArrayData->bFwConfigAlloc ?
+							psDevNode->psKernelFwConfigMemArena[psDevNode->uiKernelFwRAIdx] :
+							psDevNode->psKernelFwMainMemArena[psDevNode->uiKernelFwRAIdx];
+			}
+
+			psDevNode->uiKernelFwRAIdx = 0;
+			PVR_ASSERT(pArena != NULL);
+		}
 	}
 	else
 	{
@@ -588,19 +614,6 @@ _FreeLMPages(PMR_LMALLOCARRAY_DATA *psPageArrayData,
 	IMG_UINT32 uiContigAllocSize;
 	IMG_UINT32 i, ui32PagesToFree=0, ui32PagesFreed=0, ui32Index=0;
 	RA_ARENA *pArena = psPageArrayData->psArena;
-
-	if (! PVRSRV_VZ_MODE_IS(DRIVER_MODE_NATIVE))
-	{
-		PVRSRV_DEVICE_NODE *psDevNode = psPageArrayData->psDevNode;
-		if (psPageArrayData->bFwLocalAlloc)
-		{
-			PVR_ASSERT(psDevNode->uiKernelFwRAIdx < RGXFW_NUM_OS);
-			pArena = (psPageArrayData->bFwConfigAlloc) ?
-					(psDevNode->psKernelFwConfigMemArena[psDevNode->uiKernelFwRAIdx]) :
-					(psDevNode->psKernelFwMainMemArena[psDevNode->uiKernelFwRAIdx]);
-			psDevNode->uiKernelFwRAIdx = 0;
-		}
-	}
 
 	PVR_ASSERT(psPageArrayData->iNumPagesAllocated != 0);
 
@@ -1411,6 +1424,7 @@ PhysmemNewLocalRamBackedPMR(PVRSRV_DEVICE_NODE *psDevNode,
 	IMG_BOOL bFwLocalAlloc;
 	IMG_BOOL bFwConfigAlloc;
 	IMG_BOOL bCpuLocalAlloc;
+	IMG_BOOL bFwGuestAlloc;
 
 	/* For sparse requests we have to do the allocation
 	 * in chunks rather than requesting one contiguous block */
@@ -1439,6 +1453,7 @@ PhysmemNewLocalRamBackedPMR(PVRSRV_DEVICE_NODE *psDevNode,
 	bZero = PVRSRV_CHECK_ZERO_ON_ALLOC(uiFlags) ? IMG_TRUE : IMG_FALSE;
 	bPoisonOnAlloc = PVRSRV_CHECK_POISON_ON_ALLOC(uiFlags) ? IMG_TRUE : IMG_FALSE;
 	bPoisonOnFree = PVRSRV_CHECK_POISON_ON_FREE(uiFlags) ? IMG_TRUE : IMG_FALSE;
+	bFwGuestAlloc = PVRSRV_CHECK_FW_GUEST(uiFlags) ? IMG_TRUE : IMG_FALSE;
 
 	if (bFwLocalAlloc)
 	{
@@ -1468,6 +1483,7 @@ PhysmemNewLocalRamBackedPMR(PVRSRV_DEVICE_NODE *psDevNode,
 	                           bOnDemand,
 	                           bFwLocalAlloc,
 	                           bFwConfigAlloc,
+							   bFwGuestAlloc,
 	                           psPhysHeap,
 	                           uiFlags,
 	                           uiPid,

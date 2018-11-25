@@ -61,6 +61,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgx_bvnc_defs_km.h"
 
+#define DEVMEMCTX_FLAGS_FAULT_ADDRESS_AVAILABLE (1 << 0)
+
 struct _DEVMEMINT_CTX_
 {
 	PVRSRV_DEVICE_NODE *psDevNode;
@@ -89,6 +91,12 @@ struct _DEVMEMINT_CTX_
 	DLLIST_NODE sProcessNotifyListHead;
 	/* The following is a node for the list of registered devmem contexts */
 	DLLIST_NODE sPageFaultNotifyListElem;
+
+	/* Device virtual address of a page fault on this context */
+	IMG_DEV_VIRTADDR sFaultAddress;
+
+	/* General purpose flags */
+	IMG_UINT32 ui32Flags;
 };
 
 struct _DEVMEMINT_CTX_EXPORT_
@@ -420,6 +428,12 @@ DevmemIntCtxCreate(CONNECTION_DATA *psConnection,
 	dllist_init(&(psDevmemCtx->sProcessNotifyListHead));
 	psDevmemCtx->sPageFaultNotifyListElem.psNextNode = NULL;
 	psDevmemCtx->sPageFaultNotifyListElem.psPrevNode = NULL;
+
+	/* Initialise page fault address */
+	psDevmemCtx->sFaultAddress.uiAddr = 0ULL;
+
+	/* Initialise flags */
+	psDevmemCtx->ui32Flags = 0;
 
 	return PVRSRV_OK;
 
@@ -1208,6 +1222,22 @@ PVRSRV_ERROR DevmemIntIsVDevAddrValid(CONNECTION_DATA * psConnection,
 	                           sDevAddr) ? PVRSRV_OK : PVRSRV_ERROR_INVALID_GPU_ADDR;
 }
 
+PVRSRV_ERROR DevmemIntGetFaultAddress(CONNECTION_DATA * psConnection,
+                                      PVRSRV_DEVICE_NODE *psDevNode,
+                                      DEVMEMINT_CTX *psDevMemContext,
+                                      IMG_DEV_VIRTADDR *psFaultAddress)
+{
+	if ((psDevMemContext->ui32Flags & DEVMEMCTX_FLAGS_FAULT_ADDRESS_AVAILABLE) == 0)
+	{
+		return PVRSRV_ERROR_RESOURCE_UNAVAILABLE;
+	}
+
+	*psFaultAddress = psDevMemContext->sFaultAddress;
+	psDevMemContext->ui32Flags &= ~DEVMEMCTX_FLAGS_FAULT_ADDRESS_AVAILABLE;
+
+	return PVRSRV_OK;
+}
+
 #if !defined(PVRSRV_USE_BRIDGE_LOCK)
 static POSWR_LOCK g_hExportCtxListLock;
 #endif /* !defined(PVRSRV_USE_BRIDGE_LOCK) */
@@ -1464,10 +1494,12 @@ PVRSRV_ERROR DevmemIntRegisterPFNotifyKM(DEVMEMINT_CTX *psDevmemCtx,
                 context.
 @Input          *psDevNode           The device node.
 @Input          ui64FaultedPCAddress The page catalogue address that faulted.
+@Input          sFaultAddress        The address that triggered the fault.
 @Return         PVRSRV_ERROR
 */ /**************************************************************************/
 PVRSRV_ERROR DevmemIntPFNotify(PVRSRV_DEVICE_NODE *psDevNode,
-                               IMG_UINT64         ui64FaultedPCAddress)
+                               IMG_UINT64         ui64FaultedPCAddress,
+                               IMG_DEV_VIRTADDR   sFaultAddress)
 {
 	DLLIST_NODE         *psNode, *psNodeNext;
 	DEVMEMINT_PF_NOTIFY *psNotifyNode;
@@ -1523,6 +1555,17 @@ PVRSRV_ERROR DevmemIntPFNotify(PVRSRV_DEVICE_NODE *psDevNode,
 #if !defined(PVRSRV_USE_BRIDGE_LOCK)
 	OSWRLockAcquireRead(psDevmemCtx->hListLock);
 #endif /* !defined(PVRSRV_USE_BRIDGE_LOCK) */
+
+	/*
+	 * Store the first occurrence of a page fault address,
+	 * until that address is consumed by a client.
+	 */
+	if ((psDevmemCtx->ui32Flags & DEVMEMCTX_FLAGS_FAULT_ADDRESS_AVAILABLE) == 0)
+	{
+		psDevmemCtx->sFaultAddress = sFaultAddress;
+		psDevmemCtx->ui32Flags |= DEVMEMCTX_FLAGS_FAULT_ADDRESS_AVAILABLE;
+	}
+
 	/* Loop through each registered PID and send a signal to the process */
 	dllist_foreach_node(&(psDevmemCtx->sProcessNotifyListHead), psNode, psNodeNext)
 	{

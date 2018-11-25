@@ -785,3 +785,21 @@ IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeGetMaxDevMemSize(IMG_HANDLE hBridge
 	return eError;
 }
 
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeDevmemGetFaultAddress(IMG_HANDLE hBridge,
+								   IMG_HANDLE hDevmemCtx,
+								   IMG_DEV_VIRTADDR *psFaultAddress)
+{
+	PVRSRV_ERROR eError;
+	DEVMEMINT_CTX * psDevmemCtxInt;
+
+	psDevmemCtxInt = (DEVMEMINT_CTX *) hDevmemCtx;
+
+	eError =
+		DevmemIntGetFaultAddress(NULL, (PVRSRV_DEVICE_NODE *)((void*) hBridge)
+		,
+					psDevmemCtxInt,
+					psFaultAddress);
+
+	return eError;
+}
+

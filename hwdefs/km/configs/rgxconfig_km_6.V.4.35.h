@@ -39,11 +39,11 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCONFIG_KM_6_V_4_35_H_
-#define _RGXCONFIG_KM_6_V_4_35_H_
+#ifndef RGXCONFIG_KM_6_V_4_35_H
+#define RGXCONFIG_KM_6_V_4_35_H
 
-/***** Automatically generated file (09/10/2017 07:00:43): Do not edit manually ********************/
-/***** Timestamp:  (09/10/2017 07:00:43)************************************************************/
+/***** Automatically generated file (10/10/2018 09:01:01): Do not edit manually ********************/
+/***** Timestamp:  (10/10/2018 09:01:01)************************************************************/
 
 #define RGX_BNC_KM_B 6
 #define RGX_BNC_KM_N 4
@@ -62,6 +62,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_PERFBUS 
 #define RGX_FEATURE_GS_RTA_SUPPORT 
 #define RGX_FEATURE_COMPUTE 
+#define RGX_FEATURE_PERF_COUNTER_BATCH 
 #define RGX_FEATURE_DYNAMIC_DUST_POWER 
 #define RGX_FEATURE_COMPUTE_MORTON_CAPABLE 
 #define RGX_FEATURE_COMPUTE_OVERLAP 
@@ -77,4 +78,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_PHYS_BUS_WIDTH (40)
 
 
-#endif /* _RGXCONFIG_6_V_4_35_H_ */
+#endif /* RGXCONFIG_6_V_4_35_H */

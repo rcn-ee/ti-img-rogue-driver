@@ -97,8 +97,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 typedef IMG_UINT32 PDUMP_FLAGS_T;
 
-#define PDUMP_FLAGS_NONE            0x00000000UL   /*<! Output this entry with no special treatment i.e. output
+#define PDUMP_FLAGS_NONE            PDUMP_NONE   /*<! Output this entry with no special treatment i.e. output
                                                           only if in frame range. */
+#define PDUMP_FLAGS_BLKDATA         PDUMP_BLKDATA  /*<! This flag indicates block-mode PDump data to be recorded 
+                                                          in Block script stream in addition to Main script stream */
 
 #define PDUMP_FLAGS_DEINIT          0x20000000UL   /*<! Output this entry to the de-initialisation section, must
                                                           only be used by the initialisation code in the Server. */
@@ -126,15 +128,20 @@ typedef IMG_UINT32 PDUMP_FLAGS_T;
 #define PDUMP_FLAGS_NOHW            0x00000001U    /* For internal use: Skip sending instructions to the hardware
                                                         when NO_HARDWARE=0 AND PDUMP=1 */
 
+#define PDUMP_FLAGS_FORCESPLIT      0x00000002U	   /* Forces Main and Block script out files to split - Internal 
+                                                        flag used in BLKMODE of PDump */
+
 #define PDUMP_FILEOFFSET_FMTSPEC    "0x%08X"
 typedef IMG_UINT32 PDUMP_FILEOFFSET_T;
 
-#define PDUMP_PARAM_CHANNEL_NAME    "ParamChannel2"
-#define PDUMP_SCRIPT_CHANNEL_NAME   "ScriptChannel2"
+#define PDUMP_SCRIPT_CHANNEL_NAME       "ScriptChannel2"
+#define PDUMP_BLKSCRIPT_CHANNEL_NAME    "BlkScriptChannel2"
+#define PDUMP_PARAM_CHANNEL_NAME        "ParamChannel2"
 
-#define PDUMP_CHANNEL_PARAM         0
-#define PDUMP_CHANNEL_SCRIPT        1
-#define PDUMP_NUM_CHANNELS          2
+#define PDUMP_CHANNEL_SCRIPT        0
+#define PDUMP_CHANNEL_BLKSCRIPT     1
+#define PDUMP_CHANNEL_PARAM         2
+#define PDUMP_NUM_CHANNELS          3
 
 #define PDUMP_PARAM_0_FILE_NAME     "%%0%%.prm"      /*!< Initial Param filename used in PDump capture */
 #define PDUMP_PARAM_N_FILE_NAME     "%%0%%_%02u.prm" /*!< Param filename used when PRM file split */

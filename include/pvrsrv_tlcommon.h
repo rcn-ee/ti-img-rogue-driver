@@ -66,8 +66,8 @@ typedef IMG_HANDLE PVRSRVTL_SD;
  * There are 3 types of packet: normal (has data), data lost and padding,
  * see packet flags. Header kept small to reduce data overhead.
  *
- * if the ORDER of the structure members is changed, please UPDATE the 
- *   PVRSRVTL_PACKET_FLAG_OFFSET macro.
+ * if the ORDER of the structure members is changed, please UPDATE the
+ * PVRSRVTL_PACKET_FLAG_OFFSET macro.
  *
  * Layout of uiTypeSize member is :
  *
@@ -89,6 +89,9 @@ typedef struct _PVRSRVTL_PACKETHDR_
  */
 static_assert((sizeof(PVRSRVTL_PACKETHDR) & (PVRSRVTL_PACKET_ALIGNMENT-1)) == 0,
 			  "sizeof(PVRSRVTL_PACKETHDR) must be a multiple of 8");
+
+/*! Packet header reserved word fingerprint "TLP1" */
+#define PVRSRVTL_PACKETHDR_RESERVED    0x31504C54U
 
 /*! Packet header mask used to extract the size from the uiTypeSize member.
  * Do not use directly, see GET macros.
@@ -208,8 +211,16 @@ typedef enum _PVRSRVTL_PACKETTYPE_
  *        required if one wants to call reserve/commit/write function on the
  *        stream descriptor. Read from on the stream descriptor opened
  *        with this flag will fail.
+ * 0x08 - Disable Producer Callback.
+ *        If this flag is set and the stream becomes empty, do not call any
+ *        associated producer callback to generate more data from the reader
+ *        context.
  * 0x10 - Reset stream on open.
  *        When this flag is used the stream will drop all of the stored data.
+ * 0x40 - Ignore Open Callback.
+ *        When this flag is set ignore any OnReaderOpenCallback setting for
+ *        the stream. This allows access to the stream to be made without
+ *        generating any extra packets into the stream.
  */
 #define PVRSRV_STREAM_FLAG_NONE                        (0U)
 #define PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING         (1U<<0)
@@ -217,6 +228,7 @@ typedef enum _PVRSRVTL_PACKETTYPE_
 #define PVRSRV_STREAM_FLAG_OPEN_WO                     (1U<<2)
 #define PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK   (1U<<3)
 #define PVRSRV_STREAM_FLAG_RESET_ON_OPEN               (1U<<4)
+#define PVRSRV_STREAM_FLAG_IGNORE_OPEN_CALLBACK        (1U<<6)
 
 #if defined (__cplusplus)
 }
@@ -226,4 +238,3 @@ typedef enum _PVRSRVTL_PACKETTYPE_
 /******************************************************************************
  End of file (pvrsrv_tlcommon.h)
 ******************************************************************************/
-

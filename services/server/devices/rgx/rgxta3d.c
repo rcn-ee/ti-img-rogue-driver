@@ -3807,11 +3807,9 @@ PVRSRV_ERROR PVRSRVRGXKickTA3DKM(RGX_SERVER_RENDER_CONTEXT	*psRenderContext,
 					ui32Fence3DSyncCheckpointCount));
 				for (i=0; i<ui32Fence3DSyncCheckpointCount; i++)
 				{
-					/* Check to see if the checkpoint is a foreign (non GPU
-					 * created) checkpoint or was created from another
-					 * process */
-					if (SyncCheckpointGetTimeline(apsFence3DSyncCheckpoints[i]) == SYNC_CHECKPOINT_FOREIGN_CHECKPOINT ||
-							SyncCheckpointGetCreator(apsFence3DSyncCheckpoints[i]) != uiCurrentProcess)
+					/* Check to see if the checkpoint or was created from another
+					* process */
+					if (SyncCheckpointGetCreator(apsFence3DSyncCheckpoints[i]) != uiCurrentProcess)
 					{
 						/* 3D Sync point represents foreign or cross process
 						 * dependency, copy sync point to TA command fence. */

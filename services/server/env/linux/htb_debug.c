@@ -55,50 +55,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "allocmem.h"
 #include "pvr_notifier.h"
 #include "pvrsrv.h"
-
-/*
- * External interface routines:
- *
- * HTB_CreateFSEntry
- *	Instantiates storage and an entry in debugFS
- *
- * HTB_UpdateFSEntry
- *	Updates storage settings if necessary
- *
- * HTB_DestroyFSEntry
- *	Removes debugFS entry and releases allocated storage
- */
-PVRSRV_ERROR HTB_CreateFSEntry(IMG_UINT32, const IMG_CHAR *);
-PVRSRV_ERROR HTB_UpdateFSEntry(IMG_UINT32);
-void HTB_DestroyFSEntry(void);
-
-/* Flag value to mark Stream handle closure */
-#define HTB_STREAM_CLOSED   (IMG_HANDLE)0xfacedead
+#include "htb_debug.h"
+#include "kernel_compatibility.h"
 
 // Global data handles for buffer manipulation and processing
 typedef struct
 {
-	const IMG_CHAR *szStreamName;       /* Name of Host Trace Buffer */
-
     PPVR_DEBUGFS_ENTRY_DATA psDumpHostDebugFSEntry;	/* debugFS entry hook */
-
-	IMG_UINT32 ui32BufferSize;          /* Size of allocated pRawBuf */
 	IMG_HANDLE hStream;                 /* Stream handle for debugFS use */
+} HTB_DBG_INFO;
 
-	IMG_PBYTE pBuf;                     /* Acquired buffer */
-	IMG_UINT32 uiBufLen;                /* Acquired buffer length */
-	IMG_PBYTE pCurrent;                 /* Current processing entry in buffer */
+static HTB_DBG_INFO g_sHTBData;
 
-	IMG_PBYTE pRawBuf;                  /* Copy-buffer to reduce TL lockout */
-	IMG_PBYTE pRawCur;                  /* Current position within pRawBuf */
-} HTB_CTRL_INFO;
-
-static HTB_CTRL_INFO g_sCtrl;
+// Enable for extra debug level
+//#define HTB_CHATTY	1
 
 /*****************************************************************************
  * debugFS display routines
  ******************************************************************************/
-static void HTBDumpBuffer(DUMPDEBUG_PRINTF_FUNC *, void *, void *);
+static int HTBDumpBuffer(DUMPDEBUG_PRINTF_FUNC *, void *, void *);
 static void _HBTraceSeqPrintf(void *, const IMG_CHAR *, ...);
 static int _DebugHBTraceSeqShow(struct seq_file *, void *);
 static void *_DebugHBTraceSeqStart(struct seq_file *, loff_t *);
@@ -109,32 +84,337 @@ static void _HBTraceSeqPrintf(void *pvDumpDebugFile,
                               const IMG_CHAR *pszFormat, ...)
 {
 	struct seq_file *psSeqFile = (struct seq_file *)pvDumpDebugFile;
-	IMG_CHAR        aszBuffer[PVR_MAX_DEBUG_MESSAGE_LEN];
 	va_list         ArgList;
 
 	va_start(ArgList, pszFormat);
-	vsnprintf(aszBuffer, PVR_MAX_DEBUG_MESSAGE_LEN, pszFormat, ArgList);
+	seq_printf(psSeqFile, pszFormat, ArgList);
 	va_end(ArgList);
-	seq_puts(psSeqFile, aszBuffer);
 }
 
 static int _DebugHBTraceSeqShow(struct seq_file *psSeqFile, void *pvData)
 {
-	HTBDumpBuffer(_HBTraceSeqPrintf, psSeqFile, pvData);
+	int	retVal;
 
-	return 0;
+	PVR_ASSERT(NULL != psSeqFile);
+
+	/* psSeqFile should never be NULL */
+	if (psSeqFile == NULL)
+	{
+		return -1;
+	}
+
+	/*
+	 * Ensure that we have a valid address to use to dump info from. If NULL we
+	 * return a failure code to terminate the seq_read() call. pvData is either
+	 * SEQ_START_TOKEN (for the initial call) or an HTB buffer address for
+	 * subsequent calls [returned from the NEXT function].
+	 */
+	if (pvData == NULL)
+	{
+		return -1;
+	}
+
+
+	retVal = HTBDumpBuffer(_HBTraceSeqPrintf, psSeqFile, pvData);
+
+#ifdef HTB_CHATTY
+	PVR_DPF((PVR_DBG_WARNING, "%s: Returning %d", __func__, retVal));
+#endif	/* HTB_CHATTY */
+
+	return retVal;
 }
 
 typedef struct {
 	IMG_PBYTE	pBuf;		/* Raw data buffer from TL stream */
-	IMG_BOOL	bOverflowed;/* output buffer has overflowed so must retry */
-	IMG_BOOL	bHeaderFlag;/* Display a header field if set */
 	IMG_UINT32	uiBufLen;	/* Amount of data to process from 'pBuf' */
 	IMG_UINT32	uiTotal;	/* Total bytes processed */
-	IMG_UINT32	uiRetries;	/* # of attempts to process overflowing buffer */
-	IMG_PBYTE	pOvflow;	/* Position to restart scanning on Overflow */
-	IMG_UINT32	uiBufOvLen;	/* Amount of data to process on overflow */
+	IMG_UINT32	uiMsgLen;	/* Length of HTB message to be processed */
+	IMG_PBYTE	pCurr;		/* pointer to current message to be decoded */
+	IMG_CHAR    szBuffer[PVR_MAX_DEBUG_MESSAGE_LEN];	/* Output string */
 } HTB_Sentinel_t;
+
+static IMG_UINT32 idToLogIdx(IMG_UINT32);	/* Forward declaration */
+
+/*
+ * HTB_GetNextMessage
+ *
+ * Get next non-empty message block from the buffer held in pSentinel->pBuf
+ * If we exhaust the data buffer we refill it (after releasing the previous
+ * message(s) [only one non-NULL message, but PAD messages will get released
+ * as we traverse them].
+ *
+ * Input:
+ *	pSentinel		references the already acquired data buffer
+ *
+ * Output:
+ *	pSentinel
+ *		-> uiMsglen updated to the size of the non-NULL message
+ *
+ * Returns:
+ *	Address of first non-NULL message in the buffer (if any)
+ *	NULL if there is no further data available from the stream and the buffer
+ *	contents have been drained.
+ */
+static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *);
+static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
+{
+	IMG_PBYTE	pNext, pLast, pStart, pData = NULL;
+	IMG_PBYTE	pCurrent;		/* Current processing point within buffer */
+	PVRSRVTL_PPACKETHDR	ppHdr;	/* Current packet header */
+	IMG_UINT32	uiHdrType;		/* Packet header type */
+	IMG_UINT32	uiMsgSize;		/* Message size of current packet (bytes) */
+	IMG_UINT32	ui32DataSize;
+	IMG_UINT32	uiBufLen;
+	IMG_BOOL    bUnrecognizedErrorPrinted = IMG_FALSE;
+	IMG_UINT32  ui32Data;
+	IMG_UINT32  ui32LogIdx;
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(NULL != pSentinel);
+
+	uiBufLen = pSentinel->uiBufLen;
+	/* Convert from byte to uint32 size */
+	ui32DataSize = pSentinel->uiBufLen / sizeof (IMG_UINT32);
+
+	pLast = pSentinel->pBuf + pSentinel->uiBufLen;
+
+	pStart = pSentinel->pBuf;
+
+	pNext = pStart;
+	pSentinel->uiMsgLen = 0;	// Reset count for this message
+	uiMsgSize = 0;				// nothing processed so far
+	ui32LogIdx = HTB_SF_LAST;	// Loop terminator condition
+
+	do
+	{
+		/*
+		 * If we've drained the buffer we must RELEASE and ACQUIRE some more.
+		 */
+		if (pNext >= pLast)
+		{
+			eError = TLClientReleaseData(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream);
+			PVR_ASSERT(eError == PVRSRV_OK);
+
+			eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
+				g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+
+			if (PVRSRV_OK != eError)
+			{
+				PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'", __func__,
+					"TLClientAcquireData", PVRSRVGETERRORSTRING(eError)));
+				return NULL;
+			}
+
+			// Reset our limits - if we've returned an empty buffer we're done.
+			pLast = pSentinel->pBuf + pSentinel->uiBufLen;
+			pStart = pSentinel->pBuf;
+			pNext = pStart;
+
+			if (pStart == NULL || pLast == NULL)
+			{
+				return NULL;
+			}
+		}
+
+		/*
+		 * We should have a header followed by data block(s) in the stream.
+		 */
+
+		pCurrent = pNext;
+		ppHdr = GET_PACKET_HDR(pCurrent);
+
+		if (ppHdr == NULL)
+		{
+			PVR_DPF((PVR_DBG_ERROR,
+	    		"%s: Unexpected NULL packet in Host Trace buffer", __func__));
+			pSentinel->uiMsgLen += uiMsgSize;
+			return NULL;		// This should never happen
+		}
+
+		/*
+		 * This should *NEVER* fire. If it does it means we have got some
+		 * dubious packet header back from the HTB stream. In this case
+		 * the sensible thing is to abort processing and return to
+		 * the caller
+		 */
+		uiHdrType = GET_PACKET_TYPE(ppHdr);
+
+		PVR_ASSERT(uiHdrType < PVRSRVTL_PACKETTYPE_LAST &&
+			uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF);
+
+		if (uiHdrType < PVRSRVTL_PACKETTYPE_LAST &&
+			uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF)
+		{
+			/*
+			 * We have a (potentially) valid data header. We should see if
+			 * the associated packet header matches one of our expected
+			 * types.
+			 */
+			pNext = (IMG_PBYTE)GET_NEXT_PACKET_ADDR(ppHdr);
+
+			PVR_ASSERT(pNext != NULL);
+
+			uiMsgSize = (IMG_UINT32)((size_t)pNext - (size_t)ppHdr);
+
+			pSentinel->uiMsgLen += uiMsgSize;
+
+			pData = GET_PACKET_DATA_PTR(ppHdr);
+
+			/*
+			 * Handle non-DATA packet types. These include PAD fields which
+			 * may have data associated and other types. We simply discard
+			 * these as they have no decodable information within them.
+			 */
+			if (uiHdrType != PVRSRVTL_PACKETTYPE_DATA)
+			{
+				/*
+				 * Now release the current non-data packet and proceed to the
+				 * next entry (if any).
+				 */
+				eError = TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE,
+				    g_sHTBData.hStream, uiMsgSize);
+
+#ifdef HTB_CHATTY
+				PVR_DPF((PVR_DBG_WARNING, "%s: Packet Type %x Length %u",
+					__func__, uiHdrType, uiMsgSize));
+#endif
+
+				if (eError != PVRSRV_OK)
+				{
+					PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED - '%s' message"
+						" size %u", __func__, "TLClientReleaseDataLess",
+						PVRSRVGETERRORSTRING(eError), uiMsgSize));
+				}
+
+				eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
+					g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+
+				if (PVRSRV_OK != eError)
+				{
+					PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED - %s Giving up",
+						__func__, "TLClientAcquireData",
+						PVRSRVGETERRORSTRING(eError)));
+
+					return NULL;
+				}
+				pSentinel->uiMsgLen = 0;
+				// Reset our limits - if we've returned an empty buffer we're done.
+				pLast = pSentinel->pBuf + pSentinel->uiBufLen;
+				pStart = pSentinel->pBuf;
+				pNext = pStart;
+
+				if (pStart == NULL || pLast == NULL)
+				{
+					return NULL;
+				}
+				continue;
+			}
+			if (pData == NULL || pData >= pLast)
+			{
+				continue;
+			}
+			ui32Data = *(IMG_UINT32 *)pData;
+			ui32LogIdx = idToLogIdx(ui32Data);
+		}
+		else
+		{
+			PVR_DPF((PVR_DBG_WARNING, "Unexpected Header @%p value %x",
+				ppHdr, uiHdrType));
+
+			return NULL;
+		}
+
+		/*
+		 * Check if the unrecognized ID is valid and therefore, tracebuf
+		 * needs updating.
+		 */
+		if (HTB_SF_LAST == ui32LogIdx && HTB_LOG_VALIDID(ui32Data)
+			&& IMG_FALSE == bUnrecognizedErrorPrinted)
+		{
+			PVR_DPF((PVR_DBG_WARNING,
+			    "%s: Unrecognised LOG value '%x' GID %x Params %d ID %x @ '%p'",
+				__func__, ui32Data, HTB_SF_GID(ui32Data),
+				HTB_SF_PARAMNUM(ui32Data), ui32Data & 0xfff, pData));
+			bUnrecognizedErrorPrinted = IMG_FALSE;
+		}
+
+	} while (HTB_SF_LAST == ui32LogIdx);
+
+#ifdef HTB_CHATTY
+	PVR_DPF((PVR_DBG_WARNING, "%s: Returning data @ %p Log value '%x'",
+		__func__, pCurrent, ui32Data));
+#endif	/* HTB_CHATTY */
+
+	return pCurrent;
+}
+
+/*
+ * HTB_GetFirstMessage
+ *
+ * Called from START to obtain the buffer address of the first message within
+ * pSentinel->pBuf. Will ACQUIRE data if the buffer is empty.
+ *
+ * Input:
+ *	pSentinel
+ *	puiPosition			Offset within the debugFS file
+ *
+ * Output:
+ *	pSentinel->pCurr	Set to reference the first valid non-NULL message within
+ *						the buffer. If no valid message is found set to NULL.
+ *	pSentinel
+ *		->pBuf		if unset on entry
+ *		->uiBufLen	if pBuf unset on entry
+ *
+ * Side-effects:
+ *	HTB TL stream will be updated to bypass any zero-length PAD messages before
+ *	the first non-NULL message (if any).
+ */
+static void HTB_GetFirstMessage(HTB_Sentinel_t *, loff_t *);
+static void HTB_GetFirstMessage(HTB_Sentinel_t *pSentinel, loff_t *puiPosition)
+{
+	PVRSRV_ERROR	eError;
+
+	if (pSentinel == NULL)
+		return;
+
+	if (pSentinel->pBuf == NULL)
+	{
+		/* Acquire data */
+		pSentinel->uiMsgLen = 0;
+
+		eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
+		    g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+
+		if (PVRSRV_OK != eError)
+		{
+			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'",
+			    __func__, "TLClientAcquireData", PVRSRVGETERRORSTRING(eError)));
+
+			pSentinel->pBuf = NULL;
+			pSentinel->pCurr = NULL;
+		}
+		else
+		{
+			/*
+			 * If there is no data available we set pSentinel->pCurr to NULL
+			 * and return. This is expected behaviour if we've drained the
+			 * data and nothing else has yet been produced.
+			 */
+			if (pSentinel->uiBufLen == 0 || pSentinel->pBuf == NULL)
+			{
+#ifdef HTB_CHATTY
+				PVR_DPF((PVR_DBG_WARNING, "%s: Empty Buffer @ %p", __func__,
+					pSentinel->pBuf));
+#endif	/* HTB_CHATTY */
+				pSentinel->pCurr = NULL;
+				return;
+			}
+		}
+	}
+
+	/* Locate next message within buffer. NULL => no more data to process */
+	pSentinel->pCurr = HTB_GetNextMessage(pSentinel);
+}
 
 /*
  * _DebugHBTraceSeqStart:
@@ -143,30 +423,100 @@ typedef struct {
  * Return SEQ_START_TOKEN for the very first call and allocate a sentinel for
  * use by the 'Show' routine and its helpers.
  * This is stored in the psSeqFile->private hook field.
+ *
+ * We obtain access to the TLstream associated with the HTB. If this doesn't
+ * exist (because no pvrdebug capture trace has been set) we simply return with
+ * a NULL value which will stop the seq_file traversal.
  */
 static void *_DebugHBTraceSeqStart(struct seq_file *psSeqFile,
                                    loff_t *puiPosition)
 {
 	HTB_Sentinel_t	*pSentinel = (HTB_Sentinel_t *)psSeqFile->private;
+	PVRSRV_ERROR	eError;
+	IMG_UINT32		uiTLMode;
+	void			*retVal;
+
+
+	/* Open the stream in non-blocking mode so that we can determine if there
+	 * is no data to consume. Also disable the producer callback (if any) and
+	 * the open callback so that we do not generate spurious trace data when
+	 * accessing the stream.
+	 */
+	uiTLMode = PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING|
+			   PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK|
+			   PVRSRV_STREAM_FLAG_IGNORE_OPEN_CALLBACK;
+
+	/* Handle the case where we have a persistent unclosed (as yet) reference
+	 * to the HTB stream. If our stream handle is neither NULL nor closed we
+	 * have probably encountered an error in mid-processing. In this case
+	 * we will not attempt to re-open the stream as that will fail.
+	 * Instead, we allow the cycle Start->Show->Next/End to close the stream
+	 * correctly.
+	 */
+
+	if (g_sHTBData.hStream == NULL || g_sHTBData.hStream == HTB_STREAM_CLOSED)
+	{
+		eError = TLClientOpenStream(DIRECT_BRIDGE_HANDLE,
+			HTB_STREAM_NAME, uiTLMode, &g_sHTBData.hStream);
+
+		if (PVRSRV_OK != eError) {
+			/*
+		 	 * No stream available so nothing to report
+		 	 */
+			return NULL;
+		}
+	}
+#ifdef HTB_CHATTY
+	else
+	{
+		PVR_DPF((PVR_DBG_WARNING, "%s: Stream handle %p still present for %s",
+		    __func__, g_sHTBData.hStream, HTB_STREAM_NAME));
+	}
+#endif	/* HTB_CHATTY */
+
+	/*
+	 * Ensure we have our debug-specific data store allocated and hooked from
+	 * our seq_file private data.
+	 * If the allocation fails we can safely return NULL which will stop
+	 * further calls from the seq_file routines (NULL return from START or NEXT
+	 * means we have no (more) data to process)
+	 */
+	if (pSentinel == NULL)
+	{
+		pSentinel = (HTB_Sentinel_t *)OSAllocZMem(sizeof (HTB_Sentinel_t));
+		psSeqFile->private = pSentinel;
+	}
+
+	/*
+	 * Find the first message location within pSentinel->pBuf
+	 * => for SEQ_START_TOKEN we must issue our first ACQUIRE, also for the
+	 * subsequent re-START calls (if any).
+	 */
+
+	HTB_GetFirstMessage(pSentinel, puiPosition);
 
 	if (*puiPosition == 0)
 	{
-		if (pSentinel == NULL)
-		{
-			pSentinel = (HTB_Sentinel_t *)OSAllocZMem(sizeof (HTB_Sentinel_t));
-			psSeqFile->private = pSentinel;
-		}
-		return SEQ_START_TOKEN;
+		retVal = SEQ_START_TOKEN;
 	}
 	else
 	{
 		if (pSentinel == NULL)
 		{
-			pSentinel = (HTB_Sentinel_t *)OSAllocZMem(sizeof (HTB_Sentinel_t));
-			psSeqFile->private = pSentinel;
+			retVal = NULL;
 		}
-		return (void *)pSentinel;
+		else
+		{
+			retVal = (void *)pSentinel->pCurr;
+		}
 	}
+
+#ifdef HTB_CHATTY
+	PVR_DPF((PVR_DBG_WARNING, "%s: Returning %p, Stream %s @ %p", __func__,
+		 retVal, HTB_STREAM_NAME, g_sHTBData.hStream));
+#endif	/* HTB_CHATTY */
+
+	return retVal;
 
 }
 
@@ -179,15 +529,48 @@ static void *_DebugHBTraceSeqStart(struct seq_file *psSeqFile,
 static void _DebugHBTraceSeqStop(struct seq_file *psSeqFile, void *pvData)
 {
 	HTB_Sentinel_t	*pSentinel = (HTB_Sentinel_t *)psSeqFile->private;
+	IMG_UINT32		uiMsgLen;
+
+	if (NULL == pSentinel)
+		return;
+
+	uiMsgLen = pSentinel->uiMsgLen;
+
+#ifdef HTB_CHATTY
+	PVR_DPF((PVR_DBG_WARNING, "%s: MsgLen = %d", __func__, uiMsgLen));
+#endif	/* HTB_CHATTY */
+
+	if (g_sHTBData.hStream != NULL && g_sHTBData.hStream != HTB_STREAM_CLOSED)
+	{
+		PVRSRV_ERROR eError;
+
+		if (uiMsgLen != 0)
+		{
+			eError = TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE,
+				g_sHTBData.hStream, uiMsgLen);
+
+			if (PVRSRV_OK != eError)
+			{
+				PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED - %s, nBytes %u",
+					__func__, "TLClientReleaseDataLess",
+					PVRSRVGETERRORSTRING(eError), uiMsgLen));
+			}
+		}
+
+		eError = TLClientCloseStream(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream);
+		if (PVRSRV_OK != eError)
+		{
+			PVR_DPF((PVR_DBG_WARNING, "%s() failed (%s) in %s()",
+				"TLClientCloseStream", PVRSRVGETERRORSTRING(eError),
+				__func__));
+		}
+		g_sHTBData.hStream = HTB_STREAM_CLOSED;
+	}
 
 	if (pSentinel != NULL)
 	{
-		if (pSentinel->bOverflowed)
-		{
-			return;
-		}
-		OSFreeMem(pSentinel);
 		psSeqFile->private = NULL;
+		OSFreeMem(pSentinel);
 	}
 }
 
@@ -195,18 +578,20 @@ static void _DebugHBTraceSeqStop(struct seq_file *psSeqFile, void *pvData)
 /*
  * _DebugHBTraceSeqNext:
  *
- * Provide the next location to use for debug output. We return NULL to
- * start a new sequence of STOP / START / SHOW / NEXT requests to produce the
- * data. The pSentinel structure handles the necessary buffer sizing so that we
- * do not exceed the initial seq_file provided buffer limit.
+ * This is where we release any acquired data which has been processed by the
+ * SeqShow routine. If we have encountered a seq_file overflow we stop
+ * processing and return NULL. Otherwise we release the message that we
+ * previously processed and simply update our position pointer to the next
+ * valid HTB message (if any)
  */
 static void *_DebugHBTraceSeqNext(struct seq_file *psSeqFile,
                                   void *pvData,
                                   loff_t *puiPosition)
 {
 	loff_t			curPos;
+	HTB_Sentinel_t	*pSentinel = (HTB_Sentinel_t *)psSeqFile->private;
+	PVRSRV_ERROR	eError;
 
-	PVR_UNREFERENCED_PARAMETER(psSeqFile);
 	PVR_UNREFERENCED_PARAMETER(pvData);
 
 	if (puiPosition)
@@ -215,7 +600,68 @@ static void *_DebugHBTraceSeqNext(struct seq_file *psSeqFile,
 		*puiPosition = curPos+1;
 	}
 
-	return (void *)NULL;		/* We are a one-shot routine */
+	/*
+	 * Determine if we've had an overflow on the previous 'Show' call. If so
+	 * we leave the previously acquired data in the queue (by releasing 0 bytes)
+	 * and return NULL to end this seq_read() iteration.
+	 * If we have not overflowed we simply get the next HTB message and use that
+	 * for our display purposes
+	 */
+
+	if (seq_has_overflowed(psSeqFile))
+	{
+		(void)TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream, 0);
+
+#ifdef HTB_CHATTY
+		PVR_DPF((PVR_DBG_WARNING, "%s: OVERFLOW - returning NULL", __func__));
+#endif	/* HTB_CHATTY */
+
+		return (void *)NULL;
+	}
+	else
+	{
+		eError = TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream,
+		    pSentinel->uiMsgLen);
+
+		if (PVRSRV_OK != eError)
+		{
+			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s' @ %p Length %d",
+				__func__, "TLClientReleaseDataLess",
+				PVRSRVGETERRORSTRING(eError), pSentinel->pCurr,
+			    pSentinel->uiMsgLen));
+			PVR_DPF((PVR_DBG_WARNING, "%s: Buffer @ %p..%p", __func__,
+				pSentinel->pBuf,
+				(IMG_PBYTE)(pSentinel->pBuf+pSentinel->uiBufLen)));
+
+		}
+
+		eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
+		    g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+
+		if (PVRSRV_OK != eError)
+		{
+			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'\nPrev message len %d",
+			    __func__, "TLClientAcquireData", PVRSRVGETERRORSTRING(eError),
+				pSentinel->uiMsgLen));
+			pSentinel->pBuf = NULL;
+		}
+
+		pSentinel->uiMsgLen = 0;	// We don't (yet) know the message size
+	}
+
+#ifdef HTB_CHATTY
+	PVR_DPF((PVR_DBG_WARNING, "%s: Returning %p Msglen %d",
+		__func__, pSentinel->pBuf, pSentinel->uiMsgLen));
+#endif	/* HTB_CHATTY */
+
+	if (pSentinel->pBuf == NULL || pSentinel->uiBufLen == 0)
+	{
+		return NULL;
+	}
+
+	pSentinel->pCurr = HTB_GetNextMessage(pSentinel);
+
+	return pSentinel->pCurr;
 }
 
 static const struct seq_operations gsHTBReadOps = {
@@ -260,6 +706,7 @@ static const IMG_CHAR *aGroups[] = {
 	HTB_LOG_SFGROUPLIST
 #undef X
 };
+static const IMG_UINT32 uiMax_aGroups = ARRAY_SIZE(aGroups) - 1;
 
 static TRACEBUF_ARG_TYPE ExtractOneArgFmt(IMG_CHAR **, IMG_CHAR *);
 /*
@@ -361,764 +808,330 @@ static IMG_UINT32 idToLogIdx(IMG_UINT32 ui32CheckData)
 }
 
 /*
- * HandleOverflow
- *
- * For Linux-based kernel debugFS output, we have to take special steps to
- * ensure that we do not flood the associated seq_file output file with our
- * data stream.
- * If we exceed the 'size' of the file the seq_file handler in the kernel code
- * will simply free the buffer and reallocate with twice the size. Unfortunately
- * this will lose the previously filled data.
- * To avoid this, we check for there being sufficient space remaining in the
- * seq_file handle, and if the new data addition would exceed this we flag it
- * as an overflow, and set-up the transfer to continue at the current failure
- * point on the next invocation.
- *
- * Input parameters:
- *		pSentinel       - handle to private data containing offset and buffer
- *		                  location
- *		pvDumpDebugFile - handle to the debugFS instance we are updating
- *		pCurrent        - current byte position in the HTB data stream
- *		ui32Size        - number of bytes to reserve in the output stream
- *		ui32NewTotal    - new transfer count to reset our private handle to
- *
- * Return Value:
- *	IMG_FALSE   - no overflow condition
- *	IMG_TRUE    - overflow would occur - Sentinel has been set to recover from
- *	              current position within the data buffer
- */
-static IMG_BOOL HandleOverflow(HTB_Sentinel_t *, void *, IMG_PBYTE, IMG_UINT32, IMG_UINT32);
-static IMG_BOOL
-HandleOverflow(
-	HTB_Sentinel_t *pSentinel,  // Private data handle
-	void *pvDumpDebugFile,      // Output file reference handle
-	IMG_PBYTE  pCurrent,        // Current position in buffer
-	IMG_UINT32 ui32Size,        // Data stream size to reserve
-	IMG_UINT32 ui32NewTotal)    // New total to reset to
-{
-	struct seq_file *psSeqFile = (struct seq_file *)pvDumpDebugFile;
-
-	/*
-	 * Make sure we don't overwrite any previous information for an existing
-	 * overflow condition.
-	 * In this case we update the pSentinel fields when we are performing the
-	 * subsequent resubmission.
-	 */
-	if (pSentinel->bOverflowed)
-	{
-		return IMG_TRUE;
-	}
-
-	if (psSeqFile->count + ui32Size >= psSeqFile->size)
-	{
-		pSentinel->bOverflowed = IMG_TRUE;
-
-		pSentinel->pOvflow = pCurrent;
-		pSentinel->uiBufOvLen = pSentinel->uiBufLen -
-		    (IMG_UINT32)(pCurrent - pSentinel->pBuf);
-		pSentinel->uiTotal = ui32NewTotal;
-	}
-	else
-		pSentinel->bOverflowed = IMG_FALSE;
-
-	return pSentinel->bOverflowed;
-}
-
-/*
  * DecodeHTB
  *
- * Scan the data buffer between [pBuf..pBuf+ui32BufLen)
- * Look for a valid Header within these constraints and decode any identified
- * data records held there-in.
- *
- * If called with a partially written buffer we will have ->bOverflowed set
- * this means we have to reprocess the entire ->pOvflow .. + ->uiBufOvLen range
- * and try to commit that to the new buffer.
+ * Decode the data buffer message located at pBuf. This should be a valid
+ * HTB message as we are provided with the start of the buffer. If empty there
+ * is no message to process. We update the uiMsgLen field with the size of the
+ * HTB message that we have processed so that it can be returned to the system
+ * on successful logging of the message to the output file.
  *
  *	Input
  *		pSentinel reference to newly read data and pending completion data
  *		          from a previous invocation [handle seq_file buffer overflow]
  *		 -> pBuf         reference to raw data that we are to parse
- *		 -> uiBufLen     number of bytes of data to parse
- *		 -> bOverflowed  Set if we've overcommitted to the output file
- *		 -> bHeaderFlag  display a header for the data
- *		 -> pOvflow      point at which to start re-processing for Overflow
- *		 -> uiBufOvLen   length of overflow data to process
+ *		 -> uiBufLen     total number of bytes of data available
+ *		 -> pCurr        start of message to decode
  *
  *		pvDumpDebugFile     output file
  *		pfnDumpDebugPrintf  output generating routine
+ *
+ * Output
+ *		pSentinel
+ *		 -> uiMsgLen	length of the decoded message which will be freed to
+ *						the system on successful completion of the seq_file
+ *						update via _DebugHBTraceSeqNext(),
+ * Return Value
+ *		0				successful decode
+ *		-1				unsuccessful decode
  */
-static void
+static int
 DecodeHTB(HTB_Sentinel_t *pSentinel,
 	void *pvDumpDebugFile, DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf)
 {
-	IMG_UINT32	*ui32TraceBuf = (IMG_UINT32 *)pSentinel->pBuf;
-	IMG_UINT32	ui32TraceOff = 0;
-
 	IMG_UINT32	ui32Data, ui32LogIdx, ui32ArgsCur;
 	IMG_CHAR	*pszFmt = NULL;
 	IMG_CHAR	aszOneArgFmt[MAX_STRING_SIZE];
 	IMG_BOOL	bUnrecognizedErrorPrinted = IMG_FALSE;
-	IMG_CHAR	aszHeader[80];		// Header display string
 
 	IMG_UINT32	ui32DataSize;
 	IMG_UINT32	uiBufLen = pSentinel->uiBufLen;
 	size_t	nPrinted;
-	IMG_UINT32	ui32CurTotal = pSentinel->uiTotal;	// Current total on entry
 
 	IMG_PBYTE	pNext, pLast, pStart, pData = NULL;
-	IMG_PBYTE	pCurrent;		/* Current processing point within buffer */
 	PVRSRVTL_PPACKETHDR	ppHdr;	/* Current packet header */
+	IMG_UINT32	uiHdrType;		/* Packet header type */
+	IMG_UINT32	uiMsgSize;		/* Message size of current packet (bytes) */
+	IMG_BOOL	bPacketsDropped;
 
 	/* Convert from byte to uint32 size */
 	ui32DataSize = uiBufLen / sizeof (IMG_UINT32);
 
 	pLast = pSentinel->pBuf + pSentinel->uiBufLen;
-	pStart = pSentinel->pBuf;
-
-	/*
-	 * Display a meaningful header for the output data
-	 */
-	if (pSentinel->bHeaderFlag && !pSentinel->bOverflowed)
-	{
-		nPrinted = OSSNPrintf(aszHeader, sizeof (aszHeader),
-			"%-10s:%-5s-%s  %s\n",
-			"Timestamp", "Proc ID", "Group", "Log Entry");
-
-		PVR_DUMPDEBUG_LOG(aszHeader);
-		OSCachedMemSet(aszHeader, 0, sizeof (aszHeader));
-		OSCachedMemSet(aszHeader, '=', nPrinted);
-		aszHeader[nPrinted - 1] = '\n';
-		PVR_DUMPDEBUG_LOG(aszHeader);
-	}
-
-	/*
-	 * Need to determine if we are likely to hit buffer overflow before we
-	 * start producing data. If we are, we will need to fill the buffer and
-	 * then re-fill it on the subsequent call which should have had a new
-	 * back-end buffer allocated via the seq_file routines.
-	 * Note: we may well have to re-parse the data multiple times if we have
-	 * a lot to process. To limit the O(n^2) behaviour of this, we split
-	 * the output and attempt to never hit the overflow condition.
-	 * Subsequent calls will be marked with bOverflowed and pOvflow refers
-	 * to next location within [pBuf .. pBuf+uiBufLen) to scan. uiBufOvLen
-	 * is the remaining amount of data to process.
-	 */
-	if (pSentinel->bOverflowed)
-	{
-		pSentinel->bOverflowed = IMG_FALSE;		/* Reset and try again */
-		pSentinel->uiRetries++;
-
-		uiBufLen = pSentinel->uiBufOvLen;
-		ui32TraceBuf = (IMG_UINT32 *)pSentinel->pOvflow;
-		ui32DataSize = uiBufLen / sizeof (IMG_UINT32);
-
-		pLast = pSentinel->pOvflow + pSentinel->uiBufOvLen;
-		pStart = pSentinel->pOvflow;
-
-		pSentinel->pOvflow = NULL;
-		pSentinel->uiBufOvLen = 0;
-	}
+	pStart = pSentinel->pCurr;
 
 	pNext = pStart;
-	do
+	pSentinel->uiMsgLen = 0;	// Reset count for this message
+	uiMsgSize = 0;				// nothing processed so far
+	ui32LogIdx = HTB_SF_LAST;	// Loop terminator condition
+
+#ifdef HTB_CHATTY
+	PVR_DPF((PVR_DBG_WARNING, "%s: Buf @ %p..%p, Length = %d", __func__,
+		pStart, pLast, uiBufLen));
+#endif	/* HTB_CHATTY */
+
+	/*
+	 * We should have a DATA header with the necessary information following
+	 */
+	ppHdr = GET_PACKET_HDR(pStart);
+
+	if (ppHdr == NULL)
 	{
-		IMG_BOOL	bPacketsDropped;
-		IMG_UINT32	uiHdrType;
+			PVR_DPF((PVR_DBG_ERROR,
+	    		"%s: Unexpected NULL packet in Host Trace buffer", __func__));
+			return -1;
+	}
 
-		/* Seek for next valid header */
-		do
-		{
+	uiHdrType = GET_PACKET_TYPE(ppHdr);
+	PVR_ASSERT(uiHdrType == PVRSRVTL_PACKETTYPE_DATA);
 
-			if (pNext >= pLast)
-			{
-				return;
-			}
+	pNext = (IMG_PBYTE)GET_NEXT_PACKET_ADDR(ppHdr);
 
-			/*
-			 * We should have a header followed by data block(s) in the stream.
-			 * Show the header type and data length.
-			 */
+	PVR_ASSERT(pNext != NULL);
 
-			pCurrent = pNext;
-			ppHdr = GET_PACKET_HDR(pCurrent);
+	uiMsgSize = (IMG_UINT32)((size_t)pNext - (size_t)ppHdr);
 
-			if (ppHdr == NULL)
-			{
-				PVR_DPF((PVR_DBG_ERROR,
-			    	"%s: Unexpected NULL packet in Host Trace buffer",
-					__func__));
-				return;		// This should never happen
-			}
+	pSentinel->uiMsgLen += uiMsgSize;
 
-			uiHdrType = GET_PACKET_TYPE(ppHdr);
+	pData = GET_PACKET_DATA_PTR(ppHdr);
 
-			/*
-			 * This should *NEVER* fire. If it does it means we have got some
-			 * dubious packet header back from the HTB stream. In this case
-			 * the sensible thing is to abort processing and return to
-			 * the caller
-			 */
-			PVR_ASSERT(uiHdrType < PVRSRVTL_PACKETTYPE_LAST &&
-				uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF);
+	if (pData == NULL || pData >= pLast)
+	{
+#ifdef HTB_CHATTY
+		PVR_DPF((PVR_DBG_WARNING, "%s: pData = %p, pLast = %p Returning 0",
+			__func__, pData, pLast));
+#endif	/* HTB_CHATTY */
+		return 0;
+	}
 
-			if (uiHdrType < PVRSRVTL_PACKETTYPE_LAST &&
-				uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF)
-			{
-				/*
-				 * We have a (potentially) valid data header. We should see if
-				 * the associated packet header matches one of our expected
-				 * types.
-				 */
-				pNext = (IMG_PBYTE)GET_NEXT_PACKET_ADDR(ppHdr);
-				pData = GET_PACKET_DATA_PTR(ppHdr);
+	ui32Data = *(IMG_UINT32 *)pData;
+	ui32LogIdx = idToLogIdx(ui32Data);
 
-				/*
-				 * Handle zero-length data (aka PADDING fields)
-				 */
-				if (pData == NULL || pData >= pLast)
-				{
-					return;
-				}
-				ui32Data = *(IMG_UINT32 *)pData;
-				ui32LogIdx = idToLogIdx(ui32Data);
+	/*
+	 * Check if the unrecognized ID is valid and therefore, tracebuf
+	 * needs updating.
+	 */
+	if (HTB_SF_LAST == ui32LogIdx && HTB_LOG_VALIDID(ui32Data)
+		&& IMG_FALSE == bUnrecognizedErrorPrinted)
+	{
+		PVR_DPF((PVR_DBG_WARNING,
+		    "%s: Unrecognised LOG value '%x' GID %x Params %d ID %x @ '%p'",
+			__func__, ui32Data, HTB_SF_GID(ui32Data),
+			HTB_SF_PARAMNUM(ui32Data), ui32Data & 0xfff, pData));
+		bUnrecognizedErrorPrinted = IMG_FALSE;
 
-				ui32TraceOff = (IMG_UINT32)(pData - pStart) /
-					sizeof (IMG_UINT32);
-			}
-			else
-			{
-				PVR_DPF((PVR_DBG_WARNING, "Unexpected Header @%p value %x",
-					ppHdr, uiHdrType));
+		return 0;
+	}
 
-				return;
-			}
+	/* The string format we are going to display */
+	/*
+	 * The display will show the header (log-ID, group-ID, number of params)
+	 * The maximum parameter list length = 15 (only 4bits used to encode)
+	 * so we need HEADER + 15 * sizeof (UINT32) and the displayed string
+	 * describing the event. We use a buffer in the per-process pSentinel
+	 * structure to hold the data.
+	 */
+	pszFmt = aLogs[ui32LogIdx].pszFmt;
 
-			/*
-			 * Check if the unrecognized ID is valid and therefore, tracebuf
-			 * needs updating.
-			 */
-			if (HTB_SF_LAST == ui32LogIdx && HTB_LOG_VALIDID(ui32Data)
-				&& IMG_FALSE == bUnrecognizedErrorPrinted
-				)
-			{
-				PVR_DPF((PVR_DBG_WARNING,
-				    "%s: Unrecognised LOG value '%x' GID %x Params %d "
-					"ID %x @ '%p'",
-					__func__, ui32Data, HTB_SF_GID(ui32Data),
-					HTB_SF_PARAMNUM(ui32Data), ui32Data & 0xfff,
-					pData));
-				bUnrecognizedErrorPrinted = IMG_FALSE;
-			}
-		} while (HTB_SF_LAST == ui32LogIdx);
+	/* add the message payload size to the running count */
+	ui32ArgsCur = HTB_SF_PARAMNUM(ui32Data);
 
-		/* The string format we are going to display */
-		/*
-		 * The display will show the header (log-ID, group-ID, number of params)
-		 * The maximum parameter list length = 15 (only 4bits used to encode)
-		 * so we need HEADER + 15 * sizeof (UINT32)
-		 */
-		pszFmt = aLogs[ui32LogIdx].pszFmt;
-
-		/* add the message payload size to the running count */
-		ui32ArgsCur = HTB_SF_PARAMNUM(ui32Data);
-
-		/* Determine if we've over-filled the buffer and had to drop packets */
-		bPacketsDropped = CHECK_PACKETS_DROPPED(ppHdr);
-		if (bPacketsDropped ||
-			(uiHdrType == PVRSRVTL_PACKETTYPE_MOST_RECENT_WRITE_FAILED))
-		{
-			/* Flag this as it is useful to know ... */
-			nPrinted = OSSNPrintf(aszOneArgFmt, sizeof (aszOneArgFmt),
+	/* Determine if we've over-filled the buffer and had to drop packets */
+	bPacketsDropped = CHECK_PACKETS_DROPPED(ppHdr);
+	if (bPacketsDropped ||
+		(uiHdrType == PVRSRVTL_PACKETTYPE_MOST_RECENT_WRITE_FAILED))
+	{
+		/* Flag this as it is useful to know ... */
+		nPrinted = OSSNPrintf(aszOneArgFmt, sizeof (aszOneArgFmt),
 "\n<========================== *** PACKETS DROPPED *** ======================>\n");
 
-			if (HandleOverflow(pSentinel, pvDumpDebugFile, pCurrent, nPrinted,
-				ui32CurTotal))
-			{
-				/* We will overflow. Abort this processing early */
-				PVR_DPF((PVR_DBG_WARNING,
-					"%s: Buffer Overflow %d done PACKETS DROPPED!!!",
-					__func__, pSentinel->uiTotal));
+		PVR_DUMPDEBUG_LOG(aszOneArgFmt);
+	}
 
-				return;
-			}
-			else
-			{
-				PVR_DUMPDEBUG_LOG(aszOneArgFmt);
-			}
-		}
+	{
+		IMG_UINT32 ui32Timestamp, ui32PID;
+		IMG_CHAR	*szBuffer = pSentinel->szBuffer;	// Buffer start
+		IMG_CHAR	*pszBuffer = pSentinel->szBuffer;	// Current place in buf
+		size_t		uBufSize = sizeof ( pSentinel->szBuffer );
+		IMG_UINT32	*pui32Data = (IMG_UINT32 *)pData;
+		IMG_UINT32	ui_aGroupIdx;
+
+		// Get PID field from data stream
+		pui32Data++;
+		ui32PID = *pui32Data;
+		// Get Timestamp from data stream
+		pui32Data++;
+		ui32Timestamp = *pui32Data;
+		// Move to start of message contents data
+		pui32Data++;
 
 		/*
-		 * only process if the entire message is in the buffer.
-		 * TBD: This should be a given seeing as we are interrogating the
-		 * TL provided data and that *ought* to be in the correct format...
+		 * We need to snprintf the data to a local in-kernel buffer
+		 * and then PVR_DUMPDEBUG_LOG() that in one shot
 		 */
+		ui_aGroupIdx = MIN(HTB_SF_GID(ui32Data), uiMax_aGroups);
+ 		nPrinted = OSSNPrintf(szBuffer, uBufSize, "%10u:%5u-%s> ",
+			ui32Timestamp, ui32PID, aGroups[ui_aGroupIdx]);
+		if (nPrinted >= uBufSize)
 		{
-			IMG_UINT32 ui32Timestamp, ui32PID;
-			IMG_CHAR	szBuffer[PVR_MAX_DEBUG_MESSAGE_LEN];
-			IMG_CHAR	*pszBuffer = szBuffer;
-			size_t		uBufSize = sizeof ( szBuffer );
-			IMG_UINT32	*pui32Data = (IMG_UINT32 *)pData;
-
-			// Get PID field from data stream
-			pui32Data++;
-			ui32PID = *pui32Data;
-			// Get Timestamp from data stream
-			pui32Data++;
-			ui32Timestamp = *pui32Data;
-			// Move to start of message contents data
-			pui32Data++;
-
-			ui32TraceOff = (IMG_UINT32)(pui32Data - (IMG_UINT32 *)pStart) /
-				 sizeof (IMG_UINT32);
-			/*
-			 * We need to snprintf the data to a local in-kernel buffer
-			 * and then PVR_DUMPDEBUG_LOG() that in one shot
-			 */
- 			nPrinted = OSSNPrintf(szBuffer, uBufSize, "%10u:%5u-%s> ",
-				ui32Timestamp, ui32PID, aGroups[HTB_SF_GID(ui32Data)]);
-			if (nPrinted >= uBufSize)
-			{
-				PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed, max space %ld",
-					(long) nPrinted, (long) uBufSize);
-			}
-
-			/* Update where our next 'output' point in the buffer is */
-			pszBuffer += OSStringLength(szBuffer);
-			uBufSize -= (pszBuffer - szBuffer);
-
-			/*
-			 * Print one argument at a time as this simplifies handling variable
-			 * number of arguments. Special case handling for no arguments.
-			 * This is the case for simple format strings such as
-			 * HTB_SF_MAIN_KICK_UNCOUNTED.
-			 */
-			if (ui32ArgsCur == 0)
-			{
-				if (pszFmt)
-				{
-					nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
-					if (nPrinted >= uBufSize)
-					{
-						PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
-							" max space %ld", (long) nPrinted, (long) uBufSize);
-					}
-					pszBuffer = szBuffer + OSStringLength(szBuffer);
-					uBufSize -= (pszBuffer - szBuffer);
-				}
-			}
-			else
-			{
-				while ( IS_VALID_FMT_STRING(pszFmt) && (uBufSize > 0) )
-				{
-					IMG_UINT32 ui32TmpArg = *pui32Data;
-					TRACEBUF_ARG_TYPE eArgType;
-
-					eArgType = ExtractOneArgFmt(&pszFmt, aszOneArgFmt);
-
-					ui32TraceOff++;
-					pui32Data++;
-					ui32ArgsCur--;
-
-					switch (eArgType)
-					{
-						case TRACEBUF_ARG_TYPE_INT:
-							nPrinted = OSSNPrintf(pszBuffer, uBufSize,
-								aszOneArgFmt, ui32TmpArg);
-							break;
-
-						case TRACEBUF_ARG_TYPE_NONE:
-							nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
-							break;
-
-						default:
-							nPrinted = OSSNPrintf(pszBuffer, uBufSize,
-								"Error processing  arguments, type not "
-								"recognized (fmt: %s)", aszOneArgFmt);
-							break;
-					}
-					if (nPrinted >= uBufSize)
-					{
-						PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
-							" max space %ld", (long) nPrinted, (long) uBufSize);
-					}
-					pszBuffer = szBuffer + OSStringLength(szBuffer);
-					uBufSize -= (pszBuffer - szBuffer);
-				}
-				/* Display any remaining text in pszFmt string */
-				if (pszFmt)
-				{
-					nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
-					if (nPrinted >= uBufSize)
-					{
-						PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
-							" max space %ld", (long) nPrinted, (long) uBufSize);
-					}
-					pszBuffer = szBuffer + OSStringLength(szBuffer);
-					uBufSize -= (pszBuffer - szBuffer);
-				}
-			}
-
-			/*
-			 * Check to see if we can fit this buffer into the output file
-			 * without overflowing. If we hit the size limit we are going to
-			 * end up losing the data and will need to re-process into a larger
-			 * buffer. This is extraordinarily expensive in VM terms and an
-			 * O(N^2) time increase depending on the size of the data buffer
-			 * that we are trying to process.
-			 */
-			uBufSize = (IMG_UINT32)(pszBuffer - szBuffer);
-
-			g_sCtrl.pCurrent = pCurrent;
-
-			if (HandleOverflow(pSentinel, pvDumpDebugFile, pCurrent, uBufSize,
-				ui32CurTotal))
-			{
-				return;
-			}
-			PVR_DUMPDEBUG_LOG(szBuffer);
-
-			/* Update total bytes processed */
-			pSentinel->uiTotal += uBufSize;
-
-			/*
-			 * We may have overflowed the output buffer. If so, we need to
-			 * rewrite the data that caused the overflow so as not to lose it
-			 * on the next iteration. This is a catastrophic failure as we will
-			 * need to reprocess the entire buffer so far.
-			 */
-			if (HandleOverflow(pSentinel, pvDumpDebugFile, pCurrent, 0, 0))
-			{
-
-				/* Reset the overflow references to the start of the data */
-				pSentinel->pOvflow = pSentinel->pBuf;
-				pSentinel->uiBufOvLen = pSentinel->uiBufLen;
-				return;
-			}
-			else
-			{
-				ui32CurTotal += uBufSize;
-			}
+			PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed, max space %ld\n",
+				(long) nPrinted, (long) uBufSize);
 		}
 
-	} while (!pSentinel->bOverflowed && (pNext < pLast));
-}
-
-/*
- * HTBAcquireData:
- *
- * Grab data from the TL mechanism and place in the pre-allocated copy-buffer
- * This allows us to release our hold on the data producers before we start
- * processing the byte stream.
- * We have no hook from the seq_file to inform us that we have had a short
- * read, so we treat all subsequent reads as 'bOverflowed' and process them
- * until we need more data.
- */
-static PVRSRV_ERROR
-HTBAcquireData(HTB_Sentinel_t *pSentinel)
-{
-	PVRSRV_ERROR eError;
-
-	if (g_sCtrl.pRawCur)
-	{
-		IMG_PBYTE	pLast = g_sCtrl.pRawBuf;
-
-		pLast += g_sCtrl.uiBufLen;
+		/* Update where our next 'output' point in the buffer is */
+		pszBuffer += OSStringLength(szBuffer);
+		uBufSize -= (pszBuffer - szBuffer);
 
 		/*
-		 * If we haven't completed processing our outstanding data continue
-		 * from where we were.
+		 * Print one argument at a time as this simplifies handling variable
+		 * number of arguments. Special case handling for no arguments.
+		 * This is the case for simple format strings such as
+		 * HTB_SF_MAIN_KICK_UNCOUNTED.
 		 */
-		if (g_sCtrl.pRawCur > g_sCtrl.pRawBuf && g_sCtrl.pCurrent < pLast)
+		if (ui32ArgsCur == 0)
 		{
-			pSentinel->pOvflow = g_sCtrl.pRawCur;
-			pSentinel->uiBufOvLen = (IMG_UINT32)(pLast - g_sCtrl.pCurrent);
+			if (pszFmt)
+			{
+				nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
+				if (nPrinted >= uBufSize)
+				{
+					PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
+						" max space %ld\n", (long) nPrinted, (long) uBufSize);
+				}
+				pszBuffer = szBuffer + OSStringLength(szBuffer);
+				uBufSize -= (pszBuffer - szBuffer);
+			}
+		}
+		else
+		{
+			while ( IS_VALID_FMT_STRING(pszFmt) && (uBufSize > 0) )
+			{
+				IMG_UINT32 ui32TmpArg = *pui32Data;
+				TRACEBUF_ARG_TYPE eArgType;
 
-			pSentinel->bOverflowed = IMG_TRUE;
-			return PVRSRV_OK;
+				eArgType = ExtractOneArgFmt(&pszFmt, aszOneArgFmt);
+
+				pui32Data++;
+				ui32ArgsCur--;
+
+				switch (eArgType)
+				{
+					case TRACEBUF_ARG_TYPE_INT:
+						nPrinted = OSSNPrintf(pszBuffer, uBufSize,
+							aszOneArgFmt, ui32TmpArg);
+						break;
+
+					case TRACEBUF_ARG_TYPE_NONE:
+						nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
+						break;
+
+					default:
+						nPrinted = OSSNPrintf(pszBuffer, uBufSize,
+							"Error processing  arguments, type not "
+							"recognized (fmt: %s)", aszOneArgFmt);
+						break;
+				}
+				if (nPrinted >= uBufSize)
+				{
+					PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
+						" max space %ld\n", (long) nPrinted, (long) uBufSize);
+				}
+				pszBuffer = szBuffer + OSStringLength(szBuffer);
+				uBufSize -= (pszBuffer - szBuffer);
+			}
+			/* Display any remaining text in pszFmt string */
+			if (pszFmt)
+			{
+				nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
+				if (nPrinted >= uBufSize)
+				{
+					PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
+						" max space %ld\n", (long) nPrinted, (long) uBufSize);
+				}
+				pszBuffer = szBuffer + OSStringLength(szBuffer);
+				uBufSize -= (pszBuffer - szBuffer);
+			}
 		}
 
+		uBufSize = (IMG_UINT32)(pszBuffer - szBuffer);
+
+		PVR_DUMPDEBUG_LOG(szBuffer);
+
+		/* Update total bytes processed */
+		pSentinel->uiTotal += uBufSize;
 	}
-	eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
-		g_sCtrl.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
-
-	if (PVRSRV_OK == eError)
-	{
-		OSCachedMemCopy(g_sCtrl.pRawBuf, pSentinel->pBuf, pSentinel->uiBufLen);
-
-		pSentinel->pBuf = g_sCtrl.pRawBuf;
-
-		pSentinel->bOverflowed = IMG_FALSE;
-
-		eError = TLClientReleaseData(DIRECT_BRIDGE_HANDLE, g_sCtrl.hStream);
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s() failed (%s) in %s()",
-				"TLClientReleaseData", PVRSRVGETERRORSTRING(eError), __func__));
-		}
-	}
-	else
-	{
-		PVR_DPF((PVR_DBG_WARNING, "%s() failed (%s) in %s()",
-			"TLClientAcquireData", PVRSRVGETERRORSTRING(eError), __func__));
-	}
-
-	return eError;
-}
-
-static void
-HTBReleaseData(HTB_Sentinel_t *pSentinel)
-{
-	static IMG_UINT32	uiVal = 0;
-
-	OSCachedMemSet(g_sCtrl.pRawBuf, uiVal, pSentinel->uiBufLen);
-
-	uiVal++;
-	uiVal = uiVal % 256;
-
-	g_sCtrl.pRawCur = NULL;
+	return 0;
 }
 
 /*
  * HTBDumpBuffer: Dump the Host Trace Buffer using the TLClient API
+ *
+ * This routine just parses *one* message from the buffer.
+ * The stream will be opened by the Start() routine, closed by the Stop() and
+ * updated for data consumed by this routine once we have DebugPrintf'd it.
+ * We use the new TLReleaseDataLess() routine which enables us to update the
+ * HTB contents with just the amount of data we have successfully processed.
+ * If we need to leave the data available we can call this with a 0 count.
+ * This will happen in the case of a buffer overflow so that we can reprocess
+ * any data which wasn't handled before.
+ *
+ * In case of overflow or an error we return -1 otherwise 0
+ *
+ * Input:
+ *  pfnDumpDebugPrintf  output routine to display data
+ *  pvDumpDebugFile     seq_file handle (from kernel seq_read() call)
+ *  pvData              data address to start dumping from
+ *                      (set by Start() / Next())
  */
-static void HTBDumpBuffer(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+static int HTBDumpBuffer(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
                           void *pvDumpDebugFile,
                           void *pvData)
 {
-	PVRSRV_ERROR     eError = PVRSRV_OK;
-	IMG_UINT32       uiTLMode;				/* Mode flags for TL client */
 	struct seq_file *psSeqFile = (struct seq_file *)pvDumpDebugFile;
 	HTB_Sentinel_t  *pSentinel = (HTB_Sentinel_t *)psSeqFile->private;
-	static IMG_BOOL  bGate = IMG_FALSE;		/* Binary toggle */
 
-	/*
-	 * Set the TL stream behaviour to non-blocking and no-callback. If we
-	 * don't disable the callback we end up injecting HTFBWSync events on
-	 * every stream open call. This seems to be by design as the stream
-	 * is created with a 'notify on reader' callback. Perhaps this should be
-	 * a flaggable option so that we could just disable this for our KM
-	 * access ? TBD...
-	 */
-	uiTLMode = PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING|
-			   PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK;
+	PVR_ASSERT(NULL != pvData);
 
-	/*
-	 * We need to handle seq_file buffer exhaustion. For the initial case
-	 * we are instantiated with an empty sentinel (SEQ_START_TOKEN)
-	 * In this case we need to initiate the data capture and processing.
-	 * On subsequent calls we need to continue where we left off
-	 * (if BufLen != 0) and only once we've processed all of the data should
-	 * we close the stream down.
-	 * This *may* be antisocial to other consumers of the HTB stream, but there
-	 * should not be any other readers of this at all.
-	 */
-
-	/*
-	 * Only open the stream if we have no pending interrupted writes from
-	 * an earlier buffer exhaustion
-	 */
-	if (!pSentinel->bOverflowed)
+	if (pvData == SEQ_START_TOKEN)
 	{
-		if (bGate)
+		if (pSentinel->pCurr == NULL)
 		{
-			/*
-			 * We need to handle the insertion of an FWSYNC message into
-			 * the HTB on every stream open/close cycle.
-			 * If we always read the HTB on every call (when no overflow was
-			 * marked) we would always have data to produce.
-			 * This is a 'cat -v' like behaviour. To provide a more expected
-			 * 'just give me the data and then EOF'
-			 * operating mode we only return data on every other 'non-overflow'
-			 * call.
-			 */
-
-			bGate = IMG_FALSE;
-
-			/*
-			 * Make sure we do not have a dangling reference to the stream.
-			 * This can occur if a short-read is made from the debugFS handle
-			 * and we do not complete the buffer drain.
-			 * In this case we treat this as a deferred overflow and set the
-			 * pSentinel values up to continue from where we last produced
-			 * any output.
-			 */
-
-			if (g_sCtrl.hStream != (IMG_HANDLE)0 &&
-				g_sCtrl.hStream != HTB_STREAM_CLOSED)
-			{
-				bGate = IMG_TRUE;
-
-				pSentinel->pBuf = g_sCtrl.pBuf;
-				pSentinel->uiBufLen = g_sCtrl.uiBufLen;
-
-				pSentinel->pOvflow = g_sCtrl.pCurrent;
-				pSentinel->uiBufOvLen = g_sCtrl.uiBufLen -
-					(IMG_UINT32)(pSentinel->pOvflow - pSentinel->pBuf);
-
-				pSentinel->bOverflowed = IMG_TRUE;
-			}
-			else
-			{
-				return;
-			}
-		}
-		else
-		{
-			/*
-			 * Check to see that we haven't got a handle still open.
-			 * If we do, we have probably had a short read (e.g.
-			 * 'head /sys/kernel/debug/pvr/host_trace' which leaves us with
-			 * cached data in our copy-buffer. We continue to use the active
-			 * handle until we've drained the data from it.
-			 */
-			if (g_sCtrl.hStream == (IMG_HANDLE)0 ||
-				g_sCtrl.hStream == HTB_STREAM_CLOSED)
-			{
-				eError = TLClientOpenStream(DIRECT_BRIDGE_HANDLE,
-					g_sCtrl.szStreamName, uiTLMode, &g_sCtrl.hStream);
-
-				if (PVRSRV_OK != eError) {
-					/*
-				 	 * No stream available so nothing to report
-				 	 */
-					return;
-				}
-
-				pSentinel->uiBufLen = 0;
-				pSentinel->pBuf = NULL;
-				pSentinel->bOverflowed = IMG_FALSE;
-
-			}
-			bGate = IMG_TRUE;
-		}
-	}
-
-	/*
-	 * We now have a handle and we should simply read / decode and dump the
-	 * data stream (if any) present
-	 *
-	 * This is a sequence of:
-	 *	while (TLClientAcquireData(handle, hStream, &pBuf, &uiBufLen) == OK)
-	 *  {
-	 *		Decode_Data(pBuf, uiBufLen);
-	 *		TLClientReleaseData(handle, hStream);
-	 *  }
- 	 *
-	 * To avoid holding off any other consumers of the stream we coalesce
-	 * the Acquire / Release into a single operation (HTBAcquireData) and copy
-	 * the data to be processed into a global copy-buffer (referenced by
-	 * pRawBuf / pRawCur)
-	 * Once we have consumed the entire buffer we get a new data stream from
-	 * TL.
-	 */
-
-	do
-	{
-		if (!pSentinel->bOverflowed)
-		{
-			eError = HTBAcquireData(pSentinel);
-
-			if (eError == PVRSRV_OK)
-			{
-				if (pSentinel->uiBufLen > 0)
-				{
-					g_sCtrl.pBuf = pSentinel->pBuf;
-					g_sCtrl.uiBufLen = pSentinel->uiBufLen;
-					g_sCtrl.pCurrent = g_sCtrl.pBuf;
-
-					pSentinel->bHeaderFlag = (pvData == SEQ_START_TOKEN);
-					DecodeHTB(pSentinel, pvDumpDebugFile, pfnDumpDebugPrintf);
-
-					/*
-					 * We may have exhausted the buffer stream capacity. If so
-					 * we still have valid data which we need to process on the
-					 * next iteration of the dumping loop. In this case we
-					 * cannot release the data as we are going to use it later.
-					 */
-
-					if (!pSentinel->bOverflowed)
-					{
-						HTBReleaseData(pSentinel);
-					}
-				}
-				else
-				{
-					/*
-					 * We got zero bytes back. As we are in non-blocking access
-					 * we have to close and re-open the stream to get any
-					 * further data back. There is a limitation in the
-					 * AcquireData() / Release() model which requires this.
-					 */
-
-					HTBReleaseData(pSentinel);
-					g_sCtrl.pBuf = (IMG_PBYTE)NULL;
-					g_sCtrl.pCurrent = (IMG_PBYTE)NULL;
-					g_sCtrl.uiBufLen = 0;
-				}
-			}
-			else
-			{
-				PVR_DPF((PVR_DBG_WARNING, "%s() failed (%s) in %s()",
-					"HTBAcquireData", PVRSRVGETERRORSTRING(eError),
-					__func__));
-			}
-		}
-		else
-		{
-			/*
-			 * Dump out any remaining data and reset the remaining-data
-			 * flag so that we start going through more ClientData in the
-			 * above 'if' block
-			 */
-			DecodeHTB(pSentinel, pvDumpDebugFile, pfnDumpDebugPrintf);
-
-			if (!pSentinel->bOverflowed)
-			{
-				pSentinel->uiRetries = 0;
-
-				HTBReleaseData(pSentinel);
-
-				g_sCtrl.pBuf = (IMG_PBYTE)NULL;
-				g_sCtrl.pCurrent = (IMG_PBYTE)NULL;
-				g_sCtrl.uiBufLen = 0;
-			}
-		}
-	}
-	while ((eError == PVRSRV_OK) && (pSentinel->uiBufLen > 0) &&
-		(!pSentinel->bOverflowed));
-
-	/*
-	 * Only close the stream if we have no deferred data to process.
-	 */
-	if (!pSentinel->bOverflowed)
-	{
-		eError = TLClientCloseStream(DIRECT_BRIDGE_HANDLE, g_sCtrl.hStream);
-		if (PVRSRV_OK != eError)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s() failed (%s) in %s()",
-				"TLClientCloseStream", PVRSRVGETERRORSTRING(eError),
+#ifdef HTB_CHATTY
+			PVR_DPF((PVR_DBG_WARNING, "%s: SEQ_START_TOKEN, Empty buffer",
 				__func__));
+#endif	/* HTB_CHATTY */
+			return 0;
 		}
-		g_sCtrl.hStream = HTB_STREAM_CLOSED;
+		PVR_ASSERT(pSentinel->pCurr != NULL);
+
+		/* Display a Header as we have data to process */
+		seq_printf(psSeqFile, "%-10s:%-5s-%s  %s\n",
+			"Timestamp", "Proc ID", "Group", "Log Entry");
 	}
+	else
+	{
+		if (pvData != NULL)
+		{
+			PVR_ASSERT(pSentinel->pCurr == pvData);
+		}
+	}
+
+	return DecodeHTB(pSentinel, pvDumpDebugFile, pfnDumpDebugPrintf);
 }
 
 
 /******************************************************************************
  * External Entry Point routines ...
  ******************************************************************************/
-/*
- * HTB_CreateFSEntry
- *
- * Create the debugFS entry-point for the host-trace-buffer
- *
- * Input    uiBufSize       Size of host trace buffer configured
- *          pszName         Name associated with Host Trace buffer stream
- *
- * Returns  eError          internal error code, PVRSRV_OK on success
- */
-PVRSRV_ERROR HTB_CreateFSEntry(IMG_UINT32 uiBufSize, const IMG_CHAR *pszName)
+/**************************************************************************/ /*!
+ @Function     HTB_CreateFSEntry
+
+ @Description  Create the debugFS entry-point for the host-trace-buffer
+
+ @Returns      eError          internal error code, PVRSRV_OK on success
+
+ */ /**************************************************************************/
+PVRSRV_ERROR HTB_CreateFSEntry(void)
 {
 	PVRSRV_ERROR eError;
 
@@ -1126,94 +1139,26 @@ PVRSRV_ERROR HTB_CreateFSEntry(IMG_UINT32 uiBufSize, const IMG_CHAR *pszName)
 	                               &gsHTBReadOps,
 	                               NULL,
 	                               NULL, NULL, NULL,
-	                               &g_sCtrl.psDumpHostDebugFSEntry);
+	                               &g_sHTBData.psDumpHostDebugFSEntry);
 
 	PVR_LOGR_IF_ERROR(eError, "PVRDebugFSCreateEntry");
-
-	/*
-	 * Allocate space for our copy buffer. We are restricted to using the
-	 * worst-case scenario of duplicating the entire configured HTBufferSize
-	 * buffer. TL access makes it almost impossible to limit this to a smaller
-	 * amount until we have a per-packet access mechanism. Then we can simply
-	 * allocate / reallocate a per-stream maxTLpacketSize copy buffer. This
-	 * can only be done once the stream is active, so we rely on being updated
-	 * when/if the TLStreamCreate() is issued. Until then we pre-allocate
-	 * a duplicate buffer.
-	 */
-	g_sCtrl.pRawBuf = (IMG_PBYTE)OSAllocZMem(uiBufSize);
-	if (g_sCtrl.pRawBuf == (IMG_PBYTE)NULL)
-	{
-		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-
-		/* Free the FS entry points as we're not able to work */
-		PVRDebugFSRemoveEntry(&g_sCtrl.psDumpHostDebugFSEntry);
-	}
-	else
-	{
-		g_sCtrl.ui32BufferSize = uiBufSize;
-		g_sCtrl.szStreamName = pszName;
-	}
 
 	return eError;
 }
 
-/*
- * HTB_UpdateFSEntry
- *
- * Update the allocated buffer size for the host-trace-buffer
- *
- * Input   uiBufSize       Size of host-trace-buffer
- *
- * Returns eError          internal error code, PVRSRV_OK on success
- */
-PVRSRV_ERROR HTB_UpdateFSEntry(IMG_UINT32 uiBufSize)
-{
-	IMG_UINT32	uiCopySize;
 
-	if (g_sCtrl.ui32BufferSize == uiBufSize)
-	{
-		return PVRSRV_OK;
-	}
+/**************************************************************************/ /*!
+ @Function     HTB_DestroyFSEntry
 
-	uiCopySize = MIN(uiBufSize, g_sCtrl.ui32BufferSize);
-	if (g_sCtrl.pRawBuf)
-	{
-		IMG_PBYTE	pNew;
-
-		pNew = (IMG_PBYTE)OSAllocZMem(uiBufSize);
-
-		if (!pNew)
-		{
-			return PVRSRV_ERROR_OUT_OF_MEMORY;
-		}
-
-		OSCachedMemCopy(pNew, g_sCtrl.pRawBuf, uiCopySize);
-		OSFreeMem(g_sCtrl.pRawBuf);
-		g_sCtrl.pRawBuf = pNew;
-		g_sCtrl.ui32BufferSize = uiBufSize;
-	}
-
-	return PVRSRV_OK;
-}
-
-/*
- * HTB_DestroyFSEntry
- *
- * Destroy the debugFS entry-point created by earlier HTB_CreateFSEntry.
- * Release any allocated copy-buffer.
- */
+ @Description  Destroy the debugFS entry-point created by earlier
+               HTB_CreateFSEntry() call.
+*/ /**************************************************************************/
 void HTB_DestroyFSEntry(void)
 {
-	if (g_sCtrl.psDumpHostDebugFSEntry)
+	if (g_sHTBData.psDumpHostDebugFSEntry)
 	{
-		PVRDebugFSRemoveEntry(&g_sCtrl.psDumpHostDebugFSEntry);
-		g_sCtrl.psDumpHostDebugFSEntry = NULL;
-	}
-
-	if (g_sCtrl.pRawBuf)
-	{
-		OSFreeMem(g_sCtrl.pRawBuf);
-		g_sCtrl.pRawBuf = NULL;
+		PVRDebugFSRemoveEntry(&g_sHTBData.psDumpHostDebugFSEntry);
+		g_sHTBData.psDumpHostDebugFSEntry = NULL;
 	}
 }
 

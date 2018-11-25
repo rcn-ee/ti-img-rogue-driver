@@ -1464,7 +1464,7 @@ PVRSRV_ERROR RGXAllocateFWCodeRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
 	PVRSRV_ERROR eError;
 	IMG_DEVMEM_LOG2ALIGN_T uiLog2Align = OSGetPageShift();
 
-#if defined(SUPPORT_TRUSTED_DEVICE)
+#if defined(SUPPORT_MIPS_CONTIGUOUS_FW_CODE)
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 
 	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, MIPS))
@@ -3659,6 +3659,7 @@ PVRSRV_ERROR RGXResetPDump(PVRSRV_DEVICE_NODE *psDeviceNode)
 	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *)(psDeviceNode->pvDevice);
 
 	psDevInfo->bDumpedKCCBCtlAlready = IMG_FALSE;
+	psDevInfo->ui32LastBlockKCCBCtrlDumped = PDUMP_BLOCKNUM_INVALID;
 
 	return PVRSRV_OK;
 }
@@ -3739,12 +3740,22 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
 
-#define INIT_FW_HEAP(TYPE, MODE) \
+#define INIT_FW_MAIN_HEAP(MODE, FWCORE) \
     do { \
 	*psDeviceMemoryHeapCursor = _blueprint_init( \
-						     RGX_FIRMWARE_ ## TYPE ## _HEAP_IDENT, \
-						     RGX_FIRMWARE_ ## MODE ## _ ## TYPE ## _HEAP_BASE, \
-						     RGX_FIRMWARE_ ## TYPE ## _HEAP_SIZE, \
+						     RGX_FIRMWARE_MAIN_HEAP_IDENT, \
+						     RGX_FIRMWARE_ ## MODE ## _MAIN_HEAP_BASE, \
+						     RGX_FIRMWARE_ ## FWCORE ## _MAIN_HEAP_SIZE, \
+						     0, 0); \
+						     psDeviceMemoryHeapCursor++; \
+    } while (0)
+
+#define INIT_FW_CONFIG_HEAP(MODE) \
+    do { \
+	*psDeviceMemoryHeapCursor = _blueprint_init( \
+						     RGX_FIRMWARE_CONFIG_HEAP_IDENT, \
+						     RGX_FIRMWARE_ ## MODE ## _CONFIG_HEAP_BASE, \
+						     RGX_FIRMWARE_CONFIG_HEAP_SIZE, \
 						     0, 0); \
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
@@ -3889,13 +3900,29 @@ static PVRSRV_ERROR RGXInitHeaps(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 	if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
 	{
-		INIT_FW_HEAP(CONFIG, GUEST);
-		INIT_FW_HEAP(MAIN, GUEST);
+		INIT_FW_CONFIG_HEAP(GUEST);
+
+		if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, MIPS))
+		{
+			INIT_FW_MAIN_HEAP(GUEST, MIPS);
+		}
+		else
+		{
+			INIT_FW_MAIN_HEAP(GUEST, META);
+		}
 	}
 	else
 	{
-		INIT_FW_HEAP(MAIN, HYPERV);
-		INIT_FW_HEAP(CONFIG, HYPERV);
+		if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, MIPS))
+		{
+			INIT_FW_MAIN_HEAP(HYPERV, MIPS);
+		}
+		else
+		{
+			INIT_FW_MAIN_HEAP(HYPERV, META);
+		}
+
+		INIT_FW_CONFIG_HEAP(HYPERV);
 	}
 
 	/* set the heap count */
@@ -3955,7 +3982,8 @@ static void RGXDeInitHeaps(DEVICE_MEMORY_INFO *psDevMemoryInfo)
 /*
 	RGXRegisterDevice
  */
-PVRSRV_ERROR RGXRegisterDevice (PVRSRV_DEVICE_NODE *psDeviceNode)
+PVRSRV_ERROR RGXRegisterDevice(PVRSRV_DEVICE_NODE *psDeviceNode,
+                               PVRSRV_RGXDEV_INFO **ppsDevInfo)
 {
 	PVRSRV_ERROR eError;
 	DEVICE_MEMORY_INFO *psDevMemoryInfo;
@@ -4288,6 +4316,11 @@ PVRSRV_ERROR RGXRegisterDevice (PVRSRV_DEVICE_NODE *psDeviceNode)
 		goto e16;
 	}
 #endif
+
+	/* No partial FWCCB commands expected from the FW */
+	psDevInfo->ui32ExpectedPartialFWCCBCmd = RGXFWIF_FWCCB_CMD_PARTIAL_TYPE_NONE;
+
+	*ppsDevInfo = psDevInfo;
 
 	return PVRSRV_OK;
 

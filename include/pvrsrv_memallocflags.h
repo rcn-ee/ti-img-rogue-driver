@@ -428,7 +428,16 @@ typedef IMG_UINT32 PVRSRV_MEMALLOCFLAGS_T;
  * residing right after the end of the FW Main heap
  */
 #define PVRSRV_MEMALLOCFLAG_FW_CONFIG					(1U<<21)
-#define PVRSRV_CHECK_FW_CONFIG(uiFlags)				(((uiFlags) & PVRSRV_MEMALLOCFLAG_FW_CONFIG) != 0)
+#define PVRSRV_CHECK_FW_CONFIG(uiFlags)					(((uiFlags) & PVRSRV_MEMALLOCFLAG_FW_CONFIG) != 0)
+
+/*! PVRSRV_MEMALLOCFLAG_FW_GUEST
+ *
+ * Indicates that the particular allocation is being mapped into FW by
+ * the privileged OSID-0 (i.e. host/primary) driver on behalf of an
+ * unprivileged guest OSID-x (i.e. OSID-1 up to OSID-7) driver
+ */
+#define PVRSRV_MEMALLOCFLAG_FW_GUEST					(1U<<22)
+#define PVRSRV_CHECK_FW_GUEST(uiFlags)					(((uiFlags) & PVRSRV_MEMALLOCFLAG_FW_GUEST) != 0)
 
 /*
  *
@@ -546,6 +555,7 @@ typedef IMG_UINT32 PVRSRV_MEMALLOCFLAGS_T;
                                             PVRSRV_MEMALLOCFLAG_SPARSE_NO_DUMMY_BACKING | \
                                             PVRSRV_MEMALLOCFLAG_FW_LOCAL | \
                                             PVRSRV_MEMALLOCFLAG_FW_CONFIG | \
+											PVRSRV_MEMALLOCFLAG_FW_GUEST | \
                                             PVRSRV_MEMALLOCFLAG_CPU_LOCAL)
 
 /*!

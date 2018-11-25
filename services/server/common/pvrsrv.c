@@ -171,7 +171,10 @@ static IMG_UINT32 g_aui32DebugOrderTable[] = {
 };
 
 static PVRSRV_ERROR _VzDeviceCreate(PVRSRV_DEVICE_NODE *psDeviceNode);
-static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode);
+static void _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode);
+static PVRSRV_ERROR _VzConstructRAforFwHeap(RA_ARENA **ppsArena, IMG_CHAR *szName,
+											IMG_UINT64 uBase, RA_LENGTH_T uSize);
+static void _VzTearDownRAforFwHeap(RA_ARENA **ppsArena, IMG_UINT64 uBase);
 
 /* Callback to dump info of cleanup thread in debug_dump */
 static void CleanupThreadDumpInfo(IMG_HANDLE hDbgReqestHandle,
@@ -1357,7 +1360,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 	PVRSRV_ERROR			eError;
 	PVRSRV_DEVICE_CONFIG	*psDevConfig;
 	PVRSRV_DEVICE_NODE		*psDeviceNode;
-	PVRSRV_RGXDEV_INFO		*psDevInfo;
+	PVRSRV_RGXDEV_INFO		*psDevInfo = NULL;
 	PVRSRV_DEVICE_PHYS_HEAP	physHeapIndex;
 	IMG_UINT32				i;
 	IMG_UINT32				ui32AppHintDefault;
@@ -1417,7 +1420,6 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 	psDeviceNode->eDevState = PVRSRV_DEVICE_STATE_INIT;
 	psDeviceNode->psDevConfig = psDevConfig;
 	psDeviceNode->eCurrentSysPowerState = PVRSRV_SYS_POWER_STATE_ON;
-	psDevInfo = (PVRSRV_RGXDEV_INFO *) psDeviceNode->pvDevice;
 
 	if (psDeviceNode->psDevConfig->pfnSysDriverMode)
 	{
@@ -1455,20 +1457,12 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 			PVR_DPF((PVR_DBG_ERROR,	"Halting initialisation, cannot transition to %s mode",
 					psPVRSRVData->eDriverMode == DRIVER_MODE_HOST ? "host" : "guest"));
 			eError = PVRSRV_ERROR_NOT_SUPPORTED;
-			goto ErrorDeregisterStats;
+			goto ErrorSysDevDeInit;
 #endif
 			break;
 
 		default:
-			if (psDevInfo->sDevFeatureCfg.ui64Features & RGX_FEATURE_GPU_VIRTUALISATION_BIT_MASK)
-			{
-				/* Running on VZ capable BVNC, invalid driver mode enumeration integer value */
-				PVR_DPF((PVR_DBG_ERROR, "Halting initialisation due to invalid driver mode %d",
-						(IMG_INT32)psPVRSRVData->eDriverMode));
-				eError = PVRSRV_ERROR_NOT_SUPPORTED;
-				goto ErrorDeregisterStats;
-			}
-			else if ((IMG_INT32)psPVRSRVData->eDriverMode <  (IMG_INT32)DRIVER_MODE_NATIVE ||
+			if ((IMG_INT32)psPVRSRVData->eDriverMode <  (IMG_INT32)DRIVER_MODE_NATIVE ||
 					 (IMG_INT32)psPVRSRVData->eDriverMode >= (IMG_INT32)RGXFW_NUM_OS)
 			{
 				/* Running on non-VZ capable BVNC so simulating OSID using eDriverMode but
@@ -1477,7 +1471,15 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 						"Halting initialisation, OSID %d is outside of range [0:%d] supported",
 						(IMG_INT)psPVRSRVData->eDriverMode, RGXFW_NUM_OS-1));
 				eError = PVRSRV_ERROR_NOT_SUPPORTED;
-				goto ErrorDeregisterStats;
+				goto ErrorSysDevDeInit;
+			}
+			else
+			{
+				/* Invalid driver mode enumeration integer value */
+				PVR_DPF((PVR_DBG_ERROR, "Halting initialisation due to invalid driver mode %d",
+						(IMG_INT32)psPVRSRVData->eDriverMode));
+				eError = PVRSRV_ERROR_NOT_SUPPORTED;
+				goto ErrorSysDevDeInit;
 			}
 			break;
 	}
@@ -1488,7 +1490,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 	{
 		PVR_DPF((PVR_DBG_ERROR, "%s: Failed system virtualization initialisation (%s)",
 				 __func__, PVRSRVGetErrorStringKM(eError)));
-		goto ErrorDeregisterStats;
+		goto ErrorSysDevDeInit;
 	}
 
 	eError = PVRSRVRegisterDbgTable(psDeviceNode,
@@ -1496,7 +1498,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 									ARRAY_SIZE(g_aui32DebugOrderTable));
 	if (eError != PVRSRV_OK)
 	{
-		goto ErrorSysDevDeInit;
+		goto ErrorSysVzDevDeInit;
 	}
 
 	eError = OSLockCreate(&psDeviceNode->hPowerLock, LOCK_TYPE_PASSIVE);
@@ -1577,6 +1579,19 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 		goto ErrorPhysHeapsRelease;
 	}
 
+#if defined(SUPPORT_RGX)
+	/* Requires registered GPU local heap */
+	/* Requires debug table */
+	/* Initialises psDevInfo */
+	eError = RGXRegisterDevice(psDeviceNode, &psDevInfo);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to register device", __func__));
+		eError = PVRSRV_ERROR_DEVICE_REGISTER_FAILED;
+		goto ErrorPhysHeapsRelease;
+	}
+#endif
+
 	/* Do we have card memory? If so create RAs to manage it */
 	if (PhysHeapGetType(psDeviceNode->apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_GPU_LOCAL]) == PHYS_HEAP_TYPE_LMA)
 	{
@@ -1598,7 +1613,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 			PVR_DPF((PVR_DBG_ERROR,
 					 "%s: LMA heap has no memory regions defined.", __func__));
 			eError = PVRSRV_ERROR_DEVICEMEM_INVALID_LMA_HEAP;
-			goto ErrorPhysHeapsRelease;
+			goto ErrorDeInitRgx;
 		}
 
 		/* Allocate memory for RA pointers and name strings */
@@ -1740,7 +1755,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 	eError = SyncCheckpointInit(psDeviceNode);
 	PVR_LOG_IF_ERROR(eError, "SyncCheckpointInit");
 
-	/* Perform additional vz initialization */
+	/* Perform additional vz initialisation */
 	eError = _VzDeviceCreate(psDeviceNode);
 	PVR_LOG_IF_ERROR(eError, "_VzDeviceCreate");
 
@@ -1767,24 +1782,11 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 
 	psPVRSRVData->ui32RegisteredDevices++;
 
-#if defined(SUPPORT_RGX)
-	eError = RGXRegisterDevice(psDeviceNode);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to register device", __func__));
-		eError = PVRSRV_ERROR_DEVICE_REGISTER_FAILED;
-		goto ErrorDecrementDeviceCount;
-	}
-#endif
-
 #if defined(PVR_DVFS) && !defined(NO_HARDWARE)
 	eError = InitDVFS(psDeviceNode);
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to start DVFS", __func__));
-#if defined(SUPPORT_RGX)
-		DevDeInitRGX(psDeviceNode);
-#endif
 		goto ErrorDecrementDeviceCount;
 	}
 #endif
@@ -1835,8 +1837,9 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 
 	return PVRSRV_OK;
 
-#if defined(SUPPORT_RGX) || defined(PVR_DVFS)
+#if (defined(PVR_DVFS) && !defined(NO_HARDWARE)) || !defined(PVRSRV_USE_BRIDGE_LOCK)
 ErrorDecrementDeviceCount:
+#endif
 	psPVRSRVData->ui32RegisteredDevices--;
 
 	if (psDeviceNode->hDbgReqNotify)
@@ -1849,11 +1852,11 @@ ErrorDecrementDeviceCount:
 		PVRSRVUnregisterDbgRequestNotify(psDeviceNode->hThreadsDbgReqNotify);
 	}
 
-	/* Perform vz deinitialization */
+	/* Perform vz deinitialisation */
 	_VzDeviceDestroy(psDeviceNode);
 
 	ServerSyncDeinit(psDeviceNode);
-#endif
+
 ErrorRAsDelete:
 	{
 		IMG_UINT32 ui32RegionId;
@@ -1869,6 +1872,10 @@ ErrorRAsDelete:
 		}
 	}
 
+ErrorDeInitRgx:
+#if defined(SUPPORT_RGX)
+	DevDeInitRGX(psDeviceNode);
+#endif
 ErrorPhysHeapsRelease:
 	for (physHeapIndex = 0;
 		 physHeapIndex < ARRAY_SIZE(psDeviceNode->apsPhysHeap);
@@ -1890,9 +1897,10 @@ ErrorPowerLockDestroy:
 	OSLockDestroy(psDeviceNode->hPowerLock);
 ErrorUnregisterDbgTable:
 	PVRSRVUnregisterDbgTable(psDeviceNode);
-ErrorSysDevDeInit:
+ErrorSysVzDevDeInit:
 	psDevConfig->psDevNode = NULL;
 	SysVzDevDeInit(psDevConfig);
+ErrorSysDevDeInit:
 	SysDevDeInit(psDevConfig);
 ErrorDeregisterStats:
 #if defined(PVRSRV_ENABLE_PROCESS_STATS) && !defined(PVRSRV_DEBUG_LINUX_MEMORY_STATS)
@@ -2313,7 +2321,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 		psDeviceNode->apszRANames = NULL;
 	}
 
-	/* Perform vz deinitialization */
+	/* Perform vz deinitialisation */
 	_VzDeviceDestroy(psDeviceNode);
 
 	List_PVRSRV_DEVICE_NODE_Remove(psDeviceNode);
@@ -2722,7 +2730,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceFinalise(PVRSRV_DEVICE_NODE *psDeviceNode,
 			}
 
 			eError = RGXPdumpDrainKCCB(psDevInfo,
-									   psDevInfo->psKernelCCBCtl->ui32WriteOffset);
+									   psDevInfo->psKernelCCBCtl->ui32WriteOffset, PDUMP_FLAGS_NONE);
 			if (eError != PVRSRV_OK)
 			{
 				PVR_DPF((PVR_DBG_ERROR, "%s: Problem draining kCCB (%s)",
@@ -2742,7 +2750,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceFinalise(PVRSRV_DEVICE_NODE *psDeviceNode,
 			eError = RGXFWOSConfig((PVRSRV_RGXDEV_INFO *)(psDeviceNode->pvDevice));
 			if (eError != PVRSRV_OK)
 			{
-				PVR_DPF((PVR_DBG_ERROR, "%s: Cannot kick initialization configuration to the Device (%s)",
+				PVR_DPF((PVR_DBG_ERROR, "%s: Cannot kick initialisation configuration to the Device (%s)",
 						 __func__, PVRSRVGetErrorStringKM(eError)));
 
 				goto ErrorExit;
@@ -3319,6 +3327,12 @@ static PVRSRV_ERROR _VzDeviceCreate(PVRSRV_DEVICE_NODE *psDeviceNode)
 	if (ui32NumOfHeapRegions)
 	{
 		PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eHeapOrigin;
+		RA_LENGTH_T uConfigSize = RGX_FIRMWARE_CONFIG_HEAP_SIZE;
+		RA_LENGTH_T uMainSize = 0;
+
+#if defined(SUPPORT_RGX)
+		uMainSize = (RA_LENGTH_T) RGXGetFwMainHeapSize(psDeviceNode->pvDevice);
+#endif
 
 		SysVzGetPhysHeapOrigin(psDeviceNode->psDevConfig,
 							   PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL,
@@ -3337,14 +3351,21 @@ static PVRSRV_ERROR _VzDeviceCreate(PVRSRV_DEVICE_NODE *psDeviceNode)
 			PVR_ASSERT(sDevPAddr.uiAddr);
 		}
 
-		/* All vz drivers go through this motion, here the loop terminates early
-		   for guest driver(s) seeing RGXFW_NUM_OS will be one */
+		/* All vz drivers go through this motion, loop terminates early for guest driver(s) */
 		for (ui32OSID = 0; ui32OSID < RGXFW_NUM_OS; ui32OSID++)
 		{
-			RA_BASE_T	uOSIDConfigBase = uBase + (ui32OSID * RGX_FIRMWARE_RAW_HEAP_SIZE);
-			RA_LENGTH_T	uConfigSize = RGX_FIRMWARE_CONFIG_HEAP_SIZE;
-			RA_BASE_T	uOSIDMainBase = uOSIDConfigBase + uConfigSize;
-			RA_LENGTH_T	uMainSize = RGX_FIRMWARE_MAIN_HEAP_SIZE;
+			RA_BASE_T uOSIDConfigBase,	uOSIDMainBase;
+
+			if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST) && ui32OSID == 0)
+			{
+				uOSIDMainBase = uBase;
+				uOSIDConfigBase = uOSIDMainBase + RGXGetFwMainHeapSize((PVRSRV_RGXDEV_INFO *) psDeviceNode->pvDevice);
+			}
+			else
+			{
+				uOSIDConfigBase = uBase + (ui32OSID * RGX_FIRMWARE_RAW_HEAP_SIZE);
+				uOSIDMainBase = uOSIDConfigBase + uConfigSize;
+			}
 
 			OSSNPrintf(psDeviceNode->szKernelFwConfigRAName[ui32OSID], sizeof(psDeviceNode->szKernelFwConfigRAName[ui32OSID]),
 									"%s fw mem", psDeviceNode->psDevConfig->pszName);
@@ -3372,6 +3393,7 @@ static PVRSRV_ERROR _VzDeviceCreate(PVRSRV_DEVICE_NODE *psDeviceNode)
 
 			OSSNPrintf(psDeviceNode->szKernelFwMainRAName[ui32OSID], sizeof(psDeviceNode->szKernelFwMainRAName[ui32OSID]),
 						"%s fw mem", psDeviceNode->psDevConfig->pszName);
+
 			psDeviceNode->psKernelFwMainMemArena[ui32OSID] =
 				RA_Create(psDeviceNode->szKernelFwMainRAName[ui32OSID],
 							OSGetPageShift(),		/* Use OS page size, keeps things simple */
@@ -3393,7 +3415,8 @@ static PVRSRV_ERROR _VzDeviceCreate(PVRSRV_DEVICE_NODE *psDeviceNode)
 				goto e1;
 			}
 
-			if (eHeapOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+			/* Guest drivers should not initialize subsequent array entries as the driver depends on this */
+			if (eHeapOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST || PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
 			{
 				break;
 			}
@@ -3403,6 +3426,18 @@ static PVRSRV_ERROR _VzDeviceCreate(PVRSRV_DEVICE_NODE *psDeviceNode)
 		psDeviceNode->pfnCreateRamBackedPMR[PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL] = PhysmemNewLocalRamBackedPMR;
 	}
 
+	if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST))
+	{
+		/* Guest Fw physheap is a pseudo-heap which is always managed by LMA PMR factory and exclusively used
+		   by the host driver. For this pseudo-heap, we do not create an actual heap meta-data to represent
+		   it seeing it's only used during guest driver FW initialisation so this saves us having to provide
+		   heap pfnCpuPAddrToDevPAddr/pfnDevPAddrToCpuPAddr callbacks here which are not needed as the host
+		   driver will _never_ access this guest firmware heap - instead we reuse the real FW heap meta-data */
+		psDeviceNode->pfnCreateRamBackedPMR[PVRSRV_DEVICE_PHYS_HEAP_FW_GUEST] = PhysmemNewLocalRamBackedPMR;
+		psDeviceNode->apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_FW_GUEST] =
+											psDeviceNode->apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL];
+	}
+
 	return PVRSRV_OK;
 e1:
 	_VzDeviceDestroy(psDeviceNode);
@@ -3410,7 +3445,7 @@ e0:
 	return eError;
 }
 
-static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
+static void _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 	IMG_UINT ui32OSID;
 	IMG_UINT64 ui64Size;
@@ -3419,10 +3454,16 @@ static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 	IMG_DEV_PHYADDR sDevPAddr;
 	PHYS_HEAP_TYPE eHeapType;
 	IMG_UINT32 ui32NumOfHeapRegions;
-	PVRSRV_ERROR eError = PVRSRV_OK;
-	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_NATIVE, PVRSRV_OK);
+	PVRSRV_VZ_RETN_IF_MODE(DRIVER_MODE_NATIVE);
 
 	/* First, unregister device firmware physical heap based on heap config */
+	if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST))
+	{
+		/* Remove pseudo-heap pointer, rest of heap deinitialization is unaffected */
+		psDeviceNode->pfnCreateRamBackedPMR[PVRSRV_DEVICE_PHYS_HEAP_FW_GUEST] = NULL;
+		psDeviceNode->apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_FW_GUEST] = NULL;
+	}
+
 	psPhysHeap = psDeviceNode->apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL];
 	ui32NumOfHeapRegions = PhysHeapNumberOfRegions(psPhysHeap);
 
@@ -3435,6 +3476,7 @@ static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 				RA_Delete(psDeviceNode->psKernelFwMainMemArena[ui32OSID]);
 				psDeviceNode->psKernelFwMainMemArena[ui32OSID] = NULL;
 			}
+
 			if (psDeviceNode->psKernelFwConfigMemArena[ui32OSID])
 			{
 				RA_Delete(psDeviceNode->psKernelFwConfigMemArena[ui32OSID]);
@@ -3452,25 +3494,22 @@ static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 	{
 		if (ui32NumOfHeapRegions)
 		{
-			eError = PhysHeapRegionGetCpuPAddr(psPhysHeap, 0, &sCpuPAddr);
-			if (eError != PVRSRV_OK)
+			if (PhysHeapRegionGetCpuPAddr(psPhysHeap, 0, &sCpuPAddr) != PVRSRV_OK)
 			{
 				PVR_ASSERT(IMG_FALSE);
-				return eError;
+				return;
 			}
 	
-			eError = PhysHeapRegionGetSize(psPhysHeap, 0, &ui64Size);
-			if (eError != PVRSRV_OK)
+			if (PhysHeapRegionGetSize(psPhysHeap, 0, &ui64Size) != PVRSRV_OK)
 			{
 				PVR_ASSERT(IMG_FALSE);
-				return eError;
+				return;
 			}
 	
-			eError = PhysHeapRegionGetDevPAddr(psPhysHeap, 0, &sDevPAddr);
-			if (eError != PVRSRV_OK)
+			if (PhysHeapRegionGetDevPAddr(psPhysHeap, 0, &sDevPAddr) != PVRSRV_OK)
 			{
 				PVR_ASSERT(IMG_FALSE);
-				return eError;
+				return;
 			}
 		}
 		else
@@ -3489,6 +3528,7 @@ static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 				OSFreeMem(psDeviceNode->apsLocalDevMemArenas);
 				psDeviceNode->apsLocalDevMemArenas = NULL;
 			}
+
 			if (psDeviceNode->apszRANames)
 			{
 				OSFreeMem(psDeviceNode->apszRANames[0]);
@@ -3498,8 +3538,6 @@ static PVRSRV_ERROR _VzDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 			}
 		}
 	}
-
-	return eError;
 }
 
 PVRSRV_ERROR IMG_CALLCONV PVRSRVVzRegisterFirmwarePhysHeap(PVRSRV_DEVICE_NODE *psDeviceNode,
@@ -3507,8 +3545,7 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVVzRegisterFirmwarePhysHeap(PVRSRV_DEVICE_NODE *p
 															IMG_UINT64 ui64DevPSize,
 															IMG_UINT32 uiOSID)
 {
-	RA_BASE_T uMainBase, uConfigBase;
-	RA_LENGTH_T uMainSize, uConfigSize;
+	PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eHeapOrigin;
 	PHYS_HEAP *psPhysHeap;
 	PVRSRV_ERROR eError;
 
@@ -3540,100 +3577,81 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVVzRegisterFirmwarePhysHeap(PVRSRV_DEVICE_NODE *p
 	PVR_DPF((PVR_DBG_MESSAGE, "Creating RA for fw 0x%016"IMG_UINT64_FMTSPECX"-0x%016"IMG_UINT64_FMTSPECX" [DEV/PA]",
 			(IMG_UINT64) sDevPAddr.uiAddr, sDevPAddr.uiAddr + RGX_FIRMWARE_RAW_HEAP_SIZE - 1));
 
-	/* Construct RA to manage FW Main heap */
-	uMainBase = sDevPAddr.uiAddr;
-	uMainSize = (RA_LENGTH_T) RGX_FIRMWARE_MAIN_HEAP_SIZE;
-	PVR_ASSERT(uMainSize == RGX_FIRMWARE_MAIN_HEAP_SIZE);
+	SysVzGetPhysHeapOrigin(psDeviceNode->psDevConfig,
+						   PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL,
+						   &eHeapOrigin);
+	PVR_LOGR_IF_FALSE((eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST),
+					  "PVRSRVVzRegisterFirmwarePhysHeap: Host PVZ config: Invalid PVZ setup\n"
+					  "=>: all driver types (i.e. host/guest) must use same FW heap origin",
+					  PVRSRV_ERROR_INVALID_PARAMS);
 
-	OSSNPrintf(psDeviceNode->szKernelFwMainRAName[uiOSID],
-			   sizeof(psDeviceNode->szKernelFwMainRAName[uiOSID]),
-			   "[OSID: %d]: fw mem", uiOSID);
+	OSSNPrintf(psDeviceNode->szKernelFwRawRAName[uiOSID],
+			   sizeof(psDeviceNode->szKernelFwRawRAName[uiOSID]),
+			   "[OSID: %d]: raw guest fw mem", uiOSID);
 
-	psDeviceNode->psKernelFwMainMemArena[uiOSID] =
-		RA_Create(psDeviceNode->szKernelFwMainRAName[uiOSID],
-					OSGetPageShift(),		/* Use host page size, keeps things simple */
-					RA_LOCKCLASS_0,			/* This arena doesn't use any other arenas */
-					NULL,				/* No Import */
-					NULL,				/* No free import */
-					NULL,				/* No import handle */
-					IMG_FALSE);
-	if (psDeviceNode->psKernelFwMainMemArena[uiOSID] == NULL)
+	eError = _VzConstructRAforFwHeap(&psDeviceNode->psKernelFwRawMemArena[uiOSID],
+									 psDeviceNode->szKernelFwRawRAName[uiOSID],
+									 sDevPAddr.uiAddr,
+									 RGX_FIRMWARE_RAW_HEAP_SIZE);
+	if (eError == PVRSRV_OK)
 	{
-		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-		goto e0;
+		psDeviceNode->ui64RABase[uiOSID] = sDevPAddr.uiAddr;
 	}
 
-	if (!RA_Add(psDeviceNode->psKernelFwMainMemArena[uiOSID], uMainBase, uMainSize, 0 , NULL))
-	{
-		RA_Delete(psDeviceNode->psKernelFwMainMemArena[uiOSID]);
-		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-		goto e0;
-	}
-
-	/* Construct RA to manage FW Config heap */
-	uConfigBase = uMainBase + uMainSize;
-	uConfigSize = (RA_LENGTH_T) RGX_FIRMWARE_CONFIG_HEAP_SIZE;
-	PVR_ASSERT(uConfigSize == RGX_FIRMWARE_CONFIG_HEAP_SIZE);
-
-	OSSNPrintf(psDeviceNode->szKernelFwConfigRAName[uiOSID],
-			   sizeof(psDeviceNode->szKernelFwConfigRAName[uiOSID]),
-			   "[OSID: %d]: fw mem", uiOSID);
-
-	psDeviceNode->psKernelFwConfigMemArena[uiOSID] =
-		RA_Create(psDeviceNode->szKernelFwConfigRAName[uiOSID],
-					OSGetPageShift(),		/* Use host page size, keeps things simple */
-					RA_LOCKCLASS_0,			/* This arena doesn't use any other arenas */
-					NULL,				/* No Import */
-					NULL,				/* No free import */
-					NULL,				/* No import handle */
-					IMG_FALSE);
-	if (psDeviceNode->psKernelFwConfigMemArena[uiOSID] == NULL)
-	{
-		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-		goto e0;
-	}
-
-	if (!RA_Add(psDeviceNode->psKernelFwConfigMemArena[uiOSID], uConfigBase, uConfigSize, 0 , NULL))
-	{
-		RA_Delete(psDeviceNode->psKernelFwConfigMemArena[uiOSID]);
-		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-		goto e0;
-	}
-
-	psDeviceNode->ui64RABase[uiOSID] = uMainBase;
-	return PVRSRV_OK;
-e0:
 	return eError;
 }
 
 PVRSRV_ERROR IMG_CALLCONV PVRSRVVzUnregisterFirmwarePhysHeap(PVRSRV_DEVICE_NODE *psDeviceNode,
-																IMG_UINT32 uiOSID)
+															 IMG_UINT32 uiOSID)
 {
-	RA_BASE_T uMainBase;
-	RA_BASE_T uConfigBase;
+	PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eHeapOrigin;
 
 	PVRSRV_VZ_RET_IF_NOT_MODE(DRIVER_MODE_HOST, PVRSRV_ERROR_INTERNAL_ERROR);
-	PVR_DPF((PVR_DBG_MESSAGE, "===== Deregistering OSID: %d fw physheap memory", uiOSID));
+	PVR_DPF((PVR_DBG_MESSAGE, "===== Unregistering OSID: %d fw physheap memory", uiOSID));
 	PVR_LOGR_IF_FALSE(((uiOSID > 0)&&(uiOSID < RGXFW_NUM_OS)), "Invalid guest OSID", PVRSRV_ERROR_INVALID_PARAMS);
 
-	uConfigBase = psDeviceNode->ui64RABase[uiOSID];
-	uMainBase = uConfigBase + RGX_FIRMWARE_CONFIG_HEAP_SIZE;
+	SysVzGetPhysHeapOrigin(psDeviceNode->psDevConfig,
+						   PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL,
+						   &eHeapOrigin);
+	PVR_LOGR_IF_FALSE((eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST),
+					  "PVRSRVVzUnregisterFirmwarePhysHeap: Host PVZ config: Invalid PVZ setup\n"
+					  "=>: all driver types (i.e. host/guest) must use same FW heap origin",
+					  PVRSRV_ERROR_INVALID_PARAMS);
 
-	if (psDeviceNode->psKernelFwMainMemArena[uiOSID])
-	{
-		RA_Free(psDeviceNode->psKernelFwMainMemArena[uiOSID], uMainBase);
-		RA_Delete(psDeviceNode->psKernelFwMainMemArena[uiOSID]);
-		psDeviceNode->psKernelFwMainMemArena[uiOSID] = NULL;
-	}
-
-	if (psDeviceNode->psKernelFwConfigMemArena[uiOSID])
-	{
-		RA_Free(psDeviceNode->psKernelFwConfigMemArena[uiOSID], uConfigBase);
-		RA_Delete(psDeviceNode->psKernelFwConfigMemArena[uiOSID]);
-		psDeviceNode->psKernelFwConfigMemArena[uiOSID] = NULL;
-	}
+	_VzTearDownRAforFwHeap(&psDeviceNode->psKernelFwRawMemArena[uiOSID], (IMG_UINT64)psDeviceNode->ui64RABase[uiOSID]);
 
 	return PVRSRV_OK;
+}
+
+static PVRSRV_ERROR _VzConstructRAforFwHeap(RA_ARENA **ppsArena, IMG_CHAR *szName,
+											IMG_UINT64 uBase, RA_LENGTH_T uSize)
+{
+	PVRSRV_ERROR eError;
+
+	/* Construct RA to manage FW Raw heap */
+	*ppsArena = RA_Create(szName,
+						OSGetPageShift(),		/* Use host page size, keeps things simple */
+						RA_LOCKCLASS_0,			/* This arena doesn't use any other arenas */
+						NULL,					/* No Import */
+						NULL,					/* No free import */
+						NULL,					/* No import handle */
+						IMG_FALSE);
+	eError = (*ppsArena == NULL) ? (PVRSRV_ERROR_OUT_OF_MEMORY) : (PVRSRV_OK);
+
+	if (eError == PVRSRV_OK && !RA_Add(*ppsArena, uBase, uSize, 0 , NULL))
+	{
+		RA_Delete(*ppsArena);
+		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+	}
+
+	return eError;
+}
+
+static void _VzTearDownRAforFwHeap(RA_ARENA **ppsArena, IMG_UINT64 uBase)
+{
+	RA_Free(*ppsArena, uBase);
+	RA_Delete(*ppsArena);
+	*ppsArena = NULL;
 }
 
 /*****************************************************************************

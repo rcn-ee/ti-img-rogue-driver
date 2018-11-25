@@ -119,6 +119,16 @@ static PVRSRV_ERROR ConnectionDataDestroy(CONNECTION_DATA *psConnection)
 				return PVRSRV_ERROR_UNABLE_TO_REMOVE_HASH_VALUE;
 			}
 
+			eError = PVRSRVFreeKernelHandles(psProcessHandleBase->psHandleBase);
+			if (eError != PVRSRV_OK)
+			{
+				PVR_DPF((PVR_DBG_ERROR,
+						"ConnectionDataDestroy: Couldn't free kernel handles for process (%d)",
+						eError));
+
+				return eError;
+			}
+
 			eError = PVRSRVFreeHandleBase(psProcessHandleBase->psHandleBase, ui64MaxBridgeTime);
 			if (eError != PVRSRV_OK)
 			{

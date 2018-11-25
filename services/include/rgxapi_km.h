@@ -200,6 +200,21 @@ PVRSRV_ERROR IMG_CALLCONV RGXHWPerfConfigureAndEnableCounters(
 		IMG_UINT32                 ui32NumBlocks,
 		RGX_HWPERF_CONFIG_CNTBLK*  asBlockConfigs);
 
+/**************************************************************************/ /*!
+@Function       RGXHWPerfConfigureAndEnableCustomCounters
+@Description    Enable and configure custom performance counters
+@Input          psHWPerfConnection    Pointer to connection object
+@Input          ui16CustomBlockID     ID of the custom block to configure
+@Input          ui16NumCustomCounters Number of custom counters
+@Input          pui32CustomCounterIDs pointer to array containing
+                                      custom counter IDs
+@Return         PVRSRV_ERROR          for system error codes
+*/ /***************************************************************************/
+PVRSRV_ERROR IMG_CALLCONV RGXHWPerfConfigureAndEnableCustomCounters(
+		RGX_HWPERF_CONNECTION *psHWPerfConnection,
+		IMG_UINT16             ui16CustomBlockID,
+		IMG_UINT16             ui16NumCustomCounters,
+		IMG_UINT32            *pui32CustomCounterIDs);
 
 /**************************************************************************/ /*!
 @Function       RGXDisableHWPerfCounters

@@ -56,16 +56,41 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 PVRSRV_ERROR SysVzCreateDevPhysHeaps(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 	PVRSRV_ERROR eError;
+	PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eHeapOrigin;
+	PVRSRV_DEVICE_PHYS_HEAP eHeap = PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL;
 
-	eError = PvzClientCreateDevPhysHeaps(psDevConfig, 0);
-	PVR_LOG_IF_ERROR(eError, "PvzClientCreateDevPhysHeaps");
+	eError = SysVzGetPhysHeapOrigin(psDevConfig, eHeap, &eHeapOrigin);
+	PVR_LOGG_IF_ERROR(eError, "SysVzGetPhysHeapOrigin", e0);
 
+	if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	{
+		eError = PvzClientCreateDevPhysHeaps(psDevConfig, 0);
+		eError = (eError == PVRSRV_ERROR_NOT_IMPLEMENTED) ? PVRSRV_OK : eError;
+		PVR_LOGG_IF_ERROR(eError, "PvzClientCreateDevPhysHeaps", e0);
+	}
+
+e0:
 	return eError;
 }
 
 void SysVzDestroyDevPhysHeaps(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
-	PvzClientDestroyDevPhysHeaps(psDevConfig, 0);
+	PVRSRV_ERROR eError;
+	PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eHeapOrigin;
+	PVRSRV_DEVICE_PHYS_HEAP eHeapType = PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL;
+
+	eError = SysVzGetPhysHeapOrigin(psDevConfig, eHeapType, &eHeapOrigin);
+	PVR_LOGG_IF_ERROR(eError, "PvzClientMapDevPhysHeap", e0);
+
+	if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	{
+		eError = PvzClientDestroyDevPhysHeaps(psDevConfig, 0);
+		eError = (eError == PVRSRV_ERROR_NOT_IMPLEMENTED) ? PVRSRV_OK : eError;
+		PVR_LOGG_IF_ERROR(eError, "PvzClientDestroyDevPhysHeaps", e0);
+	}
+
+e0:
+	return;
 }
 
 PVRSRV_ERROR SysVzRegisterFwPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
@@ -77,7 +102,7 @@ PVRSRV_ERROR SysVzRegisterFwPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	eError = SysVzGetPhysHeapOrigin(psDevConfig, eHeap, &eHeapOrigin);
 	PVR_LOGG_IF_ERROR(eError, "SysVzGetPhysHeapOrigin", e0);
 
-	if (eHeapOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST)
 	{
 		PHYS_HEAP_CONFIG *psPhysHeapConfig;
 		IMG_DEV_PHYADDR sDevPAddr;
@@ -108,7 +133,7 @@ PVRSRV_ERROR SysVzUnregisterFwPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	eError = SysVzGetPhysHeapOrigin(psDevConfig, eHeapType, &eHeapOrigin);
 	PVR_LOGG_IF_ERROR(eError, "PvzClientMapDevPhysHeap", e0);
 
-	if (eHeapOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST)
 	{
 		eError = PvzClientUnmapDevPhysHeap(psDevConfig, 0);
 		PVR_LOGG_IF_ERROR(eError, "PvzClientMapDevPhysHeap", e0);
@@ -480,7 +505,7 @@ PVRSRV_ERROR SysVzPvzRegisterFwPhysHeap(IMG_UINT32 ui32OSID,
 	PVR_LOGG_IF_ERROR(eError, "SysVzGetPhysHeapOrigin", e0);
 
 #if defined(SUPPORT_RGX)
-	if (eHeapOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST)
 	{
 		IMG_DEV_PHYADDR sDevPAddr = {ui64PAddr};
 		eError = RGXVzRegisterFirmwarePhysHeap(psDeviceNode,
@@ -519,7 +544,7 @@ PVRSRV_ERROR SysVzPvzUnregisterFwPhysHeap(IMG_UINT32 ui32OSID, IMG_UINT32 ui32De
 	PVR_LOGG_IF_ERROR(eError, "SysVzGetPhysHeapOrigin", e0);
 
 #if defined(SUPPORT_RGX)
-	if (eHeapOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST)
 	{
 		psDeviceNode = psPVRSRVData->psDeviceNodeList;
 		eError = RGXVzUnregisterFirmwarePhysHeap(psDeviceNode, ui32OSID);

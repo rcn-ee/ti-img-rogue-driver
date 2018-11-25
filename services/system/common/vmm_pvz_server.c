@@ -102,7 +102,6 @@ PvzServerCreateDevConfig(IMG_UINT32 ui32OSID,
 									 pui32IRQ,
 									 pui32RegsSize,
 									 pui64RegsCpuPBase);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -127,7 +126,6 @@ PvzServerDestroyDevConfig(IMG_UINT32 ui32OSID,
 	PvzServerLockAcquire();
 
 	eError = SysVzPvzDestroyDevConfig(ui32OSID, ui32DevID);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -163,7 +161,6 @@ PvzServerCreateDevPhysHeaps(IMG_UINT32 ui32OSID,
 										pui64FwAddr,
 										pui64GpuSize,
 										pui64GpuAddr);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -188,7 +185,6 @@ PvzServerDestroyDevPhysHeaps(IMG_UINT32 ui32OSID,
 	PvzServerLockAcquire();
 
 	eError = SysVzPvzDestroyDevPhysHeaps(ui32OSID, ui32DevID);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -220,7 +216,6 @@ PvzServerMapDevPhysHeap(IMG_UINT32 ui32OSID,
 	eError = psVmmPvz->sConfigFuncTab.pfnGetDevPhysHeapOrigin(psPVRSRVData->psDeviceNodeList->psDevConfig,
 															  PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL,
 															  &eOrigin);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	if (eOrigin != PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_GUEST)
 	{
@@ -240,7 +235,6 @@ PvzServerMapDevPhysHeap(IMG_UINT32 ui32OSID,
 										ui32DevID,
 										ui64Size,
 										ui64PAddr);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 e0:
 	PvzServerLockRelease();
@@ -267,7 +261,6 @@ PvzServerUnmapDevPhysHeap(IMG_UINT32 ui32OSID,
 	PvzServerLockAcquire();
 
 	eError = SysVzPvzUnregisterFwPhysHeap(ui32OSID, ui32DevID);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -291,7 +284,6 @@ PvzServerOnVmOnline(IMG_UINT32 ui32OSID, IMG_UINT32 ui32Priority)
 	PvzServerLockAcquire();
 
 	eError = SysVzPvzOnVmOnline(ui32OSID, ui32Priority);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -306,7 +298,6 @@ PvzServerOnVmOffline(IMG_UINT32 ui32OSID)
 	PvzServerLockAcquire();
 
 	eError = SysVzPvzOnVmOffline(ui32OSID);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
@@ -321,7 +312,6 @@ PvzServerVMMConfigure(VMM_CONF_PARAM eVMMParamType, IMG_UINT32 ui32ParamValue)
 	PvzServerLockAcquire();
 
 	eError = SysVzPvzVMMConfigure(eVMMParamType, ui32ParamValue);
-	PVR_ASSERT(eError == PVRSRV_OK);
 
 	PvzServerLockRelease();
 
