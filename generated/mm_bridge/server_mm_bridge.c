@@ -3156,6 +3156,77 @@ PVRSRVBridgeGetMaxDevMemSize(IMG_UINT32 ui32DispatchTableEntry,
 }
 
 
+static IMG_INT
+PVRSRVBridgeDevmemGetFaultAddress(IMG_UINT32 ui32DispatchTableEntry,
+					  PVRSRV_BRIDGE_IN_DEVMEMGETFAULTADDRESS *psDevmemGetFaultAddressIN,
+					  PVRSRV_BRIDGE_OUT_DEVMEMGETFAULTADDRESS *psDevmemGetFaultAddressOUT,
+					 CONNECTION_DATA *psConnection)
+{
+	IMG_HANDLE hDevmemCtx = psDevmemGetFaultAddressIN->hDevmemCtx;
+	DEVMEMINT_CTX * psDevmemCtxInt = NULL;
+
+
+
+
+
+
+
+	/* Lock over handle lookup. */
+	LockHandle();
+
+
+
+
+
+					/* Look up the address from the handle */
+					psDevmemGetFaultAddressOUT->eError =
+						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+											(void **) &psDevmemCtxInt,
+											hDevmemCtx,
+											PVRSRV_HANDLE_TYPE_DEVMEMINT_CTX,
+											IMG_TRUE);
+					if(psDevmemGetFaultAddressOUT->eError != PVRSRV_OK)
+					{
+						UnlockHandle();
+						goto DevmemGetFaultAddress_exit;
+					}
+	/* Release now we have looked up handles. */
+	UnlockHandle();
+
+	psDevmemGetFaultAddressOUT->eError =
+		DevmemIntGetFaultAddress(psConnection, OSGetDevData(psConnection),
+					psDevmemCtxInt,
+					&psDevmemGetFaultAddressOUT->sFaultAddress);
+
+
+
+
+DevmemGetFaultAddress_exit:
+
+	/* Lock over handle lookup cleanup. */
+	LockHandle();
+
+
+
+
+
+
+
+					/* Unreference the previously looked up handle */
+					if(psDevmemCtxInt)
+					{
+						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+										hDevmemCtx,
+										PVRSRV_HANDLE_TYPE_DEVMEMINT_CTX);
+					}
+	/* Release now we have cleaned up look up handles. */
+	UnlockHandle();
+
+
+	return 0;
+}
+
+
 
 
 /* *************************************************************************** 
@@ -3275,6 +3346,9 @@ PVRSRV_ERROR InitMMBridge(void)
 	SetDispatchTableEntry(PVRSRV_BRIDGE_MM, PVRSRV_BRIDGE_MM_GETMAXDEVMEMSIZE, PVRSRVBridgeGetMaxDevMemSize,
 					NULL, bUseLock);
 
+	SetDispatchTableEntry(PVRSRV_BRIDGE_MM, PVRSRV_BRIDGE_MM_DEVMEMGETFAULTADDRESS, PVRSRVBridgeDevmemGetFaultAddress,
+					NULL, bUseLock);
+
 
 	return PVRSRV_OK;
 }
@@ -3352,6 +3426,8 @@ PVRSRV_ERROR DeinitMMBridge(void)
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MM, PVRSRV_BRIDGE_MM_DEVMEMINTREGISTERPFNOTIFYKM);
 
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MM, PVRSRV_BRIDGE_MM_GETMAXDEVMEMSIZE);
+
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MM, PVRSRV_BRIDGE_MM_DEVMEMGETFAULTADDRESS);
 
 
 

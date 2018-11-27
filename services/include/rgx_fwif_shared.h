@@ -333,6 +333,9 @@ typedef struct _RGXFWIF_HWRTDATA_
 #if defined(FIX_HW_BRN_65101)
 	IMG_BOOL							bNeedBRN65101Blit;
 #endif
+#if defined(FIX_HW_BRN_67182)
+	IMG_BOOL							bNeedBRN67182SecondRender;
+#endif
 } UNCACHED_ALIGN RGXFWIF_HWRTDATA;
 
 typedef enum

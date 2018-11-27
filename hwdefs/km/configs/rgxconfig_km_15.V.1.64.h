@@ -39,11 +39,11 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCONFIG_KM_15_V_1_64_H_
-#define _RGXCONFIG_KM_15_V_1_64_H_
+#ifndef RGXCONFIG_KM_15_V_1_64_H
+#define RGXCONFIG_KM_15_V_1_64_H
 
-/***** Automatically generated file (04/06/2018 07:01:05): Do not edit manually ********************/
-/***** Timestamp:  (04/06/2018 07:01:05)************************************************************/
+/***** Automatically generated file (10/10/2018 09:01:02): Do not edit manually ********************/
+/***** Timestamp:  (10/10/2018 09:01:02)************************************************************/
 
 #define RGX_BNC_KM_B 15
 #define RGX_BNC_KM_N 1
@@ -74,4 +74,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_GPU_VIRTUALISATION_NUM_OS (8)
 
 
-#endif /* _RGXCONFIG_15_V_1_64_H_ */
+#endif /* RGXCONFIG_15_V_1_64_H */

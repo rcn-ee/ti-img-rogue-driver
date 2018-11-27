@@ -59,6 +59,16 @@ extern "C" {
 
 #if defined(__KERNEL__)
 #define HTBLOGK(SF, args...) do { if (HTB_GROUP_ENABLED(SF)) HTBLogSimple((IMG_HANDLE) NULL, SF, ## args); } while (0)
+
+/* Host Trace Buffer name */
+#define HTB_STREAM_NAME	"PVRHTBuffer"
+
+/* Indicate that this stream handle has been explicitly closed. This value must
+ * be an impossible pointer value for a buffer-aligned structure. Choose a value
+ * which is 'odd' so that it can never be valid.
+ */
+#define HTB_STREAM_CLOSED	(IMG_HANDLE)0xfacedead
+
 #else
 #define HTBLOG(handle, SF, args...) do { if (HTB_GROUP_ENABLED(SF)) HTBLogSimple(handle, SF, ## args); } while (0)
 #endif

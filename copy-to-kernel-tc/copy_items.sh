@@ -40,7 +40,11 @@ copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_drv.c drivers/gpu/drm/img-rogu
 copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_dvi.c drivers/gpu/drm/img-rogue/apollo/drm_pdp_dvi.c
 copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_gem.c drivers/gpu/drm/img-rogue/apollo/drm_pdp_gem.c
 copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_modeset.c drivers/gpu/drm/img-rogue/apollo/drm_pdp_modeset.c
+copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_plane.c drivers/gpu/drm/img-rogue/apollo/drm_pdp_plane.c
 copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_tmds.c drivers/gpu/drm/img-rogue/apollo/drm_pdp_tmds.c
+copyfile kernel/drivers/staging/imgtec/tc/pdp_apollo.c drivers/gpu/drm/img-rogue/apollo/pdp_apollo.c
+copyfile kernel/drivers/staging/imgtec/tc/pdp_odin.c drivers/gpu/drm/img-rogue/apollo/pdp_odin.c
+copyfile kernel/drivers/staging/imgtec/tc/pdp_plato.c drivers/gpu/drm/img-rogue/apollo/pdp_plato.c
 copyfile kernel/drivers/staging/imgtec/tc/tc_apollo.c drivers/gpu/drm/img-rogue/apollo/tc_apollo.c
 copyfile kernel/drivers/staging/imgtec/tc/tc_drv.c drivers/gpu/drm/img-rogue/apollo/tc_drv.c
 copyfile kernel/drivers/staging/imgtec/tc/tc_odin.c drivers/gpu/drm/img-rogue/apollo/tc_odin.c
@@ -256,6 +260,7 @@ copyfile kernel/drivers/staging/imgtec/tc/drm_pdp_gem.h drivers/gpu/drm/img-rogu
 copyfile kernel/drivers/staging/imgtec/tc/pdp_apollo.h drivers/gpu/drm/img-rogue/apollo/pdp_apollo.h
 copyfile kernel/drivers/staging/imgtec/tc/pdp_common.h drivers/gpu/drm/img-rogue/apollo/pdp_common.h
 copyfile kernel/drivers/staging/imgtec/tc/pdp_odin.h drivers/gpu/drm/img-rogue/apollo/pdp_odin.h
+copyfile kernel/drivers/staging/imgtec/tc/pdp_plato.h drivers/gpu/drm/img-rogue/apollo/pdp_plato.h
 copyfile kernel/drivers/staging/imgtec/tc/tc_apollo.h drivers/gpu/drm/img-rogue/apollo/tc_apollo.h
 copyfile kernel/drivers/staging/imgtec/tc/tc_drv.h drivers/gpu/drm/img-rogue/apollo/tc_drv.h
 copyfile kernel/drivers/staging/imgtec/tc/tc_drv_internal.h drivers/gpu/drm/img-rogue/apollo/tc_drv_internal.h
@@ -323,6 +328,7 @@ copyfile services/server/devices/rgx/rgxtransfer.h drivers/gpu/drm/img-rogue/rgx
 copyfile services/server/devices/rgx/rgxutils.h drivers/gpu/drm/img-rogue/rgxutils.h
 copyfile services/server/env/linux/env_connection.h drivers/gpu/drm/img-rogue/env_connection.h
 copyfile services/server/env/linux/event.h drivers/gpu/drm/img-rogue/event.h
+copyfile services/server/env/linux/htb_debug.h drivers/gpu/drm/img-rogue/htb_debug.h
 copyfile services/server/env/linux/km_apphint.h drivers/gpu/drm/img-rogue/km_apphint.h
 copyfile services/server/env/linux/linkage.h drivers/gpu/drm/img-rogue/linkage.h
 copyfile services/server/env/linux/module_common.h drivers/gpu/drm/img-rogue/module_common.h

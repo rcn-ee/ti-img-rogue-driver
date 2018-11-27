@@ -18,13 +18,11 @@ override PVR_SYSTEM := rgx_linux_tc
 override PVR_USE_FENCE_SYNC_MODEL := 1
 override RGX_TIMECORR_CLOCK := mono
 override SUPPORT_BUFFER_SYNC := 1
-override SUPPORT_COMPUTE := 1
 override SUPPORT_DMA_FENCE := 1
 override SUPPORT_GPUTRACE_EVENTS := 1
 override SUPPORT_NATIVE_FENCE_SYNC := 1
 override SUPPORT_RGX := 1
 override SUPPORT_SERVER_SYNC := 1
-override SUPPORT_TLA := 1
 override VMM_TYPE := stub
 override undefine SUPPORT_DISPLAY_CLASS
 ifeq ($(CONFIG_DRM_POWERVR_ROGUE_DEBUG),y)

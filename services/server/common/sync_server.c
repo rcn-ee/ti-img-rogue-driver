@@ -99,20 +99,22 @@ struct _SYNC_PRIMITIVE_BLOCK_
 
 struct _SERVER_SYNC_PRIMITIVE_
 {
-	PVRSRV_DEVICE_NODE		*psDevNode;
-	PVRSRV_CLIENT_SYNC_PRIM *psSync;
-	IMG_UINT32				ui32NextOp;
-	ATOMIC_T				sRefCount;
-	IMG_UINT32				ui32UID;
-	IMG_UINT32				ui32LastSyncRequesterID;
-	DLLIST_NODE				sSyncServerListNode;
+	PVRSRV_DEVICE_NODE                      *psDevNode;
+	PVRSRV_CLIENT_SYNC_PRIM                 *psSync;
+	IMG_UINT32                              ui32NextOp;
+	ATOMIC_T                                sRefCount;
+	IMG_UINT32                              ui32UID;
+	IMG_UINT32                              ui32LastSyncRequesterID;
+	DLLIST_NODE                             sSyncServerListNode;
 	/* PDump only data */
-	IMG_BOOL				bSWOperation;
-	IMG_BOOL				bSWOpStartedInCaptRange;
-	IMG_UINT32				ui32LastHWUpdate;
-	IMG_BOOL				bPDumped;
-	POS_LOCK				hLock; /*!< used to make ServerSyncQueue*Op calls atomic */
-	IMG_CHAR				szClassName[SYNC_MAX_CLASS_NAME_LEN];
+	IMG_BOOL                                bSWOperation;
+	IMG_BOOL                                bSWOpStartedInCaptRange;
+	IMG_UINT32                              ui32LastHWUpdate;
+	IMG_UINT32                              ui32LastPdumpedBlock;       /* To be used in block-mode of PDump - This holds pdump-block number where sync primitive is pdumped last time */
+	IMG_BOOL                                bFirstOperationInBlock;     /* Is current operation taken on this sync is first in a current pdump-block? */
+	IMG_BOOL                                bPDumped;
+	POS_LOCK                                hLock;                      /*!< used to make ServerSyncQueue*Op calls atomic */
+	IMG_CHAR                                szClassName[SYNC_MAX_CLASS_NAME_LEN];
 };
 
 struct _SERVER_SYNC_EXPORT_
@@ -1115,6 +1117,8 @@ PVRSRVServerSyncAllocKM(CONNECTION_DATA * psConnection,
 	psNewSync->ui32LastSyncRequesterID = SYNC_REQUESTOR_UNKNOWN;
 	psNewSync->bSWOperation = IMG_FALSE;
 	psNewSync->ui32LastHWUpdate = 0x0bad592c;
+	psNewSync->ui32LastPdumpedBlock = PDUMP_BLOCKNUM_INVALID;
+	psNewSync->bFirstOperationInBlock = IMG_FALSE;
 	psNewSync->bPDumped = IMG_FALSE;
 	OSAtomicWrite(&psNewSync->sRefCount, 1);
 
@@ -1373,6 +1377,9 @@ _ServerSyncTakeOperation(SERVER_SYNC_PRIMITIVE *psSync,
 						  IMG_UINT32 *pui32UpdateValue)
 {
 	IMG_BOOL bInCaptureRange;
+#if defined(PDUMP)
+	IMG_UINT32 ui32CurrentBlock;
+#endif
 
 #if !defined(PVRSRV_USE_BRIDGE_LOCK)
 	PVR_ASSERT(OSLockIsLocked(ghServerSyncLock));
@@ -1391,11 +1398,26 @@ _ServerSyncTakeOperation(SERVER_SYNC_PRIMITIVE *psSync,
 	*pui32UpdateValue = psSync->ui32NextOp;
 
 	PDumpIsCaptureFrameKM(&bInCaptureRange);
+
+#if defined(PDUMP)
+	PDumpGetCurrentBlockKM(&ui32CurrentBlock);
+
+	/* Is this first operation taken on _this_ sync in a new pdump-block? */ 
+	psSync->bFirstOperationInBlock = (psSync->ui32LastPdumpedBlock != ui32CurrentBlock) && (ui32CurrentBlock != PDUMP_BLOCKNUM_INVALID);
+#endif
 	/*
 		If this is the 1st operation (in this capture range) then PDump
 		this sync
+
+		In case of block-mode of PDump, if this is first operation taken on _this_
+		particular sync in this new pdump-block then PDump this sync
+
+		It means, this is the first operation taken on _this_ particular sync after live-FW 
+		thread and driver-thread are synchronised at start of new pdump-block. So we need to 
+		re-dump this sync so that its latest values can be loaded _after_ sim-FW thread and 
+		script-thread are synchronised at start of playback of new/next pdump-block at playback time.
 	*/
-	if (!psSync->bPDumped && bInCaptureRange)
+	if ((!psSync->bPDumped && bInCaptureRange) || psSync->bFirstOperationInBlock)
 	{
 #if defined(PDUMP)
 		{
@@ -1407,6 +1429,7 @@ _ServerSyncTakeOperation(SERVER_SYNC_PRIMITIVE *psSync,
 				ui32SyncAddr,
 				OSReadDeviceMem32(psSync->psSync->pui32LinAddr));
 		}
+		psSync->ui32LastPdumpedBlock = ui32CurrentBlock; /* Update last pdumped block number */
 #endif
 
 		SyncPrimPDump(psSync->psSync);
@@ -1585,7 +1608,15 @@ PVRSRVServerSyncQueueHWOpKM_NoGlobalLock(SERVER_SYNC_PRIMITIVE *psSync,
 		}
 #endif
 
-		if (psSync->bSWOpStartedInCaptRange)
+		/* In case of block-mode of PDump, if this is NOT the first operation on _this_ sync in 
+		 * current pdump-block and SW operation is started in capture range (which is always
+		 * true in case of block-mode) dump POL for previous HW operation
+		 *
+		 * It means, if this is not the first operation on _this_ sync in current pdump-block,
+		 * we need to synchronise script-thread and sim-FW thread on _this_ sync before processing 
+		 * further commands from current pdump-block.
+		 * */
+		if (psSync->bSWOpStartedInCaptRange && !psSync->bFirstOperationInBlock)
 		{
 			/* Dump a POL for the previous HW operation */
 			SyncPrimPDumpPol(psSync->psSync,

@@ -63,7 +63,6 @@ static PVRSRV_ERROR
 SysVzCreateDisplayPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 #if defined(SUPPORT_DISPLAY_CLASS) && defined(CONFIG_L4)
-	IMG_UINT64 ui64BaseAddr, ui64Offset;
 	IMG_UINT32 ui32Idx;
 
 	/* First, we locate the display physical heap configuration via ID */
@@ -97,18 +96,6 @@ SysVzCreateDisplayPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 				(IMG_UINT64)psDevConfig->pasPhysHeaps[ui32Idx].pasRegions[0].sStartAddr.uiAddr,
 				(IMG_UINT64)psDevConfig->pasPhysHeaps[ui32Idx].pasRegions[0].uiSize));
 		return PVRSRV_ERROR_DEVICEMEM_MAP_FAILED;
-	}
-
-	/* Pre-fault-in all display physheap pages into l4linux address space, this avoids having
-	   to pre-fault these before mapping into application address space in OSMMapPMRGeneric() */
-	ui64BaseAddr = psDevConfig->pasPhysHeaps[ui32Idx].pasRegions[0].sStartAddr.uiAddr;
-	for (ui64Offset = 0;
-		 ui64Offset < psDevConfig->pasPhysHeaps[ui32Idx].pasRegions[0].uiSize;
-		 ui64Offset += (IMG_UINT64)OSGetPageSize())
-	{
-		IMG_CPU_VIRTADDR pvCpuVAddr = l4x_phys_to_virt(ui64BaseAddr + ui64Offset);
-		/* We need to ensure the compiler does not optimise this out */
-		*((volatile int*)pvCpuVAddr) = *((volatile int*)pvCpuVAddr);
 	}
 #else
 	PVR_UNREFERENCED_PARAMETER(psDevConfig);
@@ -155,9 +142,6 @@ SysVzCreateGpuFwPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	PHYS_HEAP_CONFIG *psGpuPhysHeapConfig = NULL;
 #if defined(CONFIG_L4)
 	IMG_CPU_PHYADDR sPhysHeapConfigMapAddr;
-	IMG_CPU_VIRTADDR pvCpuVAddr;
-	IMG_UINT64 ui64BaseAddr;
-	IMG_UINT64 ui64Offset;
 #endif
 
 	for (eHeapType=0; eHeapType < PVRSRV_DEVICE_PHYS_HEAP_LAST; eHeapType++)
@@ -254,19 +238,6 @@ SysVzCreateGpuFwPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 					(IMG_UINT64)sPhysHeapConfigMapAddr.uiAddr,
 					(IMG_UINT64)psPhysHeapConfig->pasRegions[0].uiSize));
 			return PVRSRV_ERROR_DEVICEMEM_MAP_FAILED;
-		}
-
-		/* Pre-fault-in all physheap pages into l4linux address space,
-		   this avoids having to pre-fault these before mapping into
-		   an application address space in OSMMapPMRGeneric() */
-		for (ui64Offset = 0;
-			 ui64Offset < psPhysHeapConfig->pasRegions[0].uiSize;
-			 ui64Offset += (IMG_UINT64)OSGetPageSize())
-		{
-			ui64BaseAddr = sPhysHeapConfigMapAddr.uiAddr + ui64Offset;
-			pvCpuVAddr = l4x_phys_to_virt(ui64BaseAddr);
-			/* We need to ensure the compiler does not optimise this out */
-			*((volatile int*)pvCpuVAddr) = *((volatile int*)pvCpuVAddr);
 		}
 #endif
 	}

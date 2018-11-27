@@ -94,7 +94,8 @@ MODULE_INCLUDE_FLAGS := \
 
 MODULE_LIBRARY_FLAGS_SUBST := \
  art:$(TARGET_ROOT)/product/$(TARGET_DEVICE)/system/lib/libart.so \
- RScpp:$(NDK_ROOT)/toolchains/renderscript/prebuilt/$(HOST_OS)-$(HOST_ARCH)/platform/x86/libRScpp_static.a
+ RScpp:$(NDK_ROOT)/toolchains/renderscript/prebuilt/$(HOST_OS)-$(HOST_ARCH)/platform/x86/libRScpp_static.a \
+ neuralnetworks_common:$(TARGET_ROOT)/product/$(TARGET_DEVICE)/obj$(if $(MULTIARCH),_x86,)/STATIC_LIBRARIES/libneuralnetworks_common_intermediates/libneuralnetworks_common.a
 
 ifeq ($(wildcard $(NDK_ROOT)/out/local/x86/libc++.so),)
 MODULE_LIBRARY_FLAGS_SUBST := \

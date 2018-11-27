@@ -161,8 +161,8 @@ SyncCheckpointAlloc(PSYNC_CHECKPOINT_CONTEXT psSyncContext,
 /*************************************************************************/ /*!
 @Function       SyncCheckpointFree
 
-@Description    Free a synchronization checkpoint
-                The reference count held for the synchronization checkpoint
+@Description    Free a synchronisation checkpoint
+                The reference count held for the synchronisation checkpoint
                 is decremented - if it has becomes zero, it is also freed.
 
 @Input          psSyncCheckpoint        The synchronisation checkpoint to free
@@ -180,14 +180,13 @@ SyncCheckpointFree(PSYNC_CHECKPOINT psSyncCheckpoint);
 
 @Input          psSyncCheckpoint        The synchronisation checkpoint to signal
 
-@Input          bSleepAllowed           IMG_TRUE, if this call can sleep while
-                                        performing desired task.
+@Input          ui32FenceSyncFlags      Flags used for controlling HWPerf behavior
 
 @Return         None
 */
 /*****************************************************************************/
 void
-SyncCheckpointSignal(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_BOOL bSleepAllowed);
+SyncCheckpointSignal(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_UINT32 ui32FenceSyncFlags);
 
 /*************************************************************************/ /*!
 @Function       SyncCheckpointSignalNoHW
@@ -209,13 +208,31 @@ SyncCheckpointSignalNoHW(PSYNC_CHECKPOINT psSyncCheckpoint);
 
 @Input          psSyncCheckpoint        The synchronisation checkpoint to error
 
-@Input          bSleepAllowed           IMG_TRUE, if this call can sleep while
-                                        performing desired task.
+@Input          ui32FenceSyncFlags      Flags used for controlling HWPerf behavior
+
 @Return         None
 */
 /*****************************************************************************/
 void
-SyncCheckpointError(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_BOOL bSleepAllowed);
+SyncCheckpointError(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_UINT32 ui32FenceSyncFlags);
+
+/*************************************************************************/ /*!
+@Function       SyncCheckpointStateFromUFO
+
+@Description    Returns the current state of the synchronisation checkpoint
+                which has the given UFO firmware address
+
+@Input          psDevNode               The device owning the sync
+                                        checkpoint
+
+@Input          ui32FwAddr              The firmware address of the sync
+                                        checkpoint
+
+@Return         The current state (32-bit value) of the sync checkpoint
+*/
+/*****************************************************************************/
+IMG_UINT32 SyncCheckpointStateFromUFO(PPVRSRV_DEVICE_NODE psDevNode,
+                                IMG_UINT32 ui32FwAddr);
 
 /*************************************************************************/ /*!
 @Function       SyncCheckpointErrorFromUFO
@@ -262,14 +279,13 @@ SyncCheckpointRollbackFromUFO(PPVRSRV_DEVICE_NODE psDevNode, IMG_UINT32 ui32FwAd
 
 @Input          psSyncCheckpoint        The synchronisation checkpoint to test
 
-@Input          bSleepAllowed           IMG_TRUE, if this call can sleep while
-                                        performing desired task.
+@Input          ui32FenceSyncFlags      Flags used for controlling HWPerf behavior
 
 @Return         None
 */
 /*****************************************************************************/
 IMG_BOOL
-SyncCheckpointIsSignalled(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_BOOL bSleepAllowed);
+SyncCheckpointIsSignalled(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_UINT32 ui32FenceSyncFlags);
 
 /*************************************************************************/ /*!
 @Function       SyncCheckpointIsErrored
@@ -279,13 +295,13 @@ SyncCheckpointIsSignalled(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_BOOL bSleepAllo
 
 @Input          psSyncCheckpoint        The synchronisation checkpoint to test
 
-@Input          bSleepAllowed           IMG_TRUE, if this call can sleep while
-                                        performing desired task.
+@Input          ui32FenceSyncFlags      Flags used for controlling HWPerf behavior
+
 @Return         None
 */
 /*****************************************************************************/
 IMG_BOOL
-SyncCheckpointIsErrored(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_BOOL bSleepAllowed);
+SyncCheckpointIsErrored(PSYNC_CHECKPOINT psSyncCheckpoint, IMG_UINT32 ui32FenceSyncFlags);
 
 /*************************************************************************/ /*!
 @Function       SyncCheckpointTakeRef

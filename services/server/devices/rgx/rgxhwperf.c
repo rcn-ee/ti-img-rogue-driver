@@ -953,6 +953,64 @@ static PVRSRV_ERROR RGXHWPerfCtrlClientBuffer(IMG_BOOL bToggle,
 	return PVRSRV_OK;
 }
 
+PVRSRV_ERROR RGXServerFeatureFlagsToHWPerfFlags(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 *pui32BvncKmFeatureFlags)
+{
+	PVR_LOGR_IF_FALSE((NULL != psDevInfo), "psDevInfo invalid", PVRSRV_ERROR_INVALID_PARAMS);
+
+	*pui32BvncKmFeatureFlags = 0x0;
+
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, PERFBUS))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_PERFBUS_FLAG;
+	}
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, S7_TOP_INFRASTRUCTURE))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_S7_TOP_INFRASTRUCTURE_FLAG;
+	}
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, XT_TOP_INFRASTRUCTURE))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_XT_TOP_INFRASTRUCTURE_FLAG;
+	}
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, PERF_COUNTER_BATCH))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_PERF_COUNTER_BATCH_FLAG;
+	}
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, ROGUEXE))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_ROGUEXE_FLAG;
+	}
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, DUST_POWER_ISLAND_S7))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_DUST_POWER_ISLAND_S7_FLAG;
+	}
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, PBE2_IN_XE))
+	{
+		*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_PBE2_IN_XE_FLAG;
+	}
+
+#ifdef SUPPORT_WORKLOAD_ESTIMATION
+	/* Not a part of BVNC feature line and so doesn't need the feature supported check */
+	*pui32BvncKmFeatureFlags |= RGX_HWPERF_FEATURE_WORKLOAD_ESTIMATION;
+#endif
+
+	return PVRSRV_OK;
+}
+
+PVRSRV_ERROR PVRSRVRGXGetHWPerfBvncFeatureFlagsKM(CONNECTION_DATA    *psConnection,
+                                                  PVRSRV_DEVICE_NODE *psDeviceNode,
+                                                  IMG_UINT32         *pui32BvncKmFeatureFlags)
+{
+	PVRSRV_RGXDEV_INFO *psDevInfo;
+	PVRSRV_ERROR        eError;
+
+	PVR_LOGR_IF_FALSE((NULL != psDeviceNode), "psConnection invalid", PVRSRV_ERROR_INVALID_PARAMS);
+
+	psDevInfo = psDeviceNode->pvDevice;
+	eError = RGXServerFeatureFlagsToHWPerfFlags(psDevInfo, pui32BvncKmFeatureFlags);
+
+	return eError;
+}
+
 /*
 	PVRSRVRGXCtrlHWPerfKM
  */
@@ -1222,7 +1280,7 @@ PVRSRV_ERROR PVRSRVRGXConfigEnableHWPerfCountersKM(
 	                   sizeof(RGX_HWPERF_CONFIG_CNTBLK)*ui32ArrayLen,
 	                   0);
 
-	/* PVR_DPF((PVR_DBG_VERBOSE, "PVRSRVRGXConfigEnableHWPerfCountersKM parameters set, calling FW")); */
+	/*PVR_DPF((PVR_DBG_VERBOSE, "PVRSRVRGXConfigEnableHWPerfCountersKM parameters set, calling FW"));*/
 
 	/* Ask the FW to carry out the HWPerf configuration command
 	 */
@@ -1233,7 +1291,7 @@ PVRSRV_ERROR PVRSRVRGXConfigEnableHWPerfCountersKM(
 		PVR_LOGG_IF_ERROR(eError, "RGXScheduleCommand", fail2);
 	}
 
-	/* PVR_DPF((PVR_DBG_VERBOSE, "PVRSRVRGXConfigEnableHWPerfCountersKM command scheduled for FW")); */
+	/*PVR_DPF((PVR_DBG_VERBOSE, "PVRSRVRGXConfigEnableHWPerfCountersKM command scheduled for FW"));*/
 
 	/* Wait for FW to complete */
 	eError = RGXWaitForFWOp(psDeviceNode->pvDevice, RGXFWIF_DM_GP, psDeviceNode->psSyncPrim, PDUMP_FLAGS_CONTINUOUS);
@@ -1248,7 +1306,7 @@ PVRSRV_ERROR PVRSRVRGXConfigEnableHWPerfCountersKM(
 	DevmemReleaseCpuVirtAddr(psFwBlkConfigsMemDesc);
 	DevmemFwFree(psDeviceNode->pvDevice, psFwBlkConfigsMemDesc);
 
-	/* PVR_DPF((PVR_DBG_VERBOSE, "PVRSRVRGXConfigEnableHWPerfCountersKM firmware completed")); */
+	/*PVR_DPF((PVR_DBG_VERBOSE, "PVRSRVRGXConfigEnableHWPerfCountersKM firmware completed"));*/
 
 	PVR_DPF((PVR_DBG_WARNING, "HWPerf %d counter blocks configured and ENABLED", ui32ArrayLen));
 
@@ -3805,6 +3863,51 @@ PVRSRV_ERROR RGXHWPerfConfigureAndEnableCounters(
 	}
 
 	return eError;
+}
+
+
+PVRSRV_ERROR RGXHWPerfConfigureAndEnableCustomCounters(
+		RGX_HWPERF_CONNECTION *psHWPerfConnection,
+		IMG_UINT16              ui16CustomBlockID,
+		IMG_UINT16          ui16NumCustomCounters,
+		IMG_UINT32         *pui32CustomCounterIDs)
+{
+	PVRSRV_ERROR            eError;
+	RGX_HWPERF_DEVICE       *psHWPerfDev;
+
+	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_GUEST, PVRSRV_ERROR_NOT_IMPLEMENTED);
+
+	/* Validate input arguments supplied by the caller */
+	PVR_LOGR_IF_FALSE((NULL != psHWPerfConnection), "psHWPerfConnection invalid",
+	                   PVRSRV_ERROR_INVALID_PARAMS);
+	PVR_LOGR_IF_FALSE((0 != ui16NumCustomCounters), "uiNumBlocks invalid",
+			           PVRSRV_ERROR_INVALID_PARAMS);
+	PVR_LOGR_IF_FALSE((NULL != pui32CustomCounterIDs),"asBlockConfigs invalid",
+			           PVRSRV_ERROR_INVALID_PARAMS);
+
+	/* Check # of blocks */
+	PVR_LOGR_IF_FALSE((!(ui16CustomBlockID > RGX_HWPERF_MAX_CUSTOM_BLKS)),"ui16CustomBlockID invalid",
+			           PVRSRV_ERROR_INVALID_PARAMS);
+
+	/* Check # of counters */
+	PVR_LOGR_IF_FALSE((!(ui16NumCustomCounters > RGX_HWPERF_MAX_CUSTOM_CNTRS)),"ui16NumCustomCounters invalid",
+			           PVRSRV_ERROR_INVALID_PARAMS);
+
+	psHWPerfDev = psHWPerfConnection->psHWPerfDevList;
+
+	while (psHWPerfDev)
+	{
+		RGX_KM_HWPERF_DEVDATA *psDevData = (RGX_KM_HWPERF_DEVDATA *) psHWPerfDev->hDevData;
+
+		eError = PVRSRVRGXConfigCustomCountersKM(NULL,
+				                                 psDevData->psRgxDevNode,
+												 ui16CustomBlockID, ui16NumCustomCounters, pui32CustomCounterIDs);
+		PVR_LOGR_IF_ERROR(eError, "PVRSRVRGXCtrlCustHWPerfKM");
+
+		psHWPerfDev = psHWPerfDev->psNext;
+	}
+
+	return PVRSRV_OK;
 }
 
 

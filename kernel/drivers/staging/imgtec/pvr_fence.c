@@ -71,23 +71,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	} while (0)
 
 static inline void
-pvr_fence_sync_signal(struct pvr_fence *pvr_fence)
+pvr_fence_sync_signal(struct pvr_fence *pvr_fence, u32 fence_sync_flags)
 {
-	SyncCheckpointSignal(pvr_fence->sync_checkpoint, ATOMIC_SYNC_CTX);
+	SyncCheckpointSignal(pvr_fence->sync_checkpoint, fence_sync_flags);
 }
 
 static inline bool
-pvr_fence_sync_is_signaled(struct pvr_fence *pvr_fence)
+pvr_fence_sync_is_signaled(struct pvr_fence *pvr_fence, u32 fence_sync_flags)
 {
-	return SyncCheckpointIsSignalled(pvr_fence->sync_checkpoint, ATOMIC_SYNC_CTX);
+	return SyncCheckpointIsSignalled(pvr_fence->sync_checkpoint, fence_sync_flags);
 }
 
 static inline u32
 pvr_fence_sync_value(struct pvr_fence *pvr_fence)
 {
-	if (SyncCheckpointIsErrored(pvr_fence->sync_checkpoint, ATOMIC_SYNC_CTX))
+	if (SyncCheckpointIsErrored(pvr_fence->sync_checkpoint, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
 		return PVRSRV_SYNC_CHECKPOINT_ERRORED;
-	else if (SyncCheckpointIsSignalled(pvr_fence->sync_checkpoint, ATOMIC_SYNC_CTX))
+	else if (SyncCheckpointIsSignalled(pvr_fence->sync_checkpoint, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
 		return PVRSRV_SYNC_CHECKPOINT_SIGNALLED;
 	else
 		return PVRSRV_SYNC_CHECKPOINT_NOT_SIGNALLED;
@@ -209,7 +209,7 @@ pvr_fence_context_signal_fences(void *data)
 	spin_lock_irqsave(&fctx->list_lock, flags);
 	list_for_each_entry_safe(pvr_fence, tmp, &fctx->signal_list,
 				 signal_head) {
-		if (pvr_fence_sync_is_signaled(pvr_fence))
+		if (pvr_fence_sync_is_signaled(pvr_fence, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
 			list_move(&pvr_fence->signal_head, &signal_list);
 	}
 	spin_unlock_irqrestore(&fctx->list_lock, flags);
@@ -553,7 +553,7 @@ pvr_fence_enable_signaling(struct dma_fence *fence)
 
 	WARN_ON_SMP(!spin_is_locked(&pvr_fence->fctx->lock));
 
-	if (pvr_fence_sync_is_signaled(pvr_fence))
+	if (pvr_fence_sync_is_signaled(pvr_fence, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
 		return false;
 
 	dma_fence_get(&pvr_fence->base);
@@ -575,7 +575,7 @@ pvr_fence_is_signaled(struct dma_fence *fence)
 	struct pvr_fence *pvr_fence = to_pvr_fence(fence);
 
 	if (pvr_fence)
-		return pvr_fence_sync_is_signaled(pvr_fence);
+		return pvr_fence_sync_is_signaled(pvr_fence, PVRSRV_FENCE_FLAG_CTX_ATOMIC);
 	return false;
 }
 
@@ -801,7 +801,8 @@ pvr_fence_foreign_signal_sync(struct dma_fence *fence, struct dma_fence_cb *cb)
 
 	WARN_ON_ONCE(is_pvr_fence(fence));
 
-	pvr_fence_sync_signal(pvr_fence);
+	/* Callback registered by dma_fence_add_callback can be called from an atomic ctx */
+	pvr_fence_sync_signal(pvr_fence, PVRSRV_FENCE_FLAG_CTX_ATOMIC);
 
 	trace_pvr_fence_foreign_signal(pvr_fence);
 
@@ -910,8 +911,11 @@ pvr_fence_create_from_fence(struct pvr_fence_context *fctx,
 
 		/*
 		 * The fence has already signalled so set the sync as signalled.
+		 * The "signalled" hwperf packet should be emitted because the
+		 * callback won't be called for already signalled fence hence,
+		 * PVRSRV_FENCE_FLAG_NONE flag.
 		 */
-		pvr_fence_sync_signal(pvr_fence);
+		pvr_fence_sync_signal(pvr_fence, PVRSRV_FENCE_FLAG_NONE);
 		PVR_FENCE_TRACE(&pvr_fence->base,
 				"foreign fence %llu#%d already signaled (%s)\n",
 				(u64) pvr_fence->fence->context,
@@ -969,7 +973,7 @@ pvr_fence_sw_signal(struct pvr_fence *pvr_fence)
 	if (!is_our_fence(pvr_fence->fctx, &pvr_fence->base))
 		return -EINVAL;
 
-	pvr_fence_sync_signal(pvr_fence);
+	pvr_fence_sync_signal(pvr_fence, PVRSRV_FENCE_FLAG_NONE);
 
 	queue_work(pvr_fence->fctx->fence_wq,
 		   &pvr_fence->fctx->check_status_work);
@@ -994,7 +998,7 @@ pvr_fence_sw_error(struct pvr_fence *pvr_fence)
 	if (!is_our_fence(pvr_fence->fctx, &pvr_fence->base))
 		return -EINVAL;
 
-	SyncCheckpointError(pvr_fence->sync_checkpoint, ATOMIC_SYNC_CTX);
+	SyncCheckpointError(pvr_fence->sync_checkpoint, PVRSRV_FENCE_FLAG_NONE);
 	PVR_FENCE_TRACE(&pvr_fence->base, "sw set fence sync errored (%s)\n",
 	            pvr_fence->name);
 

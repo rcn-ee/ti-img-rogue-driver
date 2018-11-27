@@ -303,8 +303,10 @@ typedef struct _PVRSRV_DEVICE_NODE_
 	IMG_CHAR				**apszRANames;
 	IMG_UINT32				ui32NumOfLocalMemArenas;
 
+	IMG_CHAR				szKernelFwRawRAName[RGXFW_NUM_OS][PVRSRV_MAX_RA_NAME_LENGTH];
 	IMG_CHAR				szKernelFwMainRAName[RGXFW_NUM_OS][PVRSRV_MAX_RA_NAME_LENGTH];
 	IMG_CHAR				szKernelFwConfigRAName[RGXFW_NUM_OS][PVRSRV_MAX_RA_NAME_LENGTH];
+	RA_ARENA				*psKernelFwRawMemArena[RGXFW_NUM_OS];
 	RA_ARENA				*psKernelFwMainMemArena[RGXFW_NUM_OS];
 	RA_ARENA				*psKernelFwConfigMemArena[RGXFW_NUM_OS];
 	RA_BASE_T				ui64RABase[RGXFW_NUM_OS];
@@ -390,6 +392,9 @@ typedef struct _PVRSRV_DEVICE_NODE_
 	POSWR_LOCK				hMemoryContextPageFaultNotifyListLock;
 #endif /* !defined(PVRSRV_USE_BRIDGE_LOCK) */
 	DLLIST_NODE				sMemoryContextPageFaultNotifyListHead;
+
+	/* PC address used to find contexts to be notified of a page fault */
+	IMG_UINT64				ui64ContextResetPCAddress;
 
 #if defined(PDUMP)
 	/* 	device-level callback which is called when pdump.exe starts.

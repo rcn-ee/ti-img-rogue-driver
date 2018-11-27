@@ -351,6 +351,7 @@ typedef struct _PVRSRV_RGXDEV_INFO_
 
 #if defined (PDUMP)
 	IMG_BOOL				bDumpedKCCBCtlAlready;
+	IMG_UINT32                              ui32LastBlockKCCBCtrlDumped; /* To be used in block-mode of pdump - Last pdump-block where we dumped KCCBCtrl */
 #endif
 
 #if !defined(PVRSRV_USE_BRIDGE_LOCK)
@@ -395,6 +396,7 @@ typedef struct _PVRSRV_RGXDEV_INFO_
 
 	/* Additional guest firmware memory context info */
 	DEVMEM_HEAP				*psGuestFirmwareRawHeap[RGXFW_NUM_OS];
+	DEVMEM_MEMDESC			*psGuestFirmwareRawMemDesc[RGXFW_NUM_OS];
 	DEVMEM_MEMDESC			*psGuestFirmwareMainMemDesc[RGXFW_NUM_OS];
 	DEVMEM_MEMDESC			*psGuestFirmwareConfigMemDesc[RGXFW_NUM_OS];
 
@@ -605,6 +607,8 @@ typedef struct _PVRSRV_RGXDEV_INFO_
 	IMG_UINT32				ui32OldestSubmissionOrdinal; /* Earliest submission ordinal of CCB entry found so far */
 
 	POS_LOCK				hCCBStallCheckLock; /* Lock used to guard against multiple threads simultaneously checking for stalled CCBs */
+
+	IMG_UINT32				ui32ExpectedPartialFWCCBCmd; /* Partial FWCCB command expected from the FW */
 } PVRSRV_RGXDEV_INFO;
 
 

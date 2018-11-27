@@ -49,6 +49,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 #endif
 
+/* By default, fence-sync module emits into HWPerf (of course, if enabled) and
+ * considers a process (sleepable) context */
+#define PVRSRV_FENCE_FLAG_NONE             (0U)
+#define PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT (1U << 0)
+#define PVRSRV_FENCE_FLAG_CTX_ATOMIC       (1U << 1)
+
 /*! Possible states for a PVRSRV_FENCE */
 typedef enum
 {

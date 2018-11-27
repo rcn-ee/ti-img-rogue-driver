@@ -123,6 +123,7 @@ DBGKM_SERVICE_TABLE g_sDBGKMServices =
 	ExtDBGDrivDestroyStream,
 	ExtDBGDrivWrite2,
 	ExtDBGDrivSetMarker,
+	ExtDBGDrivGetMarker,
 	ExtDBGDrivWaitForEvent,
 	ExtDBGDrivGetCtrlState,
 	ExtDBGDrivSetFrame
@@ -134,7 +135,7 @@ DBGKM_SERVICE_TABLE g_sDBGKMServices =
 ***************************************************************************/
 
 IMG_BOOL   IMG_CALLCONV DBGDrivCreateStream(IMG_CHAR *pszName, IMG_UINT32 ui32Flags, IMG_UINT32 ui32Pages, IMG_HANDLE* phInit, IMG_HANDLE* phMain, IMG_HANDLE* phDeinit);
-void   IMG_CALLCONV DBGDrivDestroyStream(IMG_HANDLE hInit,IMG_HANDLE hMain, IMG_HANDLE hDeinit);
+void   IMG_CALLCONV DBGDrivDestroyStream(IMG_HANDLE hInit, IMG_HANDLE hMain, IMG_HANDLE hDeinit);
 void * IMG_CALLCONV DBGDrivFindStream(IMG_CHAR * pszName, IMG_BOOL bResetStream);
 IMG_UINT32 IMG_CALLCONV DBGDrivRead(PDBG_STREAM psStream, IMG_UINT32 ui32BufID, IMG_UINT32 ui32OutBufferSize,IMG_UINT8 *pui8OutBuf);
 void   IMG_CALLCONV DBGDrivSetCaptureMode(PDBG_STREAM psStream,IMG_UINT32 ui32Mode,IMG_UINT32 ui32Start,IMG_UINT32 ui32Stop,IMG_UINT32 ui32SampleRate);
@@ -178,7 +179,7 @@ IMG_BOOL IMG_CALLCONV ExtDBGDrivCreateStream(IMG_CHAR *pszName, IMG_UINT32 ui32F
 /*!
  @name	ExtDBGDrivDestroyStream
  */
-void IMG_CALLCONV ExtDBGDrivDestroyStream(IMG_HANDLE hInit,IMG_HANDLE hMain, IMG_HANDLE hDeinit)
+void IMG_CALLCONV ExtDBGDrivDestroyStream(IMG_HANDLE hInit, IMG_HANDLE hMain, IMG_HANDLE hDeinit)
 {
 	/* Acquire API Mutex */
 	HostAquireMutex(g_pvAPIMutex);
@@ -787,6 +788,7 @@ IMG_BOOL IMG_CALLCONV DBGDrivCreateStream(IMG_CHAR *pszName,
 	psInitStream->ui32InitPhaseWOff = 0;
 	DBGDrivSetStreamName(psInitStream, pszName, "_Init");
 	PVR_DPF((PVR_DBG_MESSAGE,"DBGDriv: Created stream with init name (%s)\n\r", psInitStream->szName));
+
 	psStream->psInitStream = psInitStream;
 
 	/* Allocate memory for Deinit buffer */
@@ -858,7 +860,7 @@ errCleanup:
  @param		psStream - stream to be removed
  @return	none
 *****************************************************************************/
-void IMG_CALLCONV DBGDrivDestroyStream(IMG_HANDLE hInit,IMG_HANDLE hMain, IMG_HANDLE hDeinit)
+void IMG_CALLCONV DBGDrivDestroyStream(IMG_HANDLE hInit, IMG_HANDLE hMain, IMG_HANDLE hDeinit)
 {
 	PDBG_STREAM psStreamInit = (PDBG_STREAM) hInit;
 	PDBG_STREAM psStream = (PDBG_STREAM) hMain;
@@ -1241,7 +1243,7 @@ void IMG_CALLCONV DBGDrivSetMarker(PDBG_STREAM psStream, IMG_UINT32 ui32Marker)
 	/* Called by PDump client to reset the marker to zero after a file split */
 	if ((ui32Marker == 0) && (psStream->ui32Marker == 0))
 	{
-		PVR_DPF((PVR_DBG_ERROR, "DBGDrivSetMarker: Client resetting marker that is already zero!"));
+		PVR_DPF((PVR_DBG_ERROR, "DBGDrivSetMarker: [%s] Client resetting marker that is already zero!", psStream->szName));
 	}
 	/* Called by pvrsrvkm to set the marker to signal a file split is required */
 	if ((ui32Marker != 0) && (psStream->ui32Marker != 0))
@@ -1253,11 +1255,11 @@ void IMG_CALLCONV DBGDrivSetMarker(PDBG_STREAM psStream, IMG_UINT32 ui32Marker)
 		 * size again. If this happens the PDump is invalid as the offsets
 		 * from the script file will be incorrect.
 		 */
-		PVR_DPF((PVR_DBG_ERROR, "DBGDrivSetMarker: Server setting marker that is already set!"));
+		PVR_DPF((PVR_DBG_ERROR, "DBGDrivSetMarker: [%s] Server setting marker that is already set (%d)!", psStream->szName, psStream->ui32Marker));
 	}
 	else
 	{
-		PVR_DPF((PVR_DBG_MESSAGE, "DBGDrivSetMarker: Setting stream split marker to %d (was %d)", ui32Marker, psStream->ui32Marker));
+		PVR_DPF((PVR_DBG_MESSAGE, "DBGDrivSetMarker: [%s] Setting stream split marker to %d (was %d)", psStream->szName, ui32Marker, psStream->ui32Marker));
 	}
 
 	psStream->ui32Marker = ui32Marker;

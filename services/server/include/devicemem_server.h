@@ -362,6 +362,12 @@ DevmemIntIsVDevAddrValid(CONNECTION_DATA * psConnection,
                          DEVMEMINT_CTX *psDevMemContext,
                          IMG_DEV_VIRTADDR sDevAddr);
 
+extern PVRSRV_ERROR
+DevmemIntGetFaultAddress(CONNECTION_DATA * psConnection,
+                         PVRSRV_DEVICE_NODE *psDevNode,
+                         DEVMEMINT_CTX *psDevMemContext,
+                         IMG_DEV_VIRTADDR *psFaultAddress);
+
 /*************************************************************************/ /*!
 @Function       DevmemIntRegisterPFNotify
 @Description    Registers a PID to be notified when a page fault occurs on a
@@ -384,10 +390,12 @@ DevmemIntRegisterPFNotifyKM(DEVMEMINT_CTX *psDevmemCtx,
                 context.
 @Input          *psDevNode           The device node.
 @Input          ui64FaultedPCAddress The page catalogue address that faulted.
+@Input          sFaultAddress        The address that triggered the fault.
 @Return         PVRSRV_ERROR
 */ /**************************************************************************/
 PVRSRV_ERROR DevmemIntPFNotify(PVRSRV_DEVICE_NODE *psDevNode,
-                               IMG_UINT64         ui64FaultedPCAddress);
+                               IMG_UINT64         ui64FaultedPCAddress,
+                               IMG_DEV_VIRTADDR   sFaultAddress);
 
 #if defined(PDUMP)
 /*

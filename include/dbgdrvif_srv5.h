@@ -71,6 +71,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 *****************************************************************************/
 #define DEBUG_CAPMODE_FRAMED			0x00000001UL /* Default capture mode, set when streams created */
 #define DEBUG_CAPMODE_CONTINUOUS		0x00000002UL /* Only set in WDDM, streams created with it set to this mode */
+#define DEBUG_CAPMODE_BLKMODE			0x00000004UL /* Block-mode of pdump */
 
 #define DEBUG_FLAGS_USE_NONPAGED_MEM	0x00000001UL /* Only set in WDDM */
 #define DEBUG_FLAGS_NO_BUF_EXPANDSION	0x00000002UL
@@ -247,6 +248,7 @@ typedef struct _DBGKM_SERVICE_TABLE_
 	void		(IMG_CALLCONV *pfnDestroyStream)		(IMG_HANDLE hInit, IMG_HANDLE hMain, IMG_HANDLE hDeinit);
 	IMG_UINT32	(IMG_CALLCONV *pfnDBGDrivWrite2)		(PDBG_STREAM psStream, IMG_UINT8 *pui8InBuf,IMG_UINT32 ui32InBuffSize);
 	void		(IMG_CALLCONV *pfnSetMarker)			(PDBG_STREAM psStream, IMG_UINT32 ui32Marker);
+	IMG_UINT32	(IMG_CALLCONV *pfnGetMarker)			(PDBG_STREAM psStream);
 	void		(IMG_CALLCONV *pfnWaitForEvent)			(DBG_EVENT eEvent);
 	IMG_UINT32  (IMG_CALLCONV *pfnGetCtrlState)			(PDBG_STREAM psStream, IMG_UINT32 ui32StateID);
 	void		(IMG_CALLCONV *pfnSetFrame)				(IMG_UINT32 ui32Frame);

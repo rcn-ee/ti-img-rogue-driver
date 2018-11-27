@@ -59,9 +59,12 @@ SysVzPvzConnectionValidate(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	VMM_PVZ_CONNECTION *psVmmPvz;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 	PVRSRV_DEVICE_PHYS_HEAP_ORIGIN eOrigin = PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_LAST;
+	IMG_UINT64 ui64Size = 0, ui64Addr = 0;
 
+	/*
+	 * Acquire the underlying VM manager PVZ connection & validate it.
+	 */
 	psVmmPvz = SysVzPvzConnectionAcquire();
-
 	if (psVmmPvz == NULL)
 	{
 		PVR_DPF((PVR_DBG_ERROR,
@@ -84,6 +87,30 @@ SysVzPvzConnectionValidate(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	{
 		PVR_DPF((PVR_DBG_ERROR,
 				"%s: %s PVZ config: pfnGetDevPhysHeapAddrSize cannot be NULL",
+				__FUNCTION__,
+				PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST) ? "Guest" : "Host"));
+		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
+		goto e1;
+	}
+	else if (psVmmPvz->sConfigFuncTab.pfnGetDevPhysHeapAddrSize(psDevConfig,
+					 	 	 	 	 	 	 	 	 	 	 	PVRSRV_DEVICE_PHYS_HEAP_GPU_LOCAL,
+																&ui64Size,
+																&ui64Addr) != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+				"%s: %s PVZ config: pfnGetDevPhysHeapAddrSize(GPU) must return PVRSRV_OK",
+				__FUNCTION__,
+				PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST) ? "Guest" : "Host"));
+		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
+		goto e1;
+	}
+	else if (psVmmPvz->sConfigFuncTab.pfnGetDevPhysHeapAddrSize(psDevConfig,
+					 	 	 	 	 	 	 	 	 	 	 	PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL,
+																&ui64Size,
+																&ui64Addr) != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+				"%s: %s PVZ config: pfnGetDevPhysHeapAddrSize(FW) must return PVRSRV_OK",
 				__FUNCTION__,
 				PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST) ? "Guest" : "Host"));
 		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
@@ -136,6 +163,50 @@ SysVzPvzConnectionValidate(PVRSRV_DEVICE_CONFIG *psDevConfig)
 				__FUNCTION__));
 		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
 		goto e1;
+	}
+	else if (eOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST &&
+			 ui64Size == 0 &&
+			 ui64Addr == 0)
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+				"%s: %s PVZ config: Invalid pfnGetDevPhysHeapAddrSize(FW) physheap config.\n"
+				"=>: HEAP_ORIGIN_HOST is not compatible with FW UMA allocator",
+				__FUNCTION__,
+				PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST) ? "Guest" : "Host"));
+		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
+		goto e1;
+	}
+
+	/* Log which PVZ setup type is being used by driver */
+	if (eOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+	{
+		/*
+		 *  Static PVZ bootstrap setup
+		 *
+		 *  This setup uses host-origin, has no hypercall mechanism & does not support any
+		 *  out-of-order initialisation of host/guest VMs/drivers. The host driver has all
+		 *  the information needed to initialize all OSIDs firmware state when it's loaded
+		 *  and its PVZ layer must mark all guest OSIDs as being online as part of its PVZ
+		 *  initialisation. Having no out-of-order initialisation support, the guest driver
+		 *  can only submit a workload to the device after the host driver has completely
+		 *  initialized the firmware, the VZ hypervisor/VM setup must guarantee this.
+		 */
+		PVR_LOG(("Using static PVZ bootstrap setup"));
+	}
+	else
+	{
+		/*
+		 *  Dynamic PVZ bootstrap setup
+		 *
+		 *  This setup uses guest-origin, has PVZ hypercall mechanism & supports out-of-order
+		 *  initialisation of host/guest VMs/drivers. The host driver initializes only its
+		 *  own OSID-0 firmware state when its loaded and each guest driver will use its PVZ
+		 *  interface to hypercall to the host driver to both synchronise its initialisation
+		 *  so it does not submit any workload to the firmware before the host driver has
+		 *  had a chance to initialize the firmware and to also initialize its own OSID-x
+		 *  firmware state.
+		 */
+ 		PVR_LOG(("Using dynamic PVZ bootstrap setup"));
 	}
 
 e1:
@@ -204,7 +275,8 @@ PVRSRV_ERROR SysVzCreateDevConfig(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	PVRSRV_ERROR eError;
 
 	eError = PvzClientCreateDevConfig(psDevConfig, 0);
-	PVR_LOGR_IF_ERROR(eError, "PvzClientCreateDevConfig");
+	eError = (eError == PVRSRV_ERROR_NOT_IMPLEMENTED) ? PVRSRV_OK : eError;
+	PVR_LOG_IF_ERROR(eError, "PvzClientCreateDevConfig");
 
 	return eError;
 }
@@ -214,7 +286,8 @@ PVRSRV_ERROR SysVzDestroyDevConfig(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	PVRSRV_ERROR eError;
 
 	eError = PvzClientDestroyDevConfig(psDevConfig, 0);
-	PVR_LOGR_IF_ERROR(eError, "PvzClientCreateDevConfig");
+	eError = (eError == PVRSRV_ERROR_NOT_IMPLEMENTED) ? PVRSRV_OK : eError;
+	PVR_LOG_IF_ERROR(eError, "SysVzDestroyDevConfig");
 
 	return eError;
 }
@@ -260,6 +333,7 @@ SysVzPvzDestroyDevConfig(IMG_UINT32 ui32OSID, IMG_UINT32 ui32DevID)
 	{
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
+
 	return PVRSRV_OK;
 }
 

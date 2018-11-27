@@ -58,10 +58,6 @@ M4DEFS_K := \
  -DSUPPORT_NATIVE_FENCE_SYNC=$(SUPPORT_NATIVE_FENCE_SYNC) \
  -DPVRSYNC_MODNAME=$(PVRSYNC_MODNAME)
 
-ifneq ($(filter plato,$(PVR_BUILD_DIR)),) # This requires load time delay
- M4DEFS += -DSUPPORT_LOAD_DELAY=1
-endif
-
 ifneq ($(DISPLAY_CONTROLLER),)
  $(eval $(call if-kernel-component,$(DISPLAY_CONTROLLER),\
   -DDISPLAY_CONTROLLER=$(DISPLAY_CONTROLLER)))
