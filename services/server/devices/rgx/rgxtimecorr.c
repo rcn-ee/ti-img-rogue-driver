@@ -506,6 +506,12 @@ void RGXTimeCorrRestartPeriodic(IMG_HANDLE hDevHandle)
 	PVRSRV_DEV_POWER_STATE ePowerState;
 	PVRSRV_VZ_RETN_IF_MODE(DRIVER_MODE_GUEST);
 
+	if (psDevInfo->psGpuDVFSTable == NULL)
+	{
+		PVR_DPF((PVR_DBG_MESSAGE, "%s: Required data not initialised yet", __func__));
+		return;
+	}
+
 	/* Check if it's the right time to recalibrate the GPU clock frequency */
 	if ((ui64TimeNow - psGpuDVFSTable->ui64CalibrationOSTimestamp) < psGpuDVFSTable->ui32CalibrationPeriod) return;
 

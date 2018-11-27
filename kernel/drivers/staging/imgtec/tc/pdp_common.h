@@ -44,6 +44,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(__PDP_COMMON_H__)
 #define __PDP_COMMON_H__
 
+#include <asm/io.h>
+
 /*#define PDP_VERBOSE*/
 
 #define REG_VALUE_GET(v, s, m) \
@@ -59,5 +61,39 @@ enum pdp_version {
 	PDP_VERSION_ODIN,
 	PDP_VERSION_PLATO,
 };
+
+/* Register R-W */
+static inline u32 core_rreg32(void __iomem *base, resource_size_t reg)
+{
+	return ioread32(base + reg);
+}
+
+static inline void core_wreg32(void __iomem *base, resource_size_t reg,
+			       u32 value)
+{
+	iowrite32(value, base + reg);
+}
+
+static inline u32 pdp_rreg32(void __iomem *base, resource_size_t reg)
+{
+	return ioread32(base + reg);
+}
+
+static inline void pdp_wreg32(void __iomem *base, resource_size_t reg,
+			      u32 value)
+{
+	iowrite32(value, base + reg);
+}
+
+static inline u32 pll_rreg32(void __iomem *base, resource_size_t reg)
+{
+	return ioread32(base + reg);
+}
+
+static inline void pll_wreg32(void __iomem *base, resource_size_t reg,
+			      u32 value)
+{
+	iowrite32(value, base + reg);
+}
 
 #endif /* __PDP_COMMON_H__ */

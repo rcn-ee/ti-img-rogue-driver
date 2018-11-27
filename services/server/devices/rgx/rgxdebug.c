@@ -3087,7 +3087,7 @@ static PVRSRV_ERROR _RGXMipsExtraDebug(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_MIPS_S
 	/* Acquire the NMI operations lock */
 	OSLockAcquire(psDevInfo->hNMILock);
 
-	/* Make sure the synchronization flag is set to 0 */
+	/* Make sure the synchronisation flag is set to 0 */
 	pui32NMIMemoryPointer[RGXMIPSFW_NMI_SYNC_FLAG_OFFSET] = 0;
 
 	/* Flush out the dirty locations of the NMI page */

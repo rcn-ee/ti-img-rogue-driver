@@ -42,6 +42,8 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
+#include "drm_pdp_drv.h"
+
 #include <linux/moduleparam.h>
 #include <linux/version.h>
 
@@ -52,7 +54,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <drm/drm_gem.h>
 #endif
 
-#include "drm_pdp_drv.h"
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
+#define drm_gem_fb_create(...) pdp_framebuffer_create(__VA_ARGS__)
+#else
+#include <drm/drm_gem_framebuffer_helper.h>
+#endif
+
+#if defined(PDP_USE_ATOMIC)
+#include <drm/drm_atomic_helper.h>
+#endif
+
 #include "kernel_compatibility.h"
 
 #define PDP_WIDTH_MIN			640
@@ -73,7 +84,7 @@ module_param(async_flip_enable, bool, 0444);
 MODULE_PARM_DESC(async_flip_enable,
 		 "Enable support for 'faked' async flipping (default: Y)");
 
-
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
 static void pdp_framebuffer_destroy(struct drm_framebuffer *fb)
 {
 	struct pdp_framebuffer *pdp_fb = to_pdp_framebuffer(fb);
@@ -82,7 +93,7 @@ static void pdp_framebuffer_destroy(struct drm_framebuffer *fb)
 
 	drm_framebuffer_cleanup(fb);
 
-	drm_gem_object_put_unlocked(pdp_fb->obj);
+	drm_gem_object_put_unlocked(pdp_fb->obj[0]);
 
 	kfree(pdp_fb);
 }
@@ -95,7 +106,7 @@ static int pdp_framebuffer_create_handle(struct drm_framebuffer *fb,
 
 	DRM_DEBUG_DRIVER("[FB:%d]\n", fb->base.id);
 
-	return drm_gem_handle_create(file, pdp_fb->obj, handle);
+	return drm_gem_handle_create(file, pdp_fb->obj[0], handle);
 }
 
 static const struct drm_framebuffer_funcs pdp_framebuffer_funcs = {
@@ -104,62 +115,56 @@ static const struct drm_framebuffer_funcs pdp_framebuffer_funcs = {
 	.dirty = NULL,
 };
 
-static int pdp_framebuffer_init(struct pdp_drm_private *dev_priv,
+static struct drm_framebuffer *
+pdp_framebuffer_create(struct drm_device *dev,
+		       struct drm_file *file,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)) || \
-    (defined(CHROMIUMOS_KERNEL) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)))
-				const
+	(defined(CHROMIUMOS_KERNEL) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)))
+		       const
 #endif
-				struct drm_mode_fb_cmd2 *mode_cmd,
-				struct pdp_framebuffer *pdp_fb,
-				struct drm_gem_object *obj)
+		       struct drm_mode_fb_cmd2 *mode_cmd)
 {
+	struct pdp_drm_private *dev_priv = dev->dev_private;
+	struct drm_gem_object *obj;
+	struct pdp_framebuffer *pdp_fb;
 	int err;
 
-	switch (mode_cmd->pixel_format) {
-	case DRM_FORMAT_ARGB8888:
-	case DRM_FORMAT_XRGB8888:
-		break;
-	default:
-		DRM_ERROR("pixel format not supported (format = %u)\n",
-			  mode_cmd->pixel_format);
-		return -EINVAL;
+	obj = drm_gem_object_lookup(file, mode_cmd->handles[0]);
+	if (!obj) {
+		DRM_ERROR("failed to find buffer with handle %u\n",
+			  mode_cmd->handles[0]);
+		err = -ENOENT;
+		goto err_out;
 	}
 
-	if (mode_cmd->flags & DRM_MODE_FB_INTERLACED) {
-		DRM_ERROR("interlaced framebuffers not supported\n");
-		return -EINVAL;
+	pdp_fb = kzalloc(sizeof(*pdp_fb), GFP_KERNEL);
+	if (!pdp_fb) {
+		err = -ENOMEM;
+		goto err_obj_put;
 	}
 
-	pdp_fb->base.dev = dev_priv->dev;
 	drm_helper_mode_fill_fb_struct(dev_priv->dev, &pdp_fb->base, mode_cmd);
-	pdp_fb->obj = obj;
+	pdp_fb->obj[0] = obj;
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 10, 0))
-	if (pdp_fb->base.modifier != DRM_FORMAT_MOD_NONE) {
-		DRM_ERROR("format modifier 0x%llx is not supported\n",
-			  pdp_fb->base.modifier);
-		return -EINVAL;
-	}
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
-	if (pdp_fb->base.modifier[0] != DRM_FORMAT_MOD_NONE) {
-		DRM_ERROR("format modifier 0x%llx is not supported\n",
-			  pdp_fb->base.modifier[0]);
-		return -EINVAL;
-	}
-#endif
-	err = drm_framebuffer_init(dev_priv->dev,
-				   &pdp_fb->base,
+	err = drm_framebuffer_init(dev_priv->dev, &pdp_fb->base,
 				   &pdp_framebuffer_funcs);
 	if (err) {
-		DRM_ERROR("failed to initialise framebuffer (err=%d)\n",
-			  err);
-		return err;
+		DRM_ERROR("failed to initialise framebuffer (err=%d)\n", err);
+		goto err_free_fb;
 	}
 
 	DRM_DEBUG_DRIVER("[FB:%d]\n", pdp_fb->base.base.id);
 
-	return 0;
+	return &pdp_fb->base;
+
+err_free_fb:
+	kfree(pdp_fb);
+err_obj_put:
+	drm_gem_object_put_unlocked(obj);
+err_out:
+	return ERR_PTR(err);
 }
+#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)) */
 
 
 /*************************************************************************
@@ -175,39 +180,48 @@ pdp_fb_create(struct drm_device *dev,
 #endif
 			struct drm_mode_fb_cmd2 *mode_cmd)
 {
-	struct pdp_drm_private *dev_priv = dev->dev_private;
-	struct pdp_framebuffer *pdp_fb;
-	struct drm_gem_object *bo;
-	int err;
+	struct drm_framebuffer *fb;
 
-	bo = drm_gem_object_lookup(file, mode_cmd->handles[0]);
-	if (!bo) {
-		DRM_ERROR("failed to find buffer with handle %u\n",
-			  mode_cmd->handles[0]);
-		return ERR_PTR(-ENOENT);
+	switch (mode_cmd->pixel_format) {
+	case DRM_FORMAT_ARGB8888:
+	case DRM_FORMAT_XRGB8888:
+		break;
+	default:
+		DRM_ERROR("pixel format not supported (format = %u)\n",
+			  mode_cmd->pixel_format);
+		return ERR_PTR(-EINVAL);
 	}
 
-	pdp_fb = kzalloc(sizeof(*pdp_fb), GFP_KERNEL);
-	if (!pdp_fb) {
-		drm_gem_object_put_unlocked(bo);
-		return ERR_PTR(-ENOMEM);
+	if (mode_cmd->flags & DRM_MODE_FB_INTERLACED) {
+		DRM_ERROR("interlaced framebuffers not supported\n");
+		return ERR_PTR(-EINVAL);
 	}
 
-	err = pdp_framebuffer_init(dev_priv, mode_cmd, pdp_fb, bo);
-	if (err) {
-		kfree(pdp_fb);
-		drm_gem_object_put_unlocked(bo);
-		return ERR_PTR(err);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
+	if (mode_cmd->modifier[0] != DRM_FORMAT_MOD_NONE) {
+		DRM_ERROR("format modifier 0x%llx is not supported\n",
+			  mode_cmd->modifier[0]);
+		return ERR_PTR(-EINVAL);
 	}
+#endif
 
-	DRM_DEBUG_DRIVER("[FB:%d]\n", pdp_fb->base.base.id);
+	fb = drm_gem_fb_create(dev, file, mode_cmd);
+	if (IS_ERR(fb))
+		goto out;
 
-	return &pdp_fb->base;
+	DRM_DEBUG_DRIVER("[FB:%d]\n", fb->base.id);
+
+out:
+	return fb;
 }
 
 static const struct drm_mode_config_funcs pdp_mode_config_funcs = {
 	.fb_create = pdp_fb_create,
 	.output_poll_changed = NULL,
+#if defined(PDP_USE_ATOMIC)
+	.atomic_check = drm_atomic_helper_check,
+	.atomic_commit = drm_atomic_helper_commit,
+#endif
 };
 
 
@@ -253,7 +267,15 @@ int pdp_modeset_early_init(struct pdp_drm_private *dev_priv)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 	dev->mode_config.allow_fb_modifiers = true;
 #endif
-	dev_priv->crtc = pdp_crtc_create(dev, 0);
+
+	dev_priv->plane = pdp_plane_create(dev, DRM_PLANE_TYPE_PRIMARY);
+	if (IS_ERR(dev_priv->plane)) {
+		DRM_ERROR("failed to create a primary plane\n");
+		err = PTR_ERR(dev_priv->plane);
+		goto err_config_cleanup;
+	}
+
+	dev_priv->crtc = pdp_crtc_create(dev, 0, dev_priv->plane);
 	if (IS_ERR(dev_priv->crtc)) {
 		DRM_ERROR("failed to create a CRTC\n");
 		err = PTR_ERR(dev_priv->crtc);
@@ -308,10 +330,14 @@ err_config_cleanup:
 
 int pdp_modeset_late_init(struct pdp_drm_private *dev_priv)
 {
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0))
-	int err;
+	struct drm_device *ddev = dev_priv->dev;
 
+	drm_mode_config_reset(ddev);
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 8, 0))
 	if (dev_priv->connector != NULL) {
+		int err;
+
 		err = drm_connector_register(dev_priv->connector);
 		if (err) {
 			DRM_ERROR("[CONNECTOR:%d:%s] failed to register (err=%d)\n",

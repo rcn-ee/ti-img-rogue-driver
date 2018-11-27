@@ -50,6 +50,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "htbuffer_types.h"
 #include "tlstream.h"
 #include "pvrsrv_tlcommon.h"
+#include "img_defs.h"
 #include "img_types.h"
 #include "pvrsrv_error.h"
 #include "osfunc.h"
@@ -65,19 +66,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* number of times to try rewriting a log entry */
 #define HTB_LOG_RETRY_COUNT 5
 
-/* Host Trace Buffer name */
-#define HTB_STREAM_NAME "PVRHTBuffer"
-
 /*************************************************************************/ /*!
   Host Trace Buffer control information structure
 */ /**************************************************************************/
 typedef struct
 {
-	IMG_CHAR *pszBufferName;        /*!< Name to use for the trace buffer,
-                                         this will be required to request
-                                         trace data from TL.
-                                         Once set this may not be changed */
-
 	IMG_UINT32 ui32BufferSize;      /*!< Requested buffer size in bytes
                                          Once set this may not be changed */
 
@@ -155,7 +148,7 @@ static IMG_HANDLE g_hTLStream;
 static IMG_UINT32
 _LookupFlags( HTB_OPMODE_CTRL eMode )
 {
-	return (eMode < (sizeof(MapFlags)/sizeof(MapFlags[0])))? MapFlags[eMode]: 0;
+	return (eMode < ARRAY_SIZE(MapFlags)) ? MapFlags[eMode] : 0;
 }
 
 
@@ -256,11 +249,6 @@ static IMG_UINT32 g_ui32HTBufferSize = HTB_TL_BUFFER_SIZE_MIN;
 /*
  * AppHint access routine forward definitions
  */
-static PVRSRV_ERROR _HTBSetBufSize(const PVRSRV_DEVICE_NODE *, const void *,
-                                  IMG_UINT32);
-static PVRSRV_ERROR _HTBGetBufSize(const PVRSRV_DEVICE_NODE *, const void *,
-                                  IMG_UINT32 *);
-
 static PVRSRV_ERROR _HTBSetLogGroup(const PVRSRV_DEVICE_NODE *, const void *,
                                     IMG_UINT32);
 static PVRSRV_ERROR _HTBReadLogGroup(const PVRSRV_DEVICE_NODE *, const void *,
@@ -272,77 +260,6 @@ static PVRSRV_ERROR _HTBReadOpMode(const PVRSRV_DEVICE_NODE *, const void *,
                                     IMG_UINT32 *);
 
 static void _OnTLReaderOpenCallback(void *);
-
-extern PVRSRV_ERROR HTB_UpdateFSEntry(IMG_UINT32);
-static PVRSRV_ERROR	_HTBSetBufSize(const PVRSRV_DEVICE_NODE *psDeviceNode,
-                                   const void *psPrivate,
-                                   IMG_UINT32 ui32Value)
-{
-	PVRSRV_ERROR eError = PVRSRV_OK;
-
-	g_ui32HTBufferSize = ui32Value * 1024;
-
-	if (g_ui32HTBufferSize < HTB_TL_BUFFER_SIZE_MIN)
-	{
-		g_ui32HTBufferSize = HTB_TL_BUFFER_SIZE_MIN;
-	}
-	PVR_UNREFERENCED_PARAMETER(psPrivate);
-
-	if (g_sCtrl.ui32BufferSize != g_ui32HTBufferSize)
-	{
-
-		/*
-		 * May need to reconfigure the Stream to reflect new data sizing.
-		 */
-		eError = HTB_UpdateFSEntry(g_ui32HTBufferSize);
-
-		PVR_LOGR_IF_ERROR(eError, "HTB_UpdateFSEntry");
-
-		/*
-		 * Now Close() the old and re-configure the new only if they
-		 * have been already configured.
-		 */
-		if (!g_bConfigured)
-		{
-			return PVRSRV_OK;
-		}
-
-		PVR_DPF((PVR_DBG_WARNING, "%s: Resetting TLStream to %dKiB",
-				__func__, g_ui32HTBufferSize / 1024));
-
-		PVR_ASSERT((g_hTLStream != NULL));
-
-		TLStreamClose(g_hTLStream);
-		g_hTLStream = NULL;
-
-		eError = TLStreamCreate(
-				&g_hTLStream,
-				PVRSRVGetPVRSRVData()->psHostMemDeviceNode,
-				g_sCtrl.pszBufferName,
-				g_sCtrl.ui32BufferSize,
-				_LookupFlags(HTB_OPMODE_DROPOLDEST) | g_ui32TLBaseFlags,
-				_OnTLReaderOpenCallback, NULL, NULL, NULL);
-		PVR_LOGR_IF_ERROR(eError, "TLStreamCreate");
-
-	}
-	return PVRSRV_OK;
-}
-
-/*
- * Return the current value of HTBufferSizeInKB
- */
-static PVRSRV_ERROR _HTBGetBufSize(const PVRSRV_DEVICE_NODE *psDeviceNode,
-                                  const void *psPrivate,
-                                  IMG_UINT32 *pui32Value)
-{
-	*pui32Value = g_ui32HTBufferSize / 1024;
-
-	PVR_UNREFERENCED_PARAMETER(psPrivate);
-
-	return PVRSRV_OK;
-}
-
-extern PVRSRV_ERROR HTB_CreateFSEntry(IMG_UINT32, const IMG_CHAR *);
 
 /************************************************************************/ /*!
  @Function      HTBInit
@@ -358,7 +275,6 @@ HTBInit(void)
 {
 	void			*pvAppHintState = NULL;
 	IMG_UINT32		ui32AppHintDefault;
-	PVRSRV_ERROR	eError;
 	IMG_UINT32		ui32BufBytes;
 
 	if (g_sCtrl.bInitDone)
@@ -369,12 +285,12 @@ HTBInit(void)
 
 	/*
 	 * Buffer Size can be configured by specifying a value in the AppHint
-	 * This will only take effect if it is a different value to that currently
-	 * being set.
+	 * This will only take effect at module load time so there is no query
+	 * or setting mechanism available.
 	 */
 	PVRSRVAppHintRegisterHandlersUINT32(APPHINT_ID_HTBufferSizeInKB,
-	                                    _HTBGetBufSize,
-	                                    _HTBSetBufSize,
+					    NULL,
+					    NULL,
 	                                    APPHINT_OF_DRIVER_NO_DEVICE,
 	                                    NULL);
 
@@ -400,8 +316,6 @@ HTBInit(void)
 
 	ui32BufBytes = g_ui32HTBufferSize * 1024;
 
-	g_sCtrl.pszBufferName = HTB_STREAM_NAME;
-
 	/* initialise rest of state */
 	g_sCtrl.ui32BufferSize =
 		(ui32BufBytes < HTB_TL_BUFFER_SIZE_MIN)
@@ -414,20 +328,16 @@ HTBInit(void)
 	g_sCtrl.eLogMode = HTB_LOGMODE_ALLPID;
 	g_sCtrl.bLogDropSignalled = IMG_FALSE;
 
-	/*
-	 * Initialise the debugFS entry point to decode the HTB via
-	 * <path>/pvr/host_trace
-	 */
-
-	eError = HTB_CreateFSEntry(g_sCtrl.ui32BufferSize, HTB_STREAM_NAME);
-
-	PVR_LOGR_IF_ERROR(eError, "HTB_CreateFSEntry");
-
 	g_sCtrl.bInitDone = IMG_TRUE;
+
+	/* Log the current driver parameter setting for the HTBufferSizeInKB.
+	 * We do this here as there is no other infrastructure for obtaining
+	 * the value.
+	 */
+	PVR_LOG(("%s: HTBufferSizeInKB = %u", __func__, g_ui32HTBufferSize));
+
 	return PVRSRV_OK;
 }
-
-extern void HTB_DestroyFSEntry(void);
 
 /************************************************************************/ /*!
  @Function      HTBDeInit
@@ -440,15 +350,14 @@ extern void HTB_DestroyFSEntry(void);
 PVRSRV_ERROR
 HTBDeInit( void )
 {
+	if (!g_sCtrl.bInitDone)
+		return PVRSRV_OK;
+
 	if (g_hTLStream)
 	{
 		TLStreamClose( g_hTLStream );
 		g_hTLStream = NULL;
 	}
-
-	g_sCtrl.pszBufferName = NULL;
-
-	HTB_DestroyFSEntry();
 
 	g_sCtrl.bInitDone = IMG_FALSE;
 	return PVRSRV_OK;
@@ -558,12 +467,12 @@ HTBControlKM(
 	IMG_UINT32 i;
 	IMG_UINT32 ui32Time = OSClockus();
 
-	if ( !g_bConfigured && g_sCtrl.pszBufferName && ui32NumFlagGroups )
+	if ( !g_bConfigured && ui32NumFlagGroups )
 	{
 		eError = TLStreamCreate(
 				&g_hTLStream,
 				PVRSRVGetPVRSRVData()->psHostMemDeviceNode,
-				g_sCtrl.pszBufferName,
+				HTB_STREAM_NAME,
 				g_sCtrl.ui32BufferSize,
 				_LookupFlags(HTB_OPMODE_DROPOLDEST) | g_ui32TLBaseFlags,
 				_OnTLReaderOpenCallback, NULL, NULL, NULL);

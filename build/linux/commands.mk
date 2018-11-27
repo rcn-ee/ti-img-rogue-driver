@@ -49,25 +49,25 @@
 
 define host-o-from-one-c
 $(if $(V),,@echo "  HOST_CC " $(call relative-to-top,$<))
-$(MODULE_CC) -MD -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CFLAGS) \
+$(MODULE_CC) -MD -MP -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CFLAGS) \
 	$(MODULE_INCLUDE_FLAGS) -include $(CONFIG_H) $< -o $@
 endef
 
 define target-o-from-one-c
 $(if $(V),,@echo "  CC      " $(call relative-to-top,$<))
-$(MODULE_CC) -MD -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CFLAGS) \
+$(MODULE_CC) -MD -MP -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CFLAGS) \
 	$(MODULE_INCLUDE_FLAGS) -include $(CONFIG_H) $< -o $@
 endef
 
 define host-o-from-one-cxx
 $(if $(V),,@echo "  HOST_CXX" $(call relative-to-top,$<))
-$(MODULE_CXX) -MD -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CXXFLAGS) \
+$(MODULE_CXX) -MD -MP -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CXXFLAGS) \
 	$(MODULE_INCLUDE_FLAGS) -include $(CONFIG_H) $< -o $@
 endef
 
 define target-o-from-one-cxx
 $(if $(V),,@echo "  CXX     " $(call relative-to-top,$<))
-$(MODULE_CXX) -MD -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CXXFLAGS) \
+$(MODULE_CXX) -MD -MP -MF $(patsubst %.o,%.d,$@) -c $(MODULE_CXXFLAGS) \
 	$(MODULE_INCLUDE_FLAGS) -include $(CONFIG_H) $< -o $@
 endef
 
@@ -277,7 +277,7 @@ CXX_SECONDARY ?= $(CXX)
 GLSLC ?= glslc
 HOST_CC ?= gcc
 HOST_CXX ?= g++
-INDENT ?= indent 
+INDENT ?= indent
 JAR ?= jar
 JAVA ?= java
 JAVAC ?= javac

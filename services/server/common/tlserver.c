@@ -70,15 +70,17 @@ TLServerOpenStreamKM(const IMG_CHAR*  	   pszName,
 			   	     PTL_STREAM_DESC* 	   ppsSD,
 				     PMR** 				   ppsTLPMR)
 {
-	PVRSRV_ERROR 	eError = PVRSRV_OK;
-	PVRSRV_ERROR 	eErrorEO = PVRSRV_OK;
+	PVRSRV_ERROR	eError = PVRSRV_OK;
+	PVRSRV_ERROR	eErrorEO = PVRSRV_OK;
 	PTL_SNODE		psNode;
 	PTL_STREAM		psStream;
 	TL_STREAM_DESC *psNewSD = NULL;
-	IMG_HANDLE 		hEvent;
+	IMG_HANDLE		hEvent;
 	IMG_BOOL		bIsWriteOnly = ui32Mode & PVRSRV_STREAM_FLAG_OPEN_WO ?
 	                               IMG_TRUE : IMG_FALSE;
 	IMG_BOOL		bResetOnOpen = ui32Mode & PVRSRV_STREAM_FLAG_RESET_ON_OPEN ?
+	                               IMG_TRUE : IMG_FALSE;
+	IMG_BOOL		bNoOpenCB    = ui32Mode & PVRSRV_STREAM_FLAG_IGNORE_OPEN_CALLBACK ?
 	                               IMG_TRUE : IMG_FALSE;
 	PTL_GLOBAL_DATA psGD = TLGGD();
 
@@ -236,7 +238,7 @@ TLServerOpenStreamKM(const IMG_CHAR*  	   pszName,
 	/* This callback is executed only on reader open. There are some actions
 	 * executed on reader open that don't make much sense for writers e.g.
 	 * injection on time synchronisation packet into the stream. */
-	if (!bIsWriteOnly && psStream->pfOnReaderOpenCallback != NULL)
+	if (!bIsWriteOnly && psStream->pfOnReaderOpenCallback != NULL && !bNoOpenCB)
 	{
 		psStream->pfOnReaderOpenCallback(psStream->pvOnReaderOpenUserData);
 	}
@@ -548,6 +550,8 @@ TLServerAcquireDataKM(PTL_STREAM_DESC psSD,
 	 * Hence, no checks for stream being NON NULL are required after this. */
 	PVR_ASSERT (psNode->psStream);
 
+	psSD->ui32ReadLen = 0;	/* Handle NULL read returns */
+
 	do
 	{
 		uiTmpLen = TLStreamAcquireReadPos(psNode->psStream, psSD->ui32Flags & PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK, &uiTmpOffset);
@@ -557,6 +561,7 @@ TLServerAcquireDataKM(PTL_STREAM_DESC psSD,
 
 			*puiReadOffset = uiTmpOffset;
 			*puiReadLen = uiTmpLen;
+			psSD->ui32ReadLen = uiTmpLen;	/* Save the original data length in the stream desc */
 			PVR_DPF_RETURN_OK;
 		}
 		else if (!(psSD->ui32Flags & PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING))
@@ -629,6 +634,11 @@ TLServerReleaseDataKM(PTL_STREAM_DESC psSD,
 		PVR_DPF_RETURN_RC(PVRSRV_ERROR_STREAM_ERROR);
 	}
 
+	if ((uiReadLen % PVRSRVTL_PACKET_ALIGNMENT != 0))
+	{
+		PVR_DPF_RETURN_RC(PVRSRV_ERROR_INVALID_PARAMS);
+	}
+
 	/* Check stream still valid */
 	psNode = TLFindStreamNodeByDesc(psSD);
 	if ((psNode == NULL) || (psNode != psSD->psNode))
@@ -643,9 +653,7 @@ TLServerReleaseDataKM(PTL_STREAM_DESC psSD,
 	PVR_DPF((PVR_DBG_VERBOSE, "TLReleaseDataKM uiReadOffset=%d, uiReadLen=%d", uiReadOffset, uiReadLen));
 
 	/* Move read position on to free up space in stream buffer */
-	TLStreamAdvanceReadPos(psNode->psStream, uiReadLen);
-
-	PVR_DPF_RETURN_OK;
+	PVR_DPF_RETURN_RC(TLStreamAdvanceReadPos(psNode->psStream, uiReadLen, psSD->ui32ReadLen));
 }
 
 PVRSRV_ERROR

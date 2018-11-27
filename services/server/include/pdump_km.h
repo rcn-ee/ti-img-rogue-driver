@@ -82,6 +82,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PDUMP_PD_UNIQUETAG	(IMG_HANDLE)0
 #define PDUMP_PT_UNIQUETAG	(IMG_HANDLE)0
 
+/* Invalid value for block number - to be used in BLKMODE of PDump */
+#define PDUMP_BLOCKNUM_INVALID      IMG_UINT32_MAX
 
 #if defined(PDUMP_DEBUG_OUTFILES)
 /* counter increments each time debug write is called */
@@ -319,6 +321,9 @@ PVRSRV_ERROR PDumpReadRegKM(IMG_CHAR *pszPDumpRegName,
 	PVRSRV_ERROR PDumpIsLastCaptureFrameKM(IMG_BOOL *pbIsLastCaptureFrame);
 
 	PVRSRV_ERROR PDumpGetStateKM(IMG_UINT64 *ui64State);
+
+	PVRSRV_ERROR PDumpGetCurrentBlockKM(IMG_UINT32 *pui32CurrentBlock);
+	PVRSRV_ERROR PDumpIsFirstFrameInBlockKM(IMG_BOOL *bIsFirstInBlock);
 
 	PVRSRV_ERROR PDumpIsCaptureFrameKM(IMG_BOOL *bIsCaptureRange);
 
@@ -698,6 +703,25 @@ PDumpIsCaptureFrameKM(IMG_BOOL *bIsCapturing)
 	return PVRSRV_OK;
 }
 
+#ifdef INLINE_IS_PRAGMA
+#pragma inline(PDumpGetCurrentBlockKM)
+#endif
+static INLINE PVRSRV_ERROR
+PDumpGetCurrentBlockKM(IMG_UINT32 *pui32BlockNum)
+{
+	*pui32BlockNum = PDUMP_BLOCKNUM_INVALID;
+	return PVRSRV_OK;
+}
+
+#ifdef INLINE_IS_PRAGMA
+#pragma inline(PDumpIsFirstFrameInBlockKM)
+#endif
+static INLINE PVRSRV_ERROR
+PDumpIsFirstFrameInBlockKM(IMG_BOOL *bIsFirstInBlock)
+{
+	*bIsFirstInBlock = IMG_FALSE;
+	return PVRSRV_OK;
+}
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PDumpBitmapKM)

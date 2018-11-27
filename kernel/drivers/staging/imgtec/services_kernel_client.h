@@ -101,9 +101,6 @@ struct _PVRSRV_DEVICE_NODE_;
 struct dma_buf;
 struct SYNC_PRIM_CONTEXT;
 
-/* Macro helps reducing ambiguity when calling SYNC API functions */
-#define ATOMIC_SYNC_CTX IMG_FALSE
-
 /* pvr_notifier.h */
 
 #ifndef _CMDCOMPNOTIFY_PFN_
@@ -329,10 +326,10 @@ enum PVRSRV_ERROR SyncCheckpointRegisterFunctions(PFN_SYNC_CHECKPOINT_FENCE_RESO
 enum PVRSRV_ERROR SyncCheckpointContextCreate(struct _PVRSRV_DEVICE_NODE_ *psDevConnection, PSYNC_CHECKPOINT_CONTEXT *phSyncCheckpointContext);
 enum PVRSRV_ERROR SyncCheckpointContextDestroy(PSYNC_CHECKPOINT_CONTEXT hSyncCheckpointContext);
 enum PVRSRV_ERROR SyncCheckpointAlloc(PSYNC_CHECKPOINT_CONTEXT psSyncContext, PVRSRV_TIMELINE timeline, const char *pszCheckpointName, PSYNC_CHECKPOINT *ppsSyncCheckpoint);
-void SyncCheckpointSignal(PSYNC_CHECKPOINT psSyncCheckpoint, enum tag_img_bool bSleepAllowed);
-void SyncCheckpointError(PSYNC_CHECKPOINT psSyncCheckpoint, enum tag_img_bool bSleepAllowed);
-enum tag_img_bool SyncCheckpointIsSignalled(PSYNC_CHECKPOINT psSyncCheckpoint, enum tag_img_bool bSleepAllowed);
-enum tag_img_bool SyncCheckpointIsErrored(PSYNC_CHECKPOINT psSyncCheckpoint, enum tag_img_bool bSleepAllowed);
+void SyncCheckpointSignal(PSYNC_CHECKPOINT psSyncCheckpoint, u32 fence_sync_flags);
+void SyncCheckpointError(PSYNC_CHECKPOINT psSyncCheckpoint, u32 fence_sync_flags);
+enum tag_img_bool SyncCheckpointIsSignalled(PSYNC_CHECKPOINT psSyncCheckpoint, u32 fence_sync_flags);
+enum tag_img_bool SyncCheckpointIsErrored(PSYNC_CHECKPOINT psSyncCheckpoint, u32 fence_sync_flags);
 enum PVRSRV_ERROR SyncCheckpointTakeRef(PSYNC_CHECKPOINT psSyncCheckpoint);
 enum PVRSRV_ERROR SyncCheckpointDropRef(PSYNC_CHECKPOINT psSyncCheckpoint);
 void SyncCheckpointFree(PSYNC_CHECKPOINT psSyncCheckpoint);

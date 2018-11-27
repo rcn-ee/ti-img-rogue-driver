@@ -1950,6 +1950,13 @@ typedef struct FREE_HANDLE_DATA_TAG
 	IMG_UINT64 ui64MaxBridgeTime;
 } FREE_HANDLE_DATA;
 
+typedef struct FREE_KERNEL_HANDLE_DATA_TAG
+{
+	PVRSRV_HANDLE_BASE *psBase;
+	HANDLE_DATA *psProcessHandleData;
+	IMG_HANDLE hKernelHandle;
+} FREE_KERNEL_HANDLE_DATA;
+
 static INLINE IMG_BOOL _CheckIfMaxTimeExpired(IMG_UINT64 ui64TimeStart, IMG_UINT64 ui64MaxBridgeTime)
 {
 	IMG_UINT64 ui64Diff;
@@ -1966,6 +1973,87 @@ static INLINE IMG_BOOL _CheckIfMaxTimeExpired(IMG_UINT64 ui64TimeStart, IMG_UINT
 	}
 
 	return ui64Diff >= ui64MaxBridgeTime;
+}
+
+static PVRSRV_ERROR FreeKernelHandlesWrapperIterKernel(IMG_HANDLE hHandle, void *pvData)
+{
+	FREE_KERNEL_HANDLE_DATA *psData = (FREE_KERNEL_HANDLE_DATA *)pvData;
+	HANDLE_DATA *psKernelHandleData = NULL;
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(gpsHandleFuncs);
+
+	/* Get kernel handle data. */
+	eError = GetHandleData(KERNEL_HANDLE_BASE,
+			    &psKernelHandleData,
+			    hHandle,
+			    PVRSRV_HANDLE_TYPE_NONE);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "FreeKernelHandlesWrapperIterKernel: Couldn't get handle data for kernel handle"));
+		return eError;
+	}
+
+	if (psKernelHandleData->pvData == psData->psProcessHandleData->pvData)
+	{
+		/* This kernel handle belongs to our process handle. */
+		psData->hKernelHandle = hHandle;
+	}
+
+	return PVRSRV_OK;
+}
+
+static PVRSRV_ERROR FreeKernelHandlesWrapperIterProcess(IMG_HANDLE hHandle, void *pvData)
+{
+	FREE_KERNEL_HANDLE_DATA *psData = (FREE_KERNEL_HANDLE_DATA *)pvData;
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(gpsHandleFuncs);
+
+	/* Get process handle data. */
+	eError = GetHandleData(psData->psBase,
+			    &psData->psProcessHandleData,
+			    hHandle,
+			    PVRSRV_HANDLE_TYPE_NONE);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "FreeKernelHandlesWrapperIterProcess: Couldn't get handle data for process handle"));
+		return eError;
+	}
+
+	if ((psData->psProcessHandleData->eFlag == PVRSRV_HANDLE_ALLOC_FLAG_MULTI)
+#if defined(SUPPORT_INSECURE_EXPORT)
+		|| (psData->psProcessHandleData->eType == PVRSRV_HANDLE_TYPE_PVRSRV_FENCE_EXPORT)
+#endif
+		)
+	{
+		/* Only multi alloc process handles might be in kernel handle base. */
+		psData->hKernelHandle = NULL;
+		/* Iterate over kernel handles. */
+		eError = gpsHandleFuncs->pfnIterateOverHandles(KERNEL_HANDLE_BASE->psImplBase,
+									&FreeKernelHandlesWrapperIterKernel,
+									(void *)psData);
+		if (eError != PVRSRV_OK)
+		{
+			PVR_DPF((PVR_DBG_ERROR, "FreeKernelHandlesWrapperIterProcess: Failed to iterate over kernel handles"));
+			return eError;
+		}
+
+		if (psData->hKernelHandle)
+		{
+			/* Release kernel handle which belongs to our process handle. */
+			eError = gpsHandleFuncs->pfnReleaseHandle(KERNEL_HANDLE_BASE->psImplBase,
+						psData->hKernelHandle,
+						NULL);
+			if (eError != PVRSRV_OK)
+			{
+				PVR_DPF((PVR_DBG_ERROR, "FreeKernelHandlesWrapperIterProcess: Couldn't release kernel handle"));
+				return eError;
+			}
+		}
+	}
+
+	return PVRSRV_OK;
 }
 
 static PVRSRV_ERROR FreeHandleDataWrapper(IMG_HANDLE hHandle, void *pvData)
@@ -2122,6 +2210,48 @@ static PVRSRV_HANDLE_TYPE g_aeOrderedFreeList[] =
 	PVRSRV_HANDLE_TYPE_PVR_TL_SD,
 	PVRSRV_HANDLE_TYPE_MM_PLAT_CLEANUP
 };
+
+/*!
+******************************************************************************
+
+ @Function	PVRSRVFreeKernelHandles
+
+ @Description	Free kernel handles which belongs to process handles
+
+ @Input 	psBase - pointer to handle base structure
+
+ @Return	Error code or PVRSRV_OK
+
+******************************************************************************/
+PVRSRV_ERROR PVRSRVFreeKernelHandles(PVRSRV_HANDLE_BASE *psBase)
+{
+	FREE_KERNEL_HANDLE_DATA sHandleData = { };
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(gpsHandleFuncs);
+
+	LockHandle();
+
+	sHandleData.psBase = psBase;
+	/* Iterate over process handles. */
+	eError = gpsHandleFuncs->pfnIterateOverHandles(psBase->psImplBase,
+								&FreeKernelHandlesWrapperIterProcess,
+								(void *)&sHandleData);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,
+			 "PVRSRVFreeKernelHandles: Failed to iterate over handles (%s)",
+			 PVRSRVGetErrorStringKM(eError)));
+		goto ExitUnlock;
+	}
+
+	eError = PVRSRV_OK;
+
+ExitUnlock:
+	UnlockHandle();
+
+	return eError;
+}
 
 /*!
 ******************************************************************************

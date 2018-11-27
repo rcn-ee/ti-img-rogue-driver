@@ -153,6 +153,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define drm_crtc_send_vblank_event(crtc, e) drm_send_vblank_event((crtc)->dev, drm_crtc_index(crtc), e)
 
+/* seq_has_overflowed() was introduced in 3.19 but the structure elements
+ * have been available since 2.x
+ */
+#include <linux/seq_file.h>
+static inline bool seq_has_overflowed(struct seq_file *m)
+{
+	return m->count == m->size;
+}
+
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(3, 19, 0)) */
 
 
@@ -300,5 +309,57 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define drm_encoder_find(dev, file_priv, id) drm_encoder_find(dev, id)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)) */
+
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
+
+#define drm_atomic_helper_check_plane_state(plane_state, crtc_state, \
+											min_scale, max_scale, \
+											can_position, can_update_disabled) \
+	({ \
+		const struct drm_rect __clip = { \
+			.x2 = crtc_state->crtc->mode.hdisplay, \
+			.y2 = crtc_state->crtc->mode.vdisplay, \
+		}; \
+		int __ret = drm_plane_helper_check_state(plane_state, \
+												 &__clip, \
+												 min_scale, max_scale, \
+												 can_position, \
+												 can_update_disabled); \
+		__ret; \
+	})
+
+#elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 17, 0))
+
+#define drm_atomic_helper_check_plane_state(plane_state, crtc_state, \
+											min_scale, max_scale, \
+											can_position, can_update_disabled) \
+	({ \
+		const struct drm_rect __clip = { \
+			.x2 = crtc_state->crtc->mode.hdisplay, \
+			.y2 = crtc_state->crtc->mode.vdisplay, \
+		}; \
+		int __ret = drm_atomic_helper_check_plane_state(plane_state, \
+														crtc_state, \
+														&__clip, \
+														min_scale, max_scale, \
+														can_position, \
+														can_update_disabled); \
+		__ret; \
+	})
+
+#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 17, 0)) */
+
+#if defined(CONFIG_L4)
+
+/*
+ * Headers shouldn't normally be included by this file but this is a special
+ * case to access the memory translation API when running on the L4 ukernel
+ */
+#include <asm/api-l4env/api.h>
+
+#undef page_to_phys
+#define page_to_phys(x) l4x_virt_to_phys((void *)((phys_addr_t)page_to_pfn(x) << PAGE_SHIFT))
+
+#endif /* defined(CONFIG_L4) */
 
 #endif /* __KERNEL_COMPATIBILITY_H__ */

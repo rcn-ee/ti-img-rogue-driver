@@ -240,5 +240,9 @@ IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeGetMaxDevMemSize(IMG_HANDLE hBridge
 							      IMG_DEVMEM_SIZE_T *puiLMASize,
 							      IMG_DEVMEM_SIZE_T *puiUMASize);
 
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeDevmemGetFaultAddress(IMG_HANDLE hBridge,
+								   IMG_HANDLE hDevmemCtx,
+								   IMG_DEV_VIRTADDR *psFaultAddress);
+
 
 #endif /* CLIENT_MM_BRIDGE_H */

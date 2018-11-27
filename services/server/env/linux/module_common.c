@@ -77,6 +77,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "km_apphint.h"
 #include "srvinit.h"
 
+#include "htb_debug.h"
+
 #if defined(SUPPORT_DISPLAY_CLASS)
 /* Display class interface */
 #include "kerneldisplay.h"
@@ -117,6 +119,7 @@ EXPORT_SYMBOL(RGXHWPerfConnect);
 EXPORT_SYMBOL(RGXHWPerfDisconnect);
 EXPORT_SYMBOL(RGXHWPerfControl);
 EXPORT_SYMBOL(RGXHWPerfConfigureAndEnableCounters);
+EXPORT_SYMBOL(RGXHWPerfConfigureAndEnableCustomCounters);
 EXPORT_SYMBOL(RGXHWPerfDisableCounters);
 EXPORT_SYMBOL(RGXHWPerfAcquireEvents);
 EXPORT_SYMBOL(RGXHWPerfReleaseEvents);
@@ -175,6 +178,11 @@ int PVRSRVCommonDriverInit(void)
 		return error;
 	}
 
+	if (HTB_CreateFSEntry() != PVRSRV_OK)
+	{
+		return -ENOMEM;
+	}
+
 #if defined(PVRSRV_ENABLE_PROCESS_STATS)
 	if (PVRSRVStatsInitialise() != PVRSRV_OK)
 	{
@@ -228,6 +236,9 @@ void PVRSRVCommonDriverDeinit(void)
 #if defined(PVRSRV_ENABLE_PROCESS_STATS)
 	PVRSRVStatsDestroy();
 #endif
+
+	HTB_DestroyFSEntry();
+
 	PVRDebugFSDeInit();
 
 #if defined(PDUMP)

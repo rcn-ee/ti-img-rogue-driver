@@ -392,16 +392,12 @@ PVRSRV_ERROR TLClientAcquireData(IMG_HANDLE hSrvHandle,
 	return eError;
 }
 
-
-IMG_INTERNAL
-PVRSRV_ERROR TLClientReleaseData(IMG_HANDLE hSrvHandle,
-		IMG_HANDLE hSD)
+static PVRSRV_ERROR _TLClientReleaseDataLen(
+		IMG_HANDLE hSrvHandle,
+		TL_STREAM_DESC* psSD,
+		IMG_UINT32 uiReadLen)
 {
-	PVRSRV_ERROR eError = PVRSRV_OK;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
-
-	PVR_ASSERT(hSrvHandle);
-	PVR_ASSERT(hSD);
+	PVRSRV_ERROR eError;
 
 	/* the previous acquire did not return any data, this is a no-operation */
 	if (psSD->uiReadLen == 0)
@@ -418,7 +414,7 @@ PVRSRV_ERROR TLClientReleaseData(IMG_HANDLE hSrvHandle,
 
 	/* Inform the kernel to release the data from the buffer */
 	eError = BridgeTLReleaseData(hSrvHandle, psSD->hServerSD,
-										psSD->uiReadOffset, psSD->uiReadLen);
+	                             psSD->uiReadOffset, uiReadLen);
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR, "BridgeTLReleaseData: KM returned %d", eError));
@@ -430,6 +426,37 @@ PVRSRV_ERROR TLClientReleaseData(IMG_HANDLE hSrvHandle,
 	psSD->uiReadLen = psSD->uiReadOffset = NO_ACQUIRE;
 
 	return eError;
+}
+
+IMG_INTERNAL
+PVRSRV_ERROR TLClientReleaseData(IMG_HANDLE hSrvHandle,
+		IMG_HANDLE hSD)
+{
+	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+
+	PVR_ASSERT(hSrvHandle);
+	PVR_ASSERT(hSD);
+
+	return _TLClientReleaseDataLen(hSrvHandle, psSD, psSD->uiReadLen);
+}
+
+IMG_INTERNAL
+PVRSRV_ERROR TLClientReleaseDataLess(IMG_HANDLE hSrvHandle,
+		IMG_HANDLE hSD, IMG_UINT32 uiActualReadLen)
+{
+	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+
+	PVR_ASSERT(hSrvHandle);
+	PVR_ASSERT(hSD);
+
+	/* Check the specified size is within the size returned by Acquire */
+	if (uiActualReadLen > psSD->uiReadLen)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "TLClientReleaseData_: no acquire to release"));
+		return PVRSRV_ERROR_INVALID_PARAMS;
+	}
+
+	return _TLClientReleaseDataLen(hSrvHandle, psSD, uiActualReadLen);
 }
 
 IMG_INTERNAL

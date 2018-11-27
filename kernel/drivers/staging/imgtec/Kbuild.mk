@@ -56,6 +56,8 @@ adf_fbdev-y += \
 
 adf_pdp-y += \
  kernel/drivers/staging/imgtec/tc/adf_pdp.o \
+ kernel/drivers/staging/imgtec/tc/pdp_apollo.o \
+ kernel/drivers/staging/imgtec/tc/pdp_odin.o \
  kernel/drivers/staging/imgtec/adf_common.o \
  kernel/drivers/staging/imgtec/debugfs_dma_buf.o
 
@@ -98,9 +100,13 @@ drm_pdp-y += \
  kernel/drivers/staging/imgtec/tc/drm_pdp_drv.o \
  kernel/drivers/staging/imgtec/tc/drm_pdp_gem.o \
  kernel/drivers/staging/imgtec/tc/drm_pdp_modeset.o \
+ kernel/drivers/staging/imgtec/tc/drm_pdp_plane.o \
  kernel/drivers/staging/imgtec/tc/drm_pdp_crtc.o \
  kernel/drivers/staging/imgtec/tc/drm_pdp_dvi.o \
- kernel/drivers/staging/imgtec/tc/drm_pdp_tmds.o
+ kernel/drivers/staging/imgtec/tc/drm_pdp_tmds.o \
+ kernel/drivers/staging/imgtec/tc/pdp_apollo.o \
+ kernel/drivers/staging/imgtec/tc/pdp_odin.o \
+ kernel/drivers/staging/imgtec/tc/pdp_plato.o
 
 plato-y += \
  kernel/drivers/staging/imgtec/plato/plato_drv.o \

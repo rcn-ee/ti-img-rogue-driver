@@ -179,13 +179,15 @@ typedef struct
                                    parameters
 @Input          psScript           PDump channel to be used for logging
                                    commands / events
+@Input          psBlkScript        PDump channel to be used for logging
+                                   BLKDATA commands / events in BLKMODE
 @Output         pui32InitCapMode   The initial PDump capture mode.
 @Output         ppszEnvComment     Environment-specific comment that is
                                    output when writing to the PDump
                                    stream (this may be NULL).
 @Return         PVRSRV_OK on success, a failure code otherwise.
 */ /**************************************************************************/
-PVRSRV_ERROR PDumpOSInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript,
+PVRSRV_ERROR PDumpOSInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript, PDUMP_CHANNEL* psBlkScript,
 		IMG_UINT32* pui32InitCapMode, IMG_CHAR** ppszEnvComment);
 
 /**************************************************************************/ /*!
@@ -194,9 +196,10 @@ PVRSRV_ERROR PDumpOSInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript,
                 vldbgdrv. This function is only called if PDUMP is defined.
 @Input          psParam            PDump parameter channel to be closed
 @Input          psScript           PDump command channel to be closed
+@Input          psBlkScript        PDump BLKDATA command channel to be closed
 @Return         None
 */ /**************************************************************************/
-void PDumpOSDeInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript);
+void PDumpOSDeInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript, PDUMP_CHANNEL* psBlkScript);
 
 /**************************************************************************/ /*!
 @Function       PDumpOSSetSplitMarker
@@ -207,6 +210,16 @@ void PDumpOSDeInit(PDUMP_CHANNEL* psParam, PDUMP_CHANNEL* psScript);
 @Return         IMG_TRUE
 */ /**************************************************************************/
 IMG_BOOL PDumpOSSetSplitMarker(IMG_HANDLE hStream, IMG_UINT32 ui32Marker);
+
+
+/**************************************************************************/ /*!
+@Function       PDumpOSGetSplitMarker
+@Description    Gets current value of split marker from dbgdrv.
+				This function is only called if PDUMP is defined.
+@Input          hStream            handle of PDump stream
+@Return         ui32Marker
+*/ /**************************************************************************/
+IMG_UINT32 PDumpOSGetSplitMarker(IMG_HANDLE hStream);
 
 /**************************************************************************/ /*!
 @Function       PDumpOSDebugDriverWrite

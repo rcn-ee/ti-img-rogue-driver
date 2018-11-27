@@ -600,6 +600,32 @@ TLStreamClose(IMG_HANDLE hStream)
 	}
 }
 
+/*
+ * DoTLSetPacketHeader
+ *
+ * Ensure that whenever we update a Header we always add the RESERVED field
+ */
+static inline void DoTLSetPacketHeader(PVRSRVTL_PPACKETHDR, IMG_UINT32);
+static inline void
+DoTLSetPacketHeader(PVRSRVTL_PPACKETHDR pHdr,
+				IMG_UINT32 ui32Val)
+{
+	PVR_ASSERT(((size_t)pHdr & (size_t)(PVRSRVTL_PACKET_ALIGNMENT - 1)) == 0);
+
+	/* Check that this is a correctly aligned packet header. */
+	if (((size_t)pHdr & (size_t)(PVRSRVTL_PACKET_ALIGNMENT - 1)) != 0)
+	{
+		/* Should return an error because the header is misaligned */
+		PVR_DPF((PVR_DBG_ERROR, "%s: Misaligned header @ %p", __func__, pHdr));
+		pHdr->uiTypeSize = ui32Val;
+	}
+	else
+	{
+		pHdr->uiTypeSize = ui32Val;
+		pHdr->uiReserved = PVRSRVTL_PACKETHDR_RESERVED;
+	}
+}
+
 static PVRSRV_ERROR
 DoTLStreamReserve(IMG_HANDLE hStream,
 				IMG_UINT8 **ppui8Data,
@@ -613,6 +639,7 @@ DoTLStreamReserve(IMG_HANDLE hStream,
 	IMG_INT pad, iFreeSpace;
 	IMG_UINT8 *pui8IncrRead = NULL;
 	PVRSRV_ERROR eError;
+	PVRSRVTL_PPACKETHDR pHdr;
 
 	PVR_DPF_ENTERED;
 	if (pui32AvSpace) *pui32AvSpace = 0;
@@ -746,7 +773,8 @@ DoTLStreamReserve(IMG_HANDLE hStream,
 				psTmp->ui32Read = ui32LRead;
 				pui8IncrRead = &psTmp->pbyBuffer[psTmp->ui32Read];
 
-				GET_PACKET_HDR(pui8IncrRead)->uiTypeSize = SET_PACKETS_DROPPED( GET_PACKET_HDR(pui8IncrRead) );
+				pHdr = GET_PACKET_HDR(pui8IncrRead);
+				DoTLSetPacketHeader(pHdr, SET_PACKETS_DROPPED(pHdr));
 			}
 			/* else fall through as there is enough space now to write the data */
 
@@ -767,13 +795,15 @@ DoTLStreamReserve(IMG_HANDLE hStream,
 					   : // Previous four bytes are not guaranteed to be a packet header...
 					    (IMG_UINT32*)&psTmp->pbyBuffer[psTmp->ui32Size - PVRSRVTL_PACKET_ALIGNMENT];
 
+			pHdr = GET_PACKET_HDR(pui32Buf);
 			if ( PVRSRVTL_PACKETTYPE_MOST_RECENT_WRITE_FAILED
 				 !=
-				 GET_PACKET_TYPE( (PVRSRVTL_PACKETHDR*)pui32Buf ) )
+				 GET_PACKET_TYPE( pHdr ) )
 			{
 				/* Insert size-stamped packet header */
 				pui32Buf = (IMG_UINT32*)&psTmp->pbyBuffer[ui32LWrite];
-				*pui32Buf = PVRSRVTL_SET_PACKET_WRITE_FAILED;
+				pHdr = GET_PACKET_HDR(pui32Buf);
+				DoTLSetPacketHeader(pHdr, PVRSRVTL_SET_PACKET_WRITE_FAILED);
 				ui32LWrite += sizeof(PVRSRVTL_PACKETHDR);
 				ui32LWrite %= psTmp->ui32Size;
 				iFreeSpace -= sizeof(PVRSRVTL_PACKETHDR);
@@ -800,7 +830,9 @@ DoTLStreamReserve(IMG_HANDLE hStream,
 		{
 			/* Inserting padding packet. */
 			pui32Buf = (IMG_UINT32*)&psTmp->pbyBuffer[ui32LWrite];
-			*pui32Buf = PVRSRVTL_SET_PACKET_PADDING(pad-sizeof(PVRSRVTL_PACKETHDR));
+			pHdr = GET_PACKET_HDR(pui32Buf);
+			DoTLSetPacketHeader(pHdr,
+				PVRSRVTL_SET_PACKET_PADDING(pad-sizeof(PVRSRVTL_PACKETHDR)));
 
 			/* CAUTION: the used pad value should always result in a properly
 			 *          aligned ui32LWrite pointer, which in this case is 0 */
@@ -811,7 +843,9 @@ DoTLStreamReserve(IMG_HANDLE hStream,
 		/* Insert size-stamped packet header */
 		pui32Buf = (IMG_UINT32*) &psTmp->pbyBuffer[ui32LWrite];
 
-		*pui32Buf = PVRSRVTL_SET_PACKET_HDR(ui32ReqSize, ePacketType);
+		pHdr = GET_PACKET_HDR(pui32Buf);
+		DoTLSetPacketHeader(pHdr,
+			PVRSRVTL_SET_PACKET_HDR(ui32ReqSize, ePacketType));
 
 		/* return the next position in the buffer to the user */
 		*ppui8Data =  &psTmp->pbyBuffer[ ui32LWrite+sizeof(PVRSRVTL_PACKETHDR) ];
@@ -1190,9 +1224,13 @@ TLStreamAcquireReadPos(PTL_STREAM psStream,
 	PVR_DPF_RETURN_VAL(uiReadLen);
 }
 
-void
-TLStreamAdvanceReadPos(PTL_STREAM psStream, IMG_UINT32 uiReadLen)
+PVRSRV_ERROR
+TLStreamAdvanceReadPos(PTL_STREAM psStream,
+                       IMG_UINT32 uiReadLen,
+                       IMG_UINT32 uiOrigReadLen)
 {
+	IMG_UINT32 uiNewReadPos;
+
 	PVR_DPF_ENTERED;
 
 	PVR_ASSERT(psStream);
@@ -1205,8 +1243,29 @@ TLStreamAdvanceReadPos(PTL_STREAM psStream, IMG_UINT32 uiReadLen)
 	 */
 
 	/* Update the read offset by the length provided in a circular manner.
-	 * Assuming the update to be atomic hence, avoiding use of locks */
-	psStream->ui32Read = (psStream->ui32Read + uiReadLen) % psStream->ui32Size;
+	 * Assuming the update to be atomic hence, avoiding use of locks
+	 */
+	uiNewReadPos = (psStream->ui32Read + uiReadLen) % psStream->ui32Size;
+
+	/* Must validate length is on a packet boundary, for
+	 * TLReleaseDataLess calls.
+	 */
+	if (uiReadLen != uiOrigReadLen) /* buffer not empty */
+	{
+		PVRSRVTL_PPACKETHDR psHdr = GET_PACKET_HDR(psStream->pbyBuffer+uiNewReadPos);
+		PVRSRVTL_PACKETTYPE eType = GET_PACKET_TYPE(psHdr);
+
+		if ((psHdr->uiReserved != PVRSRVTL_PACKETHDR_RESERVED) ||
+			(eType == PVRSRVTL_PACKETTYPE_UNDEF) ||
+			(eType >= PVRSRVTL_PACKETTYPE_LAST))
+		{
+			PVR_DPF_RETURN_RC(PVRSRV_ERROR_INVALID_ALIGNMENT);
+		}
+		/* else OK, on a packet boundary */
+	}
+	/* else no check needed */
+
+	psStream->ui32Read = uiNewReadPos;
 
 	if (psStream->eOpMode == TL_OPMODE_DROP_OLDEST)
 	{
@@ -1229,13 +1288,17 @@ TLStreamAdvanceReadPos(PTL_STREAM psStream, IMG_UINT32 uiReadLen)
 			PVR_DPF((PVR_DBG_WARNING,
 					 "Error in TLStreamAdvanceReadPos: OSEventObjectSignal returned:%u",
 					 eError));
+			/* We've failed to notify the producer event. This means there may
+			 * be a delay in generating more data to be consumed until the next
+			 * Write() generating action occurs.
+			 */
 		}
 	}
 
 	PVR_DPF((PVR_DBG_VERBOSE,
 			 "TLStreamAdvanceReadPos Read now at: %d",
 			psStream->ui32Read));
-	PVR_DPF_RETURN;
+	PVR_DPF_RETURN_OK;
 }
 
 void

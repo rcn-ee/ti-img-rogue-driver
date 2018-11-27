@@ -39,11 +39,11 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCONFIG_KM_8_V_2_39_H_
-#define _RGXCONFIG_KM_8_V_2_39_H_
+#ifndef RGXCONFIG_KM_8_V_2_39_H
+#define RGXCONFIG_KM_8_V_2_39_H
 
-/***** Automatically generated file (04/06/2018 07:01:05): Do not edit manually ********************/
-/***** Timestamp:  (04/06/2018 07:01:05)************************************************************/
+/***** Automatically generated file (10/10/2018 09:01:02): Do not edit manually ********************/
+/***** Timestamp:  (10/10/2018 09:01:02)************************************************************/
 
 #define RGX_BNC_KM_B 8
 #define RGX_BNC_KM_N 2
@@ -58,6 +58,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_PERFBUS 
 #define RGX_FEATURE_GS_RTA_SUPPORT 
 #define RGX_FEATURE_COMPUTE 
+#define RGX_FEATURE_PERF_COUNTER_BATCH 
 #define RGX_FEATURE_COMPUTE_MORTON_CAPABLE 
 #define RGX_FEATURE_COMPUTE_OVERLAP 
 #define RGX_FEATURE_TPU_FILTERING_MODE_CONTROL 
@@ -78,6 +79,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_META_COREMEM_SIZE (64)
 #define RGX_FEATURE_FBCDC_ARCHITECTURE (3)
 #define RGX_FEATURE_FBCDC_ALGORITHM (2)
+#define RGX_FEATURE_DUST_POWER_ISLAND_S7 
 #define RGX_FEATURE_SLC_CACHE_LINE_SIZE_BITS (512)
 #define RGX_FEATURE_NUM_CLUSTERS (2)
 #define RGX_FEATURE_NUM_ISP_IPP_PIPES (4)
@@ -92,4 +94,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_CLUSTER_GROUPING 
 
 
-#endif /* _RGXCONFIG_8_V_2_39_H_ */
+#endif /* RGXCONFIG_8_V_2_39_H */

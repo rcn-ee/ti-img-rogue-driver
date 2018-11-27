@@ -528,6 +528,18 @@ typedef enum _RGX_HWPERF_DM {
 	RGX_HWPERF_DM_INVALID = 0x1FFFFFFF
 } RGX_HWPERF_DM;
 
+/* Enum containing bit pos for 32bit feature flags used in hwperf and api */
+typedef enum {
+	RGX_HWPERF_FEATURE_PERFBUS_FLAG                = 0x001,
+	RGX_HWPERF_FEATURE_S7_TOP_INFRASTRUCTURE_FLAG  = 0x002,
+	RGX_HWPERF_FEATURE_XT_TOP_INFRASTRUCTURE_FLAG  = 0x004,
+	RGX_HWPERF_FEATURE_PERF_COUNTER_BATCH_FLAG     = 0x008,
+	RGX_HWPERF_FEATURE_ROGUEXE_FLAG                = 0x010,
+	RGX_HWPERF_FEATURE_DUST_POWER_ISLAND_S7_FLAG   = 0x020,
+	RGX_HWPERF_FEATURE_PBE2_IN_XE_FLAG             = 0x040,
+	RGX_HWPERF_FEATURE_WORKLOAD_ESTIMATION         = 0x080
+} RGX_HWPERF_FEATURE_FLAGS;
+
 /*! This structure holds the data of a firmware packet. */
 typedef struct
 {
@@ -702,8 +714,9 @@ typedef enum
 	RGX_HWPERF_FWACT_EV_HWR_RESET_REQUIRED, /*! Reset required. */
 	RGX_HWPERF_FWACT_EV_HWR_RECOVERED,      /*! HWR recovered. */
 	RGX_HWPERF_FWACT_EV_HWR_FREELIST_READY, /*! Freelist ready. */
+	RGX_HWPERF_FWACT_EV_FEATURES,           /*! Features present */
 
-	RGX_HWPERF_FWACT_EV_LAST,               /*! Number of element. */
+	RGX_HWPERF_FWACT_EV_LAST                /*! Number of element. */
 } RGX_HWPERF_FWACT_EV;
 
 /*! Cause of the HWR event. */
@@ -728,6 +741,11 @@ typedef union
 		RGX_HWPERF_HWR_REASON eReason;     /*!< Reason of the HWR. */
 		IMG_UINT32 ui32DMContext;          /*!< FW render context */
 	} sHWR;                                /*!< HWR sub-event data. */
+
+	struct
+	{
+		IMG_UINT32 ui32BvncKmFeatureFlags;    /*!< BVNC Feature Flags */
+	} sBVNC;
 } RGX_HWPERF_FWACT_DETAIL;
 
 /*! This structure holds the data of a FW activity event packet */
