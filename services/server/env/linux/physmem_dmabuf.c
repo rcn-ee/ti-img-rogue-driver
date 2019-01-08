@@ -116,6 +116,11 @@ static int PVRDmaBufOpsMMap(struct dma_buf *psDmaBuf, struct vm_area_struct *psV
 	return -ENOSYS;
 }
 
+static void *PVRDmaBufOpsKMap(struct dma_buf *psDmaBuf, unsigned long uiPageNum)
+{
+	return ERR_PTR(-ENOSYS);
+}
+
 static const struct dma_buf_ops sPVRDmaBufOps =
 {
 	.attach        = PVRDmaBufOpsAttach,
@@ -123,6 +128,7 @@ static const struct dma_buf_ops sPVRDmaBufOps =
 	.unmap_dma_buf = PVRDmaBufOpsUnmap,
 	.release       = PVRDmaBufOpsRelease,
 	.mmap          = PVRDmaBufOpsMMap,
+	.map           = PVRDmaBufOpsKMap,
 };
 
 /* end of dma_buf_ops */
