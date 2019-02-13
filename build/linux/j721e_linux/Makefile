@@ -41,7 +41,7 @@
 include ../config/preconfig.mk
 include ../config/window_system.mk
 
-PVR_SYSTEM := rgx_dra822
+PVR_SYSTEM := rgx_j721e
 
 PVRSRV_NEED_PVR_DPF := 1
 PVRSRV_NEED_PVR_ASSERT := 1
