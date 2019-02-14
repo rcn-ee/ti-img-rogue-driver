@@ -173,7 +173,7 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	/*
 	 * Setup RGX specific timing data
 	 */
-	gsRGXTimingInfo.ui32CoreClockSpeed        = RGX_DRA822_CORE_CLOCK_SPEED;
+	gsRGXTimingInfo.ui32CoreClockSpeed        = RGX_J721E_CORE_CLOCK_SPEED;
 	gsRGXTimingInfo.bEnableActivePM           = IMG_FALSE;
 	gsRGXTimingInfo.bEnableRDPowIsland        = IMG_FALSE;
 	gsRGXTimingInfo.ui32ActivePMLatencyms     = SYS_RGX_ACTIVE_POWER_LATENCY_MS;
@@ -201,11 +201,11 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	{
 		PVR_LOG(("%s: platform_get_resource() failed, using mmio/sz 0x%x/0x%x",
 				__func__,
-				RGX_DRA822_GPU_PBASE,
-				RGX_DRA822_GPU_SIZE));
+				RGX_J721E_GPU_PBASE,
+				RGX_J721E_GPU_SIZE));
 
-		gsDevices[0].sRegsCpuPBase.uiAddr   = RGX_DRA822_GPU_PBASE;
-		gsDevices[0].ui32RegsSize           = RGX_DRA822_GPU_SIZE;
+		gsDevices[0].sRegsCpuPBase.uiAddr   = RGX_J721E_GPU_PBASE;
+		gsDevices[0].ui32RegsSize           = RGX_J721E_GPU_SIZE;
 	}
 
 	iIrq = platform_get_irq(psDev, 0);
@@ -217,9 +217,9 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	{
 		PVR_LOG(("%s: platform_get_irq() failed, using irq %d",
 				__func__,
-				RGX_DRA822_IRQ_GPU));
+				RGX_J721E_IRQ_GPU));
 
-		gsDevices[0].ui32IRQ = RGX_DRA822_IRQ_GPU;
+		gsDevices[0].ui32IRQ = RGX_J721E_IRQ_GPU;
 	}
 
 	/* Device's physical heaps */
