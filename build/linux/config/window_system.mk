@@ -127,7 +127,7 @@ else ifeq ($(WINDOW_SYSTEM),nulldrmws)
  endif
  SUPPORT_VK_PLATFORMS := null
  SUPPORT_DISPLAY_CLASS := 0
- SUPPORT_NATIVE_FENCE_SYNC := 1
+ SUPPORT_NATIVE_FENCE_SYNC := 0
  SUPPORT_KMS := 1
 else ifeq ($(WINDOW_SYSTEM),screen) # Neutrino builds
  OPK_DEFAULT  := libpvrSCREEN_WSEGL.so

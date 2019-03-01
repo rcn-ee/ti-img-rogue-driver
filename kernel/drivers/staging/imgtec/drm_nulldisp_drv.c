@@ -1033,7 +1033,7 @@ static void nulldisp_connector_destroy(struct drm_connector *connector)
 			 connector->base.id,
 			 connector->name);
 
-	drm_mode_connector_update_edid_property(connector, NULL);
+	drm_connector_update_edid_property(connector, NULL);
 	drm_connector_cleanup(connector);
 
 	kfree(connector);
@@ -1477,7 +1477,7 @@ static int nulldisp_early_load(struct drm_device *dev)
 		goto err_config_cleanup;
 	}
 
-	err = drm_mode_connector_attach_encoder(connector, encoder);
+	err = drm_connector_attach_encoder(connector, encoder);
 	if (err) {
 		DRM_ERROR("failed to attach [ENCODER:%d:%s] to "
 			  "[CONNECTOR:%d:%s] (err=%d)\n",
