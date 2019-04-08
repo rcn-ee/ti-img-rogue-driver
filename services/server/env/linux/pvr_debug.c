@@ -1138,7 +1138,7 @@ static int _DebugStatusSeqShow(struct seq_file *psSeqFile, void *pvData)
 	return 0;
 }
 
-static IMG_INT DebugStatusSet(const char __user *pcBuffer,
+static ssize_t DebugStatusSet(const char __user *pcBuffer,
 							  size_t uiCount,
 							  loff_t *puiPosition,
 							  void *pvData)
