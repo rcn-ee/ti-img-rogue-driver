@@ -1,6 +1,4 @@
 ########################################################################### ###
-#@File
-#@Title         Set the default window system to Wayland
 #@Copyright     Copyright (c) Imagination Technologies Ltd. All Rights Reserved
 #@License       Dual MIT/GPLv2
 # 
@@ -40,4 +38,32 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
-WINDOW_SYSTEM ?= wayland
+include ../config/preconfig.mk
+
+EXCLUDE_FENCE_SYNC_SUPPORT ?= 1
+
+include ../config/window_system.mk
+
+PVR_SYSTEM := europa
+RGX_BVNC := 4.41.2.57
+PVR_LDM_PLATFORM_PRE_REGISTERED := 1
+NO_HARDWARE := 0
+
+ifeq ($(SUPPORT_KMS),1)
+ PVR_DRM_MODESET_DRIVER_NAME := nulldisp
+ PVR_DRM_MODESET_MODULE_NAME := dumb
+else
+ ifeq ($(SUPPORT_DISPLAY_CLASS),1)
+  DISPLAY_CONTROLLER := dc_example
+ endif
+endif
+
+KERNEL_COMPONENTS := srvkm $(DISPLAY_CONTROLLER)
+
+# Should be last
+include ../config/core.mk
+include ../common/lws.mk
+include ../common/3rdparty.mk
+
+$(eval $(call BothConfigC,EMULATOR,0))
+$(eval $(call BothConfigC,VIRTUAL_PLATFORM,0))

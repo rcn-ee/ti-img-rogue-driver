@@ -1,6 +1,5 @@
 ########################################################################### ###
 #@File
-#@Title         Set the default window system to Wayland
 #@Copyright     Copyright (c) Imagination Technologies Ltd. All Rights Reserved
 #@License       Dual MIT/GPLv2
 # 
@@ -40,4 +39,17 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
-WINDOW_SYSTEM ?= wayland
+PVRSRVKM_NAME = $(PVRSRV_MODNAME)
+
+$(PVRSRVKM_NAME)-y += \
+ services/system/$(PVR_SYSTEM)/sysconfig_dt.o \
+ services/system/common/env/linux/interrupt_support.o \
+ services/system/common/env/linux/dma_support.o \
+ services/system/common/vz_physheap_generic.o \
+ services/system/common/vz_physheap_common.o \
+ services/system/common/vmm_pvz_client.o \
+ services/system/common/vmm_pvz_server.o \
+ services/system/common/vz_vmm_pvz.o \
+ services/system/common/vz_vmm_vm.o \
+ services/system/common/vz_support.o \
+ services/system/common/vmm_type_$(VMM_TYPE).o

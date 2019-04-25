@@ -1,9 +1,8 @@
 /*************************************************************************/ /*!
 @File
-@Title          Version numbers and strings.
+@Title          System Description Header
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
-@Description    Version numbers and strings for PVR Consumer services
-                components.
+@Description    This header provides system-specific declarations and macros
 @License        Dual MIT/GPLv2
 
 The contents of this file are subject to the MIT license as set out below.
@@ -42,31 +41,30 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _PVRVERSION_H_
-#define _PVRVERSION_H_
+#include "pvrsrv_device.h"
+#include "rgxdevice.h"
 
-#define PVR_STR(X) #X
-#define PVR_STR2(X) PVR_STR(X)
+#if !defined(__SYSCCONFIG_H__)
+#define __SYSCCONFIG_H__
 
-#define PVRVERSION_MAJ               1
-#define PVRVERSION_MIN               10
 
-#define PVRVERSION_FAMILY           "rogueddk"
-#define PVRVERSION_BRANCHNAME       "1.10"
-#define PVRVERSION_BUILD             5187610
-#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux_WS"
+#define RGX_NOHW_CORE_CLOCK_SPEED 100000000
+#define SYS_RGX_ACTIVE_POWER_LATENCY_MS (10)
 
-#define PVRVERSION_STRING           "Rogue_DDK_Linux_WS rogueddk 1.10@" PVR_STR2(PVRVERSION_BUILD)
-#define PVRVERSION_STRING_SHORT     "1.10@" PVR_STR2(PVRVERSION_BUILD) ""
+/* BIF Tiling mode configuration */
+static RGXFWIF_BIFTILINGMODE geBIFTilingMode = RGXFWIF_BIFTILINGMODE_256x16;
 
-#define COPYRIGHT_TXT               "Copyright (c) Imagination Technologies Ltd. All Rights Reserved."
+/* default BIF tiling heap x-stride configurations. */
+static IMG_UINT32 gauiBIFTilingHeapXStrides[RGXFWIF_NUM_BIF_TILING_CONFIGS] =
+{
+	0, /* BIF tiling heap 1 x-stride */
+	1, /* BIF tiling heap 2 x-stride */
+	2, /* BIF tiling heap 3 x-stride */
+	3  /* BIF tiling heap 4 x-stride */
+};
 
-#define PVRVERSION_BUILD_HI          518
-#define PVRVERSION_BUILD_LO          7610
-#define PVRVERSION_STRING_NUMERIC    PVR_STR2(PVRVERSION_MAJ) "." PVR_STR2(PVRVERSION_MIN) "." PVR_STR2(PVRVERSION_BUILD_HI) "." PVR_STR2(PVRVERSION_BUILD_LO)
-
-#define PVRVERSION_PACK(MAJ,MIN) ((((MAJ)&0xFFFF) << 16) | (((MIN)&0xFFFF) << 0))
-#define PVRVERSION_UNPACK_MAJ(VERSION) (((VERSION) >> 16) & 0xFFFF)
-#define PVRVERSION_UNPACK_MIN(VERSION) (((VERSION) >> 0) & 0xFFFF)
-
-#endif /* _PVRVERSION_H_ */
+/*****************************************************************************
+ * system specific data structures
+ *****************************************************************************/
+ 
+#endif	/* __SYSCCONFIG_H__ */

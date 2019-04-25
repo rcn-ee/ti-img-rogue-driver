@@ -1,9 +1,8 @@
 /*************************************************************************/ /*!
 @File
-@Title          Version numbers and strings.
+@Title          System Description Header
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
-@Description    Version numbers and strings for PVR Consumer services
-                components.
+@Description    This header provides system-specific declarations and macros
 @License        Dual MIT/GPLv2
 
 The contents of this file are subject to the MIT license as set out below.
@@ -42,31 +41,24 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _PVRVERSION_H_
-#define _PVRVERSION_H_
+#if !defined(__SYSINFO_H__)
+#define __SYSINFO_H__
 
-#define PVR_STR(X) #X
-#define PVR_STR2(X) PVR_STR(X)
+#define SYS_RGX_DEV_VENDOR_ID	(0x1AEE)
+#define SYS_RGX_DEV_DEVICE_ID	(0x0003)
+#define SYS_RGX_DEV_NAME		"plato_rogue"
 
-#define PVRVERSION_MAJ               1
-#define PVRVERSION_MIN               10
+/*!< System specific poll/timeout details */
+#if defined(VIRTUAL_PLATFORM) || defined(EMULATOR)
+/* Emulator clock ~600 times slower than HW */
+#define MAX_HW_TIME_US                           (300000000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1000000)
+#else
+#define MAX_HW_TIME_US                           (500000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (100000)
+#endif
 
-#define PVRVERSION_FAMILY           "rogueddk"
-#define PVRVERSION_BRANCHNAME       "1.10"
-#define PVRVERSION_BUILD             5187610
-#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux_WS"
+#define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
+#define WAIT_TRY_COUNT                           (10000)
 
-#define PVRVERSION_STRING           "Rogue_DDK_Linux_WS rogueddk 1.10@" PVR_STR2(PVRVERSION_BUILD)
-#define PVRVERSION_STRING_SHORT     "1.10@" PVR_STR2(PVRVERSION_BUILD) ""
-
-#define COPYRIGHT_TXT               "Copyright (c) Imagination Technologies Ltd. All Rights Reserved."
-
-#define PVRVERSION_BUILD_HI          518
-#define PVRVERSION_BUILD_LO          7610
-#define PVRVERSION_STRING_NUMERIC    PVR_STR2(PVRVERSION_MAJ) "." PVR_STR2(PVRVERSION_MIN) "." PVR_STR2(PVRVERSION_BUILD_HI) "." PVR_STR2(PVRVERSION_BUILD_LO)
-
-#define PVRVERSION_PACK(MAJ,MIN) ((((MAJ)&0xFFFF) << 16) | (((MIN)&0xFFFF) << 0))
-#define PVRVERSION_UNPACK_MAJ(VERSION) (((VERSION) >> 16) & 0xFFFF)
-#define PVRVERSION_UNPACK_MIN(VERSION) (((VERSION) >> 0) & 0xFFFF)
-
-#endif /* _PVRVERSION_H_ */
+#endif /* !defined(__SYSINFO_H__) */
