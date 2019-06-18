@@ -247,13 +247,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	}
 	else
 	{
-		PVR_LOG(("%s: platform_get_resource() failed, using mmio/sz 0x%lx/0x%x",
-				__func__,
-				RGX_J721E_GPU_PBASE,
-				RGX_J721E_GPU_SIZE));
-
-		gsDevices[0].sRegsCpuPBase.uiAddr   = RGX_J721E_GPU_PBASE;
-		gsDevices[0].ui32RegsSize           = RGX_J721E_GPU_SIZE;
+		PVR_LOG(("%s: platform_get_resource() failed", __func__));
+		return PVRSRV_ERROR_INIT_FAILURE;
 	}
 
 	iIrq = platform_get_irq(psDev, 0);
@@ -263,11 +258,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	}
 	else
 	{
-		PVR_LOG(("%s: platform_get_irq() failed, using irq %d",
-				__func__,
-				RGX_J721E_IRQ_GPU));
-
-		gsDevices[0].ui32IRQ = RGX_J721E_IRQ_GPU;
+		PVR_LOG(("%s: platform_get_irq() failed", __func__));
+		return PVRSRV_ERROR_INIT_FAILURE;
 	}
 
 	/* Device's physical heaps */
