@@ -874,7 +874,7 @@ static int _DebugPowerDataSeqShow(struct seq_file *psSeqFile, void *pvData)
 	return eError;
 }
 
-static IMG_INT PowerDataSet(const char __user *pcBuffer,
+static ssize_t PowerDataSet(const char __user *pcBuffer,
 							 size_t uiCount,
 							 loff_t *puiPosition,
 							 void *pvData)
@@ -1426,7 +1426,7 @@ static struct seq_operations gsDebugLevelReadOps =
 };
 
 
-static IMG_INT DebugLevelSet(const char __user *pcBuffer,
+static ssize_t DebugLevelSet(const char __user *pcBuffer,
 							 size_t uiCount,
 							 loff_t *puiPosition,
 							 void *pvData)
