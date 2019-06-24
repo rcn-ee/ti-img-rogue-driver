@@ -247,7 +247,7 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	}
 	else
 	{
-		PVR_LOG(("%s: platform_get_resource() failed, using mmio/sz 0x%x/0x%x",
+		PVR_LOG(("%s: platform_get_resource() failed, using mmio/sz 0x%lx/0x%x",
 				__func__,
 				RGX_J721E_GPU_PBASE,
 				RGX_J721E_GPU_SIZE));
