@@ -1490,7 +1490,7 @@ typedef spinlock_t *POS_SPINLOCK;
 #define OSSpinLockDestroy(_psLock) ({OSFreeMem(_psLock);})
 
 #define OSSpinLockAcquire(_pLock, _pFlags) {unsigned long *p = (unsigned long *)_pFlags; spin_lock_irqsave(_pLock, *p);}
-#define OSSpinLockRelease(_pLock, _flags)  {spin_unlock_irqrestore(_pLock, _flags);}
+#define OSSpinLockRelease(_pLock, _flags)  {unsigned long p = (unsigned long)_flags; spin_unlock_irqrestore(_pLock, p);}
 
 #elif defined(LINUX) || defined(__QNXNTO__) || defined (INTEGRITY_OS)
 /* User-mode unit tests use these definitions on Linux */
