@@ -445,9 +445,6 @@ $(PVRSRV_MODNAME)-y += \
  generated/synctracking_bridge/server_synctracking_bridge.o
 endif
 
-#ifeq ($(SUPPORT_SIGNAL_FILTER),1)
-#endif
-
 ifeq ($(SUPPORT_FALLBACK_FENCE_SYNC),1)
 ccflags-y += \
  -I$(bridge_base)/syncfallback_bridge

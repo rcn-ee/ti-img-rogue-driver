@@ -774,6 +774,9 @@ typedef struct _RGXFWIF_FWCCB_CMD_FREELISTS_RECONSTRUCTION_DATA_
 	IMG_UINT32			aui32FreelistIDs[MAX_HW_TA3DCONTEXTS * RGXFW_MAX_FREELISTS];
 } RGXFWIF_FWCCB_CMD_FREELISTS_RECONSTRUCTION_DATA;
 
+/* If set, the FW will send the page fault address in a separate command */
+#define RGXFWIF_FWCCB_CMD_CONTEXT_RESET_PAGE_FAULT_ADDRESS_FLAG (1U << 31)
+
 typedef struct _RGXFWIF_FWCCB_CMD_CONTEXT_RESET_DATA_
 {
 	IMG_UINT32						ui32ServerCommonContextID;	/*!< Context affected by the reset */
@@ -839,6 +842,17 @@ typedef struct _RGXFWIF_FWCCB_CMD_PDVFS_FREEMEM_DATA_
 	IMG_UINT64 RGXFW_ALIGN ui64MemDesc;
 } UNCACHED_ALIGN RGXFWIF_FWCCB_CMD_PDVFS_FREEMEM_DATA;
 
+/* These values must appear as the first 32bit of a partial FWCCB command
+ * (excluding NONE which is not used in a partial FWCCB command) */
+#define RGXFWIF_FWCCB_CMD_PARTIAL_TYPE_NONE                (0U)
+#define RGXFWIF_FWCCB_CMD_PARTIAL_TYPE_CONTEXT_RESET_DATA  (1U)
+
+typedef struct _RGXFWIF_FWCCB_CMD_PARTIAL_CONTEXT_RESET_DATA_
+{
+	IMG_UINT32 ui32PartialCmdType;
+	IMG_DEV_VIRTADDR RGXFW_ALIGN sFaultAddress;
+} RGXFWIF_FWCCB_CMD_PARTIAL_CONTEXT_RESET_DATA;
+
 typedef struct _RGXFWIF_FWCCB_CMD_
 {
 	RGXFWIF_FWCCB_CMD_TYPE					eCmdType;	/*!< Command type */
@@ -851,6 +865,7 @@ typedef struct _RGXFWIF_FWCCB_CMD_
 		RGXFWIF_FWCCB_CMD_UPDATE_STATS_DATA                 sCmdUpdateStatsData;            /*!< Data for updating process stats */
 		RGXFWIF_FWCCB_CMD_CORE_CLK_RATE_CHANGE_DATA			sCmdCoreClkRateChange;
 		RGXFWIF_FWCCB_CMD_PDVFS_FREEMEM_DATA				sCmdPDVFSFreeMem;
+		RGXFWIF_FWCCB_CMD_PARTIAL_CONTEXT_RESET_DATA		sCmdPartialContextResetNotification; /*!< Additional data for context reset notification */
 	} RGXFW_ALIGN uCmdData;
 } RGXFW_ALIGN RGXFWIF_FWCCB_CMD;
 
@@ -1051,6 +1066,9 @@ typedef struct _RGXFWIF_INIT_
 	PRGXFWIF_CCB            psWorkEstFirmwareCCB;
 
 	RGXFWIF_GPIO_VAL_MODE       eGPIOValidationMode;
+
+	/*Used in HWPerf for decoding BVNC Features*/
+	IMG_UINT32              ui32BvncKmFeatureFlags;
 
 } UNCACHED_ALIGN RGXFWIF_INIT;
 

@@ -1028,6 +1028,8 @@ static void _SyncFbTimelineAcquire(PVRSRV_TIMELINE_SERVER *psTl)
 	TL_REF_INC(&psTl->iRef, psTl);
 }
 
+static IMG_BOOL _SyncSWTimelineHasUnsignalledPtsKM(SYNC_TIMELINE_OBJ pvSWTimelineObj);
+
 PVRSRV_ERROR SyncFbTimelineRelease(PVRSRV_TIMELINE_SERVER *psTl)
 {
 	IMG_INT iRef;
@@ -1045,6 +1047,14 @@ PVRSRV_ERROR SyncFbTimelineRelease(PVRSRV_TIMELINE_SERVER *psTl)
 	                                psTl->iUID,
 	                                OSGetCurrentClientProcessIDKM(),
 	                                0);
+
+	if (_SyncFbTimelineHandleType(psTl) == PVRSRV_SYNC_HANDLE_SW)
+	{
+		if (_SyncSWTimelineHasUnsignalledPtsKM((SYNC_TIMELINE_OBJ)psTl))
+		{
+			ERR("Error when deleting SW timeline (unsignalled points)")
+		}
+	}
 
 	_SyncFbTimelineListDel(psTl);
 
@@ -1638,15 +1648,15 @@ static PVRSRV_ERROR _SyncFbSyncPtSignalPVR(IMG_HANDLE hSync,
 
 	PVR_DPF_ENTERED1(hSync);
 
-	if (!SyncCheckpointIsSignalled(psSyncCheck, IMG_TRUE))
+	if (!SyncCheckpointIsSignalled(psSyncCheck, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
 	{
 		switch (eState)
 		{
 			case PVRSRV_SYNC_SIGNALLED:
-				SyncCheckpointSignal(psSyncCheck, IMG_TRUE);
+				SyncCheckpointSignal(psSyncCheck, PVRSRV_FENCE_FLAG_NONE);
 				break;
 			case PVRSRV_SYNC_ERRORED:
-				SyncCheckpointError(psSyncCheck, IMG_TRUE);
+				SyncCheckpointError(psSyncCheck, PVRSRV_FENCE_FLAG_NONE);
 				break;
 			default:
 				ERR("Passed unknown sync state, "
@@ -1687,7 +1697,7 @@ static IMG_BOOL _SyncFbSyncPtHasSignalledPVR(PVRSRV_SYNC_PT *psSyncPt)
 		psCB = IMG_CONTAINER_OF(psCBNode, PVRSRV_SYNC_SIGNAL_CB, sCallbackNode);
 		psSyncCheck = (PSYNC_CHECKPOINT) psCB->hAttachedSync;
 
-		if (SyncCheckpointIsSignalled(psSyncCheck, IMG_TRUE))
+		if (SyncCheckpointIsSignalled(psSyncCheck, PVRSRV_FENCE_FLAG_NONE))
 		{
 			OSAtomicWrite(&psSyncPt->iStatus, PVRSRV_SYNC_SIGNALLED);
 
@@ -1985,6 +1995,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			continue;
 		}
 
+		OSLockAcquire(psSyncPt->psTl->hTlLock);
 		psNode = dllist_get_next_node(&psSyncPt->sSignalCallbacks);
 		psSyncCB = IMG_CONTAINER_OF(psNode, PVRSRV_SYNC_SIGNAL_CB, sCallbackNode);
 
@@ -2005,6 +2016,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			                             &psCheckpoint);
 			if (eError != PVRSRV_OK)
 			{
+				OSLockRelease(psSyncPt->psTl->hTlLock);
 				goto e2;
 			}
 
@@ -2012,6 +2024,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			if (psNewSyncCB == NULL)
 			{
 				eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				OSLockRelease(psSyncPt->psTl->hTlLock);
 				goto e3;
 			}
 
@@ -2029,6 +2042,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 				_SyncFbSyncPtSignalPVR(psNewSyncCB->hAttachedSync, PVRSRV_SYNC_SIGNALLED);
 			}
 		}
+		OSLockRelease(psSyncPt->psTl->hTlLock);
 
 		/* Take a reference, resolve caller is responsible
 		 * to drop it after use */
@@ -2563,6 +2577,21 @@ PVRSRV_ERROR SyncFbFenceCreateSW(PVRSRV_TIMELINE_SERVER *psTimeline,
 	                                       ppsOutputFence);
 
 	return eError;
+}
+
+static IMG_BOOL _SyncSWTimelineHasUnsignalledPtsKM(SYNC_TIMELINE_OBJ pvSWTimelineObj)
+{
+	PVRSRV_TIMELINE_SERVER *psTl = (PVRSRV_TIMELINE_SERVER*) pvSWTimelineObj;
+	IMG_BOOL bHasUnsignalledPts = IMG_TRUE;
+
+	OSLockAcquire(psTl->hTlLock);
+	if (OSAtomicRead(&psTl->iLastSignalledSeqNum) == OSAtomicRead(&psTl->iSeqNum))
+	{
+		bHasUnsignalledPts = IMG_FALSE;
+	}
+	OSLockRelease(psTl->hTlLock);
+
+	return bHasUnsignalledPts;
 }
 
 PVRSRV_ERROR SyncSWTimelineAdvanceKM(SYNC_TIMELINE_OBJ pvSWTimelineObj)

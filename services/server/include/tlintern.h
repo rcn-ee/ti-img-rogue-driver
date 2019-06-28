@@ -168,6 +168,7 @@ typedef struct _TL_STREAM_DESC_
 	IMG_UINT32  ui32TimeoutEmpty;  /*!< Counters used to analysing stream performance, see ++ loc */
 	IMG_UINT32  ui32TimeoutData;   /*!< Counters used to analysing stream performance, see ++ loc */
 #endif
+	IMG_UINT32  ui32ReadLen;       /*!< Size of data returned by initial Acquire */
 } TL_STREAM_DESC, *PTL_STREAM_DESC;
 
 PTL_STREAM_DESC TLMakeStreamDesc(PTL_SNODE f1, IMG_UINT32 f2, IMG_HANDLE f3);
@@ -288,7 +289,9 @@ IMG_BOOL  TLUnrefDescAndTryFreeStreamNode(PTL_SNODE psRemove, PTL_STREAM_DESC ps
 IMG_UINT32 TLStreamAcquireReadPos(PTL_STREAM psStream,
                                   IMG_BOOL bDisableCallback,
                                   IMG_UINT32* puiReadOffset);
-void TLStreamAdvanceReadPos(PTL_STREAM psStream, IMG_UINT32 uiReadLen);
+PVRSRV_ERROR TLStreamAdvanceReadPos(PTL_STREAM psStream,
+                                    IMG_UINT32 uiReadLen,
+                                    IMG_UINT32 uiOrigReadLen);
 
 DEVMEM_MEMDESC* TLStreamGetBufferPointer(PTL_STREAM psStream);
 IMG_BOOL TLStreamEOS(PTL_STREAM psStream);

@@ -219,20 +219,38 @@ static INLINE int _OSMMapPMR(PVRSRV_DEVICE_NODE *psDevNode,
 #endif
 
 #if defined(CONFIG_L4)
-	IMG_CPU_VIRTADDR pvCpuVAddr;
+	size_t size;
+	IMG_CPU_VIRTADDR pvVAddr;
+#if defined(ARM)
+	struct device *dev = psDevNode->psDevConfig->pvOSDevice;
+#endif
 
 	/* In L4 remaps from KM into UM is done via VA */
-	pvCpuVAddr = l4x_phys_to_virt(psCpuPAddr->uiAddr);
-	if (pvCpuVAddr == NULL)
+	pvVAddr = l4x_phys_to_virt(psCpuPAddr->uiAddr);
+	if (pvVAddr == NULL)
 	{
 		return -1;
 	}
 
-	*((volatile int*)pvCpuVAddr) = *((volatile int*)pvCpuVAddr);
+	for (size = 0; size < 1ULL << uiLog2PageSize; size += PAGE_SIZE)
+	{
+		/* Fault-in pages now, ensure compiler does not optimise this out */
+		*((volatile int*)pvVAddr + size) = *((volatile int*)pvVAddr + size);
+	}
+
+#if defined(ARM)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
-	sPFN =  pfn_to_pfn_t(((uintptr_t) pvCpuVAddr) >> PAGE_SHIFT);
+	sPFN = pfn_to_pfn_t(dma_to_pfn(dev, psCpuPAddr->uiAddr));
 #else
-	uiPFN = ((uintptr_t) pvCpuVAddr) >> PAGE_SHIFT;
+	uiPFN = dma_to_pfn(dev, psCpuPAddr->uiAddr);
+#endif
+#else /* defined(ARM) */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
+	sPFN =  pfn_to_pfn_t(((uintptr_t) pvVAddr) >> PAGE_SHIFT);
+#else
+	uiPFN = ((uintptr_t) pvVAddr) >> PAGE_SHIFT;
+	PVR_ASSERT(((IMG_UINT64)uiPFN << PAGE_SHIFT) == (IMG_UINT64)(uintptr_t)pvVAddr);
+#endif
 #endif
 	PVR_ASSERT(bUseVMInsertPage == IMG_FALSE);
 #else /* defined(CONFIG_L4) */
@@ -424,7 +442,6 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 #if defined(PMR_OS_USE_VM_INSERT_PAGE)
 	bUseVMInsertPage = (uiLog2PageSize == PAGE_SHIFT) && (PMR_GetType(psPMR) != PMR_TYPE_EXTMEM);
 #if defined(CONFIG_L4)
-	/* L4 uses CMA allocations */
 	bUseVMInsertPage = IMG_FALSE;
 #endif
 #endif

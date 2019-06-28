@@ -113,6 +113,11 @@ DebugFS pvr/apphint/EnableFTraceGPU option must be set at run-time to enable.\
 ))
 
 
+ifeq ($(SUPPORT_ANDROID_PLATFORM),1)
+ifeq ($(PVRSRV_NEED_PVR_STACKTRACE_NATIVE),1)
+endif
+endif
+
 #
 # GPU virtualization validation
 #

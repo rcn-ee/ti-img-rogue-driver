@@ -161,7 +161,7 @@ PVRSRV_ERROR PDumpMalloc(const IMG_CHAR *pszDevSpace,
 		Set continuous flag because there is no way of knowing beforehand which
 		allocation is needed for playback of the captured range.
 	*/
-	ui32PDumpFlags |= PDUMP_CONT;
+	ui32PDumpFlags |= (PDUMP_FLAGS_CONTINUOUS | PDUMP_FLAGS_BLKDATA);
 
 	/*
 		construct the symbolic address
@@ -222,7 +222,7 @@ PVRSRV_ERROR PDumpMalloc(const IMG_CHAR *pszDevSpace,
 PVRSRV_ERROR PDumpFree(IMG_HANDLE hPDumpAllocationInfoHandle)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
-	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS;
+	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS | PDUMP_FLAGS_BLKDATA;
 
 	PDUMP_PHYSMEM_INFO_T *psPDumpAllocationInfo;
 

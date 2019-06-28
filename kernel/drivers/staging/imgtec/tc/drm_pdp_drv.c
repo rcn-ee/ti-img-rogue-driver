@@ -72,6 +72,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define DRIVER_DESC "Imagination Technologies PDP DRM Display Driver"
 #define DRIVER_DATE "20150612"
 
+#if defined(PDP_USE_ATOMIC)
+#include <drm/drm_atomic_helper.h>
+
+#define PVR_DRIVER_ATOMIC DRIVER_ATOMIC
+#else
+#define PVR_DRIVER_ATOMIC 0
+#endif
+
 static bool display_enable = true;
 
 module_param(display_enable, bool, 0444);
@@ -353,6 +361,9 @@ static void pdp_preclose(struct drm_device *dev, struct drm_file *file)
 
 static void pdp_lastclose(struct drm_device *dev)
 {
+#if defined(PDP_USE_ATOMIC)
+	drm_atomic_helper_shutdown(dev);
+#else
 	struct drm_crtc *crtc;
 
 	DRM_INFO("%s: %s device\n", __func__, to_platform_device(dev->dev)->name);
@@ -369,6 +380,7 @@ static void pdp_lastclose(struct drm_device *dev)
 		}
 	}
 	drm_modeset_unlock_all(dev);
+#endif
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
@@ -541,7 +553,8 @@ static struct drm_driver pdp_drm_driver = {
 
 	.driver_features		= DRIVER_GEM |
 					  DRIVER_MODESET |
-					  DRIVER_PRIME,
+					  DRIVER_PRIME |
+					  PVR_DRIVER_ATOMIC,
 	.ioctls				= pdp_ioctls,
 	.num_ioctls			= ARRAY_SIZE(pdp_ioctls),
 	.fops				= &pdp_driver_fops,
@@ -600,8 +613,6 @@ static int pdp_component_bind(struct device *dev)
 	ret = pdp_late_load(ddev);
 	if (ret)
 		goto err_drm_dev_unregister;
-
-	drm_mode_config_reset(ddev);
 
 	return 0;
 

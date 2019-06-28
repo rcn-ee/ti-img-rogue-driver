@@ -133,6 +133,7 @@ X(HWPerfClientFilter_OpenRL,        UINT32,         ALWAYS,      PVRSRV_APPHINT_
 X(HWPerfClientFilter_Vulkan,        UINT32,         ALWAYS,      PVRSRV_APPHINT_HWPERFCLIENTFILTER_VULKAN,        NO_PARAM_TABLE   ) \
 X(CacheOpConfig,                    UINT32,         ALWAYS,      PVRSRV_APPHINT_CACHEOPCONFIG,                    NO_PARAM_TABLE   ) \
 X(CacheOpGFThresholdSize,           UINT32,         ALWAYS,      PVRSRV_APPHINT_CACHEOPGFTHRESHOLDSIZE,           NO_PARAM_TABLE   ) \
+X(CacheOpUMKMThresholdSize,         UINT32,         ALWAYS,      PVRSRV_APPHINT_CACHEOPUMKMHRESHOLDSIZE,          NO_PARAM_TABLE   ) \
 X(TimeCorrClock,                    UINT32List,     ALWAYS,      PVRSRV_APPHINT_TIMECORRCLOCK,                    timecorr_clk_tbl )
 
 /*

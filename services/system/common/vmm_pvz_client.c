@@ -98,11 +98,6 @@ PvzClientCreateDevConfig(PVRSRV_DEVICE_CONFIG *psDevConfig,
 													   &ui64RegsCpuPBase);
 	if (eError != PVRSRV_OK)
 	{
-		if (eError == PVRSRV_ERROR_NOT_IMPLEMENTED)
-		{
-			eError = PVRSRV_OK;
-		}
-
 		goto e0;
 	}
 
@@ -130,7 +125,6 @@ e0:
 	PvzClientLockRelease();
 	SysVzPvzConnectionRelease(psVmmPvz);
 
-	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
 
@@ -155,11 +149,6 @@ PvzClientDestroyDevConfig(PVRSRV_DEVICE_CONFIG *psDevConfig,
 														ui32DevID);
 	if (eError != PVRSRV_OK)
 	{
-		if (eError == PVRSRV_ERROR_NOT_IMPLEMENTED)
-		{
-			eError = PVRSRV_OK;
-		}
-
 		goto e0;
 	}
 
@@ -167,7 +156,6 @@ e0:
 	PvzClientLockRelease();
 	SysVzPvzConnectionRelease(psVmmPvz);
 
-	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
 
@@ -202,11 +190,6 @@ PvzClientCreateDevPhysHeaps(PVRSRV_DEVICE_CONFIG *psDevConfig,
 														  &ui64GpuPhysHeapAddr);
 	if (eError != PVRSRV_OK)
 	{
-		if (eError == PVRSRV_ERROR_NOT_IMPLEMENTED)
-		{
-			eError = PVRSRV_OK;
-		}
-
 		goto e0;
 	}
 
@@ -251,7 +234,6 @@ e0:
 	PvzClientLockRelease();
 	SysVzPvzConnectionRelease(psVmmPvz);
 
-	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
 
@@ -272,15 +254,10 @@ PvzClientDestroyDevPhysHeaps(PVRSRV_DEVICE_CONFIG *psDevConfig,
 
 	PVR_ASSERT(psVmmPvz->sHostFuncTab.pfnDestroyDevPhysHeaps);
 
-	eError = psVmmPvz->sHostFuncTab.pfnDestroyDevPhysHeaps(ui32DevID,
-														   uiFuncID);
+	eError = psVmmPvz->sHostFuncTab.pfnDestroyDevPhysHeaps(uiFuncID,
+														   ui32DevID);
 	if (eError != PVRSRV_OK)
 	{
-		if (eError == PVRSRV_ERROR_NOT_IMPLEMENTED)
-		{
-			eError = PVRSRV_OK;
-		}
-
 		goto e0;
 	}
 
@@ -288,7 +265,6 @@ e0:
 	PvzClientLockRelease();
 	SysVzPvzConnectionRelease(psVmmPvz);
 
-	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
 
@@ -322,7 +298,6 @@ e0:
 	PvzClientLockRelease();
 	SysVzPvzConnectionRelease(psVmmPvz);
 
-	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
 
@@ -352,7 +327,6 @@ e0:
 	PvzClientLockRelease();
 	SysVzPvzConnectionRelease(psVmmPvz);
 
-	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
 

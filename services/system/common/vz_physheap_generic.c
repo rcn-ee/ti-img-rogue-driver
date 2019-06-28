@@ -176,7 +176,6 @@ SysVzCreatePhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig,
 			if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
 			{
 				/* Scale DMA size by the number of OSIDs */
-				psPhysHeapRegion->uiSize += RGX_FIRMWARE_CONFIG_HEAP_SIZE;
 				psPhysHeapRegion->uiSize *= RGXFW_NUM_OS;
 			}
 
@@ -207,7 +206,6 @@ SysVzCreatePhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig,
 			{
 				/* Restore original physheap size */
 				psPhysHeapRegion->uiSize /= RGXFW_NUM_OS;
-				psPhysHeapRegion->uiSize -= RGX_FIRMWARE_CONFIG_HEAP_SIZE;
 			}
 		}
 		else
@@ -225,6 +223,20 @@ SysVzCreatePhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig,
 				psPhysHeapConfig->ui32NumOfRegions--;
 				psPhysHeapConfig->bDynAlloc = IMG_FALSE;
 				PVR_LOGG_IF_FALSE((psPhysHeapConfig->ui32NumOfRegions == 0), "Invalid refcount", e0);
+			}
+
+			if (ePhysHeap == PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL)
+			{
+				/* Using UMA physheaps for FW has pre-conditions, verify */
+				if (eHeapOrigin == PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_HOST)
+				{
+					PVR_DPF((PVR_DBG_ERROR,
+							"%s: %s PVZ config: Invalid firmware physheap config\n"
+							"=>: HOST origin (i.e. static) VZ setups require non-UMA FW physheaps spec.",
+							__FUNCTION__,
+							PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST) ? "Host" : "Guest"));
+					eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
+				}
 			}
 
 			/* Kernel managed UMA physheap setup complete */
@@ -253,26 +265,12 @@ SysVzCreatePhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig,
 			IMG_UINT64 ui64BaseAddr;
 			IMG_CPU_VIRTADDR pvCpuVAddr;
 
-			/* On Fiasco.OC/l4linux, ioremap physheap now (might fail) */
+			/* On Fiasco.OC/l4linux, ioremap physheap now */
 			gahPhysHeapIoRemap[ePhysHeap] = 
 							OSMapPhysToLin(psPhysHeapRegion->sStartAddr,
 										   psPhysHeapRegion->uiSize,
 										   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
 			PVR_LOGG_IF_FALSE((NULL != gahPhysHeapIoRemap[ePhysHeap]), "OSMapPhysToLin", e0);
-
-			for (ui64Offset = 0;
-				 ui64Offset < psPhysHeapRegion->uiSize;
-				 ui64Offset += (IMG_UINT64)OSGetPageSize())
-			{
-				/* Pre-fault-in all physheap pages into l4linux address space,
-				   this avoids having to pre-fault these before mapping into
-				   an application address space during OSMMapPMRGeneric() call */
-				ui64BaseAddr = psPhysHeapRegion->sStartAddr.uiAddr + ui64Offset;
-				pvCpuVAddr = l4x_phys_to_virt(ui64BaseAddr);
-
-				/* We need to ensure the compiler does not optimise this out */
-				*((volatile int*)pvCpuVAddr) = *((volatile int*)pvCpuVAddr);
-			}
 		}
 #endif
 

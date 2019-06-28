@@ -429,11 +429,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	#define __SIZEOF_POINTER__ sizeof(char *)
 #endif
 
-/* RDI8567: clang/llvm load/store optimisations cause issues with device
- * memory allocations. Some pointers are made 'volatile' to prevent
- * this optimisations being applied to writes through that particular pointer.
+/* RDI8567: gcc/clang/llvm load/store optimisations may cause issues with
+ * uncached device memory allocations. Some pointers are made 'volatile' to
+ * prevent those optimisations being applied to writes through those
+ * pointers.
  */
-#if defined(__clang__) && (defined(__arm64__) || defined(__aarch64__))
+#if (GCC_VERSION_AT_LEAST(7, 0) || defined(__clang__)) && (defined(__arm64__) || defined(__aarch64__))
 #define NOLDSTOPT volatile
 /* after applying 'volatile' to a pointer, we may need to cast it to 'void *'
  * to keep it compatible with its existing uses

@@ -59,6 +59,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define HWPERF_HOST_TL_STREAM_SIZE_MAX     (3072U)
 
 /******************************************************************************
+ * RGX HW Performance decode Bvnc Features for HWPerf
+ *****************************************************************************/
+PVRSRV_ERROR RGXServerFeatureFlagsToHWPerfFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
+		                                        IMG_UINT32         *pui32BvncKmFeatureFlags);
+
+PVRSRV_ERROR PVRSRVRGXGetHWPerfBvncFeatureFlagsKM(CONNECTION_DATA    *psConnection,
+                                                  PVRSRV_DEVICE_NODE *psDeviceNode,
+											      IMG_UINT32         *pui32BvncKmFeatureFlags);
+
+/******************************************************************************
  * RGX HW Performance Data Transport Routines
  *****************************************************************************/
 

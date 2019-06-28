@@ -42,6 +42,8 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
+#include "drm_pdp_drv.h"
+
 #include <linux/moduleparam.h>
 #include <linux/version.h>
 
@@ -49,7 +51,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <drm/drm_crtc.h>
 #include <drm/drm_crtc_helper.h>
 
-#include "drm_pdp_drv.h"
+#if defined(PDP_USE_ATOMIC)
+#include <drm/drm_atomic_helper.h>
+#endif
 
 #include "kernel_compatibility.h"
 
@@ -181,6 +185,7 @@ static int pdp_dvi_connector_helper_mode_valid(struct drm_connector *connector,
 	return MODE_OK;
 }
 
+#if !defined(PDP_USE_ATOMIC)
 static struct drm_encoder *
 pdp_dvi_connector_helper_best_encoder(struct drm_connector *connector)
 {
@@ -204,6 +209,7 @@ pdp_dvi_connector_helper_best_encoder(struct drm_connector *connector)
 
 	return NULL;
 }
+#endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0))
 static enum drm_connector_status
@@ -240,18 +246,30 @@ static void pdp_dvi_connector_force(struct drm_connector *connector)
 static struct drm_connector_helper_funcs pdp_dvi_connector_helper_funcs = {
 	.get_modes = pdp_dvi_connector_helper_get_modes,
 	.mode_valid = pdp_dvi_connector_helper_mode_valid,
+	/*
+	 * For atomic, don't set atomic_best_encoder or best_encoder. This will
+	 * cause the DRM core to fallback to drm_atomic_helper_best_encoder().
+	 * This is fine as we only have a single connector and encoder.
+	 */
+#if !defined(PDP_USE_ATOMIC)
 	.best_encoder = pdp_dvi_connector_helper_best_encoder,
+#endif
 };
 
 static const struct drm_connector_funcs pdp_dvi_connector_funcs = {
-	.dpms = drm_helper_connector_dpms,
-	.reset = NULL,
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0))
 	.detect = pdp_dvi_connector_detect,
 #endif
 	.fill_modes = drm_helper_probe_single_connector_modes,
 	.destroy = pdp_dvi_connector_destroy,
 	.force = pdp_dvi_connector_force,
+#if defined(PDP_USE_ATOMIC)
+	.reset = drm_atomic_helper_connector_reset,
+	.atomic_duplicate_state = drm_atomic_helper_connector_duplicate_state,
+	.atomic_destroy_state = drm_atomic_helper_connector_destroy_state,
+#else
+	.dpms = drm_helper_connector_dpms,
+#endif
 };
 
 

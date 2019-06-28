@@ -229,11 +229,7 @@ PVRSRV_ERROR OSPhyContigPagesAlloc(PVRSRV_DEVICE_NODE *psDevNode, size_t uiSize,
 
 	psMemHandle->u.pvHandle = psPage;
 	psMemHandle->ui32Order = ui32Order;
-#if defined(CONFIG_L4)
-	sCpuPAddr.uiAddr = l4x_virt_to_phys((void *)((phys_addr_t)page_to_pfn(psPage) << PAGE_SHIFT));
-#else
 	sCpuPAddr.uiAddr =  IMG_CAST_TO_CPUPHYADDR_UINT(page_to_phys(psPage));
-#endif
 
 	/*
 	 * Even when more pages are allocated as base MMU object we still need one single physical address because
@@ -365,11 +361,7 @@ PVRSRV_ERROR OSPhyContigPagesClean(PVRSRV_DEVICE_NODE *psDevNode,
 		goto e0;
 	}
 
-#if defined(CONFIG_L4)
-	sPhysStart.uiAddr = l4x_virt_to_phys((void *)((phys_addr_t)page_to_pfn(psPage) << PAGE_SHIFT)) + uiOffset;
-#else
 	sPhysStart.uiAddr = page_to_phys(psPage) + uiOffset;
-#endif
 	sPhysEnd.uiAddr = sPhysStart.uiAddr + uiLength;
 
 	CacheOpExec(psDevNode,

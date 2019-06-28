@@ -151,7 +151,7 @@ PVRSRV_ERROR RGXCCBPDumpDrainCCB(RGX_CLIENT_CCB *psClientCCB,
 		/* Draining CCB on a command that hasn't finished, and FW isn't expected
 		 * to have updated Roff up to Woff. Only drain to the first
 		 * finished command prior to this. The Roff for this
-		 * is stored in ui32FinishedPDumpWriteOffset. 
+		 * is stored in ui32FinishedPDumpWriteOffset.
 		 */
 		ui32PollOffset = psClientCCB->ui32FinishedPDumpWriteOffset;
 
@@ -186,7 +186,7 @@ PVRSRV_ERROR RGXCCBPDumpDrainCCB(RGX_CLIENT_CCB *psClientCCB,
 static PVRSRV_ERROR _RGXCCBPDumpTransition(void **pvData, IMG_BOOL bInto, IMG_UINT32 ui32PDumpFlags)
 {
 	RGX_CLIENT_CCB *psClientCCB = (RGX_CLIENT_CCB *) pvData;
-	
+
 	/* We're about to transition into capture range and we've submitted
 	 * new commands since the last time we entered capture range so drain
 	 * the live CCB and simulation (sim) CCB as required, i.e. leave CCB
@@ -198,6 +198,8 @@ static PVRSRV_ERROR _RGXCCBPDumpTransition(void **pvData, IMG_BOOL bInto, IMG_UI
 	{
 		volatile RGXFWIF_CCCB_CTL *psCCBCtl = psClientCCB->psClientCCBCtrl;
 		PVRSRV_ERROR eError;
+		IMG_BOOL bIsFirstFrameInBlock;
+		IMG_UINT32 ui32CurrentBlock;
 
 		/* Wait for the live FW to catch up/empty CCB. This is done by returning
 		 * retry which will get pushed back out to Services client where it
@@ -224,44 +226,102 @@ static PVRSRV_ERROR _RGXCCBPDumpTransition(void **pvData, IMG_BOOL bInto, IMG_UI
 		 * can skip this sim CCB drain and sync block dump or not.
 		*/
 
-		eError = RGXCCBPDumpDrainCCB(psClientCCB, ui32PDumpFlags);
-		if (eError != PVRSRV_OK)
+		PDumpGetCurrentBlockKM(&ui32CurrentBlock);
+		/* In non-block-mode of pdump, ui32CurrentBlock will always be PDUMP_BLOCKNUM_INVALID */
+
+		if(ui32CurrentBlock == 1) /* If its second block in block-mode of pdump? */
 		{
-			PVR_DPF((PVR_DBG_WARNING, "_RGXCCBPDumpTransition: problem pdumping POL for cCCBCtl (%d)", eError));
+			ui32PDumpFlags |= PDUMP_FLAGS_BLKDATA;
 		}
-		PVR_ASSERT(eError == PVRSRV_OK);
+
+		/* If its block-mode of pdump, then drain on start of second (ui32CurrentBlock == 1) pdump-block only.
+		 * If its a non-block-mode of pdump, then always drain if we reach here
+		 * */
+		if((ui32CurrentBlock == PDUMP_BLOCKNUM_INVALID) || (ui32CurrentBlock == 1))
+		{
+			/* We have already synchronised app-thread and live-FW thread in
+			 * services client where we wait on event object
+			 */
+
+			/* Here is what this code is doing in short,
+			 *
+			 * if(block-mode)
+			 * {
+			 *     if(ui32CurrentBlock == 1)
+			 *     {
+			 *         As we are keeping first (ui32CurrentBlock == 0) pdump-block, drain CCCB at start of
+			 *         second (ui32CurrentBlock == 1) pdump-block to synchronise sim-FW thread and script-thread
+			 *         at end of first pdump-block and before starting last pdump-block at playback time.
+			 *     }
+			 *     else
+			 *     {
+			 *         We already synced sim-FW thread and script-thread after first pdump-block
+			 *         (in 'if' statement above), so we can skip synchronisation for all other intermediate
+			 *         pdump-blocks and start with last pdump-block directly at playback time.
+			 *     }
+			 * }
+			 * else
+			 * {
+			 *     Always CCCB if we reach here, as its non-block-mode capture.
+			 * }
+			 * */
+
+			eError = RGXCCBPDumpDrainCCB(psClientCCB, ui32PDumpFlags);
+			if (eError != PVRSRV_OK)
+			{
+				PVR_DPF((PVR_DBG_WARNING, "_RGXCCBPDumpTransition: problem pdumping POL for cCCBCtl (%d)", eError));
+			}
+			PVR_ASSERT(eError == PVRSRV_OK);
+
+			/* clear block data flag */
+			ui32PDumpFlags &= ~PDUMP_FLAGS_BLKDATA;
+		}
 
 		/* Live CCB and simulation CCB now empty, FW idle on CCB in both
 		 * contexts.
 		 */
+		PDumpIsFirstFrameInBlockKM(&bIsFirstFrameInBlock);
 
-		if (psClientCCB->ui32LastPDumpWriteOffset != psClientCCB->ui32HostWriteOffset)
+		if ((psClientCCB->ui32LastPDumpWriteOffset != psClientCCB->ui32HostWriteOffset) || bIsFirstFrameInBlock)
 		{
 			/* If new commands have been written when out of capture range in
 			 * the live CCB then we need to fast forward the sim CCBCtl
 			 * offsets past uncaptured commands. This is done by PDUMPing
 			 * the CCBCtl memory to align sim values with the live CCBCtl
-			 * values. Both live and sim FWs can start with the 1st command
-			 * which is in the new capture range.
+			 * values. Both live and sim FWs can start with the first
+			 * command which is in the new capture range.
+			 *
+			 * In case of block-mode:
+			 *
+			 * We already synchronised live-FW thread and app-thread above, so
+			 * now fast-forward sim-FW CCBCtrl read/write offsets to that of
+			 * live-FW offsets at start of each new pdump-block.
+			 *
+			 * At playback time, after sim-FW thread and script-thread
+			 * synchronisation at the end of first pdump-block, CCBCtrl
+			 * offsets from last pdump-block will be loaded directly. So
+			 * this will allow us to skip all commands from intermediate
+			 * pdump-blocks and start with last pdump-block immediately
+			 * after the first pdump-block.
 			 */
 			psCCBCtl->ui32ReadOffset = psClientCCB->ui32HostWriteOffset;
 			psCCBCtl->ui32DepOffset = psClientCCB->ui32HostWriteOffset;
 			psCCBCtl->ui32WriteOffset = psClientCCB->ui32HostWriteOffset;
-	
+
 			PDUMPCOMMENTWITHFLAGS(ui32PDumpFlags,
 								  "cCCB(%s@%p): Fast-forward from %d to %d",
 								  psClientCCB->szName,
 								  psClientCCB,
 								  psClientCCB->ui32LastPDumpWriteOffset,
 								  psClientCCB->ui32HostWriteOffset);
-	
+
 			DevmemPDumpLoadMem(psClientCCB->psClientCCBCtrlMemDesc,
 							   0,
 							   sizeof(RGXFWIF_CCCB_CTL),
 							   ui32PDumpFlags);
-			
-			/* Although we've entered capture range for this process connection
-			 * we might not do any work	on this CCB so update the
+
+			/* Although we've entered capture range for this process
+			 * connection we might not do any work on this CCB, so update the
 			 * ui32LastPDumpWriteOffset to reflect where we got to for next
 			 * time so we start the drain from where we got to last time.
 			 */
@@ -275,7 +335,7 @@ static PVRSRV_ERROR _RGXCCBPDumpTransition(void **pvData, IMG_BOOL bInto, IMG_UI
 
 static INLINE void _RGXInitCCBUtilisation(RGX_CLIENT_CCB *psClientCCB)
 {
-	psClientCCB->sUtilisation.ui32HighWaterMark = 0; /* initialize ui32HighWaterMark level to zero */
+	psClientCCB->sUtilisation.ui32HighWaterMark = 0; /* Initialize ui32HighWaterMark level to zero */
 	psClientCCB->sUtilisation.ui32ThresholdBytes = (psClientCCB->ui32Size *
 							PVRSRV_ENABLE_CCCB_UTILISATION_INFO_THRESHOLD)	/ 100;
 	psClientCCB->sUtilisation.ui32Warnings = 0;
@@ -292,7 +352,7 @@ static INLINE void _RGXPrintCCBUtilisationWarning(RGX_CLIENT_CCB *psClientCCB,
 	}
 
 	PVR_LOG(("%s: Client CCB (%s) watermark (%u) hit %d%% of its allocation size (%u)",
-								__FUNCTION__,
+								__func__,
 								psClientCCB->szName,
 								psClientCCB->sUtilisation.ui32HighWaterMark,
 								psClientCCB->sUtilisation.ui32HighWaterMark * 100 / psClientCCB->ui32Size,
@@ -680,7 +740,7 @@ PVRSRV_ERROR RGXAcquireCCB(RGX_CLIENT_CCB *psClientCCB,
 								   ui32Remain,
 								   ui32PDumpFlags);
 			}
-			
+
 			*ppvBufferSpace = (void *) (psClientCCB->pui8ClientCCB +
 										0 /*ui32HostWriteOffset after wrap */);
 			return PVRSRV_OK;
@@ -742,7 +802,7 @@ void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB,
 						   ui32CmdSize,
 						   ui32PDumpFlags);
 	}
-	
+
 	/*
 	 *  Check if there any fences being written that will already be
 	 *  satisfied by the last written update command in this CCB. At the
@@ -761,10 +821,10 @@ void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB,
 
 			if (psCmdHeader->eCmdType == RGXFWIF_CCB_CMD_TYPE_UPDATE)
 			{
-				/* If an UPDATE then record the values incase an adjacent fence uses it. */
+				/* If an UPDATE then record the values in case an adjacent fence uses it. */
 				IMG_UINT32   ui32NumUFOs = psCmdHeader->ui32CmdSize / sizeof(RGXFWIF_UFO);
 				RGXFWIF_UFO  *psUFOPtr   = (RGXFWIF_UFO*)(pui8BufferStart + sizeof(RGXFWIF_CCB_CMD_HEADER));
-				
+
 				psClientCCB->ui32UpdateEntries = 0;
 				while (ui32NumUFOs-- > 0)
 				{
@@ -780,7 +840,7 @@ void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB,
 				/* If a FENCE then check the values against the last UPDATE issued. */
 				IMG_UINT32   ui32NumUFOs = psCmdHeader->ui32CmdSize / sizeof(RGXFWIF_UFO);
 				RGXFWIF_UFO  *psUFOPtr   = (RGXFWIF_UFO*)(pui8BufferStart + sizeof(RGXFWIF_CCB_CMD_HEADER));
-				
+
 				while (ui32NumUFOs-- > 0)
 				{
 					PVR_ASSERT(psUFOPtr->puiAddrUFO.ui32Addr != 0);
@@ -871,8 +931,8 @@ void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB,
 	{
 		if (!psClientCCB->bStateOpen)
 		{
-			/* Store offset to last finished CCB command. This offset can 
-			 * be needed when appending commands to a non finished CCB. 
+			/* Store offset to last finished CCB command. This offset can
+			 * be needed when appending commands to a non finished CCB.
 			 */
 			psClientCCB->ui32FinishedPDumpWriteOffset = psClientCCB->ui32LastPDumpWriteOffset;
 		}
@@ -1196,7 +1256,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 		if ((asCmdHelperData[0].ui32PDumpFlags ^ asCmdHelperData[i].ui32PDumpFlags) & PDUMP_FLAGS_CONTINUOUS)
 		{
 			PVR_DPF((PVR_DBG_ERROR, "%s: PDump continuous is not consistent (%s != %s) for command %d",
-					 __FUNCTION__,
+					 __func__,
 					 PDUMP_IS_CONTINUOUS(asCmdHelperData[0].ui32PDumpFlags)?"IMG_TRUE":"IMG_FALSE",
 					 PDUMP_IS_CONTINUOUS(asCmdHelperData[i].ui32PDumpFlags)?"IMG_TRUE":"IMG_FALSE",
 					 ui32CmdCount));
@@ -1275,7 +1335,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 			for (k = 0; k < psCmdHelperData->ui32ClientFenceCount; k++)
 			{
 				RGXFWIF_UFO *psUFOPtr = (RGXFWIF_UFO *) pui8CmdPtr;
-	
+
 				psUFOPtr->puiAddrUFO = psCmdHelperData->pauiFenceUFOAddress[k];
 
 				if (PVRSRV_UFO_IS_SYNC_CHECKPOINT(psUFOPtr))
@@ -1284,7 +1344,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 				}
 				else
 				{
-					/* Only increment uiNextValueIndex for non sync checkpoints
+					/* Only increment uiNextValueIndex for non-sync checkpoints
 					 * (as paui32FenceValue only contains values for sync prims)
 					 */
 					psUFOPtr->ui32Value = psCmdHelperData->paui32FenceValue[uiNextValueIndex++];
@@ -1392,14 +1452,14 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 
 			psUFO = (RGXFWIF_UFO *) pui8CmdPtr;
 			psUFO->puiAddrUFO = psCmdHelperData->pRMWUFOAddr;
-			
+
 			pui8CmdPtr += sizeof(RGXFWIF_UFO);
 		}
-	
+
 
 		/*
 			Create the update command.
-			
+
 			Note:
 			We only fill in the client updates here, the server updates (and fences)
 			will be filled in together at the end
@@ -1426,7 +1486,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 			for (k = 0; k < psCmdHelperData->ui32ClientUpdateCount; k++)
 			{
 				RGXFWIF_UFO *psUFOPtr = (RGXFWIF_UFO *) pui8CmdPtr;
-	
+
 				psUFOPtr->puiAddrUFO = psCmdHelperData->pauiUpdateUFOAddress[k];
 				if (PVRSRV_UFO_IS_SYNC_CHECKPOINT(psUFOPtr))
 				{
@@ -1434,7 +1494,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 				}
 				else
 				{
-					/* Only increment uiNextValueIndex for non sync checkpoints
+					/* Only increment uiNextValueIndex for non-sync checkpoints
 					 * (as paui32UpdateValue only contains values for sync prims)
 					 */
 					psUFOPtr->ui32Value = psCmdHelperData->paui32UpdateValue[uiNextValueIndex++];
@@ -1451,7 +1511,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 			}
 			pui8ServerUpdateStart = pui8CmdPtr;
 		}
-	
+
 		/* Save the server sync fence & update offsets for submit time */
 		psCmdHelperData->pui8ServerFenceStart  = pui8ServerFenceStart;
 		psCmdHelperData->pui8ServerUpdateStart = pui8ServerUpdateStart;
@@ -1459,8 +1519,8 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 		/* jump over the fenced update */
 		if (psCmdHelperData->ui32UnfencedUpdateCmdSize != 0)
 		{
-			RGXFWIF_CCB_CMD_HEADER * const psHeader = (RGXFWIF_CCB_CMD_HEADER * ) psCmdHelperData->pui8ServerUpdateStart + psCmdHelperData->ui32UpdateCmdSize;
-			/* set up the header for unfenced updates,  */
+			RGXFWIF_CCB_CMD_HEADER * const psHeader = (RGXFWIF_CCB_CMD_HEADER *) psCmdHelperData->pui8ServerUpdateStart + psCmdHelperData->ui32UpdateCmdSize;
+			/* set up the header for unfenced updates */
 			PVR_ASSERT(psHeader); /* Could be zero if ui32UpdateCmdSize is 0 which is never expected */
 			psHeader->eCmdType = RGXFWIF_CCB_CMD_TYPE_UNFENCED_UPDATE;
 			psHeader->ui32CmdSize = psCmdHelperData->ui32UnfencedUpdateCmdSize - sizeof(RGXFWIF_CCB_CMD_HEADER);
@@ -1479,7 +1539,7 @@ PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
 		{
 			psCmdHelperData->pui8ServerUnfencedUpdateStart = NULL;
 		}
-		
+
 		/* Save start for sanity checking at submit time */
 		psCmdHelperData->pui8StartPtr = pui8StartPtr;
 
@@ -1563,7 +1623,7 @@ void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
 												 &ui32UpdateValue);
 			/* This function can't fail */
 			PVR_ASSERT(eError == PVRSRV_OK);
-	
+
 			/*
 				As server syncs always fence (we have a check in RGXCmcdHelperInitCmdCCB
 				which ensures the client is playing ball) the filling in of the fence
@@ -1574,7 +1634,7 @@ void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
 			{
 				PVR_DPF((PVR_DBG_ERROR,
 					"%s: Failed to read Server Sync FW address (%d)",
-					__FUNCTION__, eError));
+					__func__, eError));
 				PVR_ASSERT(eError == PVRSRV_OK);
 			}
 			if (bFence)
@@ -1599,7 +1659,7 @@ void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
 				}
 #endif
 			}
-	
+
 			/* If there is an update then fill that in as well */
 			if (bUpdate)
 			{
@@ -1634,7 +1694,7 @@ void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
 											  &psUFOPtr->ui32Value);
 				}
 #endif
-				
+
 #if defined(NO_HARDWARE)
 				/*
 				  There is no FW so the host has to do any Sync updates
@@ -1671,7 +1731,7 @@ void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
 		if (psCmdHelperData->ui32ServerSyncCount)
 		{
 			/*
-				Do some sanity checks to ensure we did the point math right
+				Do some sanity checks to ensure we did the pointer math right
 			*/
 			if (pui8ServerFenceStart != NULL)
 			{
@@ -1705,7 +1765,7 @@ void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
 				           psCmdHelperData->ui32UnfencedUpdateCmdSize);
 			}
 		}
-	
+
 		/*
 			All the commands have been filled in so release the CCB space.
 			The FW still won't run this command until we kick it
@@ -1814,7 +1874,7 @@ static const char *_CCBCmdTypename(RGXFWIF_CCB_CMD_TYPE cmdType)
 			PVR_ASSERT(IMG_FALSE);
 		break;
 	}
-	
+
 	return "INVALID";
 }
 
@@ -1829,7 +1889,7 @@ PVRSRV_ERROR CheckForStalledCCB(PVRSRV_DEVICE_NODE *psDevNode, RGX_CLIENT_CCB  *
 		PVR_DPF((PVR_DBG_WARNING, "CheckForStalledCCB: CCCB is NULL"));
 		return  PVRSRV_ERROR_INVALID_PARAMS;
 	}
-	
+
 	psClientCCBCtrl = psCurrentClientCCB->psClientCCBCtrl;
 	ui32SampledRdOff = psClientCCBCtrl->ui32ReadOffset;
 	ui32SampledDpOff = psClientCCBCtrl->ui32DepOffset;
@@ -2058,7 +2118,7 @@ void DumpStalledCCBCommand(PRGXFWIF_FWCOMMONCONTEXT sFWCommonContext,
 	{
 		volatile RGXFWIF_CCB_CMD_HEADER *psCommandHeader = (RGXFWIF_CCB_CMD_HEADER *)(pui8ClientCCBBuff + ui32SampledRdOff);
 		RGXFWIF_CCB_CMD_TYPE 	eCommandType = psCommandHeader->eCmdType;
-		volatile IMG_UINT8				*pui8Ptr = (IMG_UINT8 *)psCommandHeader;
+		volatile IMG_UINT8		*pui8Ptr = (IMG_UINT8 *)psCommandHeader;
 
 		/* CCB is stalled on a fence... */
 		if ((eCommandType == RGXFWIF_CCB_CMD_TYPE_FENCE) || (eCommandType == RGXFWIF_CCB_CMD_TYPE_FENCE_PR))
@@ -2154,27 +2214,36 @@ void DumpStalledContextInfo(PVRSRV_RGXDEV_INFO *psDevInfo)
 		if ((eCommandType == RGXFWIF_CCB_CMD_TYPE_FENCE) || (eCommandType == RGXFWIF_CCB_CMD_TYPE_FENCE_PR))
 		{
 			RGXFWIF_UFO *psUFOPtr = (RGXFWIF_UFO *)(pui8Ptr + sizeof(*psCommandHeader));
-			IMG_UINT32 jj, ui32ReadValue;
+			IMG_UINT32 jj;
 			IMG_UINT32 ui32NumUnsignalledUFOs = 0;
 			IMG_UINT32 ui32UnsignalledUFOVaddrs[PVRSRV_MAX_SYNC_PRIMS];
 
 			PVR_LOG(("Fence found on context 0x%x '%s' has %d UFOs", FWCommonContextGetFWAddress(psStalledClientCCB->psServerCommonContext).ui32Addr, psStalledClientCCB->szName, (IMG_UINT32)(psCommandHeader->ui32CmdSize/sizeof(RGXFWIF_UFO))));
 			for (jj=0; jj<psCommandHeader->ui32CmdSize/sizeof(RGXFWIF_UFO); jj++)
 			{
-				RGXReadWithSP(psDevInfo, psUFOPtr[jj].puiAddrUFO.ui32Addr, &ui32ReadValue);
-
-				PVR_LOG(("  %d/%d FWAddr 0x%x requires 0x%x (currently 0x%x)", jj+1,
-						   (IMG_UINT32)(psCommandHeader->ui32CmdSize/sizeof(RGXFWIF_UFO)),
-						   psUFOPtr[jj].puiAddrUFO.ui32Addr,
-						   psUFOPtr[jj].ui32Value,
-						   ui32ReadValue));
-
-				/* If fence is unmet, dump debug info on it */
-				if (ui32ReadValue != psUFOPtr[jj].ui32Value)
+				if (PVRSRV_UFO_IS_SYNC_CHECKPOINT((RGXFWIF_UFO *)&psUFOPtr[jj]))
 				{
-					/* Add to our list to pass to pvr_sync */
-					ui32UnsignalledUFOVaddrs[ui32NumUnsignalledUFOs] = psUFOPtr[jj].puiAddrUFO.ui32Addr;
-					ui32NumUnsignalledUFOs++;
+					IMG_UINT32 ui32ReadValue = SyncCheckpointStateFromUFO(psDevInfo->psDeviceNode,
+					                                           psUFOPtr[jj].puiAddrUFO.ui32Addr);
+					PVR_LOG(("  %d/%d FWAddr 0x%x requires 0x%x (currently 0x%x)", jj+1,
+							   (IMG_UINT32)(psCommandHeader->ui32CmdSize/sizeof(RGXFWIF_UFO)),
+							   psUFOPtr[jj].puiAddrUFO.ui32Addr,
+							   psUFOPtr[jj].ui32Value,
+							   ui32ReadValue));
+					/* If fence is unmet, dump debug info on it */
+					if (ui32ReadValue != psUFOPtr[jj].ui32Value)
+					{
+						/* Add to our list to pass to pvr_sync */
+						ui32UnsignalledUFOVaddrs[ui32NumUnsignalledUFOs] = psUFOPtr[jj].puiAddrUFO.ui32Addr;
+						ui32NumUnsignalledUFOs++;
+					}
+				}
+				else
+				{
+					PVR_LOG(("  %d/%d FWAddr 0x%x requires 0x%x", jj+1,
+							   (IMG_UINT32)(psCommandHeader->ui32CmdSize/sizeof(RGXFWIF_UFO)),
+							   psUFOPtr[jj].puiAddrUFO.ui32Addr,
+							   psUFOPtr[jj].ui32Value));
 				}
 			}
 #if defined(SUPPORT_NATIVE_FENCE_SYNC) || defined (SUPPORT_FALLBACK_FENCE_SYNC)

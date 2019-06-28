@@ -56,7 +56,4 @@ ifeq ($(SUPPORT_KMS),1)
   
   
    endif
-
- ifeq ($(WINDOW_SYSTEM),surfaceless)
-     endif
 endif

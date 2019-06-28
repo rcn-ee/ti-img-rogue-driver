@@ -434,7 +434,19 @@ PhysmemNewRamBackedPMR(CONNECTION_DATA * psConnection,
 	/* Lookup the requested physheap index to use for this PMR allocation */
 	if (PVRSRV_CHECK_FW_LOCAL(uiFlags))
 	{
-		ePhysHeapIdx = PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL;
+		if (PVRSRV_CHECK_FW_GUEST(uiFlags))
+		{
+			ePhysHeapIdx = PVRSRV_DEVICE_PHYS_HEAP_FW_GUEST;
+			if (! PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST))
+			{
+				/* Shouldn't be reaching this code */
+				return PVRSRV_ERROR_INTERNAL_ERROR;
+			}
+		}
+		else
+		{
+			ePhysHeapIdx = PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL;
+		}
 	}
 	else if (PVRSRV_CHECK_CPU_LOCAL(uiFlags))
 	{

@@ -1094,10 +1094,14 @@ PVRSRV_ERROR RGXGetPhyAddr(PMR *psPMR,
 
  @Input                         ui32WriteOffset	  Woff we have to POL for the Roff to be equal to
 
+ @Input                         ui32PDumpFlags	  PDUMP flags provided
+
  @Return                        PVRSRV_ERROR	PVRSRV_OK on success. Otherwise, a PVRSRV_
 									error code
  ******************************************************************************/
-PVRSRV_ERROR RGXPdumpDrainKCCB(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32WriteOffset);
+PVRSRV_ERROR RGXPdumpDrainKCCB(PVRSRV_RGXDEV_INFO *psDevInfo, 
+							   IMG_UINT32 ui32WriteOffset, 
+							   IMG_UINT32 ui32PDumpFlags);
 #endif /* PDUMP */
 
 /*!
@@ -1151,6 +1155,18 @@ PVRSRV_ERROR RGXVzRegisterFirmwarePhysHeap(PVRSRV_DEVICE_NODE *psDeviceNode,
  *****************************************************************************/
 PVRSRV_ERROR RGXVzUnregisterFirmwarePhysHeap(PVRSRV_DEVICE_NODE *psDeviceNode,
 											 IMG_UINT32 ui32OSID);
+
+
+/*!
+******************************************************************************
+
+ @Function         RGXGetFwMainHeapSize
+
+ @Description      Return size of the main FW heap in bytes
+
+ @Return           IMG_UINT32
+ *****************************************************************************/
+IMG_UINT32 RGXGetFwMainHeapSize(PVRSRV_RGXDEV_INFO *psDevInfo);
 
 #endif /* __RGXFWUTILS_H__ */
 /******************************************************************************

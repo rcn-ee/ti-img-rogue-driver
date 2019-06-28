@@ -195,21 +195,44 @@ PVRSRV_ERROR TLClientAcquireData(IMG_HANDLE hSrvHandle,
 
 
 /**************************************************************************/ /*!
- @Function		TLClientReleaseData
- @Description	Called after client has read the stream data out of the buffer
- 	 	 	 	The data is subsequently flushed from the stream buffer to make
- 	 	 	 	room for more data packets from the stream source.
- @Input			hSrvHandle  	Address of a pointer to a connection object
- @Input			hSD				Handle of the stream object to read
- @Return		PVRSRV_ERROR_RESOURCE_UNAVAILABLE: when stream no longer exists
- @Return		PVRSRV_ERROR_HANDLE_NOT_FOUND:   when SD handle not known to TL
- @Return		PVRSRV_ERROR_STREAM_ERROR: 	     internal driver state error
- @Return		PVRSRV_ERROR_RETRY:				 acquire not called beforehand
- @Return		PVRSRV_ERROR:	                 for system codes
+ @Function      TLClientReleaseData
+ @Description   Called after client has read the stream data out of the buffer
+                The data is subsequently flushed from the stream buffer to make
+                room for more data packets from the stream source.
+ @Input         hSrvHandle      Address of a pointer to a connection object
+ @Input         hSD             Handle of the stream object to read
+ @Return        PVRSRV_ERROR_RESOURCE_UNAVAILABLE: when stream no longer exists
+ @Return        PVRSRV_ERROR_HANDLE_NOT_FOUND:   when SD handle not known to TL
+ @Return        PVRSRV_ERROR_STREAM_ERROR:       internal driver state error
+ @Return        PVRSRV_ERROR_RETRY:              acquire not called beforehand
+ @Return        PVRSRV_ERROR:                    for system codes
 */ /***************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReleaseData(IMG_HANDLE hSrvHandle,
 		IMG_HANDLE hSD);
+
+/**************************************************************************/ /*!
+ @Function      TLClientReleaseDataLess
+ @Description   Called after client has read only some data out of the buffer
+                and wishes to complete the read early i.e. does not want to read
+                the full data that the acquire call returned e.g read just one
+                packet from the stream.
+                The data is subsequently flushed from the stream buffer to make
+                room for more data packets from the stream source.
+ @Input         hSrvHandle      Address of a pointer to a connection object
+ @Input         hSD             Handle of the stream object to read
+ @Input         uiActualReadLen Size of data read, in bytes. Must be on a TL
+                                packet boundary.
+ @Return        PVRSRV_ERROR_INVALID_PARAMS:     when read length too big
+ @Return        PVRSRV_ERROR_RESOURCE_UNAVAILABLE: when stream no longer exists
+ @Return        PVRSRV_ERROR_HANDLE_NOT_FOUND:   when SD handle not known to TL
+ @Return        PVRSRV_ERROR_STREAM_ERROR:       internal driver state error
+ @Return        PVRSRV_ERROR_RETRY:              acquire not called beforehand
+ @Return        PVRSRV_ERROR:                    for system codes
+*/ /***************************************************************************/
+IMG_INTERNAL
+PVRSRV_ERROR TLClientReleaseDataLess(IMG_HANDLE hSrvHandle,
+		IMG_HANDLE hSD, IMG_UINT32 uiActualReadLen);
 
 /**************************************************************************/ /*!
  @Function      TLClientWriteData

@@ -134,9 +134,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define RGXMIPSFW_CODE_BASE_PAGE                 (0x0)
 #define RGXMIPSFW_CODE_OFFSET                    (RGXMIPSFW_CODE_BASE_PAGE << RGXMIPSFW_LOG2_PAGE_SIZE)
-#if defined(SUPPORT_TRUSTED_DEVICE) || defined(SUPPORT_64K_PAGE_KERNEL)
+#if defined(SUPPORT_MIPS_CONTIGUOUS_FW_CODE) || defined(SUPPORT_64K_PAGE_KERNEL)
 /* Clean way of getting a 256K allocation (62 + 1 + 1 pages) without using too many ifdefs */
-/* This will need to be changed if the non-secure builds reach this amount of pages */
+/* This will need to be changed if the non-contiguous builds reach this amount of pages */
 #define RGXMIPSFW_CODE_NUMPAGES                  (62)
 #else
 #define RGXMIPSFW_CODE_NUMPAGES                  (44)
@@ -231,8 +231,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGXMIPSFW_REGISTERS_VIRTUAL_BASE         (0xCF400000)
 #define RGXMIPSFW_STACK_VIRTUAL_BASE             (0xCF600000)
 
-#if defined(SUPPORT_TRUSTED_DEVICE)
-/* The extra fixed TLB entries are used in security builds for the FW code */
+#if defined(SUPPORT_MIPS_CONTIGUOUS_FW_CODE)
 #define RGXMIPSFW_NUMBER_OF_RESERVED_TLB         (5)
 #else
 #define RGXMIPSFW_NUMBER_OF_RESERVED_TLB         (3)
@@ -363,9 +362,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ELF_SHT_STRTAB  (0x3U)   /* Section identifier as String Table */
 #define MAX_STRTAB_NUM  (0x8U)   /* Maximum number of string table in the firmware ELF file */
 
-
-/* Redefined structs of ELF format */
-typedef struct
+    /* Redefined structs of ELF format */
+    typedef struct
 {
 	IMG_UINT8    ui32Eident[16];
 	IMG_UINT16   ui32Etype;

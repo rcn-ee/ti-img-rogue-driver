@@ -176,7 +176,7 @@ PVRSRV_ERROR PDumpMMUMalloc(const IMG_CHAR			*pszPDumpDevName,
 							PDUMP_MMU_TYPE          eMMUType)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
-	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS;
+	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS | PDUMP_FLAGS_BLKDATA;
 	IMG_UINT64 ui64SymbolicAddr;
 	IMG_CHAR *pszMMUPX;
 
@@ -258,7 +258,7 @@ PVRSRV_ERROR PDumpMMUFree(const IMG_CHAR				*pszPDumpDevName,
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
 	IMG_UINT64 ui64SymbolicAddr;
-	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS;
+	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS | PDUMP_FLAGS_BLKDATA;
 	IMG_CHAR *pszMMUPX;
 
 	PDUMP_GET_SCRIPT_STRING();
@@ -442,6 +442,7 @@ PVRSRV_ERROR PDumpPTBaseObjectToMem64(const IMG_CHAR *pszPDumpDevName,
 
 
 	PDUMP_GET_SCRIPT_STRING()
+	ui32Flags |= PDUMP_FLAGS_BLKDATA;
 
 	eErr = PMR_PDumpSymbolicAddr(psPMRDest,
 									 uiLogicalOffsetDest,
@@ -467,15 +468,14 @@ PVRSRV_ERROR PDumpPTBaseObjectToMem64(const IMG_CHAR *pszPDumpDevName,
 
 	if (eErr != PVRSRV_OK)
 	{
-		PDUMP_UNLOCK();
-		return eErr;
+		goto ErrUnlock;
 	}
 
-
 	PDumpWriteScript(hScript, ui32Flags);
-	PDUMP_UNLOCK();
 
-	return PVRSRV_OK;
+ErrUnlock:
+	PDUMP_UNLOCK();
+	return eErr;
 }
 
 
@@ -522,6 +522,7 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(MMU_LEVEL eMMULevel,
     IMG_CHAR *pszMMUPX;
 
 	PDUMP_GET_SCRIPT_STRING();
+	ui32Flags |= PDUMP_FLAGS_BLKDATA;
 
 	if (!PDumpReady())
 	{
@@ -1035,7 +1036,7 @@ PVRSRV_ERROR PDumpMMUActivateCatalog(const IMG_CHAR *pszPDumpRegSpaceName,
                                      IMG_UINT32 uiRegAddr,
                                      const IMG_CHAR *pszPDumpPCSymbolicName)
 {
-	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS;
+	IMG_UINT32 ui32Flags = PDUMP_FLAGS_CONTINUOUS | PDUMP_FLAGS_BLKDATA;
 	PVRSRV_ERROR eErr = PVRSRV_OK;
 
 	PDUMP_GET_SCRIPT_STRING();
@@ -1076,7 +1077,7 @@ PVRSRV_ERROR PDumpMMUActivateCatalog(const IMG_CHAR *pszPDumpRegSpaceName,
     {
         goto ErrUnlock;
     }
-    PDumpWriteScript(hScript, ui32Flags | PDUMP_FLAGS_CONTINUOUS);
+    PDumpWriteScript(hScript, ui32Flags);
 
 ErrUnlock:
 	PDUMP_UNLOCK();
@@ -1161,6 +1162,7 @@ PVRSRV_ERROR PdumpWireUpMipsTLB(PMR *psPMRSource,
 
 
 	PDUMP_GET_SCRIPT_STRING()
+	ui32Flags |= PDUMP_FLAGS_BLKDATA;
 
 	eErr = PMR_PDumpSymbolicAddr(psPMRSource,
 									 uiLogicalOffsetSource,
@@ -1262,6 +1264,7 @@ PVRSRV_ERROR PdumpInvalidateMipsTLB(PMR *psPMRDest,
 
 
 	PDUMP_GET_SCRIPT_STRING()
+	ui32Flags |= PDUMP_FLAGS_BLKDATA;
 
 	eErr = PMR_PDumpSymbolicAddr(psPMRDest,
 									 uiLogicalOffsetDest,

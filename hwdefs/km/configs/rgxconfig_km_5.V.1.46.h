@@ -39,11 +39,11 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCONFIG_KM_5_V_1_46_H_
-#define _RGXCONFIG_KM_5_V_1_46_H_
+#ifndef RGXCONFIG_KM_5_V_1_46_H
+#define RGXCONFIG_KM_5_V_1_46_H
 
-/***** Automatically generated file (04/09/2017 07:00:43): Do not edit manually ********************/
-/***** Timestamp:  (04/09/2017 07:00:43)************************************************************/
+/***** Automatically generated file (10/10/2018 09:01:01): Do not edit manually ********************/
+/***** Timestamp:  (10/10/2018 09:01:01)************************************************************/
 
 #define RGX_BNC_KM_B 5
 #define RGX_BNC_KM_N 1
@@ -72,4 +72,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_FBCDC_ALGORITHM (2)
 
 
-#endif /* _RGXCONFIG_5_V_1_46_H_ */
+#endif /* RGXCONFIG_5_V_1_46_H */

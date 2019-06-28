@@ -42,9 +42,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef _RGXCORE_KM_24_50_208_504_H_
 #define _RGXCORE_KM_24_50_208_504_H_
 
-/***** Automatically generated file (21/05/2018 07:01:28): Do not edit manually ********************/
-/***** Timestamp:  (21/05/2018 07:01:28)************************************************************/
-/***** CS: @5044193 ******************************************************************/
+/***** Automatically generated file (20/08/2018 09:01:58): Do not edit manually ********************/
+/***** Timestamp:  (20/08/2018 09:01:58)************************************************************/
+/***** CS: @5086680 ******************************************************************/
 
 
 /******************************************************************************
@@ -62,6 +62,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define FIX_HW_BRN_43276
 #define FIX_HW_BRN_44871
 #define FIX_HW_BRN_63553
+#define FIX_HW_BRN_67349
 
 
  

@@ -498,6 +498,7 @@ typedef struct _RGXFWIF_HWRINFOBUF_
 #define RGXFWIF_INICFG_EXT_LOW_PRIO_CS_CDM			(0x1 <<  3)
 #define RGXFWIF_INICFG_EXT_LOW_PRIO_CS_SHG			(0x1 <<  4)
 #define RGXFWIF_INICFG_EXT_TRACEBUF_FIELD			(0x1 <<  5) /*!< The tracebuffer and HWRInfoBufCtl fields are included in the OSConfig Struct > */
+#define RGXFWIF_INICFG_EXT_HWPERF_FEATURE_FLAGS    (0x1 <<  6) /*!< The BvncKmFeatureFlags are included in the init struct > */
 
 #define RGXFWIF_SRVCFG_DISABLE_PDP_EN 		(0x1 << 31)
 #define RGXFWIF_SRVCFG_ALL					(0x80000000U)
