@@ -49,7 +49,6 @@ PVR_SERVICES_DEBUG := 1
 
 ifeq ($(SUPPORT_KMS),1)
  PVR_DRM_MODESET_DRIVER_NAME := tidss
- DISPLAY_CONTROLLER := drm_nulldisp
 else
  ifeq ($(SUPPORT_DISPLAY_CLASS),1)
   DISPLAY_CONTROLLER := dc_example
