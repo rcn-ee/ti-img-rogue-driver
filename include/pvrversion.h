@@ -54,9 +54,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PVRVERSION_FAMILY           "rogueddk"
 #define PVRVERSION_BRANCHNAME       "1.10"
 #define PVRVERSION_BUILD             5371573
-#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux"
+#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux_WS"
 
-#define PVRVERSION_STRING           "Rogue_DDK_Linux rogueddk 1.10@" PVR_STR2(PVRVERSION_BUILD)
+#define PVRVERSION_STRING           "Rogue_DDK_Linux_WS rogueddk 1.10@" PVR_STR2(PVRVERSION_BUILD)
 #define PVRVERSION_STRING_SHORT     "1.10@" PVR_STR2(PVRVERSION_BUILD) ""
 
 #define COPYRIGHT_TXT               "Copyright (c) Imagination Technologies Ltd. All Rights Reserved."

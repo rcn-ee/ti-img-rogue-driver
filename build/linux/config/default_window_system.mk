@@ -1,6 +1,6 @@
 ########################################################################### ###
 #@File
-#@Title         Set the default window system to Nullws
+#@Title         Set the default window system to Wayland
 #@Copyright     Copyright (c) Imagination Technologies Ltd. All Rights Reserved
 #@License       Dual MIT/GPLv2
 # 
@@ -40,4 +40,4 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
-WINDOW_SYSTEM ?= nullws
+WINDOW_SYSTEM ?= wayland

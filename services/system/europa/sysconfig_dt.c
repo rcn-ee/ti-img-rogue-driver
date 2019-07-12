@@ -221,6 +221,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	psDevConfig->pfnClockFreqGet        = NULL;
 	psDevConfig->pfnSysDriverMode		= NULL;
 
+	psDevConfig->bHasFBCDCVersion31		= IMG_FALSE;
+
 	psDevConfig->hDevData               = psRGXData;
 
 	*ppsDevConfig = psDevConfig;

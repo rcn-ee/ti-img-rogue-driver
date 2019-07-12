@@ -532,6 +532,7 @@ static PVRSRV_ERROR DeviceConfigCreate(void *pvOSDevice,
 
 	psDevConfig->eCacheSnoopingMode = PVRSRV_DEVICE_SNOOP_NONE;
 	psDevConfig->bHasNonMappableLocalMemory = PLATO_HAS_NON_MAPPABLE(psSysData);
+	psDevConfig->bHasFBCDCVersion31 = IMG_FALSE;
 
 	psDevConfig->eBIFTilingMode = geBIFTilingMode;
 	psDevConfig->pui32BIFTilingHeapConfigs = &gauiBIFTilingHeapXStrides[0],
