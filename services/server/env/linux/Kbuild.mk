@@ -115,6 +115,11 @@ ifeq ($(SUPPORT_TRUSTED_DEVICE),1)
  services/server/common/physmem_tdfwcode.o
 endif
 
+ifeq ($(SUPPORT_DEDICATED_FW_MEMORY),1)
+ $(PVRSRV_MODNAME)-y += \
+ services/server/common/physmem_fwdedicatedmem.o
+endif
+
 ifeq ($(SUPPORT_PHYSMEM_TEST),1)
  $(PVRSRV_MODNAME)-y += \
  services/server/env/linux/physmem_test.o

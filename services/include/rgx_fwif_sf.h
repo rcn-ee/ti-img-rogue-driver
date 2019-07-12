@@ -523,7 +523,7 @@ X(22, RGXFW_GROUP_POW, RGXFW_SF_POW_CANCEL_IDLE_TIMER, "Cancel idle timer. Pow s
 X(23, RGXFW_GROUP_POW, RGXFW_SF_POW_APM_LATENCY_CHANGE, "Active PM latency set to %dms. Core clock: %d Hz\n", 2) \
 X(24, RGXFW_GROUP_POW, RGXFW_SF_POW_CDM_CLUSTERS, "Compute cluster mask change to 0x%X, %d dusts powered.\n", 2) \
 X(25, RGXFW_GROUP_POW, RGXFW_SF_POW_NULL_CMD_INIOFF_RD, "Null command executed, repeating initiate powoff query for RD-DMs.\n", 0) \
-X(26, RGXFW_GROUP_POW, RGXFW_SF_POW_POWMON_ENERGY, "Power monitor: Estimate of dynamic energy %u\n", 1) \
+X(26, RGXFW_GROUP_POW, RGXFW_SF_POW_POWMON_ENERGY_DEPRECATED, "Power monitor: Estimate of dynamic energy %u\n", 1) \
 X(27, RGXFW_GROUP_POW, RGXFW_SF_POW_CHECK_DEPRECATED, "Check Pow state: Int: 0x%X, Ext: 0x%X, Pow flags: 0x%X\n", 3) \
 X(28, RGXFW_GROUP_POW, RGXFW_SF_POW_PDVFS_NEW_DEADLINE, "Proactive DVFS: New deadline, time = 0x%08x%08x\n", 2) \
 X(29, RGXFW_GROUP_POW, RGXFW_SF_POW_PDVFS_NEW_WORKLOAD, "Proactive DVFS: New workload, cycles = 0x%08x%08x\n", 2) \
@@ -553,6 +553,7 @@ X(52, RGXFW_GROUP_POW, RGXFW_SF_POW_INVALID_POWER_REQUEST, "Discarding invalid p
 X(53, RGXFW_GROUP_POW, RGXFW_SF_POW_CANCEL_FORCED_IDLE_NOT_IDLE, "Detected attempt to cancel forced idle while not forced idle (pow state 0x%x, pow flags 0x%x)\n", 2) \
 X(54, RGXFW_GROUP_POW, RGXFW_SF_POW_FORCED_POW_OFF_NOT_IDLE, "Detected attempt to force power off while not forced idle (pow state 0x%x, pow flags 0x%x)\n", 2) \
 X(55, RGXFW_GROUP_POW, RGXFW_SF_POW_NUMDUST_CHANGE_NOT_IDLE, "Detected attempt to change dust count while not forced idle (pow state 0x%x)\n", 1) \
+X(56, RGXFW_GROUP_POW, RGXFW_SF_POW_POWMON_RESULT, "Power monitor: Type = %d (0 = power, 1 = energy), Estimate result = 0x%08x%08x\n", 3) \
 \
 X(1, RGXFW_GROUP_HWR, RGXFW_SF_HWR_LOCKUP_DEPRECATED, "Lockup detected on DM%d, FWCtx: %08.8X\n", 2) \
 X(2, RGXFW_GROUP_HWR, RGXFW_SF_HWR_RESET_FW_DEPRECATED, "Reset fw state for DM%d, FWCtx: %08.8X, MemCtx: %08.8X\n", 3) \

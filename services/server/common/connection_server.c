@@ -305,6 +305,8 @@ PVRSRV_ERROR PVRSRVConnectionConnect(void **ppvPrivData, void *pvOSData)
 			goto failureLock;
 		}
 
+		OSAtomicWrite(&psProcessHandleBase->iRefCount, 0);
+
 		/* Allocate handle base for this process */
 		eError = PVRSRVAllocHandleBase(&psProcessHandleBase->psHandleBase,
 		                               PVRSRV_HANDLE_BASE_TYPE_PROCESS);

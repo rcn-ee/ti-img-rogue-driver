@@ -54,6 +54,9 @@ typedef struct _DMA_ALLOC_
 	IMG_CPU_VIRTADDR pvVirtAddr;
 	IMG_DEV_PHYADDR	 sBusAddr;
 	IMG_HANDLE hHandle;
+#if defined(LINUX)
+	struct page *psPage;
+#endif
 	void *pvOSDevice;
 } DMA_ALLOC;
 

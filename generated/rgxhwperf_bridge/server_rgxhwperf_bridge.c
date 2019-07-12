@@ -47,7 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgxhwperf.h"
 
-
 #include "common_rgxhwperf_bridge.h"
 
 #include "allocmem.h"
@@ -62,80 +61,63 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
-
-
-
-
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgeRGXCtrlHWPerf(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_RGXCTRLHWPERF *psRGXCtrlHWPerfIN,
-					  PVRSRV_BRIDGE_OUT_RGXCTRLHWPERF *psRGXCtrlHWPerfOUT,
-					 CONNECTION_DATA *psConnection)
+			  PVRSRV_BRIDGE_IN_RGXCTRLHWPERF * psRGXCtrlHWPerfIN,
+			  PVRSRV_BRIDGE_OUT_RGXCTRLHWPERF * psRGXCtrlHWPerfOUT,
+			  CONNECTION_DATA * psConnection)
 {
 
-
-
-
-
-
-
-
 	psRGXCtrlHWPerfOUT->eError =
-		PVRSRVRGXCtrlHWPerfKM(psConnection, OSGetDevData(psConnection),
-					psRGXCtrlHWPerfIN->ui32StreamId,
-					psRGXCtrlHWPerfIN->bToggle,
-					psRGXCtrlHWPerfIN->ui64Mask);
-
-
-
-
-
-
-
+	    PVRSRVRGXCtrlHWPerfKM(psConnection, OSGetDevData(psConnection),
+				  psRGXCtrlHWPerfIN->ui32StreamId,
+				  psRGXCtrlHWPerfIN->bToggle,
+				  psRGXCtrlHWPerfIN->ui64Mask);
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeRGXConfigEnableHWPerfCounters(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_RGXCONFIGENABLEHWPERFCOUNTERS *psRGXConfigEnableHWPerfCountersIN,
-					  PVRSRV_BRIDGE_OUT_RGXCONFIGENABLEHWPERFCOUNTERS *psRGXConfigEnableHWPerfCountersOUT,
-					 CONNECTION_DATA *psConnection)
+					  PVRSRV_BRIDGE_IN_RGXCONFIGENABLEHWPERFCOUNTERS
+					  * psRGXConfigEnableHWPerfCountersIN,
+					  PVRSRV_BRIDGE_OUT_RGXCONFIGENABLEHWPERFCOUNTERS
+					  * psRGXConfigEnableHWPerfCountersOUT,
+					  CONNECTION_DATA * psConnection)
 {
 	RGX_HWPERF_CONFIG_CNTBLK *psBlockConfigsInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen * sizeof(RGX_HWPERF_CONFIG_CNTBLK)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen *
+	     sizeof(RGX_HWPERF_CONFIG_CNTBLK)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psRGXConfigEnableHWPerfCountersIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psRGXConfigEnableHWPerfCountersIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psRGXConfigEnableHWPerfCountersIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psRGXConfigEnableHWPerfCountersIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -144,9 +126,10 @@ PVRSRVBridgeRGXConfigEnableHWPerfCounters(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psRGXConfigEnableHWPerfCountersOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psRGXConfigEnableHWPerfCountersOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto RGXConfigEnableHWPerfCounters_exit;
 			}
 		}
@@ -154,83 +137,90 @@ PVRSRVBridgeRGXConfigEnableHWPerfCounters(IMG_UINT32 ui32DispatchTableEntry,
 
 	if (psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen != 0)
 	{
-		psBlockConfigsInt = (RGX_HWPERF_CONFIG_CNTBLK*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
-		ui32NextOffset += psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen * sizeof(RGX_HWPERF_CONFIG_CNTBLK);
+		psBlockConfigsInt =
+		    (RGX_HWPERF_CONFIG_CNTBLK
+		     *) (((IMG_UINT8 *) pArrayArgsBuffer) + ui32NextOffset);
+		ui32NextOffset +=
+		    psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen *
+		    sizeof(RGX_HWPERF_CONFIG_CNTBLK);
 	}
 
-			/* Copy the data over */
-			if (psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen * sizeof(RGX_HWPERF_CONFIG_CNTBLK) > 0)
-			{
-				if ( OSCopyFromUser(NULL, psBlockConfigsInt, (const void __user *) psRGXConfigEnableHWPerfCountersIN->psBlockConfigs, psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen * sizeof(RGX_HWPERF_CONFIG_CNTBLK)) != PVRSRV_OK )
-				{
-					psRGXConfigEnableHWPerfCountersOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen *
+	    sizeof(RGX_HWPERF_CONFIG_CNTBLK) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, psBlockConfigsInt,
+		     (const void __user *)psRGXConfigEnableHWPerfCountersIN->
+		     psBlockConfigs,
+		     psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen *
+		     sizeof(RGX_HWPERF_CONFIG_CNTBLK)) != PVRSRV_OK)
+		{
+			psRGXConfigEnableHWPerfCountersOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto RGXConfigEnableHWPerfCounters_exit;
-				}
-			}
-
+			goto RGXConfigEnableHWPerfCounters_exit;
+		}
+	}
 
 	psRGXConfigEnableHWPerfCountersOUT->eError =
-		PVRSRVRGXConfigEnableHWPerfCountersKM(psConnection, OSGetDevData(psConnection),
-					psRGXConfigEnableHWPerfCountersIN->ui32ArrayLen,
-					psBlockConfigsInt);
+	    PVRSRVRGXConfigEnableHWPerfCountersKM(psConnection,
+						  OSGetDevData(psConnection),
+						  psRGXConfigEnableHWPerfCountersIN->
+						  ui32ArrayLen,
+						  psBlockConfigsInt);
 
-
-
-
-RGXConfigEnableHWPerfCounters_exit:
-
-
+ RGXConfigEnableHWPerfCounters_exit:
 
 	/* Allocated space should be equal to the last updated offset */
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
-
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeRGXCtrlHWPerfCounters(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_RGXCTRLHWPERFCOUNTERS *psRGXCtrlHWPerfCountersIN,
-					  PVRSRV_BRIDGE_OUT_RGXCTRLHWPERFCOUNTERS *psRGXCtrlHWPerfCountersOUT,
-					 CONNECTION_DATA *psConnection)
+				  PVRSRV_BRIDGE_IN_RGXCTRLHWPERFCOUNTERS *
+				  psRGXCtrlHWPerfCountersIN,
+				  PVRSRV_BRIDGE_OUT_RGXCTRLHWPERFCOUNTERS *
+				  psRGXCtrlHWPerfCountersOUT,
+				  CONNECTION_DATA * psConnection)
 {
 	IMG_UINT16 *ui16BlockIDsInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(psRGXCtrlHWPerfCountersIN->ui32ArrayLen * sizeof(IMG_UINT16)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (psRGXCtrlHWPerfCountersIN->ui32ArrayLen * sizeof(IMG_UINT16)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psRGXCtrlHWPerfCountersIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psRGXCtrlHWPerfCountersIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psRGXCtrlHWPerfCountersIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psRGXCtrlHWPerfCountersIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -239,9 +229,10 @@ PVRSRVBridgeRGXCtrlHWPerfCounters(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psRGXCtrlHWPerfCountersOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psRGXCtrlHWPerfCountersOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto RGXCtrlHWPerfCounters_exit;
 			}
 		}
@@ -249,84 +240,90 @@ PVRSRVBridgeRGXCtrlHWPerfCounters(IMG_UINT32 ui32DispatchTableEntry,
 
 	if (psRGXCtrlHWPerfCountersIN->ui32ArrayLen != 0)
 	{
-		ui16BlockIDsInt = (IMG_UINT16*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
-		ui32NextOffset += psRGXCtrlHWPerfCountersIN->ui32ArrayLen * sizeof(IMG_UINT16);
+		ui16BlockIDsInt =
+		    (IMG_UINT16 *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				    ui32NextOffset);
+		ui32NextOffset +=
+		    psRGXCtrlHWPerfCountersIN->ui32ArrayLen *
+		    sizeof(IMG_UINT16);
 	}
 
-			/* Copy the data over */
-			if (psRGXCtrlHWPerfCountersIN->ui32ArrayLen * sizeof(IMG_UINT16) > 0)
-			{
-				if ( OSCopyFromUser(NULL, ui16BlockIDsInt, (const void __user *) psRGXCtrlHWPerfCountersIN->pui16BlockIDs, psRGXCtrlHWPerfCountersIN->ui32ArrayLen * sizeof(IMG_UINT16)) != PVRSRV_OK )
-				{
-					psRGXCtrlHWPerfCountersOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (psRGXCtrlHWPerfCountersIN->ui32ArrayLen * sizeof(IMG_UINT16) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, ui16BlockIDsInt,
+		     (const void __user *)psRGXCtrlHWPerfCountersIN->
+		     pui16BlockIDs,
+		     psRGXCtrlHWPerfCountersIN->ui32ArrayLen *
+		     sizeof(IMG_UINT16)) != PVRSRV_OK)
+		{
+			psRGXCtrlHWPerfCountersOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto RGXCtrlHWPerfCounters_exit;
-				}
-			}
-
+			goto RGXCtrlHWPerfCounters_exit;
+		}
+	}
 
 	psRGXCtrlHWPerfCountersOUT->eError =
-		PVRSRVRGXCtrlHWPerfCountersKM(psConnection, OSGetDevData(psConnection),
-					psRGXCtrlHWPerfCountersIN->bEnable,
-					psRGXCtrlHWPerfCountersIN->ui32ArrayLen,
-					ui16BlockIDsInt);
+	    PVRSRVRGXCtrlHWPerfCountersKM(psConnection,
+					  OSGetDevData(psConnection),
+					  psRGXCtrlHWPerfCountersIN->bEnable,
+					  psRGXCtrlHWPerfCountersIN->
+					  ui32ArrayLen, ui16BlockIDsInt);
 
-
-
-
-RGXCtrlHWPerfCounters_exit:
-
-
+ RGXCtrlHWPerfCounters_exit:
 
 	/* Allocated space should be equal to the last updated offset */
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
-
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeRGXConfigCustomCounters(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_RGXCONFIGCUSTOMCOUNTERS *psRGXConfigCustomCountersIN,
-					  PVRSRV_BRIDGE_OUT_RGXCONFIGCUSTOMCOUNTERS *psRGXConfigCustomCountersOUT,
-					 CONNECTION_DATA *psConnection)
+				    PVRSRV_BRIDGE_IN_RGXCONFIGCUSTOMCOUNTERS *
+				    psRGXConfigCustomCountersIN,
+				    PVRSRV_BRIDGE_OUT_RGXCONFIGCUSTOMCOUNTERS *
+				    psRGXConfigCustomCountersOUT,
+				    CONNECTION_DATA * psConnection)
 {
 	IMG_UINT32 *ui32CustomCounterIDsInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(psRGXConfigCustomCountersIN->ui16NumCustomCounters * sizeof(IMG_UINT32)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (psRGXConfigCustomCountersIN->ui16NumCustomCounters *
+	     sizeof(IMG_UINT32)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psRGXConfigCustomCountersIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psRGXConfigCustomCountersIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psRGXConfigCustomCountersIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psRGXConfigCustomCountersIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -335,9 +332,10 @@ PVRSRVBridgeRGXConfigCustomCounters(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psRGXConfigCustomCountersOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psRGXConfigCustomCountersOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto RGXConfigCustomCounters_exit;
 			}
 		}
@@ -345,81 +343,75 @@ PVRSRVBridgeRGXConfigCustomCounters(IMG_UINT32 ui32DispatchTableEntry,
 
 	if (psRGXConfigCustomCountersIN->ui16NumCustomCounters != 0)
 	{
-		ui32CustomCounterIDsInt = (IMG_UINT32*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
-		ui32NextOffset += psRGXConfigCustomCountersIN->ui16NumCustomCounters * sizeof(IMG_UINT32);
+		ui32CustomCounterIDsInt =
+		    (IMG_UINT32 *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				    ui32NextOffset);
+		ui32NextOffset +=
+		    psRGXConfigCustomCountersIN->ui16NumCustomCounters *
+		    sizeof(IMG_UINT32);
 	}
 
-			/* Copy the data over */
-			if (psRGXConfigCustomCountersIN->ui16NumCustomCounters * sizeof(IMG_UINT32) > 0)
-			{
-				if ( OSCopyFromUser(NULL, ui32CustomCounterIDsInt, (const void __user *) psRGXConfigCustomCountersIN->pui32CustomCounterIDs, psRGXConfigCustomCountersIN->ui16NumCustomCounters * sizeof(IMG_UINT32)) != PVRSRV_OK )
-				{
-					psRGXConfigCustomCountersOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (psRGXConfigCustomCountersIN->ui16NumCustomCounters *
+	    sizeof(IMG_UINT32) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, ui32CustomCounterIDsInt,
+		     (const void __user *)psRGXConfigCustomCountersIN->
+		     pui32CustomCounterIDs,
+		     psRGXConfigCustomCountersIN->ui16NumCustomCounters *
+		     sizeof(IMG_UINT32)) != PVRSRV_OK)
+		{
+			psRGXConfigCustomCountersOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto RGXConfigCustomCounters_exit;
-				}
-			}
-
+			goto RGXConfigCustomCounters_exit;
+		}
+	}
 
 	psRGXConfigCustomCountersOUT->eError =
-		PVRSRVRGXConfigCustomCountersKM(psConnection, OSGetDevData(psConnection),
-					psRGXConfigCustomCountersIN->ui16CustomBlockID,
-					psRGXConfigCustomCountersIN->ui16NumCustomCounters,
-					ui32CustomCounterIDsInt);
+	    PVRSRVRGXConfigCustomCountersKM(psConnection,
+					    OSGetDevData(psConnection),
+					    psRGXConfigCustomCountersIN->
+					    ui16CustomBlockID,
+					    psRGXConfigCustomCountersIN->
+					    ui16NumCustomCounters,
+					    ui32CustomCounterIDsInt);
 
-
-
-
-RGXConfigCustomCounters_exit:
-
-
+ RGXConfigCustomCounters_exit:
 
 	/* Allocated space should be equal to the last updated offset */
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
 
-
 	return 0;
 }
-
 
 static IMG_INT
 PVRSRVBridgeRGXGetHWPerfBvncFeatureFlags(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_RGXGETHWPERFBVNCFEATUREFLAGS *psRGXGetHWPerfBvncFeatureFlagsIN,
-					  PVRSRV_BRIDGE_OUT_RGXGETHWPERFBVNCFEATUREFLAGS *psRGXGetHWPerfBvncFeatureFlagsOUT,
-					 CONNECTION_DATA *psConnection)
+					 PVRSRV_BRIDGE_IN_RGXGETHWPERFBVNCFEATUREFLAGS
+					 * psRGXGetHWPerfBvncFeatureFlagsIN,
+					 PVRSRV_BRIDGE_OUT_RGXGETHWPERFBVNCFEATUREFLAGS
+					 * psRGXGetHWPerfBvncFeatureFlagsOUT,
+					 CONNECTION_DATA * psConnection)
 {
-
-
 
 	PVR_UNREFERENCED_PARAMETER(psRGXGetHWPerfBvncFeatureFlagsIN);
 
-
-
-
-
 	psRGXGetHWPerfBvncFeatureFlagsOUT->eError =
-		PVRSRVRGXGetHWPerfBvncFeatureFlagsKM(psConnection, OSGetDevData(psConnection),
-					&psRGXGetHWPerfBvncFeatureFlagsOUT->ui32FeatureFlags);
-
-
-
-
-
-
-
+	    PVRSRVRGXGetHWPerfBvncFeatureFlagsKM(psConnection,
+						 OSGetDevData(psConnection),
+						 &psRGXGetHWPerfBvncFeatureFlagsOUT->
+						 ui32FeatureFlags);
 
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -436,21 +428,29 @@ PVRSRV_ERROR DeinitRGXHWPERFBridge(void);
 PVRSRV_ERROR InitRGXHWPERFBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERF, PVRSRVBridgeRGXCtrlHWPerf,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+			      PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERF,
+			      PVRSRVBridgeRGXCtrlHWPerf, NULL, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGENABLEHWPERFCOUNTERS, PVRSRVBridgeRGXConfigEnableHWPerfCounters,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+			      PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGENABLEHWPERFCOUNTERS,
+			      PVRSRVBridgeRGXConfigEnableHWPerfCounters, NULL,
+			      bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERFCOUNTERS, PVRSRVBridgeRGXCtrlHWPerfCounters,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+			      PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERFCOUNTERS,
+			      PVRSRVBridgeRGXCtrlHWPerfCounters, NULL,
+			      bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGCUSTOMCOUNTERS, PVRSRVBridgeRGXConfigCustomCounters,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+			      PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGCUSTOMCOUNTERS,
+			      PVRSRVBridgeRGXConfigCustomCounters, NULL,
+			      bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXGETHWPERFBVNCFEATUREFLAGS, PVRSRVBridgeRGXGetHWPerfBvncFeatureFlags,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+			      PVRSRV_BRIDGE_RGXHWPERF_RGXGETHWPERFBVNCFEATUREFLAGS,
+			      PVRSRVBridgeRGXGetHWPerfBvncFeatureFlags, NULL,
+			      bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -461,17 +461,20 @@ PVRSRV_ERROR InitRGXHWPERFBridge(void)
 PVRSRV_ERROR DeinitRGXHWPERFBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERF);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+				PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERF);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGENABLEHWPERFCOUNTERS);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+				PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGENABLEHWPERFCOUNTERS);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERFCOUNTERS);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+				PVRSRV_BRIDGE_RGXHWPERF_RGXCTRLHWPERFCOUNTERS);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGCUSTOMCOUNTERS);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+				PVRSRV_BRIDGE_RGXHWPERF_RGXCONFIGCUSTOMCOUNTERS);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF, PVRSRV_BRIDGE_RGXHWPERF_RGXGETHWPERFBVNCFEATUREFLAGS);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXHWPERF,
+				PVRSRV_BRIDGE_RGXHWPERF_RGXGETHWPERFBVNCFEATUREFLAGS);
 
 	return PVRSRV_OK;
 }

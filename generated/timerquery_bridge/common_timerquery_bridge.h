@@ -52,14 +52,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgx_bridge.h"
 
-
 #define PVRSRV_BRIDGE_TIMERQUERY_CMD_FIRST			0
 #define PVRSRV_BRIDGE_TIMERQUERY_RGXBEGINTIMERQUERY			PVRSRV_BRIDGE_TIMERQUERY_CMD_FIRST+0
 #define PVRSRV_BRIDGE_TIMERQUERY_RGXENDTIMERQUERY			PVRSRV_BRIDGE_TIMERQUERY_CMD_FIRST+1
 #define PVRSRV_BRIDGE_TIMERQUERY_RGXQUERYTIMER			PVRSRV_BRIDGE_TIMERQUERY_CMD_FIRST+2
 #define PVRSRV_BRIDGE_TIMERQUERY_RGXCURRENTTIME			PVRSRV_BRIDGE_TIMERQUERY_CMD_FIRST+3
 #define PVRSRV_BRIDGE_TIMERQUERY_CMD_LAST			(PVRSRV_BRIDGE_TIMERQUERY_CMD_FIRST+3)
-
 
 /*******************************************
             RGXBeginTimerQuery          
@@ -69,14 +67,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct PVRSRV_BRIDGE_IN_RGXBEGINTIMERQUERY_TAG
 {
 	IMG_UINT32 ui32QueryId;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXBEGINTIMERQUERY;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXBEGINTIMERQUERY;
 
 /* Bridge out structure for RGXBeginTimerQuery */
 typedef struct PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY;
 
 /*******************************************
             RGXEndTimerQuery          
@@ -85,15 +82,14 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY_TAG
 /* Bridge in structure for RGXEndTimerQuery */
 typedef struct PVRSRV_BRIDGE_IN_RGXENDTIMERQUERY_TAG
 {
-	 IMG_UINT32 ui32EmptyStructPlaceholder;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXENDTIMERQUERY;
+	IMG_UINT32 ui32EmptyStructPlaceholder;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXENDTIMERQUERY;
 
 /* Bridge out structure for RGXEndTimerQuery */
 typedef struct PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY;
 
 /*******************************************
             RGXQueryTimer          
@@ -103,7 +99,7 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY_TAG
 typedef struct PVRSRV_BRIDGE_IN_RGXQUERYTIMER_TAG
 {
 	IMG_UINT32 ui32QueryId;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXQUERYTIMER;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXQUERYTIMER;
 
 /* Bridge out structure for RGXQueryTimer */
 typedef struct PVRSRV_BRIDGE_OUT_RGXQUERYTIMER_TAG
@@ -111,8 +107,7 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXQUERYTIMER_TAG
 	IMG_UINT64 ui64StartTime;
 	IMG_UINT64 ui64EndTime;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXQUERYTIMER;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXQUERYTIMER;
 
 /*******************************************
             RGXCurrentTime          
@@ -121,15 +116,14 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXQUERYTIMER_TAG
 /* Bridge in structure for RGXCurrentTime */
 typedef struct PVRSRV_BRIDGE_IN_RGXCURRENTTIME_TAG
 {
-	 IMG_UINT32 ui32EmptyStructPlaceholder;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXCURRENTTIME;
+	IMG_UINT32 ui32EmptyStructPlaceholder;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXCURRENTTIME;
 
 /* Bridge out structure for RGXCurrentTime */
 typedef struct PVRSRV_BRIDGE_OUT_RGXCURRENTTIME_TAG
 {
 	IMG_UINT64 ui64Time;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXCURRENTTIME;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXCURRENTTIME;
 
 #endif /* COMMON_TIMERQUERY_BRIDGE_H */

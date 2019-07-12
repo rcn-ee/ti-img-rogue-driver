@@ -106,6 +106,8 @@ typedef struct _TL_STREAM_
                                                                          *   copied to user space */
 	IMG_UINT32              ui32Pending;                            /*!< Count pending bytes reserved in buffer */
 	IMG_UINT32              ui32Size;                               /*!< Buffer size */
+	IMG_UINT32              ui32ThresholdUsageForSignal;            /*!< Buffer usage threshold at which a TL writer signals a blocked/
+	                                                                     *    waiting reader when transitioning from empty->non-empty */
 	IMG_UINT32              ui32MaxPacketSize;                      /*! Max TL packet size */
 	IMG_BYTE                *pbyBuffer;                             /*!< Actual data buffer */
 
@@ -114,6 +116,8 @@ typedef struct _TL_STREAM_
 
 	IMG_HANDLE              hProducerEvent;	                        /*!< Handle to wait on if there is not enough space */
 	IMG_HANDLE              hProducerEventObj;                      /*!< Handle to signal blocked reserve calls */
+	IMG_BOOL                bSignalPending;                         /*!< Tracks if a "signal" is pending to be sent to a blocked/
+	                                                                     *    waiting reader */
 
 	POS_LOCK                hStreamWLock;                           /*!< Writers Lock for ui32Pending & ui32Write*/
 	POS_LOCK                hReadLock;                              /*!< Readers Lock for bReadPending & ui32Read*/
@@ -126,6 +130,13 @@ typedef struct _TL_STREAM_
 	IMG_UINT32              ui32CntWriteWaits;                      /*!< Tracks how many times writer had to wait to acquire read lock */
 	IMG_UINT32              ui32CntNumWriteSuccess;	                /*!< Tracks how many write operations were successful*/
 	IMG_UINT32              ui32BufferUt;                           /*!< Buffer utilisation high watermark, see TL_BUFFER_STATS above */
+	IMG_UINT32              ui32MaxReserveWatermark;                /*!< Max stream reserve size that was ever requested by a writer */
+	IMG_UINT32              ui32SignalsSent;                        /*!< Number of signals that were actually sent by the write API */
+	ATOMIC_T                bNoReaderSinceFirstReserve;             /*!< Tracks if a read has been done since the buffer was last found empty */
+	IMG_UINT32              ui32TimeStart;                          /*!< Time at which a write (Reserve call) was done into an empty buffer.
+	                                                                     *    Guarded by hStreamWLock. */
+	IMG_UINT32              ui32MinTimeToFullInUs;                  /*!< Minimum time taken to (nearly) fully fill an empty buffer. Guarded
+	                                                                     *    by hStreamWLock. */
 #endif
 } TL_STREAM, *PTL_STREAM;
 

@@ -65,8 +65,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define PHYS_HEAP_IDX_GENERAL     0
 #define PHYS_HEAP_IDX_FW          1
+#if defined(SUPPORT_TRUSTED_DEVICE)
 #define PHYS_HEAP_IDX_TDFWCODE    2
 #define PHYS_HEAP_IDX_TDSECUREBUF 3
+#elif defined(SUPPORT_DEDICATED_FW_MEMORY)
+#define PHYS_HEAP_IDX_FW_MEMORY   2
+#endif
 
 /*
 	CPU to Device physical address translation
@@ -133,6 +137,8 @@ static PVRSRV_ERROR PhysHeapsCreate(PHYS_HEAP_CONFIG **ppasPhysHeapsOut,
 
 #if defined(SUPPORT_TRUSTED_DEVICE)
 	uiHeapCount += 2;
+#elif defined(SUPPORT_DEDICATED_FW_MEMORY)
+	uiHeapCount += 1;
 #endif
 
 	pasPhysHeaps = OSAllocZMem(sizeof(*pasPhysHeaps) * uiHeapCount);
@@ -162,6 +168,12 @@ static PVRSRV_ERROR PhysHeapsCreate(PHYS_HEAP_CONFIG **ppasPhysHeapsOut,
 
 	pasPhysHeaps[ui32NextHeapID].ui32PhysHeapID = PHYS_HEAP_IDX_TDSECUREBUF;
 	pasPhysHeaps[ui32NextHeapID].pszPDumpMemspaceName = "TDSECUREBUFMEM";
+	pasPhysHeaps[ui32NextHeapID].eType = PHYS_HEAP_TYPE_UMA;
+	pasPhysHeaps[ui32NextHeapID].psMemFuncs = &gsPhysHeapFuncs;
+	ui32NextHeapID++;
+#elif defined(SUPPORT_DEDICATED_FW_MEMORY)
+	pasPhysHeaps[ui32NextHeapID].ui32PhysHeapID = PHYS_HEAP_IDX_FW_MEMORY;
+	pasPhysHeaps[ui32NextHeapID].pszPDumpMemspaceName = "DEDICATEDFWMEM";
 	pasPhysHeaps[ui32NextHeapID].eType = PHYS_HEAP_TYPE_UMA;
 	pasPhysHeaps[ui32NextHeapID].psMemFuncs = &gsPhysHeapFuncs;
 	ui32NextHeapID++;
@@ -235,7 +247,11 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	psRGXData->uiTDFWCodePhysHeapID = PHYS_HEAP_IDX_TDFWCODE;
 
 	psRGXData->bHasTDSecureBufPhysHeap = IMG_TRUE;
-	psRGXData->uiTDSecureBufPhysHeapID = PHYS_HEAP_IDX_TDSECUREBUF; 
+	psRGXData->uiTDSecureBufPhysHeapID = PHYS_HEAP_IDX_TDSECUREBUF;
+
+#elif defined (SUPPORT_DEDICATED_FW_MEMORY)
+	psRGXData->bHasFWMemPhysHeap = IMG_TRUE;
+	psRGXData->uiFWMemPhysHeapID = PHYS_HEAP_IDX_FW_MEMORY;
 #endif
 
 	/* Setup the device config */
@@ -264,6 +280,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	/* No power management on no HW system */
 	psDevConfig->pfnPrePowerState       = NULL;
 	psDevConfig->pfnPostPowerState      = NULL;
+
+	psDevConfig->bHasFBCDCVersion31      = IMG_FALSE;
 
 	/* No clock frequency either */
 	psDevConfig->pfnClockFreqGet        = NULL;

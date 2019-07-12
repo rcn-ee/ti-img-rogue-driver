@@ -503,7 +503,7 @@ void RGXTimeCorrRestartPeriodic(IMG_HANDLE hDevHandle)
 	PVRSRV_RGXDEV_INFO     *psDevInfo      = psDeviceNode->pvDevice;
 	RGX_GPU_DVFS_TABLE     *psGpuDVFSTable = psDevInfo->psGpuDVFSTable;
 	IMG_UINT64             ui64TimeNow     = RGXTimeCorrGetClockus64();
-	PVRSRV_DEV_POWER_STATE ePowerState;
+	PVRSRV_DEV_POWER_STATE ePowerState = PVRSRV_DEV_POWER_STATE_DEFAULT;
 	PVRSRV_VZ_RETN_IF_MODE(DRIVER_MODE_GUEST);
 
 	if (psDevInfo->psGpuDVFSTable == NULL)

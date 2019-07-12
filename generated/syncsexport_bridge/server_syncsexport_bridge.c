@@ -47,7 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "sync_server.h"
 
-
 #include "common_syncsexport_bridge.h"
 
 #include "allocmem.h"
@@ -62,92 +61,66 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
-
-
-
-
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgeSyncPrimServerSecureExport(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_SYNCPRIMSERVERSECUREEXPORT *psSyncPrimServerSecureExportIN,
-					  PVRSRV_BRIDGE_OUT_SYNCPRIMSERVERSECUREEXPORT *psSyncPrimServerSecureExportOUT,
-					 CONNECTION_DATA *psConnection)
+				       PVRSRV_BRIDGE_IN_SYNCPRIMSERVERSECUREEXPORT
+				       * psSyncPrimServerSecureExportIN,
+				       PVRSRV_BRIDGE_OUT_SYNCPRIMSERVERSECUREEXPORT
+				       * psSyncPrimServerSecureExportOUT,
+				       CONNECTION_DATA * psConnection)
 {
 	IMG_HANDLE hSyncHandle = psSyncPrimServerSecureExportIN->hSyncHandle;
-	SERVER_SYNC_PRIMITIVE * psSyncHandleInt = NULL;
-	SERVER_SYNC_EXPORT * psExportInt = NULL;
+	SERVER_SYNC_PRIMITIVE *psSyncHandleInt = NULL;
+	SERVER_SYNC_EXPORT *psExportInt = NULL;
 	CONNECTION_DATA *psSecureConnection;
-
-
-
-
-
-
 
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psSyncPrimServerSecureExportOUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &psSyncHandleInt,
-											hSyncHandle,
-											PVRSRV_HANDLE_TYPE_SERVER_SYNC_PRIMITIVE,
-											IMG_TRUE);
-					if(psSyncPrimServerSecureExportOUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto SyncPrimServerSecureExport_exit;
-					}
+	/* Look up the address from the handle */
+	psSyncPrimServerSecureExportOUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&psSyncHandleInt,
+				       hSyncHandle,
+				       PVRSRV_HANDLE_TYPE_SERVER_SYNC_PRIMITIVE,
+				       IMG_TRUE);
+	if (psSyncPrimServerSecureExportOUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto SyncPrimServerSecureExport_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psSyncPrimServerSecureExportOUT->eError =
-		PVRSRVSyncPrimServerSecureExportKM(psConnection, OSGetDevData(psConnection),
-					psSyncHandleInt,
-					&psSyncPrimServerSecureExportOUT->Export,
-					&psExportInt, &psSecureConnection);
+	    PVRSRVSyncPrimServerSecureExportKM(psConnection,
+					       OSGetDevData(psConnection),
+					       psSyncHandleInt,
+					       &psSyncPrimServerSecureExportOUT->
+					       Export, &psExportInt,
+					       &psSecureConnection);
 	/* Exit early if bridged call fails */
-	if(psSyncPrimServerSecureExportOUT->eError != PVRSRV_OK)
+	if (psSyncPrimServerSecureExportOUT->eError != PVRSRV_OK)
 	{
 		goto SyncPrimServerSecureExport_exit;
 	}
 
-
-
-
-
-
-
-
-
-
-SyncPrimServerSecureExport_exit:
+ SyncPrimServerSecureExport_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(psSyncHandleInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hSyncHandle,
-										PVRSRV_HANDLE_TYPE_SERVER_SYNC_PRIMITIVE);
-					}
+	/* Unreference the previously looked up handle */
+	if (psSyncHandleInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hSyncHandle,
+					    PVRSRV_HANDLE_TYPE_SERVER_SYNC_PRIMITIVE);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
@@ -159,43 +132,35 @@ SyncPrimServerSecureExport_exit:
 		}
 	}
 
-
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeSyncPrimServerSecureUnexport(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_SYNCPRIMSERVERSECUREUNEXPORT *psSyncPrimServerSecureUnexportIN,
-					  PVRSRV_BRIDGE_OUT_SYNCPRIMSERVERSECUREUNEXPORT *psSyncPrimServerSecureUnexportOUT,
-					 CONNECTION_DATA *psConnection)
+					 PVRSRV_BRIDGE_IN_SYNCPRIMSERVERSECUREUNEXPORT
+					 * psSyncPrimServerSecureUnexportIN,
+					 PVRSRV_BRIDGE_OUT_SYNCPRIMSERVERSECUREUNEXPORT
+					 * psSyncPrimServerSecureUnexportOUT,
+					 CONNECTION_DATA * psConnection)
 {
-
-
-
-
-
-
-
-
 
 	/* Lock over handle destruction. */
 	LockHandle();
 
-
-
-
-
 	psSyncPrimServerSecureUnexportOUT->eError =
-		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-					(IMG_HANDLE) psSyncPrimServerSecureUnexportIN->hExport,
+	    PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					(IMG_HANDLE)
+					psSyncPrimServerSecureUnexportIN->
+					hExport,
 					PVRSRV_HANDLE_TYPE_SERVER_SYNC_EXPORT);
-	if ((psSyncPrimServerSecureUnexportOUT->eError != PVRSRV_OK) &&
-	    (psSyncPrimServerSecureUnexportOUT->eError != PVRSRV_ERROR_RETRY))
+	if ((psSyncPrimServerSecureUnexportOUT->eError != PVRSRV_OK)
+	    && (psSyncPrimServerSecureUnexportOUT->eError !=
+		PVRSRV_ERROR_RETRY))
 	{
 		PVR_DPF((PVR_DBG_ERROR,
-		        "PVRSRVBridgeSyncPrimServerSecureUnexport: %s",
-		        PVRSRVGetErrorStringKM(psSyncPrimServerSecureUnexportOUT->eError)));
+			 "PVRSRVBridgeSyncPrimServerSecureUnexport: %s",
+			 PVRSRVGetErrorStringKM
+			 (psSyncPrimServerSecureUnexportOUT->eError)));
 		UnlockHandle();
 		goto SyncPrimServerSecureUnexport_exit;
 	}
@@ -203,39 +168,30 @@ PVRSRVBridgeSyncPrimServerSecureUnexport(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have destroyed handles. */
 	UnlockHandle();
 
-
-
-SyncPrimServerSecureUnexport_exit:
-
-
-
+ SyncPrimServerSecureUnexport_exit:
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeSyncPrimServerSecureImport(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_SYNCPRIMSERVERSECUREIMPORT *psSyncPrimServerSecureImportIN,
-					  PVRSRV_BRIDGE_OUT_SYNCPRIMSERVERSECUREIMPORT *psSyncPrimServerSecureImportOUT,
-					 CONNECTION_DATA *psConnection)
+				       PVRSRV_BRIDGE_IN_SYNCPRIMSERVERSECUREIMPORT
+				       * psSyncPrimServerSecureImportIN,
+				       PVRSRV_BRIDGE_OUT_SYNCPRIMSERVERSECUREIMPORT
+				       * psSyncPrimServerSecureImportOUT,
+				       CONNECTION_DATA * psConnection)
 {
-	SERVER_SYNC_PRIMITIVE * psSyncHandleInt = NULL;
-
-
-
-
-
-
-
+	SERVER_SYNC_PRIMITIVE *psSyncHandleInt = NULL;
 
 	psSyncPrimServerSecureImportOUT->eError =
-		PVRSRVSyncPrimServerSecureImportKM(psConnection, OSGetDevData(psConnection),
-					psSyncPrimServerSecureImportIN->Export,
-					&psSyncHandleInt,
-					&psSyncPrimServerSecureImportOUT->ui32SyncPrimVAddr);
+	    PVRSRVSyncPrimServerSecureImportKM(psConnection,
+					       OSGetDevData(psConnection),
+					       psSyncPrimServerSecureImportIN->
+					       Export, &psSyncHandleInt,
+					       &psSyncPrimServerSecureImportOUT->
+					       ui32SyncPrimVAddr);
 	/* Exit early if bridged call fails */
-	if(psSyncPrimServerSecureImportOUT->eError != PVRSRV_OK)
+	if (psSyncPrimServerSecureImportOUT->eError != PVRSRV_OK)
 	{
 		goto SyncPrimServerSecureImport_exit;
 	}
@@ -243,17 +199,14 @@ PVRSRVBridgeSyncPrimServerSecureImport(IMG_UINT32 ui32DispatchTableEntry,
 	/* Lock over handle creation. */
 	LockHandle();
 
-
-
-
-
-	psSyncPrimServerSecureImportOUT->eError = PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-
-							&psSyncPrimServerSecureImportOUT->hSyncHandle,
-							(void *) psSyncHandleInt,
-							PVRSRV_HANDLE_TYPE_SERVER_SYNC_PRIMITIVE,
-							PVRSRV_HANDLE_ALLOC_FLAG_MULTI
-							,(PFN_HANDLE_RELEASE)&PVRSRVServerSyncFreeKM);
+	psSyncPrimServerSecureImportOUT->eError =
+	    PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
+				      &psSyncPrimServerSecureImportOUT->
+				      hSyncHandle, (void *)psSyncHandleInt,
+				      PVRSRV_HANDLE_TYPE_SERVER_SYNC_PRIMITIVE,
+				      PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+				      (PFN_HANDLE_RELEASE) &
+				      PVRSRVServerSyncFreeKM);
 	if (psSyncPrimServerSecureImportOUT->eError != PVRSRV_OK)
 	{
 		UnlockHandle();
@@ -263,11 +216,7 @@ PVRSRVBridgeSyncPrimServerSecureImport(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have created handles. */
 	UnlockHandle();
 
-
-
-SyncPrimServerSecureImport_exit:
-
-
+ SyncPrimServerSecureImport_exit:
 
 	if (psSyncPrimServerSecureImportOUT->eError != PVRSRV_OK)
 	{
@@ -277,12 +226,8 @@ SyncPrimServerSecureImport_exit:
 		}
 	}
 
-
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -299,15 +244,20 @@ PVRSRV_ERROR DeinitSYNCSEXPORTBridge(void);
 PVRSRV_ERROR InitSYNCSEXPORTBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT, PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREEXPORT, PVRSRVBridgeSyncPrimServerSecureExport,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT,
+			      PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREEXPORT,
+			      PVRSRVBridgeSyncPrimServerSecureExport, NULL,
+			      bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT, PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREUNEXPORT, PVRSRVBridgeSyncPrimServerSecureUnexport,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT,
+			      PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREUNEXPORT,
+			      PVRSRVBridgeSyncPrimServerSecureUnexport, NULL,
+			      bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT, PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREIMPORT, PVRSRVBridgeSyncPrimServerSecureImport,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT,
+			      PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREIMPORT,
+			      PVRSRVBridgeSyncPrimServerSecureImport, NULL,
+			      bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -318,13 +268,14 @@ PVRSRV_ERROR InitSYNCSEXPORTBridge(void)
 PVRSRV_ERROR DeinitSYNCSEXPORTBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT, PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREEXPORT);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT,
+				PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREEXPORT);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT, PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREUNEXPORT);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT,
+				PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREUNEXPORT);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT, PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREIMPORT);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCSEXPORT,
+				PVRSRV_BRIDGE_SYNCSEXPORT_SYNCPRIMSERVERSECUREIMPORT);
 
 	return PVRSRV_OK;
 }

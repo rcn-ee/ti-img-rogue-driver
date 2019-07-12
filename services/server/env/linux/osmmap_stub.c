@@ -100,7 +100,8 @@ OSMMapPMR(IMG_HANDLE hBridge,
     *ppvMappingAddressOut = pvKernelAddress;
     *puiMappingLengthOut = uiLength;
 
-    PVR_ASSERT(*puiMappingLengthOut == uiPMRSize);
+    /* MappingLength might be rounded up to page size */
+    PVR_ASSERT(*puiMappingLengthOut >= uiPMRSize);
 
     return PVRSRV_OK;
 

@@ -39,16 +39,14 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCORE_KM_22_40_54_30_H_
-#define _RGXCORE_KM_22_40_54_30_H_
+#ifndef RGXCORE_KM_22_40_54_30_H
+#define RGXCORE_KM_22_40_54_30_H
 
-/***** Automatically generated file (20/08/2018 09:01:57): Do not edit manually ********************/
-/***** Timestamp:  (20/08/2018 09:01:57)************************************************************/
-/***** CS: @4094817 ******************************************************************/
-
+/* Automatically generated file (10/12/2018 09:01:18): Do not edit manually */
+/* CS: @4094817 */
 
 /******************************************************************************
- * BVNC = 22.40.54.30 
+ * BVNC = 22.40.54.30
  *****************************************************************************/
 #define RGX_BVNC_KM_B 22
 #define RGX_BVNC_KM_V 40
@@ -56,7 +54,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_BVNC_KM_C 30
 
 /******************************************************************************
- * Errata 
+ * Errata
  *****************************************************************************/
 
 #define FIX_HW_BRN_43276
@@ -65,13 +63,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define FIX_HW_BRN_61450
 #define FIX_HW_BRN_63027
 #define FIX_HW_BRN_63553
+#define FIX_HW_BRN_65168
 #define FIX_HW_BRN_65273
 #define FIX_HW_BRN_67349
 
 
- 
+
 /******************************************************************************
- * Enhancements 
+ * Enhancements
  *****************************************************************************/
 #define HW_ERN_36400
 #define HW_ERN_42606
@@ -79,4 +78,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-#endif /* _RGXCORE_KM_22_40_54_30_H_ */
+#endif /* RGXCORE_KM_22_40_54_30_H */

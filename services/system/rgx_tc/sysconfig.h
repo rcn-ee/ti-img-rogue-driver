@@ -407,6 +407,7 @@ static PVRSRV_DEVICE_CONFIG gsDevices[] =
 
 		.pfnPrePowerState	= NULL,
 		.pfnPostPowerState	= NULL,
+		.bHasFBCDCVersion31	= IMG_FALSE,
 
 		.pfnClockFreqGet	= NULL,
 		

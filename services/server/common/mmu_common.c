@@ -1133,7 +1133,7 @@ static INLINE PVRSRV_ERROR _SetupPTE(MMU_CONTEXT *psMMUContext,
 
 			if (RGXMIPSFW_SENSITIVE_ADDR(uiAddr))
 			{
-				uiAddr = psDevice->sTrampoline.sPhysAddr.uiAddr + RGXMIPSFW_TRAMPOLINE_OFFSET(uiAddr);
+				uiAddr = psDevice->psTrampoline->sPhysAddr.uiAddr + RGXMIPSFW_TRAMPOLINE_OFFSET(uiAddr);
 			}
 			/* FIX_HW_BRN_63553 is mainlined for all MIPS cores */
 			else if (uiAddr == 0x0 && !psDevice->sLayerParams.bDevicePA0IsValid)
@@ -2129,11 +2129,14 @@ static void _FreePageTables(MMU_CONTEXT *psMMUContext,
 	        HTBLOG_U64_BITS_HIGH(sDevVAddrStart.uiAddr), HTBLOG_U64_BITS_LOW(sDevVAddrStart.uiAddr),
 	        HTBLOG_U64_BITS_HIGH(sDevVAddrEnd.uiAddr), HTBLOG_U64_BITS_LOW(sDevVAddrEnd.uiAddr));
 
-	_MMU_FreeLevel(psMMUContext, &psMMUContext->sBaseLevelInfo,
-	               auiStartArray, auiEndArray, auiEntriesPerPx,
-	               apsConfig, aeMMULevel, &ui32CurrentLevel,
-	               auiStartArray[0], auiEndArray[0],
-	               IMG_TRUE, IMG_TRUE, uiLog2DataPageSize);
+	/* ignoring return code, in this case there should be no references
+	 * to the level anymore, and at this stage there is nothing to do with
+	 * the return status */
+	(void) _MMU_FreeLevel(psMMUContext, &psMMUContext->sBaseLevelInfo,
+	                      auiStartArray, auiEndArray, auiEntriesPerPx,
+	                      apsConfig, aeMMULevel, &ui32CurrentLevel,
+	                      auiStartArray[0], auiEndArray[0],
+	                      IMG_TRUE, IMG_TRUE, uiLog2DataPageSize);
 
 	_MMU_PutLevelData(psMMUContext, hPriv);
 }
@@ -2709,7 +2712,7 @@ MMU_MapPages(MMU_CONTEXT *psMMUContext,
 	IMG_UINT32 uiPageSize = (1 << uiLog2HeapPageSize);
 	IMG_UINT32 uiLoop = 0;
 	IMG_UINT32 ui32MappedCount = 0;
-	IMG_UINT32 uiPgOffset = 0;
+	IMG_DEVMEM_OFFSET_T uiPgOffset = 0;
 	IMG_UINT32 uiFlushEnd = 0, uiFlushStart = 0;
 
 	IMG_UINT64 uiProtFlags = 0;
@@ -2935,7 +2938,15 @@ MMU_MapPages(MMU_CONTEXT *psMMUContext,
 
 			if (psPrevLevel == psLevel)
 			{
-				uiFlushEnd = uiPTEIndex;
+				/*
+				 * Sparse allocations may have page offsets which
+				 * decrement as well as increment, so make sure we
+				 * update the range we will flush correctly.
+				 */
+				if (uiPTEIndex > uiFlushEnd)
+					uiFlushEnd = uiPTEIndex;
+				else if (uiPTEIndex < uiFlushStart)
+					uiFlushStart = uiPTEIndex;
 			}
 			else
 			{
@@ -2982,7 +2993,8 @@ MMU_MapPages(MMU_CONTEXT *psMMUContext,
 			{
 				PVR_ASSERT(psLevel->ui32RefCount <= psLevel->ui32NumOfEntries);
 				PVR_DPF ((PVR_DBG_MESSAGE,
-						"%s: devVAddr=" IMG_DEV_VIRTADDR_FMTSPEC ", size=0x%x",
+						"%s: devVAddr=" IMG_DEV_VIRTADDR_FMTSPEC ", "
+						"size=" IMG_DEVMEM_OFFSET_FMTSPEC,
 						__func__,
 						sDevVAddr.uiAddr,
 						uiPgOffset * uiPageSize));
@@ -3115,7 +3127,7 @@ MMU_UnmapPages (MMU_CONTEXT *psMMUContext,
 		{
 			/*Calculate the Device Virtual Address of the page */
 			sDevVAddr.uiAddr = sDevVAddrBase.uiAddr +
-					pai32FreeIndices[ui32Loop] * uiPageSize;
+					pai32FreeIndices[ui32Loop] * (IMG_UINT64) uiPageSize;
 		}
 
 		psPrevLevel = psLevel;
@@ -3125,7 +3137,15 @@ MMU_UnmapPages (MMU_CONTEXT *psMMUContext,
 
 		if (psPrevLevel == psLevel)
 		{
-			uiFlushEnd = uiPTEIndex;
+			/*
+			 * Sparse allocations may have page offsets which
+			 * decrement as well as increment, so make sure we
+			 * update the range we will flush correctly.
+			 */
+			if (uiPTEIndex > uiFlushEnd)
+				uiFlushEnd = uiPTEIndex;
+			else if (uiPTEIndex < uiFlushStart)
+				uiFlushStart = uiPTEIndex;
 		}
 		else
 		{
@@ -3256,7 +3276,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 		{
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate PMR device PFN list"));
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-			goto e0;
+			goto return_error;
 		}
 
 		pbValid = OSAllocMem(uiCount * sizeof(IMG_BOOL));
@@ -3266,7 +3286,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate PMR device PFN state"));
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 			OSFreeMem(psDevPAddr);
-			goto e0;
+			goto free_paddr_array;
 		}
 	}
 	else
@@ -3285,7 +3305,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 	                                 psMMUContext);
 	if (eError != PVRSRV_OK)
 	{
-		goto e1;
+		goto put_mmu_context;
 	}
 
 	/* Callback to get device specific protection flags */
@@ -3302,7 +3322,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 	{
 		PVR_DPF((PVR_DBG_ERROR,"%s: The page table entry byte length is not supported", __func__));
 		eError = PVRSRV_ERROR_MMU_CONFIG_IS_WRONG;
-		goto e1;
+		goto put_mmu_context;
 	}
 
 
@@ -3319,7 +3339,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 	                         pbValid);
 	if (eError != PVRSRV_OK)
 	{
-		goto e1;
+		goto put_mmu_context;
 	}
 
 	OSLockAcquire(psMMUContext->hLock);
@@ -3349,7 +3369,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 					PVR_ASSERT(ui32BitLength <= i32FeatureVal );
 					eError = PVRSRV_ERROR_INVALID_PARAMS;
 					OSLockRelease(psMMUContext->hLock);
-					goto e1;
+					goto put_mmu_context;
 				}
 			}while(0);
 		}
@@ -3382,7 +3402,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 #endif /*PDUMP*/
 		                   uiProtFlags);
 		if (eError != PVRSRV_OK)
-			goto e2;
+			goto unlock_mmu_context;
 
 		sDevVAddr.uiAddr += uiPageSize;
 		uiCount += uiPageSize;
@@ -3399,7 +3419,7 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 			                                                uiFlushStart * psConfig->uiBytesPerEntry + psLevel->sMemDesc.uiOffset,
 			                                                (uiPTEIndex+1 - uiFlushStart) * psConfig->uiBytesPerEntry);
 			if (eError != PVRSRV_OK)
-				goto e2;
+				goto unlock_mmu_context;
 
 
 			_MMU_GetPTInfo(psMMUContext, sDevVAddr, psDevVAddrConfig,
@@ -3431,21 +3451,27 @@ MMU_MapPMRFast (MMU_CONTEXT *psMMUContext,
 
 	return PVRSRV_OK;
 
-	e2:
+unlock_mmu_context:
 	OSLockRelease(psMMUContext->hLock);
 	MMU_UnmapPMRFast(psMMUContext,
 	                 sDevVAddrBase,
 	                 uiSizeBytes >> uiLog2HeapPageSize,
 	                 uiLog2HeapPageSize);
-	e1:
+put_mmu_context:
 	_MMU_PutPTConfig(psMMUContext, hPriv);
 
-	if (psDevPAddr != asDevPAddr)
+	if (pbValid != abValid)
 	{
 		OSFreeMem(pbValid);
+	}
+
+free_paddr_array:
+	if (psDevPAddr != asDevPAddr)
+	{
 		OSFreeMem(psDevPAddr);
 	}
-	e0:
+
+return_error:
 	PVR_ASSERT(eError == PVRSRV_OK);
 	return eError;
 }
@@ -3665,7 +3691,7 @@ MMU_ChangeValidity(MMU_CONTEXT *psMMUContext,
 		if (bMakeValid == IMG_TRUE)
 		{
 			/* Only set valid if physical address exists (sparse allocs might have none)*/
-			eError = PMR_IsOffsetValid(psPMR, uiLog2PageSize, 1, i<<uiLog2PageSize, &bValid);
+			eError = PMR_IsOffsetValid(psPMR, uiLog2PageSize, 1, (IMG_DEVMEM_OFFSET_T) i << uiLog2PageSize, &bValid);
 			if (eError != PVRSRV_OK)
 			{
 				PVR_DPF((PVR_DBG_ERROR, "Cannot determine validity of page table entries page"));
@@ -3780,7 +3806,10 @@ PVRSRV_ERROR
 MMU_AcquireBaseAddr(MMU_CONTEXT *psMMUContext, IMG_DEV_PHYADDR *psPhysAddr)
 {
 	if (!psMMUContext)
+	{
+		psPhysAddr->uiAddr = 0;
 		return PVRSRV_ERROR_INVALID_PARAMS;
+	}
 
 	*psPhysAddr = psMMUContext->sBaseLevelInfo.sMemDesc.sDevPAddr;
 	return PVRSRV_OK;
@@ -4089,7 +4118,7 @@ IMG_BOOL MMU_IsVDevAddrValid(MMU_CONTEXT *psMMUContext,
 	MMU_Levelx_INFO *psLevel = NULL;
 	const MMU_PxE_CONFIG *psConfig;
 	const MMU_DEVVADDR_CONFIG *psDevVAddrConfig;
-	IMG_HANDLE hPriv;
+	IMG_HANDLE hPriv = NULL;
 	IMG_UINT32 uiIndex = 0;
 	IMG_BOOL bStatus = IMG_FALSE;
 

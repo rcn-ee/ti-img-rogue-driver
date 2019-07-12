@@ -224,6 +224,9 @@ struct _PVRSRV_DEVICE_CONFIG_
 
 	IMG_BOOL bHasNonMappableLocalMemory;
 
+	/*! Indicates if system supports FBCDC v3.1 */
+	IMG_BOOL bHasFBCDCVersion31;
+
 	PHYS_HEAP_CONFIG *pasPhysHeaps;
 	IMG_UINT32 ui32PhysHeapCount;
 

@@ -580,7 +580,32 @@ static INLINE IMG_BOOL RGXHWPerfIsInitRequired(PVRSRV_RGXDEV_INFO *psRgxDevInfo)
 #endif
 	return IMG_FALSE;
 }
+#if !defined(NO_HARDWARE)
+static void _HWPerfFWOnReaderOpenCB(void *pvArg)
+{
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	PVRSRV_RGXDEV_INFO* psRgxDevInfo = (PVRSRV_RGXDEV_INFO*) pvArg;
+	PVRSRV_DEVICE_NODE* psDevNode = (PVRSRV_DEVICE_NODE*) psRgxDevInfo->psDeviceNode;
+	RGXFWIF_KCCB_CMD sKccbCmd;
 
+	sKccbCmd.eCmdType = RGXFWIF_KCCB_CMD_HWPERF_BVNC_FEATURES;
+
+	eError = RGXScheduleCommand(psDevNode->pvDevice, RGXFWIF_DM_GP,
+		                        &sKccbCmd, sizeof(sKccbCmd), 0, PDUMP_FLAGS_CONTINUOUS);
+
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to generate feature packet in "
+				"firmware (error = %d)", __func__, eError));
+		return;
+	}
+
+	eError = RGXWaitForFWOp(psDevNode->pvDevice, RGXFWIF_DM_GP,
+		                    psDevNode->psSyncPrim, PDUMP_FLAGS_CONTINUOUS);
+	PVR_LOGRN_IF_ERROR(eError, "RGXWaitForFWOp");
+
+}
+#endif
 /*************************************************************************/ /*!
 @Function       RGXHWPerfInitOnDemandResources
 
@@ -684,7 +709,7 @@ PVRSRV_ERROR RGXHWPerfInitOnDemandResources(PVRSRV_RGXDEV_INFO* psRgxDevInfo)
 	                        pszHWPerfStreamName,
 	                        ui32L2BufferSize,
 	                        TL_OPMODE_DROP_NEWER | TL_FLAG_NO_SIGNAL_ON_COMMIT,
-	                        NULL, NULL,
+							_HWPerfFWOnReaderOpenCB, psRgxDevInfo,
 #if !defined(SUPPORT_TL_PRODUCER_CALLBACK)
 	                        NULL, NULL
 #else
@@ -1240,11 +1265,14 @@ PVRSRV_ERROR PVRSRVRGXConfigEnableHWPerfCountersKM(
 
 	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_GUEST, PVRSRV_ERROR_NOT_IMPLEMENTED);
 
+	PVR_LOGR_IF_FALSE(ui32ArrayLen > 0, "ui32ArrayLen is 0",
+	                  PVRSRV_ERROR_INVALID_PARAMS);
+	PVR_LOGR_IF_FALSE(psBlockConfigs != NULL, "psBlockConfigs is NULL",
+	                  PVRSRV_ERROR_INVALID_PARAMS);
+
 	PVR_DPF_ENTERED;
 
 	PVR_ASSERT(psDeviceNode);
-	PVR_ASSERT(ui32ArrayLen>0);
-	PVR_ASSERT(psBlockConfigs);
 
 	/* Fill in the command structure with the parameters needed
 	 */
@@ -2352,14 +2380,18 @@ static inline void _SetupHostAllocPacketData(IMG_UINT8 *pui8Dest,
 	}
 
 
-	if (ui32NameSize)
+	if (acName != NULL)
 	{
-		OSStringLCopy(acName, psName, ui32NameSize);
-	}
-	else
-	{
-		/* In case no name was given make sure we don't access random memory */
-		acName[0] = '\0';
+		if (ui32NameSize)
+		{
+			OSStringLCopy(acName, psName, ui32NameSize);
+		}
+		else
+		{
+			/* In case no name was given make sure we don't access random
+			 * memory */
+			acName[0] = '\0';
+		}
 	}
 }
 
@@ -2546,14 +2578,18 @@ static inline void _SetupHostModifyPacketData(IMG_UINT8 *pui8Dest,
 			PVR_ASSERT(IMG_FALSE);
 	}
 
-	if (ui32NameSize)
+	if (acName != NULL)
 	{
-		OSStringLCopy(acName, psName, ui32NameSize);
-	}
-	else
-	{
-		/* In case no name was given make sure we don't access random memory */
-		acName[0] = '\0';
+		if (ui32NameSize)
+		{
+			OSStringLCopy(acName, psName, ui32NameSize);
+		}
+		else
+		{
+			/* In case no name was given make sure we don't access random
+			 * memory */
+			acName[0] = '\0';
+		}
 	}
 }
 

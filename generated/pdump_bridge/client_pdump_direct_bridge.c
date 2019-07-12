@@ -51,116 +51,133 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "devicemem_server.h"
 #include "pdump_km.h"
 
-
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeDevmemPDumpBitmap(IMG_HANDLE hBridge,
-							       IMG_CHAR *puiFileName,
-							       IMG_UINT32 ui32FileOffset,
-							       IMG_UINT32 ui32Width,
-							       IMG_UINT32 ui32Height,
-							       IMG_UINT32 ui32StrideInBytes,
-							       IMG_DEV_VIRTADDR sDevBaseAddr,
-							       IMG_HANDLE hDevmemCtx,
-							       IMG_UINT32 ui32Size,
-							       PDUMP_PIXEL_FORMAT ePixelFormat,
-							       IMG_UINT32 ui32AddrMode,
-							       IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeDevmemPDumpBitmap(IMG_HANDLE
+							       hBridge,
+							       IMG_CHAR *
+							       puiFileName,
+							       IMG_UINT32
+							       ui32FileOffset,
+							       IMG_UINT32
+							       ui32Width,
+							       IMG_UINT32
+							       ui32Height,
+							       IMG_UINT32
+							       ui32StrideInBytes,
+							       IMG_DEV_VIRTADDR
+							       sDevBaseAddr,
+							       IMG_HANDLE
+							       hDevmemCtx,
+							       IMG_UINT32
+							       ui32Size,
+							       PDUMP_PIXEL_FORMAT
+							       ePixelFormat,
+							       IMG_UINT32
+							       ui32AddrMode,
+							       IMG_UINT32
+							       ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
-	DEVMEMINT_CTX * psDevmemCtxInt;
+	DEVMEMINT_CTX *psDevmemCtxInt;
 
 	psDevmemCtxInt = (DEVMEMINT_CTX *) hDevmemCtx;
 
 	eError =
-		DevmemIntPDumpBitmap(NULL, (PVRSRV_DEVICE_NODE *)((void*) hBridge)
-		,
-					puiFileName,
-					ui32FileOffset,
-					ui32Width,
-					ui32Height,
-					ui32StrideInBytes,
-					sDevBaseAddr,
-					psDevmemCtxInt,
-					ui32Size,
-					ePixelFormat,
-					ui32AddrMode,
-					ui32PDumpFlags);
+	    DevmemIntPDumpBitmap(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
+				 puiFileName,
+				 ui32FileOffset,
+				 ui32Width,
+				 ui32Height,
+				 ui32StrideInBytes,
+				 sDevBaseAddr,
+				 psDevmemCtxInt,
+				 ui32Size,
+				 ePixelFormat, ui32AddrMode, ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpImageDescriptor(IMG_HANDLE hBridge,
-								  IMG_HANDLE hDevmemCtx,
-								  IMG_UINT32 ui32StringSize,
-								  const IMG_CHAR *puiFileName,
-								  IMG_DEV_VIRTADDR sDataDevAddr,
-								  IMG_UINT32 ui32DataSize,
-								  IMG_UINT32 ui32LogicalWidth,
-								  IMG_UINT32 ui32LogicalHeight,
-								  IMG_UINT32 ui32PhysicalWidth,
-								  IMG_UINT32 ui32PhysicalHeight,
-								  PDUMP_PIXEL_FORMAT ePixelFormat,
-								  IMG_MEMLAYOUT eMemLayout,
-								  IMG_FB_COMPRESSION eFBCompression,
-								  const IMG_UINT32 *pui32FBCClearColour,
-								  IMG_DEV_VIRTADDR sHeaderDevAddr,
-								  IMG_UINT32 ui32HeaderSize,
-								  IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpImageDescriptor(IMG_HANDLE
+								  hBridge,
+								  IMG_HANDLE
+								  hDevmemCtx,
+								  IMG_UINT32
+								  ui32StringSize,
+								  const IMG_CHAR
+								  * puiFileName,
+								  IMG_DEV_VIRTADDR
+								  sDataDevAddr,
+								  IMG_UINT32
+								  ui32DataSize,
+								  IMG_UINT32
+								  ui32LogicalWidth,
+								  IMG_UINT32
+								  ui32LogicalHeight,
+								  IMG_UINT32
+								  ui32PhysicalWidth,
+								  IMG_UINT32
+								  ui32PhysicalHeight,
+								  PDUMP_PIXEL_FORMAT
+								  ePixelFormat,
+								  IMG_MEMLAYOUT
+								  eMemLayout,
+								  IMG_FB_COMPRESSION
+								  eFBCompression,
+								  const
+								  IMG_UINT32 *
+								  pui32FBCClearColour,
+								  IMG_DEV_VIRTADDR
+								  sHeaderDevAddr,
+								  IMG_UINT32
+								  ui32HeaderSize,
+								  IMG_UINT32
+								  ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
-	DEVMEMINT_CTX * psDevmemCtxInt;
+	DEVMEMINT_CTX *psDevmemCtxInt;
 
 	psDevmemCtxInt = (DEVMEMINT_CTX *) hDevmemCtx;
 
 	eError =
-		DevmemIntPdumpImageDescriptor(NULL, (PVRSRV_DEVICE_NODE *)((void*) hBridge)
-		,
-					psDevmemCtxInt,
-					ui32StringSize,
-					puiFileName,
-					sDataDevAddr,
-					ui32DataSize,
-					ui32LogicalWidth,
-					ui32LogicalHeight,
-					ui32PhysicalWidth,
-					ui32PhysicalHeight,
-					ePixelFormat,
-					eMemLayout,
-					eFBCompression,
-					pui32FBCClearColour,
-					sHeaderDevAddr,
-					ui32HeaderSize,
-					ui32PDumpFlags);
+	    DevmemIntPdumpImageDescriptor(NULL,
+					  (PVRSRV_DEVICE_NODE *) ((void *)
+								  hBridge),
+					  psDevmemCtxInt, ui32StringSize,
+					  puiFileName, sDataDevAddr,
+					  ui32DataSize, ui32LogicalWidth,
+					  ui32LogicalHeight, ui32PhysicalWidth,
+					  ui32PhysicalHeight, ePixelFormat,
+					  eMemLayout, eFBCompression,
+					  pui32FBCClearColour, sHeaderDevAddr,
+					  ui32HeaderSize, ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpComment(IMG_HANDLE hBridge,
-								IMG_CHAR *puiComment,
-								IMG_UINT32 ui32Flags)
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpComment(IMG_HANDLE
+								hBridge,
+								IMG_CHAR *
+								puiComment,
+								IMG_UINT32
+								ui32Flags)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-
-	eError =
-		PDumpCommentKM(
-					puiComment,
-					ui32Flags);
+	eError = PDumpCommentKM(puiComment, ui32Flags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpSetFrame(IMG_HANDLE hBridge,
-								 IMG_UINT32 ui32Frame)
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpSetFrame(IMG_HANDLE
+								 hBridge,
+								 IMG_UINT32
+								 ui32Frame)
 {
 	PVRSRV_ERROR eError;
 
-
 	eError =
-		PDumpSetFrameKM(NULL, (PVRSRV_DEVICE_NODE *)((void*) hBridge)
-		,
-					ui32Frame);
+	    PDumpSetFrameKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
+			    ui32Frame);
 
 	return eError;
 }
-

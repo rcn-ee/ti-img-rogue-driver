@@ -122,6 +122,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGXFW_NUM_OS 1
 #endif
 
+#define RGXFW_MAX_NUM_OS                                  (8U)
+#define RGXFW_HYPERVISOR_OS                               (0U)
+#define RGXFW_GUEST_OSID_START                            (1U)
+
+#define RGXFW_THREAD_0                                    (0U)
+#define RGXFW_THREAD_1                                    (1U)
+
 /* META cores (required for the RGX_FEATURE_META) */
 #define MTP218   (1)
 #define MTP219   (2)
@@ -265,8 +272,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Guest sub-heap order: CONFIG + MAIN */
 #define RGX_FIRMWARE_GUEST_CONFIG_HEAP_BASE			RGX_FIRMWARE_RAW_HEAP_BASE
 #define RGX_FIRMWARE_GUEST_MAIN_HEAP_BASE			(RGX_FIRMWARE_GUEST_CONFIG_HEAP_BASE + RGX_FIRMWARE_CONFIG_HEAP_SIZE)
-
-#define RGXFW_GUEST_OSID_START 1
 
 /******************************************************************************
  * WA HWBRNs

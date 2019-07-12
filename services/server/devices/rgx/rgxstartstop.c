@@ -284,6 +284,11 @@ static void RGXInitMipsProcWrapper(const void *hPrivate)
 	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_TRUSTED_CLRMSK;
 #endif
 
+#if defined(MIPS_FW_CODE_OSID)
+	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_OS_ID_CLRMSK;
+	ui64RemapSettings |= MIPS_FW_CODE_OSID << RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_OS_ID_SHIFT;
+#endif
+
 	RGXCommentLog(hPrivate, "RGXStart: Write boot remap registers");
 	RGXBootRemapConfig(hPrivate,
 	                   RGX_CR_MIPS_ADDR_REMAP1_CONFIG1,
@@ -322,6 +327,10 @@ static void RGXInitMipsProcWrapper(const void *hPrivate)
 	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_TRUSTED_CLRMSK;
 #endif
 
+#if defined(MIPS_FW_CODE_OSID)
+	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_OS_ID_CLRMSK;
+#endif
+
 	RGXCommentLog(hPrivate, "RGXStart: Write data remap registers");
 	RGXDataRemapConfig(hPrivate,
 	                   RGX_CR_MIPS_ADDR_REMAP2_CONFIG1,
@@ -340,6 +349,11 @@ static void RGXInitMipsProcWrapper(const void *hPrivate)
 #if defined(SUPPORT_TRUSTED_DEVICE)
 	/* Do not mark accesses to a FW code remap region as DRM accesses */
 	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_TRUSTED_CLRMSK;
+#endif
+
+#if defined(MIPS_FW_CODE_OSID)
+	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_OS_ID_CLRMSK;
+	ui64RemapSettings |= MIPS_FW_CODE_OSID << RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_OS_ID_SHIFT;
 #endif
 
 	RGXCommentLog(hPrivate, "RGXStart: Write exceptions remap registers");
@@ -361,6 +375,10 @@ static void RGXInitMipsProcWrapper(const void *hPrivate)
 #if defined(SUPPORT_TRUSTED_DEVICE)
 	/* Remapped data in non-secure memory */
 	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_TRUSTED_CLRMSK;
+#endif
+
+#if defined(MIPS_FW_CODE_OSID)
+	ui64RemapSettings &= RGX_CR_MIPS_ADDR_REMAP1_CONFIG2_OS_ID_CLRMSK;
 #endif
 
 	RGXCommentLog(hPrivate, "RGXStart: Write trampoline remap registers");

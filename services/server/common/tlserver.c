@@ -567,36 +567,52 @@ TLServerAcquireDataKM(PTL_STREAM_DESC psSD,
 		else if (!(psSD->ui32Flags & PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING))
 		{ /* No data found blocking */
 
+			/* Instead of doing a complete sleep for `NO_DATA_WAIT_PERIOD` us, we sleep in chunks
+			 * of 200 ms. In a "deferred" signal scenario from writer, this gives us a chance to
+			 * wake-up (timeout) early and continue reading in-case some data is available */
+			IMG_UINT64 ui64WaitInChunksUs = MIN(NO_DATA_WAIT_PERIOD, 200000ULL);
+			IMG_BOOL bDataFound = IMG_FALSE;
+
 			TL_COUNTER_INC(psSD->ui32NoDataSleep);
 
-			eError = OSEventObjectWaitTimeout(psSD->hReadEvent, NO_DATA_WAIT_PERIOD);
-			if (eError == PVRSRV_OK)
-			{ /* Data present */
-
-				TL_COUNTER_INC(psSD->ui32Signalled);
-
-				continue; /* Acquire read position again */
-			}
-			else if (eError == PVRSRV_ERROR_TIMEOUT)
-			{ /* Timeout back to client if still no data, optimisation help reduce bridge calls */
-
-				if (TLStreamOutOfData(psNode->psStream))
+			LOOP_UNTIL_TIMEOUT(NO_DATA_WAIT_PERIOD)
+			{
+				eError = OSEventObjectWaitTimeout(psSD->hReadEvent, ui64WaitInChunksUs);
+				if (eError == PVRSRV_OK)
 				{
-					/* Return on timeout if stream empty, else let while exit and return data */
-					TL_COUNTER_INC(psSD->ui32TimeoutEmpty);
-					PVR_DPF_RETURN_RC(eError);
+					bDataFound = IMG_TRUE;
+					TL_COUNTER_INC(psSD->ui32Signalled);
+					break;
+				}
+				else if (eError == PVRSRV_ERROR_TIMEOUT)
+				{
+					if (TLStreamOutOfData(psNode->psStream))
+					{
+						continue;
+					}
+					else
+					{
+						bDataFound = IMG_TRUE;
+						TL_COUNTER_INC(psSD->ui32TimeoutData);
+						PVR_DPF((PVR_DBG_MESSAGE, "%s: Data found at timeout. Current BuffUt = %u",
+												 __func__, TLStreamGetUT(psNode->psStream))); 
+						break;
+					}
 				}
 				else
-				{
-					/* Data available, loop and repeat read procedure, to honour read limit/error path */
-					TL_COUNTER_INC(psSD->ui32TimeoutData);
-
-					continue; /* Acquire read position again */
+				{ /* Some other system error with event objects */
+					PVR_DPF_RETURN_RC(eError);
 				}
+			} END_LOOP_UNTIL_TIMEOUT();
+
+			if (bDataFound)
+			{
+				continue;
 			}
 			else
-			{ /* Some other system error with event objects */
-				PVR_DPF_RETURN_RC(eError);
+			{
+				TL_COUNTER_INC(psSD->ui32TimeoutEmpty);
+				return PVRSRV_ERROR_TIMEOUT;
 			}
 		}
 		else

@@ -95,6 +95,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "pvrsrv_error.h"
 
+/* Define for mapping INT32 to UINT32 for implementation that 
+ * use unsigned integers
+ * -2147483648 to -1 ---> 0 to +2147483647
+ * 0 to +2147483647  ---> +2147483648 to +4294967295 */
+#define MAP_UNSIGNED32_TO_SIGNED32(x)   ((x) - 0x80000000)
+#define MAP_SIGNED32_TO_UNSIGNED32(x)   ((x) + 0x80000000)
+
 /**************************************************************************/ /*!
 @Function       OSLockCreate
 @Description    Creates an operating system lock object.
@@ -189,8 +196,8 @@ IMG_BOOL OSLockIsLocked(POS_LOCK hLock);
 #if defined(LINUX)
 
 /* Use GCC intrinsics (read/write semantics consistent with kernel-side implementation) */
-#define OSAtomicRead(pCounter) (*(volatile int *)&(pCounter)->counter)
-#define OSAtomicWrite(pCounter, i) ((pCounter)->counter = (IMG_INT) i)
+#define OSAtomicRead(pCounter) (*(volatile IMG_INT32 *)&(pCounter)->counter)
+#define OSAtomicWrite(pCounter, i) ((pCounter)->counter = (IMG_INT32) i)
 #define OSAtomicIncrement(pCounter) __sync_add_and_fetch((&(pCounter)->counter), 1)
 #define OSAtomicDecrement(pCounter) __sync_sub_and_fetch((&(pCounter)->counter), 1)
 #define OSAtomicCompareExchange(pCounter, oldv, newv) \
@@ -198,9 +205,9 @@ IMG_BOOL OSLockIsLocked(POS_LOCK hLock);
 
 #define OSAtomicAdd(pCounter, incr) __sync_add_and_fetch((&(pCounter)->counter), incr)
 #define OSAtomicAddUnless(pCounter, incr, test) ({ \
-	int c; int old; \
+	IMG_INT32 c; IMG_INT32 old; \
 	c = OSAtomicRead(pCounter); \
-    while (1) { \
+	while (1) { \
 		if (c == (test)) break; \
 		old = OSAtomicCompareExchange(pCounter, c, c+(incr)); \
 		if (old == c) break; \
@@ -212,7 +219,6 @@ IMG_BOOL OSLockIsLocked(POS_LOCK hLock);
 
 #else
 
-/* These _may_ be reordered or optimized away entirely by the compiler/hw */
 /*************************************************************************/ /*!
 @Function       OSAtomicRead
 @Description    Read the value of a variable atomically.
@@ -223,7 +229,7 @@ IMG_BOOL OSLockIsLocked(POS_LOCK hLock);
 @Return         The value of the atomic variable
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicRead(const ATOMIC_T *pCounter);
+IMG_INT32 OSAtomicRead(const ATOMIC_T *pCounter);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicWrite
@@ -236,7 +242,7 @@ IMG_INT OSAtomicRead(const ATOMIC_T *pCounter);
 @Return         None
 */ /**************************************************************************/
 IMG_INTERNAL
-void OSAtomicWrite(ATOMIC_T *pCounter, IMG_INT v);
+void OSAtomicWrite(ATOMIC_T *pCounter, IMG_INT32 v);
 
 /* For the following atomic operations, in addition to being SMP-safe, 
    should also  have a memory barrier around each operation  */
@@ -250,7 +256,7 @@ void OSAtomicWrite(ATOMIC_T *pCounter, IMG_INT v);
 @Return         The new value of *pCounter.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicIncrement(ATOMIC_T *pCounter);
+IMG_INT32 OSAtomicIncrement(ATOMIC_T *pCounter);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicDecrement
@@ -262,7 +268,7 @@ IMG_INT OSAtomicIncrement(ATOMIC_T *pCounter);
 @Return         The new value of *pCounter.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicDecrement(ATOMIC_T *pCounter);
+IMG_INT32 OSAtomicDecrement(ATOMIC_T *pCounter);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicAdd
@@ -275,7 +281,7 @@ IMG_INT OSAtomicDecrement(ATOMIC_T *pCounter);
 @Return         The new value of *pCounter.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicAdd(ATOMIC_T *pCounter, IMG_INT v);
+IMG_INT32 OSAtomicAdd(ATOMIC_T *pCounter, IMG_INT32 v);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicAddUnless
@@ -291,7 +297,7 @@ IMG_INT OSAtomicAdd(ATOMIC_T *pCounter, IMG_INT v);
 @Return         The new value of *pCounter.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicAddUnless(ATOMIC_T *pCounter, IMG_INT v, IMG_INT t);
+IMG_INT32 OSAtomicAddUnless(ATOMIC_T *pCounter, IMG_INT32 v, IMG_INT32 t);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicSubtract
@@ -304,7 +310,7 @@ IMG_INT OSAtomicAddUnless(ATOMIC_T *pCounter, IMG_INT v, IMG_INT t);
 @Return         The new value of *pCounter.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicSubtract(ATOMIC_T *pCounter, IMG_INT v);
+IMG_INT32 OSAtomicSubtract(ATOMIC_T *pCounter, IMG_INT32 v);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicSubtractUnless
@@ -320,7 +326,7 @@ IMG_INT OSAtomicSubtract(ATOMIC_T *pCounter, IMG_INT v);
 @Return         The new value of *pCounter.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicSubtractUnless(ATOMIC_T *pCounter, IMG_INT v, IMG_INT t);
+IMG_INT32 OSAtomicSubtractUnless(ATOMIC_T *pCounter, IMG_INT32 v, IMG_INT32 t);
 
 /*************************************************************************/ /*!
 @Function       OSAtomicCompareExchange
@@ -338,7 +344,7 @@ IMG_INT OSAtomicSubtractUnless(ATOMIC_T *pCounter, IMG_INT v, IMG_INT t);
 @Return         The value of *pCounter after the function.
 */ /**************************************************************************/
 IMG_INTERNAL
-IMG_INT OSAtomicCompareExchange(ATOMIC_T *pCounter, IMG_INT oldv, IMG_INT newv);
+IMG_INT32 OSAtomicCompareExchange(ATOMIC_T *pCounter, IMG_INT32 oldv, IMG_INT32 newv);
 
 #endif /* defined(LINUX) */
 #endif /* defined(LINUX) && defined(__KERNEL__) */

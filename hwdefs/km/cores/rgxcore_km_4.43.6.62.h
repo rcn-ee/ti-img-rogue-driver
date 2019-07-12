@@ -39,16 +39,14 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef _RGXCORE_KM_4_43_6_62_H_
-#define _RGXCORE_KM_4_43_6_62_H_
+#ifndef RGXCORE_KM_4_43_6_62_H
+#define RGXCORE_KM_4_43_6_62_H
 
-/***** Automatically generated file (06/02/2017 07:01:06): Do not edit manually ********************/
-/***** Timestamp:  (06/02/2017 07:01:06)************************************************************/
-/***** CS: @3253129 ******************************************************************/
-
+/* Automatically generated file (10/12/2018 09:01:18): Do not edit manually */
+/* CS: @3253129 */
 
 /******************************************************************************
- * BVNC = 4.43.6.62 
+ * BVNC = 4.43.6.62
  *****************************************************************************/
 #define RGX_BVNC_KM_B 4
 #define RGX_BVNC_KM_V 43
@@ -56,7 +54,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_BVNC_KM_C 62
 
 /******************************************************************************
- * Errata 
+ * Errata
  *****************************************************************************/
 
 #define FIX_HW_BRN_50767
@@ -65,9 +63,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define FIX_HW_BRN_63142
 
 
- 
+
 /******************************************************************************
- * Enhancements 
+ * Enhancements
  *****************************************************************************/
 #define HW_ERN_36400
 #define HW_ERN_42290
@@ -75,4 +73,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 
 
-#endif /* _RGXCORE_KM_4_43_6_62_H_ */
+#endif /* RGXCORE_KM_4_43_6_62_H */

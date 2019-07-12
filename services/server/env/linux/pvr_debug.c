@@ -887,7 +887,7 @@ static IMG_INT PowerDataSet(const char __user *pcBuffer,
 		return -EIO;
 	}
 
-	if (uiCount > (sizeof(acDataBuffer) / sizeof(acDataBuffer[0])))
+	if (uiCount == 0 || uiCount > ARRAY_SIZE(acDataBuffer))
 	{
 		return -EINVAL;
 	}
@@ -1150,7 +1150,7 @@ static IMG_INT DebugStatusSet(const char __user *pcBuffer,
 		return -EIO;
 	}
 
-	if (uiCount > (sizeof(acDataBuffer) / sizeof(acDataBuffer[0])))
+	if (uiCount == 0 || uiCount > ARRAY_SIZE(acDataBuffer))
 	{
 		return -EINVAL;
 	}
@@ -1439,7 +1439,7 @@ static IMG_INT DebugLevelSet(const char __user *pcBuffer,
 		return -EIO;
 	}
 
-	if (uiCount > (sizeof(acDataBuffer) / sizeof(acDataBuffer[0])))
+	if (uiCount == 0 || uiCount > ARRAY_SIZE(acDataBuffer))
 	{
 		return -EINVAL;
 	}

@@ -333,6 +333,8 @@ PVRSRV_ERROR SysVzGetPhysHeapOrigin(PVRSRV_DEVICE_CONFIG *psDevConfig,
 	PVRSRV_ERROR eError;
 	VMM_PVZ_CONNECTION *psVmmPvz;
 
+	*peOrigin = PVRSRV_DEVICE_PHYS_HEAP_ORIGIN_LAST;
+
 	psVmmPvz = SysVzPvzConnectionAcquire();
 	PVR_ASSERT(psVmmPvz);
 
@@ -513,6 +515,15 @@ PVRSRV_ERROR SysVzPvzRegisterFwPhysHeap(IMG_UINT32 ui32OSID,
 											   sDevPAddr,
 											   ui64Size);
 		PVR_LOGG_IF_ERROR(eError, "RGXVzRegisterFirmwarePhysHeap", e0);
+
+		if (eError == PVRSRV_OK)
+		{
+			/* Invalidate MMU cache in preparation for a kick from this Guest */
+			IMG_UINT16 sync;
+			eError = psDeviceNode->pfnMMUCacheInvalidateKick(psDeviceNode,&sync,IMG_TRUE);
+			PVR_LOGG_IF_ERROR(eError, "SysVzGetPhysHeapOrigin failed to invalidate MMU cache", e0);
+
+		}
 	}
 #else
 	PVR_UNREFERENCED_PARAMETER(ui32OSID);

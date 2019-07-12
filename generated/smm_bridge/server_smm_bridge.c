@@ -48,7 +48,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pmr.h"
 #include "secure_export.h"
 
-
 #include "common_smm_bridge.h"
 
 #include "allocmem.h"
@@ -63,92 +62,64 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
-
-
-
-
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgePMRSecureExportPMR(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_PMRSECUREEXPORTPMR *psPMRSecureExportPMRIN,
-					  PVRSRV_BRIDGE_OUT_PMRSECUREEXPORTPMR *psPMRSecureExportPMROUT,
-					 CONNECTION_DATA *psConnection)
+			       PVRSRV_BRIDGE_IN_PMRSECUREEXPORTPMR *
+			       psPMRSecureExportPMRIN,
+			       PVRSRV_BRIDGE_OUT_PMRSECUREEXPORTPMR *
+			       psPMRSecureExportPMROUT,
+			       CONNECTION_DATA * psConnection)
 {
 	IMG_HANDLE hPMR = psPMRSecureExportPMRIN->hPMR;
-	PMR * psPMRInt = NULL;
-	PMR * psPMROutInt = NULL;
+	PMR *psPMRInt = NULL;
+	PMR *psPMROutInt = NULL;
 	CONNECTION_DATA *psSecureConnection;
-
-
-
-
-
-
 
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psPMRSecureExportPMROUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &psPMRInt,
-											hPMR,
-											PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-											IMG_TRUE);
-					if(psPMRSecureExportPMROUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto PMRSecureExportPMR_exit;
-					}
+	/* Look up the address from the handle */
+	psPMRSecureExportPMROUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&psPMRInt,
+				       hPMR,
+				       PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+				       IMG_TRUE);
+	if (psPMRSecureExportPMROUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto PMRSecureExportPMR_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psPMRSecureExportPMROUT->eError =
-		PMRSecureExportPMR(psConnection, OSGetDevData(psConnection),
-					psPMRInt,
-					&psPMRSecureExportPMROUT->Export,
-					&psPMROutInt, &psSecureConnection);
+	    PMRSecureExportPMR(psConnection, OSGetDevData(psConnection),
+			       psPMRInt,
+			       &psPMRSecureExportPMROUT->Export,
+			       &psPMROutInt, &psSecureConnection);
 	/* Exit early if bridged call fails */
-	if(psPMRSecureExportPMROUT->eError != PVRSRV_OK)
+	if (psPMRSecureExportPMROUT->eError != PVRSRV_OK)
 	{
 		goto PMRSecureExportPMR_exit;
 	}
 
-
-
-
-
-
-
-
-
-
-PMRSecureExportPMR_exit:
+ PMRSecureExportPMR_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(psPMRInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hPMR,
-										PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
-					}
+	/* Unreference the previously looked up handle */
+	if (psPMRInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hPMR,
+					    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
@@ -160,43 +131,33 @@ PMRSecureExportPMR_exit:
 		}
 	}
 
-
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgePMRSecureUnexportPMR(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_PMRSECUREUNEXPORTPMR *psPMRSecureUnexportPMRIN,
-					  PVRSRV_BRIDGE_OUT_PMRSECUREUNEXPORTPMR *psPMRSecureUnexportPMROUT,
-					 CONNECTION_DATA *psConnection)
+				 PVRSRV_BRIDGE_IN_PMRSECUREUNEXPORTPMR *
+				 psPMRSecureUnexportPMRIN,
+				 PVRSRV_BRIDGE_OUT_PMRSECUREUNEXPORTPMR *
+				 psPMRSecureUnexportPMROUT,
+				 CONNECTION_DATA * psConnection)
 {
-
-
-
-
-
-
-
-
 
 	/* Lock over handle destruction. */
 	LockHandle();
 
-
-
-
-
 	psPMRSecureUnexportPMROUT->eError =
-		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-					(IMG_HANDLE) psPMRSecureUnexportPMRIN->hPMR,
+	    PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					(IMG_HANDLE) psPMRSecureUnexportPMRIN->
+					hPMR,
 					PVRSRV_HANDLE_TYPE_PHYSMEM_PMR_SECURE_EXPORT);
-	if ((psPMRSecureUnexportPMROUT->eError != PVRSRV_OK) &&
-	    (psPMRSecureUnexportPMROUT->eError != PVRSRV_ERROR_RETRY))
+	if ((psPMRSecureUnexportPMROUT->eError != PVRSRV_OK)
+	    && (psPMRSecureUnexportPMROUT->eError != PVRSRV_ERROR_RETRY))
 	{
 		PVR_DPF((PVR_DBG_ERROR,
-		        "PVRSRVBridgePMRSecureUnexportPMR: %s",
-		        PVRSRVGetErrorStringKM(psPMRSecureUnexportPMROUT->eError)));
+			 "PVRSRVBridgePMRSecureUnexportPMR: %s",
+			 PVRSRVGetErrorStringKM(psPMRSecureUnexportPMROUT->
+						eError)));
 		UnlockHandle();
 		goto PMRSecureUnexportPMR_exit;
 	}
@@ -204,40 +165,29 @@ PVRSRVBridgePMRSecureUnexportPMR(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have destroyed handles. */
 	UnlockHandle();
 
-
-
-PMRSecureUnexportPMR_exit:
-
-
-
+ PMRSecureUnexportPMR_exit:
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgePMRSecureImportPMR(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_PMRSECUREIMPORTPMR *psPMRSecureImportPMRIN,
-					  PVRSRV_BRIDGE_OUT_PMRSECUREIMPORTPMR *psPMRSecureImportPMROUT,
-					 CONNECTION_DATA *psConnection)
+			       PVRSRV_BRIDGE_IN_PMRSECUREIMPORTPMR *
+			       psPMRSecureImportPMRIN,
+			       PVRSRV_BRIDGE_OUT_PMRSECUREIMPORTPMR *
+			       psPMRSecureImportPMROUT,
+			       CONNECTION_DATA * psConnection)
 {
-	PMR * psPMRInt = NULL;
-
-
-
-
-
-
-
+	PMR *psPMRInt = NULL;
 
 	psPMRSecureImportPMROUT->eError =
-		PMRSecureImportPMR(psConnection, OSGetDevData(psConnection),
-					psPMRSecureImportPMRIN->Export,
-					&psPMRInt,
-					&psPMRSecureImportPMROUT->uiSize,
-					&psPMRSecureImportPMROUT->sAlign);
+	    PMRSecureImportPMR(psConnection, OSGetDevData(psConnection),
+			       psPMRSecureImportPMRIN->Export,
+			       &psPMRInt,
+			       &psPMRSecureImportPMROUT->uiSize,
+			       &psPMRSecureImportPMROUT->sAlign);
 	/* Exit early if bridged call fails */
-	if(psPMRSecureImportPMROUT->eError != PVRSRV_OK)
+	if (psPMRSecureImportPMROUT->eError != PVRSRV_OK)
 	{
 		goto PMRSecureImportPMR_exit;
 	}
@@ -245,17 +195,13 @@ PVRSRVBridgePMRSecureImportPMR(IMG_UINT32 ui32DispatchTableEntry,
 	/* Lock over handle creation. */
 	LockHandle();
 
-
-
-
-
-	psPMRSecureImportPMROUT->eError = PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-
-							&psPMRSecureImportPMROUT->hPMR,
-							(void *) psPMRInt,
-							PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-							PVRSRV_HANDLE_ALLOC_FLAG_MULTI
-							,(PFN_HANDLE_RELEASE)&PMRUnrefPMR);
+	psPMRSecureImportPMROUT->eError =
+	    PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
+				      &psPMRSecureImportPMROUT->hPMR,
+				      (void *)psPMRInt,
+				      PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+				      PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+				      (PFN_HANDLE_RELEASE) & PMRUnrefPMR);
 	if (psPMRSecureImportPMROUT->eError != PVRSRV_OK)
 	{
 		UnlockHandle();
@@ -265,11 +211,7 @@ PVRSRVBridgePMRSecureImportPMR(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have created handles. */
 	UnlockHandle();
 
-
-
-PMRSecureImportPMR_exit:
-
-
+ PMRSecureImportPMR_exit:
 
 	if (psPMRSecureImportPMROUT->eError != PVRSRV_OK)
 	{
@@ -279,12 +221,8 @@ PMRSecureImportPMR_exit:
 		}
 	}
 
-
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -301,15 +239,17 @@ PVRSRV_ERROR DeinitSMMBridge(void);
 PVRSRV_ERROR InitSMMBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SMM, PVRSRV_BRIDGE_SMM_PMRSECUREEXPORTPMR, PVRSRVBridgePMRSecureExportPMR,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SMM,
+			      PVRSRV_BRIDGE_SMM_PMRSECUREEXPORTPMR,
+			      PVRSRVBridgePMRSecureExportPMR, NULL, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SMM, PVRSRV_BRIDGE_SMM_PMRSECUREUNEXPORTPMR, PVRSRVBridgePMRSecureUnexportPMR,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SMM,
+			      PVRSRV_BRIDGE_SMM_PMRSECUREUNEXPORTPMR,
+			      PVRSRVBridgePMRSecureUnexportPMR, NULL, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SMM, PVRSRV_BRIDGE_SMM_PMRSECUREIMPORTPMR, PVRSRVBridgePMRSecureImportPMR,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SMM,
+			      PVRSRV_BRIDGE_SMM_PMRSECUREIMPORTPMR,
+			      PVRSRVBridgePMRSecureImportPMR, NULL, bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -320,13 +260,14 @@ PVRSRV_ERROR InitSMMBridge(void)
 PVRSRV_ERROR DeinitSMMBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SMM, PVRSRV_BRIDGE_SMM_PMRSECUREEXPORTPMR);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SMM,
+				PVRSRV_BRIDGE_SMM_PMRSECUREEXPORTPMR);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SMM, PVRSRV_BRIDGE_SMM_PMRSECUREUNEXPORTPMR);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SMM,
+				PVRSRV_BRIDGE_SMM_PMRSECUREUNEXPORTPMR);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SMM, PVRSRV_BRIDGE_SMM_PMRSECUREIMPORTPMR);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SMM,
+				PVRSRV_BRIDGE_SMM_PMRSECUREIMPORTPMR);
 
 	return PVRSRV_OK;
 }

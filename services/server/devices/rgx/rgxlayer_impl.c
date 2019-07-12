@@ -613,7 +613,7 @@ void RGXTrampolineRemapConfig(const void *hPrivate,
 
 	/* Store the memory address in a PDump variable */
 	PDumpPhysHandleToInternalVar64(":SYSMEM:$1",
-			psDevInfo->sTrampoline.hPdumpPages,
+			psDevInfo->psTrampoline->hPdumpPages,
 			PDUMP_FLAGS_CONTINUOUS);
 
 	/* Keep only the relevant bits of the input physical address */
@@ -931,8 +931,7 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 					IMG_UINT32 ui32RAWCpuValue;
 
 					/* Ensures line is in dcache */
-					ui32FWValue = pui32FabricCohTestBufferCpuVA[i];
-					ui32FWValue = ~0;
+					ui32FWValue = IMG_UINT32_MAX;
 
 					/* Dirty allocation in dcache */
 					ui32RAWCpuValue = i + ui32OddEvenSeed;

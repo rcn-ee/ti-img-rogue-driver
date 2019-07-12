@@ -47,7 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgxpdump.h"
 
-
 #include "common_rgxpdump_bridge.h"
 
 #include "allocmem.h"
@@ -62,74 +61,43 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
-
-
-
-
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgePDumpTraceBuffer(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_PDUMPTRACEBUFFER *psPDumpTraceBufferIN,
-					  PVRSRV_BRIDGE_OUT_PDUMPTRACEBUFFER *psPDumpTraceBufferOUT,
-					 CONNECTION_DATA *psConnection)
+			     PVRSRV_BRIDGE_IN_PDUMPTRACEBUFFER *
+			     psPDumpTraceBufferIN,
+			     PVRSRV_BRIDGE_OUT_PDUMPTRACEBUFFER *
+			     psPDumpTraceBufferOUT,
+			     CONNECTION_DATA * psConnection)
 {
 
-
-
-
-
-
-
-
 	psPDumpTraceBufferOUT->eError =
-		PVRSRVPDumpTraceBufferKM(psConnection, OSGetDevData(psConnection),
-					psPDumpTraceBufferIN->ui32PDumpFlags);
-
-
-
-
-
-
-
+	    PVRSRVPDumpTraceBufferKM(psConnection, OSGetDevData(psConnection),
+				     psPDumpTraceBufferIN->ui32PDumpFlags);
 
 	return 0;
 }
-
 
 static IMG_INT
 PVRSRVBridgePDumpSignatureBuffer(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_PDUMPSIGNATUREBUFFER *psPDumpSignatureBufferIN,
-					  PVRSRV_BRIDGE_OUT_PDUMPSIGNATUREBUFFER *psPDumpSignatureBufferOUT,
-					 CONNECTION_DATA *psConnection)
+				 PVRSRV_BRIDGE_IN_PDUMPSIGNATUREBUFFER *
+				 psPDumpSignatureBufferIN,
+				 PVRSRV_BRIDGE_OUT_PDUMPSIGNATUREBUFFER *
+				 psPDumpSignatureBufferOUT,
+				 CONNECTION_DATA * psConnection)
 {
 
-
-
-
-
-
-
-
 	psPDumpSignatureBufferOUT->eError =
-		PVRSRVPDumpSignatureBufferKM(psConnection, OSGetDevData(psConnection),
-					psPDumpSignatureBufferIN->ui32PDumpFlags);
-
-
-
-
-
-
-
+	    PVRSRVPDumpSignatureBufferKM(psConnection,
+					 OSGetDevData(psConnection),
+					 psPDumpSignatureBufferIN->
+					 ui32PDumpFlags);
 
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -146,12 +114,13 @@ PVRSRV_ERROR DeinitRGXPDUMPBridge(void);
 PVRSRV_ERROR InitRGXPDUMPBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP, PVRSRV_BRIDGE_RGXPDUMP_PDUMPTRACEBUFFER, PVRSRVBridgePDumpTraceBuffer,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP,
+			      PVRSRV_BRIDGE_RGXPDUMP_PDUMPTRACEBUFFER,
+			      PVRSRVBridgePDumpTraceBuffer, NULL, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP, PVRSRV_BRIDGE_RGXPDUMP_PDUMPSIGNATUREBUFFER, PVRSRVBridgePDumpSignatureBuffer,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP,
+			      PVRSRV_BRIDGE_RGXPDUMP_PDUMPSIGNATUREBUFFER,
+			      PVRSRVBridgePDumpSignatureBuffer, NULL, bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -162,11 +131,11 @@ PVRSRV_ERROR InitRGXPDUMPBridge(void)
 PVRSRV_ERROR DeinitRGXPDUMPBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP, PVRSRV_BRIDGE_RGXPDUMP_PDUMPTRACEBUFFER);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP,
+				PVRSRV_BRIDGE_RGXPDUMP_PDUMPTRACEBUFFER);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP, PVRSRV_BRIDGE_RGXPDUMP_PDUMPSIGNATUREBUFFER);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXPDUMP,
+				PVRSRV_BRIDGE_RGXPDUMP_PDUMPSIGNATUREBUFFER);
 
 	return PVRSRV_OK;
 }

@@ -51,7 +51,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem.h"
 #include "physmem_extmem.h"
 
-
 #include "common_mmextmem_bridge.h"
 
 #include "allocmem.h"
@@ -66,38 +65,27 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
-
-
-
-
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgePhysmemWrapExtMem(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM *psPhysmemWrapExtMemIN,
-					  PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM *psPhysmemWrapExtMemOUT,
-					 CONNECTION_DATA *psConnection)
+			      PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM *
+			      psPhysmemWrapExtMemIN,
+			      PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM *
+			      psPhysmemWrapExtMemOUT,
+			      CONNECTION_DATA * psConnection)
 {
-	PMR * psPMRPtrInt = NULL;
-
-
-
-
-
-
-
+	PMR *psPMRPtrInt = NULL;
 
 	psPhysmemWrapExtMemOUT->eError =
-		PhysmemWrapExtMem(psConnection, OSGetDevData(psConnection),
-					psPhysmemWrapExtMemIN->uiSize,
-					psPhysmemWrapExtMemIN->ui64CpuVAddr,
-					psPhysmemWrapExtMemIN->uiFlags,
-					&psPMRPtrInt);
+	    PhysmemWrapExtMem(psConnection, OSGetDevData(psConnection),
+			      psPhysmemWrapExtMemIN->uiSize,
+			      psPhysmemWrapExtMemIN->ui64CpuVAddr,
+			      psPhysmemWrapExtMemIN->uiFlags, &psPMRPtrInt);
 	/* Exit early if bridged call fails */
-	if(psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)
+	if (psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)
 	{
 		goto PhysmemWrapExtMem_exit;
 	}
@@ -105,17 +93,13 @@ PVRSRVBridgePhysmemWrapExtMem(IMG_UINT32 ui32DispatchTableEntry,
 	/* Lock over handle creation. */
 	LockHandle();
 
-
-
-
-
-	psPhysmemWrapExtMemOUT->eError = PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-
-							&psPhysmemWrapExtMemOUT->hPMRPtr,
-							(void *) psPMRPtrInt,
-							PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-							PVRSRV_HANDLE_ALLOC_FLAG_MULTI
-							,(PFN_HANDLE_RELEASE)&PMRUnrefPMR);
+	psPhysmemWrapExtMemOUT->eError =
+	    PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
+				      &psPhysmemWrapExtMemOUT->hPMRPtr,
+				      (void *)psPMRPtrInt,
+				      PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+				      PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+				      (PFN_HANDLE_RELEASE) & PMRUnrefPMR);
 	if (psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)
 	{
 		UnlockHandle();
@@ -125,11 +109,7 @@ PVRSRVBridgePhysmemWrapExtMem(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have created handles. */
 	UnlockHandle();
 
-
-
-PhysmemWrapExtMem_exit:
-
-
+ PhysmemWrapExtMem_exit:
 
 	if (psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)
 	{
@@ -139,12 +119,8 @@ PhysmemWrapExtMem_exit:
 		}
 	}
 
-
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -161,9 +137,9 @@ PVRSRV_ERROR DeinitMMEXTMEMBridge(void);
 PVRSRV_ERROR InitMMEXTMEMBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM, PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM, PVRSRVBridgePhysmemWrapExtMem,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM,
+			      PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM,
+			      PVRSRVBridgePhysmemWrapExtMem, NULL, bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -174,9 +150,8 @@ PVRSRV_ERROR InitMMEXTMEMBridge(void)
 PVRSRV_ERROR DeinitMMEXTMEMBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM, PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM,
+				PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM);
 
 	return PVRSRV_OK;
 }

@@ -53,11 +53,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_memallocflags.h"
 #include "devicemem_typedefs.h"
 
-
 #define PVRSRV_BRIDGE_MMEXTMEM_CMD_FIRST			0
 #define PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM			PVRSRV_BRIDGE_MMEXTMEM_CMD_FIRST+0
 #define PVRSRV_BRIDGE_MMEXTMEM_CMD_LAST			(PVRSRV_BRIDGE_MMEXTMEM_CMD_FIRST+0)
-
 
 /*******************************************
             PhysmemWrapExtMem          
@@ -69,14 +67,13 @@ typedef struct PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM_TAG
 	IMG_DEVMEM_SIZE_T uiSize;
 	IMG_UINT64 ui64CpuVAddr;
 	PVRSRV_MEMALLOCFLAGS_T uiFlags;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM;
 
 /* Bridge out structure for PhysmemWrapExtMem */
 typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM_TAG
 {
 	IMG_HANDLE hPMRPtr;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM;
 
 #endif /* COMMON_MMEXTMEM_BRIDGE_H */

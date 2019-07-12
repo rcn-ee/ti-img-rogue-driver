@@ -1137,6 +1137,8 @@ e0:
 
 } /* PVRSRVStatsInitialise */
 
+static PVRSRV_ERROR _DumpAllVMallocEntries (uintptr_t k, uintptr_t v);
+
 /*************************************************************************/ /*!
 @Function       PVRSRVStatsDestroy
 @Description    Method for destroying the statistics module data.
@@ -1217,6 +1219,8 @@ PVRSRVStatsDestroy(void)
 
 	if (gpsSizeTrackingHashTable != NULL)
 	{
+		/* Dump all remaining entries in HASH table (list any remaining vmallocs) */
+		HASH_Iterate(gpsSizeTrackingHashTable, (HASH_pfnCallback)_DumpAllVMallocEntries);
 		HASH_Delete(gpsSizeTrackingHashTable);
 	}
 	if (gpsSizeTrackingHashTableLock != NULL)
@@ -2163,6 +2167,18 @@ PVR_UNREFERENCED_PARAMETER(ui64Key);
 #endif
 } /* PVRSRVStatsRemoveMemAllocRecord */
 
+static PVRSRV_ERROR _DumpAllVMallocEntries (uintptr_t k, uintptr_t v)
+{
+	_PVR_STATS_TRACKING_HASH_ENTRY *psNewTrackingHashEntry = (_PVR_STATS_TRACKING_HASH_ENTRY *)(uintptr_t)v;
+	IMG_UINT64 uiCpuVAddr = (IMG_UINT64)k;
+
+	PVR_DPF((PVR_DBG_ERROR, "%s: " IMG_SIZE_FMTSPEC " bytes @ 0x%" IMG_UINT64_FMTSPECx " (PID %u)", __func__,
+	         psNewTrackingHashEntry->uiSizeInBytes,
+	         uiCpuVAddr,
+	         psNewTrackingHashEntry->uiPid));
+	return PVRSRV_OK;
+}
+
 void
 PVRSRVStatsIncrMemAllocStatAndTrack(PVRSRV_MEM_ALLOC_TYPE eAllocType,
 									size_t uiBytes,
@@ -2909,27 +2925,17 @@ PVRSRVStatsUpdateFreelistStats(IMG_UINT32 ui32NumGrowReqByApp,
 
 	if (psProcessStats != NULL)
 	{
-		/* Avoid signed / unsigned mismatch which is flagged by some compilers */
-		IMG_INT32 a, b;
 
 		OSLockAcquireNested(psProcessStats->hLock, PROCESS_LOCK_SUBCLASS_CURRENT);
 		psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_GROW_REQS_BY_APP] += ui32NumGrowReqByApp;
 		psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_GROW_REQS_BY_FW]  += ui32NumGrowReqByFW;
 
-		a=psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_PAGES_INIT];
-		b=(IMG_INT32)(ui32InitFLPages);
-		UPDATE_MAX_VALUE(a, b);
+		UPDATE_MAX_VALUE(psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_PAGES_INIT],
+				(IMG_INT32) ui32InitFLPages);
 
+		UPDATE_MAX_VALUE(psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_MAX_PAGES],
+				(IMG_INT32) ui32NumHighPages);
 
-		psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_PAGES_INIT]=a;
-		ui32InitFLPages=(IMG_UINT32)b;
-
-		a=psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_MAX_PAGES];
-		b=(IMG_INT32)ui32NumHighPages;
-
-		UPDATE_MAX_VALUE(a, b);
-		psProcessStats->i32StatValue[PVRSRV_PROCESS_STAT_TYPE_FREELIST_PAGES_INIT]=a;
-		ui32InitFLPages=(IMG_UINT32)b;
 		OSLockRelease(psProcessStats->hLock);
 
 	}
@@ -3598,24 +3604,36 @@ static void StripBadChars( IMG_CHAR *psStr)
                                     are stored.
 @Output         Memory statistics records for the requested pid.
 */ /**************************************************************************/
-PVRSRV_ERROR PVRSRVFindProcessMemStats(IMG_PID pid, IMG_UINT32 ui32ArrSize, IMG_BOOL bAllProcessStats, IMG_UINT32 *ui32MemoryStats)
+PVRSRV_ERROR PVRSRVFindProcessMemStats(IMG_PID pid, IMG_UINT32 ui32ArrSize, IMG_BOOL bAllProcessStats, IMG_UINT32 *pui32MemoryStats)
 {
 	IMG_INT i;
 	PVRSRV_PROCESS_STATS* psProcessStats;
 
-	if(bAllProcessStats)
+	PVR_LOGR_IF_FALSE(pui32MemoryStats != NULL,
+	                  "pui32MemoryStats is NULL",
+	                  PVRSRV_ERROR_INVALID_PARAMS);
+
+	if (bAllProcessStats)
 	{
+		PVR_LOGR_IF_FALSE(ui32ArrSize == PVRSRV_DRIVER_STAT_TYPE_COUNT,
+				  "MemStats array size is incorrect",
+				  PVRSRV_ERROR_INVALID_PARAMS);
+
 		OSLockAcquire(gsGlobalStats.hGlobalStatsLock);
 
-		for ( i=0; i < PVRSRV_DRIVER_STAT_TYPE_COUNT; i++ )
+		for ( i=0; i < ui32ArrSize; i++ )
 		{
-			ui32MemoryStats[i] = GET_GLOBAL_STAT_VALUE(i);
+			pui32MemoryStats[i] = GET_GLOBAL_STAT_VALUE(i);
 		}
 
 		OSLockRelease(gsGlobalStats.hGlobalStatsLock);
 
 		return PVRSRV_OK;
 	}
+
+	PVR_LOGR_IF_FALSE(ui32ArrSize == PVRSRV_PROCESS_STAT_TYPE_COUNT,
+			  "MemStats array size is incorrect",
+			  PVRSRV_ERROR_INVALID_PARAMS);
 
 	OSLockAcquire(g_psLinkedListLock);
 
@@ -3625,13 +3643,15 @@ PVRSRV_ERROR PVRSRVFindProcessMemStats(IMG_PID pid, IMG_UINT32 ui32ArrSize, IMG_
 	if(psProcessStats == NULL)
 	{
 		PVR_DPF((PVR_DBG_ERROR, "Process %d not found. This process may not be live anymore.", (IMG_INT)pid));
+		OSLockRelease(g_psLinkedListLock);
+
 		return PVRSRV_ERROR_PROCESS_NOT_FOUND;
 	}
 
 	OSLockAcquireNested(psProcessStats->hLock, PROCESS_LOCK_SUBCLASS_CURRENT);
-	for ( i=0; i < PVRSRV_PROCESS_STAT_TYPE_COUNT; i++ )
+	for ( i=0; i < ui32ArrSize; i++ )
 	{
-		ui32MemoryStats[i] = psProcessStats->i32StatValue[i];
+		pui32MemoryStats[i] = psProcessStats->i32StatValue[i];
 	}
 	OSLockRelease(psProcessStats->hLock);
 

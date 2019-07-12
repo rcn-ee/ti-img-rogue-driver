@@ -52,7 +52,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "pvrsrv_sync_km.h"
 
-
 #define PVRSRV_BRIDGE_SYNCFALLBACK_CMD_FIRST			0
 #define PVRSRV_BRIDGE_SYNCFALLBACK_SYNCFBTIMELINECREATEPVR			PVRSRV_BRIDGE_SYNCFALLBACK_CMD_FIRST+0
 #define PVRSRV_BRIDGE_SYNCFALLBACK_SYNCFBTIMELINERELEASE			PVRSRV_BRIDGE_SYNCFALLBACK_CMD_FIRST+1
@@ -73,7 +72,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PVRSRV_BRIDGE_SYNCFALLBACK_SYNCFBFENCEIMPORTSECURE			PVRSRV_BRIDGE_SYNCFALLBACK_CMD_FIRST+16
 #define PVRSRV_BRIDGE_SYNCFALLBACK_CMD_LAST			(PVRSRV_BRIDGE_SYNCFALLBACK_CMD_FIRST+16)
 
-
 /*******************************************
             SyncFbTimelineCreatePVR          
  *******************************************/
@@ -82,16 +80,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBTIMELINECREATEPVR_TAG
 {
 	IMG_UINT32 ui32TimelineNameSize;
-	const IMG_CHAR * puiTimelineName;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINECREATEPVR;
+	const IMG_CHAR *puiTimelineName;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINECREATEPVR;
 
 /* Bridge out structure for SyncFbTimelineCreatePVR */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATEPVR_TAG
 {
 	IMG_HANDLE hTimeline;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATEPVR;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATEPVR;
 
 /*******************************************
             SyncFbTimelineRelease          
@@ -101,14 +98,13 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATEPVR_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBTIMELINERELEASE_TAG
 {
 	IMG_HANDLE hTimeline;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINERELEASE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINERELEASE;
 
 /* Bridge out structure for SyncFbTimelineRelease */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINERELEASE_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINERELEASE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINERELEASE;
 
 /*******************************************
             SyncFbFenceDup          
@@ -118,15 +114,14 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINERELEASE_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEDUP_TAG
 {
 	IMG_HANDLE hInFence;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEDUP;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEDUP;
 
 /* Bridge out structure for SyncFbFenceDup */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUP_TAG
 {
 	IMG_HANDLE hOutFence;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUP;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUP;
 
 /*******************************************
             SyncFbFenceMerge          
@@ -138,16 +133,15 @@ typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEMERGE_TAG
 	IMG_HANDLE hInFence1;
 	IMG_HANDLE hInFence2;
 	IMG_UINT32 ui32FenceNameSize;
-	const IMG_CHAR * puiFenceName;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEMERGE;
+	const IMG_CHAR *puiFenceName;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEMERGE;
 
 /* Bridge out structure for SyncFbFenceMerge */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEMERGE_TAG
 {
 	IMG_HANDLE hOutFence;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEMERGE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEMERGE;
 
 /*******************************************
             SyncFbFenceRelease          
@@ -157,14 +151,13 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEMERGE_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCERELEASE_TAG
 {
 	IMG_HANDLE hFence;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCERELEASE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCERELEASE;
 
 /* Bridge out structure for SyncFbFenceRelease */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCERELEASE_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCERELEASE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCERELEASE;
 
 /*******************************************
             SyncFbFenceWait          
@@ -175,14 +168,13 @@ typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEWAIT_TAG
 {
 	IMG_HANDLE hFence;
 	IMG_UINT32 ui32Timeout;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEWAIT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEWAIT;
 
 /* Bridge out structure for SyncFbFenceWait */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEWAIT_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEWAIT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEWAIT;
 
 /*******************************************
             SyncFbFenceDump          
@@ -194,15 +186,14 @@ typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEDUMP_TAG
 	IMG_HANDLE hFence;
 	IMG_UINT32 ui32Line;
 	IMG_UINT32 ui32FileStrLength;
-	const IMG_CHAR * puiFileStr;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEDUMP;
+	const IMG_CHAR *puiFileStr;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEDUMP;
 
 /* Bridge out structure for SyncFbFenceDump */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP;
 
 /*******************************************
             SyncFbTimelineCreateSW          
@@ -212,16 +203,15 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBTIMELINECREATESW_TAG
 {
 	IMG_UINT32 ui32TimelineNameSize;
-	const IMG_CHAR * puiTimelineName;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINECREATESW;
+	const IMG_CHAR *puiTimelineName;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINECREATESW;
 
 /* Bridge out structure for SyncFbTimelineCreateSW */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATESW_TAG
 {
 	IMG_HANDLE hTimeline;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATESW;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINECREATESW;
 
 /*******************************************
             SyncFbFenceCreateSW          
@@ -232,16 +222,15 @@ typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCECREATESW_TAG
 {
 	IMG_HANDLE hTimeline;
 	IMG_UINT32 ui32FenceNameSize;
-	const IMG_CHAR * puiFenceName;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCECREATESW;
+	const IMG_CHAR *puiFenceName;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCECREATESW;
 
 /* Bridge out structure for SyncFbFenceCreateSW */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCECREATESW_TAG
 {
 	IMG_HANDLE hOutFence;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCECREATESW;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCECREATESW;
 
 /*******************************************
             SyncFbTimelineAdvanceSW          
@@ -251,14 +240,13 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCECREATESW_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBTIMELINEADVANCESW_TAG
 {
 	IMG_HANDLE hTimeline;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINEADVANCESW;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBTIMELINEADVANCESW;
 
 /* Bridge out structure for SyncFbTimelineAdvanceSW */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINEADVANCESW_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINEADVANCESW;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBTIMELINEADVANCESW;
 
 /*******************************************
             SyncFbFenceExportInsecure          
@@ -268,15 +256,14 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBTIMELINEADVANCESW_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTINSECURE_TAG
 {
 	IMG_HANDLE hFence;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTINSECURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTINSECURE;
 
 /* Bridge out structure for SyncFbFenceExportInsecure */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTINSECURE_TAG
 {
 	IMG_HANDLE hExport;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTINSECURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTINSECURE;
 
 /*******************************************
             SyncFbFenceExportDestroyInsecure          
@@ -286,14 +273,13 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTINSECURE_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTDESTROYINSECURE_TAG
 {
 	IMG_HANDLE hExport;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTDESTROYINSECURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTDESTROYINSECURE;
 
 /* Bridge out structure for SyncFbFenceExportDestroyInsecure */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYINSECURE_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYINSECURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYINSECURE;
 
 /*******************************************
             SyncFbFenceImportInsecure          
@@ -303,15 +289,14 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYINSECURE_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEIMPORTINSECURE_TAG
 {
 	IMG_HANDLE hImport;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEIMPORTINSECURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEIMPORTINSECURE;
 
 /* Bridge out structure for SyncFbFenceImportInsecure */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEIMPORTINSECURE_TAG
 {
 	IMG_HANDLE hSyncHandle;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEIMPORTINSECURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEIMPORTINSECURE;
 
 /*******************************************
             SyncFbFenceDump2          
@@ -323,19 +308,18 @@ typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEDUMP2_TAG
 	IMG_HANDLE hFence;
 	IMG_UINT32 ui32Line;
 	IMG_UINT32 ui32FileStrLength;
-	const IMG_CHAR * puiFileStr;
+	const IMG_CHAR *puiFileStr;
 	IMG_UINT32 ui32ModuleStrLength;
-	const IMG_CHAR * puiModuleStr;
+	const IMG_CHAR *puiModuleStr;
 	IMG_UINT32 ui32DescStrLength;
-	const IMG_CHAR * puiDescStr;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEDUMP2;
+	const IMG_CHAR *puiDescStr;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEDUMP2;
 
 /* Bridge out structure for SyncFbFenceDump2 */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP2_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP2;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP2;
 
 /*******************************************
             SyncFbFenceExportSecure          
@@ -345,15 +329,14 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEDUMP2_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTSECURE_TAG
 {
 	IMG_HANDLE hFence;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTSECURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTSECURE;
 
 /* Bridge out structure for SyncFbFenceExportSecure */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTSECURE_TAG
 {
 	IMG_SECURE_TYPE Export;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTSECURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTSECURE;
 
 /*******************************************
             SyncFbFenceExportDestroySecure          
@@ -363,14 +346,13 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTSECURE_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTDESTROYSECURE_TAG
 {
 	IMG_HANDLE hExport;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTDESTROYSECURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEEXPORTDESTROYSECURE;
 
 /* Bridge out structure for SyncFbFenceExportDestroySecure */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYSECURE_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYSECURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYSECURE;
 
 /*******************************************
             SyncFbFenceImportSecure          
@@ -380,14 +362,13 @@ typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEEXPORTDESTROYSECURE_TAG
 typedef struct PVRSRV_BRIDGE_IN_SYNCFBFENCEIMPORTSECURE_TAG
 {
 	IMG_SECURE_TYPE Import;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEIMPORTSECURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_SYNCFBFENCEIMPORTSECURE;
 
 /* Bridge out structure for SyncFbFenceImportSecure */
 typedef struct PVRSRV_BRIDGE_OUT_SYNCFBFENCEIMPORTSECURE_TAG
 {
 	IMG_HANDLE hSyncHandle;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEIMPORTSECURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_SYNCFBFENCEIMPORTSECURE;
 
 #endif /* COMMON_SYNCFALLBACK_BRIDGE_H */

@@ -1150,7 +1150,8 @@ static PVRSRV_ERROR PDumpParameterChannelZeroedPageBlock(void)
 			&ui32AppHintDefault, &ui32GeneralNon4KHeapPageSize);
 	OSFreeKMAppHintState(pvAppHintState);
 
-	g_PDumpParameters.uiZeroPageSize = ui32GeneralNon4KHeapPageSize;
+	/* ZeroPageSize can't be smaller than page size */
+	g_PDumpParameters.uiZeroPageSize = MAX(ui32GeneralNon4KHeapPageSize, OSGetPageSize());
 
 	/* ensure the zero page size of a multiple of the zero source on the stack */
 	PVR_ASSERT(g_PDumpParameters.uiZeroPageSize % sizeof(aui8Zero) == 0);

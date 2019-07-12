@@ -850,6 +850,8 @@ static PVRSRV_ERROR RGXGetPageSizeConfigCB(IMG_UINT32 uiLog2DataPageSize,
 
 	switch (uiLog2DataPageSize)
 	{
+	case RGXMIPSFW_LOG2_PAGE_SIZE_64K:
+		/* FW will use 4k and GPU 64k */
 	case RGXMIPSFW_LOG2_PAGE_SIZE:
 		psPageSizeConfig = &gsPageSizeConfig4KB;
 		break;
@@ -857,6 +859,7 @@ static PVRSRV_ERROR RGXGetPageSizeConfigCB(IMG_UINT32 uiLog2DataPageSize,
 		PVR_DPF((PVR_DBG_ERROR,
 				 "RGXGetPageSizeConfigCB: Invalid Data Page Size 1<<0x%x",
 				 uiLog2DataPageSize));
+		*phPriv = NULL;
 		return PVRSRV_ERROR_MMU_INVALID_PAGE_SIZE_FOR_DEVICE;
 	}
 
@@ -900,6 +903,8 @@ static PVRSRV_ERROR RGXPutPageSizeConfigCB(IMG_HANDLE hPriv)
 
 	switch (uiLog2DataPageSize)
 	{
+	case RGXMIPSFW_LOG2_PAGE_SIZE_64K:
+		/* FW will use 4k and GPU 64k */
 	case RGXMIPSFW_LOG2_PAGE_SIZE:
 		psPageSizeConfig = &gsPageSizeConfig4KB;
 		break;

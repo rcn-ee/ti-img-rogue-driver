@@ -64,6 +64,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/spinlock.h>
 #include <linux/workqueue.h>
 #include <linux/kthread.h>
+#include <linux/utsname.h>
 #include <asm/atomic.h>
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
 #include <linux/pfn_t.h>
@@ -128,7 +129,6 @@ typedef struct {
 	struct task_struct *kthread;
 	PFN_THREAD pfnThread;
 	void *hData;
-	OS_THREAD_LEVEL eThreadPriority;
 	IMG_CHAR *pszThreadName;
 	IMG_BOOL   bIsThreadRunning;
 	IMG_BOOL   bIsSupportingThread;
@@ -858,12 +858,12 @@ PVRSRV_ERROR OSScheduleMISR(IMG_HANDLE hMISRData)
 /* OS specific values for thread priority */
 static const IMG_INT32 ai32OSPriorityValues[OS_THREAD_LAST_PRIORITY] =
 {
+	  0, /* OS_THREAD_NOSET_PRIORITY */
 	-20, /* OS_THREAD_HIGHEST_PRIORITY */
 	-10, /* OS_THREAD_HIGH_PRIORITY */
 	  0, /* OS_THREAD_NORMAL_PRIORITY */
 	  9, /* OS_THREAD_LOW_PRIORITY */
 	 19, /* OS_THREAD_LOWEST_PRIORITY */
-	-22, /* OS_THREAD_NOSET_PRIORITY */
 };
 
 static int OSThreadRun(void *data)
@@ -872,11 +872,6 @@ static int OSThreadRun(void *data)
 
 	/* count freezable threads */
 	LinuxBridgeNumActiveKernelThreadsIncrement();
-
-	/* If i32NiceValue is acceptable, set the nice value for the new thread */
-	if (psOSThreadData->eThreadPriority != OS_THREAD_NOSET_PRIORITY &&
-	         psOSThreadData->eThreadPriority < OS_THREAD_LAST_PRIORITY)
-		set_user_nice(current, ai32OSPriorityValues[psOSThreadData->eThreadPriority]);
 
 	/* Returns true if the thread was frozen, should we do anything with this
 	 * information? What do we return? Which one is the error case? */
@@ -931,7 +926,6 @@ PVRSRV_ERROR OSThreadCreatePriority(IMG_HANDLE *phThread,
 
 	psOSThreadData->pfnThread = pfnThread;
 	psOSThreadData->hData = hData;
-	psOSThreadData->eThreadPriority= eThreadPriority;
 	psOSThreadData->kthread = kthread_run(OSThreadRun, psOSThreadData, "%s", pszThreadName);
 
 	if (IS_ERR(psOSThreadData->kthread))
@@ -948,6 +942,13 @@ PVRSRV_ERROR OSThreadCreatePriority(IMG_HANDLE *phThread,
 		psOSThreadData->bIsSupportingThread = IMG_TRUE;
 
 		_ThreadListAddEntry(psOSThreadData);
+	}
+
+	if (eThreadPriority != OS_THREAD_NOSET_PRIORITY &&
+	    eThreadPriority < OS_THREAD_LAST_PRIORITY)
+	{
+		set_user_nice(psOSThreadData->kthread,
+		              ai32OSPriorityValues[eThreadPriority]);
 	}
 
 	*phThread = psOSThreadData;
@@ -995,13 +996,20 @@ void OSPanic(void)
 }
 
 PVRSRV_ERROR OSSetThreadPriority(IMG_HANDLE hThread,
-								 IMG_UINT32  nThreadPriority,
-								 IMG_UINT32  nThreadWeight)
+								 IMG_UINT32 nThreadPriority,
+								 IMG_UINT32 nThreadWeight)
 {
-	PVR_UNREFERENCED_PARAMETER(hThread);
-	PVR_UNREFERENCED_PARAMETER(nThreadPriority);
+	OSThreadData *psThreadData = hThread;
+
 	PVR_UNREFERENCED_PARAMETER(nThreadWeight);
- 	/* Default priorities used on this platform */
+
+	/* If i32NiceValue is acceptable, set the nice value for the new thread */
+	if (nThreadPriority != OS_THREAD_NOSET_PRIORITY &&
+	    nThreadPriority < OS_THREAD_LAST_PRIORITY)
+	{
+		set_user_nice(psThreadData->kthread,
+		              ai32OSPriorityValues[nThreadPriority]);
+	}
 	
 	return PVRSRV_OK;
 }
@@ -1128,7 +1136,7 @@ static void OSTimerCallbackBody(TIMER_CALLBACK_DATA *psTimerCBData)
 	psTimerCBData->pfnTimerFunc(psTimerCBData->pvData);
 
 	/* reset timer */
-	mod_timer(&psTimerCBData->sTimer, psTimerCBData->ui32Delay + jiffies);
+	mod_timer(&psTimerCBData->sTimer, psTimerCBData->sTimer.expires + psTimerCBData->ui32Delay);
 }
 
 
@@ -1387,63 +1395,71 @@ PVRSRV_ERROR OSEventObjectWaitKernel(IMG_HANDLE hOSEventKM,
 {
 	PVRSRV_ERROR eError;
 
-	if(hOSEventKM && uiTimeoutus > 0)
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+	if (hOSEventKM)
+	{
+		if (uiTimeoutus > 0)
+			eError = LinuxEventObjectWait(hOSEventKM, uiTimeoutus, IMG_FALSE,
+			                              _FREEZABLE);
+		else
+			eError = LinuxEventObjectWaitUntilSignalled(hOSEventKM);
+	}
+#else /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
+	if (hOSEventKM && uiTimeoutus > 0)
 	{
 		eError = LinuxEventObjectWait(hOSEventKM, uiTimeoutus, IMG_FALSE,
 		                              _FREEZABLE);
 	}
+#endif /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
 	else
 	{
-		PVR_DPF((PVR_DBG_ERROR, "OSEventObjectWait: invalid arguments %p, %lld",
-		        hOSEventKM, uiTimeoutus));
+		PVR_DPF((PVR_DBG_ERROR, "OSEventObjectWaitKernel: invalid arguments %p",
+		        hOSEventKM));
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	return eError;
 }
 
-PVRSRV_ERROR OSEventObjectOpen(IMG_HANDLE hEventObject,
-											IMG_HANDLE *phOSEvent)
+void OSEventObjectDumpDebugInfo(IMG_HANDLE hOSEventKM)
 {
-	PVRSRV_ERROR eError = PVRSRV_OK;
+	LinuxEventObjectDumpDebugInfo(hOSEventKM);
+}
 
-	if(hEventObject)
-	{
-		if(LinuxEventObjectAdd(hEventObject, phOSEvent) != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "LinuxEventObjectAdd: failed"));
-			eError = PVRSRV_ERROR_INVALID_PARAMS;
-		}
-	}
-	else
-	{
-		PVR_DPF((PVR_DBG_ERROR, "OSEventObjectOpen: hEventObject is not a valid pointer"));
-		eError = PVRSRV_ERROR_INVALID_PARAMS;
-	}
+PVRSRV_ERROR OSEventObjectOpen(IMG_HANDLE hEventObject, IMG_HANDLE *phOSEvent)
+{
+	PVRSRV_ERROR eError;
 
+	PVR_LOGG_IF_FALSE(hEventObject != NULL, "Invalid hEventObject handle",
+	                  error_invalid_params);
+	PVR_LOGG_IF_FALSE(hEventObject != NULL, "Invalid phOSEvent handle pointer",
+	                  error_invalid_params);
+
+	eError = LinuxEventObjectAdd(hEventObject, phOSEvent);
+	PVR_LOGG_IF_ERROR(eError, "LinuxEventObjectAdd", error);
+
+	return PVRSRV_OK;
+
+error_invalid_params:
+	eError = PVRSRV_ERROR_INVALID_PARAMS;
+	goto error;
+
+error:
+	*phOSEvent = NULL;
 	return eError;
 }
 
 PVRSRV_ERROR OSEventObjectClose(IMG_HANDLE hOSEventKM)
 {
-	PVRSRV_ERROR eError = PVRSRV_OK;
+	PVRSRV_ERROR eError;
 
-	if(hOSEventKM)
-	{
-		if(LinuxEventObjectDelete(hOSEventKM) != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "LinuxEventObjectDelete: failed"));
-			eError = PVRSRV_ERROR_INVALID_PARAMS;
-		}
+	PVR_LOGR_IF_FALSE(hOSEventKM != NULL, "Invalid hOSEventKM handle",
+	                  PVRSRV_ERROR_INVALID_PARAMS);
 
-	}
-	else
-	{
-		PVR_DPF((PVR_DBG_ERROR, "OSEventObjectDestroy: hEventObject is not a valid pointer"));
-		eError = PVRSRV_ERROR_INVALID_PARAMS;
-	}
+	eError = LinuxEventObjectDelete(hOSEventKM);
+	PVR_LOGR_IF_ERROR(eError, "LinuxEventObjectDelete");
 
-	return eError;
+	return PVRSRV_OK;
 }
 
 PVRSRV_ERROR OSEventObjectSignal(IMG_HANDLE hEventObject)
@@ -1860,3 +1876,14 @@ PVRSRV_ERROR OSDebugSignalPID(IMG_UINT32 ui32PID)
 
 	return PVRSRV_OK;
 }
+
+void OSDumpVersionInfo(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+					   void *pvDumpDebugFile)
+{
+	PVR_DUMPDEBUG_LOG("OS kernel info: %s %s %s %s", 
+					utsname()->sysname, 
+					utsname()->release, 
+					utsname()->version, 
+					utsname()->machine);
+}
+

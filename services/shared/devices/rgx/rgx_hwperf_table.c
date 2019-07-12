@@ -116,7 +116,7 @@ static IMG_BOOL rgxfw_hwperf_pow_st_indirect(RGX_HWPERF_CNTBLK_ID eBlkType, IMG_
 			}
 			break;
 		case RGX_CNTBLK_ID_USC0:                       /* S6, S6XT, S7 */
-		case RGX_CNTBLK_ID_PBE0:                       /* S7 */
+		case RGX_CNTBLK_ID_PBE0:                       /* S7, PBE2_IN_XE */
 			/* Handle single cluster cores */
 			if (ui8UnitId >= ((ui32NumUscEnabled > RGX_FEATURE_NUM_CLUSTERS) ? RGX_FEATURE_NUM_CLUSTERS : ui32NumUscEnabled))
 			{
@@ -405,13 +405,14 @@ static IMG_BOOL rgx_hwperf_blk_present_s7top(const RGXFW_HWPERF_CNTBLK_TYPE_MODE
 	return IMG_FALSE;
 }
 
-/* Used for block types: TA, TPU_MCU */
+/* Used for block types: TA, TPU_MCU. Also PBE when PBE2_IN_XE is present */
 static IMG_BOOL rgx_hwperf_blk_present_not_s7top(const RGXFW_HWPERF_CNTBLK_TYPE_MODEL* psBlkTypeDesc, void *pvDev_km, RGX_HWPERF_CNTBLK_RT_INFO *psRtInfo)
 {
 	DBG_ASSERT(psBlkTypeDesc != NULL);
 	DBG_ASSERT(psRtInfo != NULL);
 	DBG_ASSERT((psBlkTypeDesc->uiCntBlkIdBase == RGX_CNTBLK_ID_TA) ||
-			(psBlkTypeDesc->uiCntBlkIdBase == RGX_CNTBLK_ID_TPU_MCU0));
+			(psBlkTypeDesc->uiCntBlkIdBase == RGX_CNTBLK_ID_TPU_MCU0) ||
+			(psBlkTypeDesc->uiCntBlkIdBase == RGX_CNTBLK_ID_PBE0));
 
 #if defined(__KERNEL__) /* Server context */
 	PVR_ASSERT(pvDev_km != NULL);
@@ -420,14 +421,43 @@ static IMG_BOOL rgx_hwperf_blk_present_not_s7top(const RGXFW_HWPERF_CNTBLK_TYPE_
 		if (!RGX_IS_FEATURE_SUPPORTED(psDevInfo, S7_TOP_INFRASTRUCTURE) &&
 				RGX_IS_FEATURE_SUPPORTED(psDevInfo, PERFBUS))
 		{
-			psRtInfo->uiNumUnits = (psBlkTypeDesc->uiCntBlkIdBase == RGX_CNTBLK_ID_TA) ? 1
-					: rgx_units_phantom_indirect_by_dust(&psDevInfo->sDevFeatureCfg); // TPU_MCU0
+			if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, PBE2_IN_XE))
+			{
+				switch (psBlkTypeDesc->uiCntBlkIdBase)
+				{
+					case RGX_CNTBLK_ID_TA:	psRtInfo->uiNumUnits = 1; break;
+					case RGX_CNTBLK_ID_PBE0:
+						psRtInfo->uiNumUnits = rgx_units_phantom_indirect_by_cluster(&psDevInfo->sDevFeatureCfg); // PBE0
+						break;
+					default:
+						psRtInfo->uiNumUnits = rgx_units_phantom_indirect_by_dust(&psDevInfo->sDevFeatureCfg); // TPU_MCU0
+				}
+			}
+			else
+			{
+				switch (psBlkTypeDesc->uiCntBlkIdBase)
+				{
+					case RGX_CNTBLK_ID_TA:	psRtInfo->uiNumUnits = 1; break;
+					case RGX_CNTBLK_ID_PBE0:
+						/* PBE counters are not present on this config */
+						return IMG_FALSE;
+					default:
+						psRtInfo->uiNumUnits = rgx_units_phantom_indirect_by_dust(&psDevInfo->sDevFeatureCfg); // TPU_MCU0
+				}
+			}
 			return IMG_TRUE;
 		}
 	}
 #else /* FW context */
 	PVR_UNREFERENCED_PARAMETER(pvDev_km);
 # if !defined(RGX_FEATURE_S7_TOP_INFRASTRUCTURE) && defined(RGX_FEATURE_PERFBUS)
+#  if !defined(RGX_FEATURE_PBE2_IN_XE)
+	if (psBlkTypeDesc->uiCntBlkIdBase == RGX_CNTBLK_ID_PBE0)
+	{
+		/* No support for PBE counters without PBE2_IN_XE */
+		return IMG_FALSE;
+	}
+#  endif
 	psRtInfo->uiNumUnits = psBlkTypeDesc->uiNumUnits;
 	return IMG_TRUE;
 # else
@@ -584,6 +614,11 @@ static const RGXFW_HWPERF_CNTBLK_TYPE_MODEL gasCntBlkTypeModel[] =
 		/*RGX_CNTBLK_ID_PBE0*/
 #if defined(RGX_FEATURE_S7_TOP_INFRASTRUCTURE) || defined(__KERNEL__)
 		{RGX_CNTBLK_ID_PBE0,    RGX_CR_PBE_PERF_INDIRECT, RGX_CR_PBE_PERF,                  RGX_CR_PBE_PERF_SELECT0,            RGX_CR_PBE_PERF_COUNTER_0,            4,              RGX_HWPERF_PHANTOM_INDIRECT_BY_CLUSTER, 21,          3,  "RGX_CR_PBE_PERF",             rgxfw_hwperf_pow_st_indirect, rgx_hwperf_blk_present_s7top },
+#else
+		RGXFW_HWPERF_CNTBLK_TYPE_UNSUPPORTED(RGX_CNTBLK_ID_PBE0),
+#endif
+#if defined(RGX_FEATURE_PBE2_IN_XE) || defined(__KERNEL__)
+		{RGX_CNTBLK_ID_PBE0,    RGX_CR_PBE_PERF_INDIRECT, RGX_CR_PBE_PERF,                  RGX_CR_PBE_PERF_SELECT0,            RGX_CR_PBE_PERF_COUNTER_0,            4,              RGX_HWPERF_PHANTOM_INDIRECT_BY_CLUSTER, 21,          3,  "RGX_CR_PBE_PERF",             rgxfw_hwperf_pow_st_indirect, rgx_hwperf_blk_present_not_s7top },
 #else
 		RGXFW_HWPERF_CNTBLK_TYPE_UNSUPPORTED(RGX_CNTBLK_ID_PBE0),
 #endif

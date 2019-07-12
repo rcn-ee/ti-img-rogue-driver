@@ -55,11 +55,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define ALIGN(val, align) (((val) + ((align) - 1)) & ~((align) - 1))
 #endif
 
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+/* Unused registers re-purposed for storing counters of the Firmware's
+ * interrupts for each OS
+ */
+#define IRQ_COUNTER_STORAGE_REGS                        \
+		0x2028U, /* RGX_CR_PM_TA_MMU_FSTACK         */  \
+		0x2050U, /* RGX_CR_PM_3D_MMU_FSTACK         */  \
+		0x2030U, /* RGX_CR_PM_START_OF_MMU_TACONTEXT*/  \
+		0x2058U, /* RGX_CR_PM_START_OF_MMU_3DCONTEXT*/  \
+		0x2058U, /* RGX_CR_PM_START_OF_MMU_3DCONTEXT*/  \
+		0x2058U, /* RGX_CR_PM_START_OF_MMU_3DCONTEXT*/  \
+		0x2058U, /* RGX_CR_PM_START_OF_MMU_3DCONTEXT*/  \
+		0x2058U, /* RGX_CR_PM_START_OF_MMU_3DCONTEXT*/
+#endif
+
 #if defined(RGX_FIRMWARE)
 typedef DLLIST_NODE							RGXFWIF_DLLIST_NODE;
 #else
 typedef struct {RGXFWIF_DEV_VIRTADDR p;
-                  RGXFWIF_DEV_VIRTADDR n;}	RGXFWIF_DLLIST_NODE;
+                RGXFWIF_DEV_VIRTADDR n;}	RGXFWIF_DLLIST_NODE;
 #endif
 
 typedef RGXFWIF_DEV_VIRTADDR				PRGXFWIF_SIGBUFFER;
@@ -100,12 +115,12 @@ typedef struct _RGXFWIF_FWMEMCONTEXT_
 	IMG_DEV_PHYADDR			RGXFW_ALIGN sPCDevPAddr;	/*!< device physical address of context's page catalogue */
 	IMG_INT32				uiPageCatBaseRegID;	/*!< associated page catalog base register (-1 == unallocated) */
 	IMG_UINT32				uiBreakpointAddr; /*!< breakpoint address */
-	IMG_UINT32				uiBPHandlerAddr;  /*!< breakpoint handler address */
+	IMG_UINT32				uiBPHandlerAddr; /*!< breakpoint handler address */
 	IMG_UINT32				uiBreakpointCtl; /*!< DM and enable control for BP */
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
-    IMG_UINT32              ui32OSid;
-    IMG_BOOL                bOSidAxiProt;
+	IMG_UINT32              ui32OSid;
+	IMG_BOOL                bOSidAxiProt;
 #endif
 
 } UNCACHED_ALIGN RGXFWIF_FWMEMCONTEXT;
@@ -113,25 +128,28 @@ typedef struct _RGXFWIF_FWMEMCONTEXT_
 /*!
  * 	FW context state flags
  */
-#define	RGXFWIF_CONTEXT_TAFLAGS_NEED_RESUME			(0x00000001)
-#define	RGXFWIF_CONTEXT_RENDERFLAGS_NEED_RESUME		(0x00000002)
+#define RGXFWIF_CONTEXT_TAFLAGS_NEED_RESUME			(0x00000001)
+#define RGXFWIF_CONTEXT_RENDERFLAGS_NEED_RESUME		(0x00000002)
 #define RGXFWIF_CONTEXT_CDMFLAGS_NEED_RESUME		(0x00000004)
 #define RGXFWIF_CONTEXT_SHGFLAGS_NEED_RESUME		(0x00000008)
 #define RGXFWIF_CONTEXT_TDMFLAGS_CONTEXT_STORED		(0x00000010)
 #define RGXFWIF_CONTEXT_ALLFLAGS_NEED_RESUME		(0x0000001F)
 
 /*
- * Fast scale blit renders can be divided into smaller slices.
- * The maximum screen size is 8192x8192 pixels or 256x256 tiles.
- * The blit is sliced into 512x512 pixel blits or 16x16 tiles.
- * Therefore, there are at most 256 slices of 16x16 tiles, which
- * means we need 8bits to count up to which slice we have
- * blitted so far.
+ * Fast scale blit renders can be divided into smaller slices. The maximum
+ * screen size is 8192x8192 pixels or 256x256 tiles. The blit is sliced
+ * into 512x512 pixel blits or 16x16 tiles. Therefore, there are at most
+ * 256 slices of 16x16 tiles, which means we need 8bits to count up to
+ * which slice we have blitted so far.
  */
 #define RGXFWIF_CONTEXT_SLICE_BLIT_X_MASK			(0x00000F00)
 #define RGXFWIF_CONTEXT_SLICE_BLIT_X_SHIFT			(8)
 #define RGXFWIF_CONTEXT_SLICE_BLIT_Y_MASK			(0x0000F000)
 #define RGXFWIF_CONTEXT_SLICE_BLIT_Y_SHIFT			(12)
+
+/* Flag to say the Fw3DContextState struct can handle multiple raster pipes. */
+#define RGXFWIF_CONTEXT_XE_RASTER_PIPE_ALLOC		(0x00010000)
+
 
 typedef struct _RGXFWIF_TACTX_STATE_
 {
@@ -151,7 +169,7 @@ typedef struct _RGXFWIF_3DCTX_STATE_
 	/* FW-accessible ISP state which must be written out to memory on context store */
 	IMG_UINT64	RGXFW_ALIGN u3DReg_PM_DEALLOCATED_MASK_STATUS;
 	IMG_UINT64	RGXFW_ALIGN u3DReg_PM_PDS_MTILEFREE_STATUS;
-	/*au3DReg_ISP_STORE should be the last element of the structure
+	/* au3DReg_ISP_STORE should be the last element of the structure
 	 * as this is an array whose size is determined at runtime
 	 * after detecting the RGX core */
 	IMG_UINT32	RGXFW_ALIGN au3DReg_ISP_STORE[];
@@ -429,7 +447,7 @@ typedef struct _RGXFWIF_CLEANUP_REQUEST_
 		PRGXFWIF_RAY_FRAME_DATA		psHWFrameData;			/*!< RPM/RTU frame data to cleanup */
 		PRGXFWIF_RPM_FREELIST 		psRPMFreelist;			/*!< RPM Freelist to cleanup */
 	} uCleanupData;
-	RGXFWIF_DEV_VIRTADDR						sSyncObjDevVAddr;		/*!< sync primitive used to indicate state of the request */
+	RGXFWIF_DEV_VIRTADDR			sSyncObjDevVAddr;		/*!< sync primitive used to indicate state of the request */
 } RGXFWIF_CLEANUP_REQUEST;
 
 typedef enum _RGXFWIF_POWER_TYPE_
@@ -706,6 +724,7 @@ typedef enum _RGXFWIF_KCCB_CMD_TYPE_
 	RGXFWIF_KCCB_CMD_OS_CFG_INIT                = 138 | RGX_CMD_MAGIC_DWORD_SHIFTED, /*!< First kick of the DDK which initializes all OS specific data on the FW */
 	RGXFWIF_KCCB_CMD_COUNTER_DUMP               = 139 | RGX_CMD_MAGIC_DWORD_SHIFTED, /*!< Controls counter dumping in the FW */
 	RGXFWIF_KCCB_CMD_FORCE_UPDATE               = 140 | RGX_CMD_MAGIC_DWORD_SHIFTED, /*!< Forcing signalling of all unmet UFOs for a given CCB offset */
+	RGXFWIF_KCCB_CMD_HWPERF_BVNC_FEATURES       = 141 | RGX_CMD_MAGIC_DWORD_SHIFTED, /*!< Request HWPerf Feature Packet in Firmware */
 } RGXFWIF_KCCB_CMD_TYPE;
 
 /* Kernel CCB command packet */
@@ -862,7 +881,7 @@ typedef struct _RGXFWIF_FWCCB_CMD_
 		RGXFWIF_FWCCB_CMD_FREELIST_GS_DATA					sCmdFreeListGS;					/*!< Data for on-demand freelist grow/shrink */
 		RGXFWIF_FWCCB_CMD_FREELISTS_RECONSTRUCTION_DATA		sCmdFreeListsReconstruction;	/*!< Data for freelists reconstruction */
 		RGXFWIF_FWCCB_CMD_CONTEXT_RESET_DATA				sCmdContextResetNotification;	/*!< Data for context reset notification */
-		RGXFWIF_FWCCB_CMD_UPDATE_STATS_DATA                 sCmdUpdateStatsData;            /*!< Data for updating process stats */
+		RGXFWIF_FWCCB_CMD_UPDATE_STATS_DATA					sCmdUpdateStatsData;			/*!< Data for updating process stats */
 		RGXFWIF_FWCCB_CMD_CORE_CLK_RATE_CHANGE_DATA			sCmdCoreClkRateChange;
 		RGXFWIF_FWCCB_CMD_PDVFS_FREEMEM_DATA				sCmdPDVFSFreeMem;
 		RGXFWIF_FWCCB_CMD_PARTIAL_CONTEXT_RESET_DATA		sCmdPartialContextResetNotification; /*!< Additional data for context reset notification */
@@ -978,9 +997,9 @@ typedef struct _RGXFWIF_INIT_
 	IMG_DEV_VIRTADDR        RGXFW_ALIGN sRTUHeapBase;
 	IMG_DEV_VIRTADDR        RGXFW_ALIGN sTDMTPUYUVCeoffsHeapBase;
 
-	IMG_BOOL                bFirstTA;
+	IMG_BOOL                bUnused1;  /* left for backwards compatibility */
 	IMG_BOOL                bFirstRender;
-	IMG_BOOL                bFrameworkAfterInit;
+	IMG_BOOL                bUnused2;    /* left for backwards compatibility */
 	IMG_BOOL                bDisableFilterHWPerfCustomCounter;
 
 	IMG_UINT32              ui32FilterFlags;
@@ -1079,7 +1098,7 @@ typedef struct _RGXFWIF_INIT_
  *****************************************************************************/
 typedef struct _RGXFWIF_CMD_PRIORITY_
 {
-    IMG_UINT32				ui32Priority;
+	IMG_UINT32             ui32Priority;
 } RGXFWIF_CMD_PRIORITY;
 
 #endif /*  __RGX_FWIF_KM_H__ */

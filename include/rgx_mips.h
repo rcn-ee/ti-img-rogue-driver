@@ -128,13 +128,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGXMIPSFW_ADDR_TO_RR_ADDR_OUT_RSHIFT     (RGXMIPSFW_REMAP_RANGE_ADDR_OUT_ALIGNSHIFT - \
                                                   RGXMIPSFW_REMAP_RANGE_ADDR_OUT_SHIFT)
 
+#if defined(SECURE_FW_CODE_OSID) && (SECURE_FW_CODE_OSID + 1 > 2)
+#define MIPS_FW_CODE_OSID                        (SECURE_FW_CODE_OSID)
+#elif defined(SECURE_FW_CODE_OSID)
+#define MIPS_FW_CODE_OSID                        (1U)
+#endif
+
 
 /*
  * Firmware physical layout
  */
 #define RGXMIPSFW_CODE_BASE_PAGE                 (0x0)
 #define RGXMIPSFW_CODE_OFFSET                    (RGXMIPSFW_CODE_BASE_PAGE << RGXMIPSFW_LOG2_PAGE_SIZE)
-#if defined(SUPPORT_MIPS_CONTIGUOUS_FW_CODE)
+#if defined(SUPPORT_MIPS_CONTIGUOUS_FW_CODE) || defined(SUPPORT_MIPS_64K_PAGE_KERNEL)
 /* Clean way of getting a 256K allocation (62 + 1 + 1 pages) without using too many ifdefs */
 /* This will need to be changed if the non-contiguous builds reach this amount of pages */
 #define RGXMIPSFW_CODE_NUMPAGES                  (62)
@@ -156,7 +162,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define RGXMIPSFW_DATA_BASE_PAGE                 (0x0)
 #define RGXMIPSFW_DATA_OFFSET                    (RGXMIPSFW_DATA_BASE_PAGE << RGXMIPSFW_LOG2_PAGE_SIZE)
+#if defined(SUPPORT_MIPS_64K_PAGE_KERNEL)
+/* Clean way of getting a 64K allocation (14 + 1 + 1 pages) without using too many ifdefs */
+#define RGXMIPSFW_DATA_NUMPAGES                  (14)
+#else
 #define RGXMIPSFW_DATA_NUMPAGES                  (7)
+#endif
 #define RGXMIPSFW_DATA_SIZE                      (RGXMIPSFW_DATA_NUMPAGES << RGXMIPSFW_LOG2_PAGE_SIZE)
 
 #define RGXMIPSFW_BOOT_NMI_DATA_BASE_PAGE        (RGXMIPSFW_DATA_BASE_PAGE + RGXMIPSFW_DATA_NUMPAGES)

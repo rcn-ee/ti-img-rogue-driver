@@ -48,22 +48,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "htbserver.h"
 
-
 IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBConfigure(IMG_HANDLE hBridge,
-							  IMG_UINT32 ui32NameSize,
-							  const IMG_CHAR *puiName,
-							  IMG_UINT32 ui32BufferSize)
+							  IMG_UINT32
+							  ui32NameSize,
+							  const IMG_CHAR *
+							  puiName,
+							  IMG_UINT32
+							  ui32BufferSize)
 {
 #if defined(PVR_NEVER_USED)
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-
-	eError =
-		PVRSRVHTBConfigureKM(
-					ui32NameSize,
-					puiName,
-					ui32BufferSize);
+	eError = PVRSRVHTBConfigureKM(ui32NameSize, puiName, ui32BufferSize);
 
 	return eError;
 #else
@@ -77,25 +74,23 @@ IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBConfigure(IMG_HANDLE hBridge,
 }
 
 IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBControl(IMG_HANDLE hBridge,
-							IMG_UINT32 ui32NumGroups,
-							IMG_UINT32 *pui32GroupEnable,
+							IMG_UINT32
+							ui32NumGroups,
+							IMG_UINT32 *
+							pui32GroupEnable,
 							IMG_UINT32 ui32LogLevel,
-							IMG_UINT32 ui32EnablePID,
+							IMG_UINT32
+							ui32EnablePID,
 							IMG_UINT32 ui32LogMode,
 							IMG_UINT32 ui32OpMode)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-
 	eError =
-		HTBControlKM(
-					ui32NumGroups,
-					pui32GroupEnable,
-					ui32LogLevel,
-					ui32EnablePID,
-					ui32LogMode,
-					ui32OpMode);
+	    HTBControlKM(ui32NumGroups,
+			 pui32GroupEnable,
+			 ui32LogLevel, ui32EnablePID, ui32LogMode, ui32OpMode);
 
 	return eError;
 }
@@ -105,20 +100,13 @@ IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBLog(IMG_HANDLE hBridge,
 						    IMG_UINT32 ui32TimeStamp,
 						    IMG_UINT32 ui32SF,
 						    IMG_UINT32 ui32NumArgs,
-						    IMG_UINT32 *pui32Args)
+						    IMG_UINT32 * pui32Args)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-
 	eError =
-		HTBLogKM(
-					ui32PID,
-					ui32TimeStamp,
-					ui32SF,
-					ui32NumArgs,
-					pui32Args);
+	    HTBLogKM(ui32PID, ui32TimeStamp, ui32SF, ui32NumArgs, pui32Args);
 
 	return eError;
 }
-

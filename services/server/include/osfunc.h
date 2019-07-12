@@ -347,12 +347,12 @@ PVRSRV_ERROR OSThreadCreate(IMG_HANDLE *phThread,
 /*! Available priority levels for the creation of a new Kernel Thread. */
 typedef enum priority_levels
 {
-	OS_THREAD_HIGHEST_PRIORITY = 0,
+	OS_THREAD_NOSET_PRIORITY = 0,   /* With this option the priority level is the default for the given OS */
+	OS_THREAD_HIGHEST_PRIORITY,
 	OS_THREAD_HIGH_PRIORITY,
 	OS_THREAD_NORMAL_PRIORITY,
 	OS_THREAD_LOW_PRIORITY,
 	OS_THREAD_LOWEST_PRIORITY,
-	OS_THREAD_NOSET_PRIORITY,   /* With this option the priority level is the default for the given OS */
 	OS_THREAD_LAST_PRIORITY     /* This must be always the last entry */
 } OS_THREAD_LEVEL;
 
@@ -1011,6 +1011,15 @@ PVRSRV_ERROR OSEventObjectWaitAndHoldBridgeLock(IMG_HANDLE hOSEventKM);
 @Return         PVRSRV_OK on success, a failure code otherwise.
 */ /**************************************************************************/
 PVRSRV_ERROR OSEventObjectWaitTimeoutAndHoldBridgeLock(IMG_HANDLE hOSEventKM, IMG_UINT64 uiTimeoutus);
+
+/*************************************************************************/ /*!
+@Function       OSEventObjectDumpDebugInfo
+@Description    Emits debug counters/stats related to the event object passed 
+@Input          hOSEventKM    the OS event object handle associated with
+                              the event object.
+@Return         None.
+*/ /**************************************************************************/
+void OSEventObjectDumpDebugInfo(IMG_HANDLE hOSEventKM);
 
 /*************************************************************************/ /*!
 @Function       OSEventObjectOpen
@@ -1809,6 +1818,17 @@ PVRSRV_ERROR OSDebugSignalPID(IMG_UINT32 ui32PID);
 void OSThreadDumpInfo(IMG_HANDLE hDbgReqestHandle,
                       DUMPDEBUG_PRINTF_FUNC* pfnDumpDebugPrintf,
                       void *pvDumpDebugFile);
+
+/*************************************************************************/ /*!
+@Function       OSDumpVersionInfo
+@Description    Store OS version information in debug dump.
+@Input          pfnDumpDebugPrintf  The 'printf' function to be called to
+                                    display the debug info
+@Input          pvDumpDebugFile     Optional file identifier to be passed to
+                                    the 'printf' function if required
+*/ /**************************************************************************/
+void OSDumpVersionInfo(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				       void *pvDumpDebugFile);
 
 #endif /* __OSFUNC_H__ */
 

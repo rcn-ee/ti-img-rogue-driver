@@ -165,11 +165,13 @@ struct nulldisp_module_params {
 #define	obj_to_resv(obj) nulldisp_gem_get_resv(obj)
 #endif
 
+/*
+ * The order of this array helps determine the order in which EGL configs are
+ * returned to an application using eglGetConfigs. As such, RGB 8888 formats
+ * should appear first, followed by RGB 565 configs. YUV configs should appear
+ * last.
+ */
 static const uint32_t nulldisp_modeset_formats[] = {
-	DRM_FORMAT_NV12,
-	DRM_FORMAT_NV21,
-	DRM_FORMAT_YUYV,
-	DRM_FORMAT_YUV444,
 	DRM_FORMAT_XRGB8888,
 	DRM_FORMAT_ARGB8888,
 	DRM_FORMAT_RGB565,
@@ -177,6 +179,10 @@ static const uint32_t nulldisp_modeset_formats[] = {
 #ifdef DRM_FORMAT_ABGR16_IMG
 	DRM_FORMAT_ABGR16_IMG,
 #endif
+	DRM_FORMAT_NV12,
+	DRM_FORMAT_NV21,
+	DRM_FORMAT_YUYV,
+	DRM_FORMAT_YUV444,
 };
 
 /*

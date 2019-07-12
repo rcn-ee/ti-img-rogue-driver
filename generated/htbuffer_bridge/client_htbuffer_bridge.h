@@ -55,15 +55,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "common_htbuffer_bridge.h"
 
 IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBConfigure(IMG_HANDLE hBridge,
-							  IMG_UINT32 ui32NameSize,
-							  const IMG_CHAR *puiName,
-							  IMG_UINT32 ui32BufferSize);
+							  IMG_UINT32
+							  ui32NameSize,
+							  const IMG_CHAR *
+							  puiName,
+							  IMG_UINT32
+							  ui32BufferSize);
 
 IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBControl(IMG_HANDLE hBridge,
-							IMG_UINT32 ui32NumGroups,
-							IMG_UINT32 *pui32GroupEnable,
+							IMG_UINT32
+							ui32NumGroups,
+							IMG_UINT32 *
+							pui32GroupEnable,
 							IMG_UINT32 ui32LogLevel,
-							IMG_UINT32 ui32EnablePID,
+							IMG_UINT32
+							ui32EnablePID,
 							IMG_UINT32 ui32LogMode,
 							IMG_UINT32 ui32OpMode);
 
@@ -72,7 +78,6 @@ IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgeHTBLog(IMG_HANDLE hBridge,
 						    IMG_UINT32 ui32TimeStamp,
 						    IMG_UINT32 ui32SF,
 						    IMG_UINT32 ui32NumArgs,
-						    IMG_UINT32 *pui32Args);
-
+						    IMG_UINT32 * pui32Args);
 
 #endif /* CLIENT_HTBUFFER_BRIDGE_H */

@@ -136,12 +136,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem_test.h"
 #endif
 
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+#define INFINITE_SLEEP_TIMEOUT 0ULL
+#endif
+
 /*! Wait 100ms before retrying deferred clean-up again */
 #define CLEANUP_THREAD_WAIT_RETRY_TIMEOUT 100000ULL
 
 /*! Wait 8hrs when no deferred clean-up required. Allows a poll several times
  * a day to check for any missed clean-up. */
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+#define CLEANUP_THREAD_WAIT_SLEEP_TIMEOUT INFINITE_SLEEP_TIMEOUT
+#else
 #define CLEANUP_THREAD_WAIT_SLEEP_TIMEOUT 28800000000ULL
+#endif
 
 /*! When unloading try a few times to free everything remaining on the list */
 #define CLEANUP_THREAD_UNLOAD_RETRY 4
@@ -515,17 +523,107 @@ static void DevicesWatchdogThread_ForEachVaCb(PVRSRV_DEVICE_NODE *psDeviceNode,
 	*pePreviousHealthStatus = eHealthStatus;
 }
 
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+
+typedef enum
+{
+	DWT_ST_INIT,
+	DWT_ST_SLEEP_POWERON,
+	DWT_ST_SLEEP_POWEROFF,
+	DWT_ST_SLEEP_DEFERRED,
+	DWT_ST_FINAL
+} DWT_STATE;
+
+typedef enum
+{
+	DWT_SIG_POWERON,
+	DWT_SIG_POWEROFF,
+	DWT_SIG_TIMEOUT,
+	DWT_SIG_UNLOAD,
+	DWT_SIG_ERROR
+} DWT_SIGNAL;
+
+static inline IMG_BOOL _DwtIsPowerOn(PVRSRV_DATA *psPVRSRVData)
+{
+	return List_PVRSRV_DEVICE_NODE_IMG_BOOL_Any(psPVRSRVData->psDeviceNodeList,
+	                                         DevicesWatchdogThread_Powered_Any);
+}
+
+static inline void _DwtCheckHealthStatus(PVRSRV_DATA *psPVRSRVData,
+                                         PVRSRV_DEVICE_HEALTH_STATUS *peStatus)
+{
+	List_PVRSRV_DEVICE_NODE_ForEach_va(psPVRSRVData->psDeviceNodeList,
+	                                   DevicesWatchdogThread_ForEachVaCb,
+	                                   peStatus);
+
+#if defined(SUPPORT_GPUVIRT_VALIDATION) && defined(EMULATOR)
+	SysPrintAndResetFaultStatusRegister();
+#endif
+}
+
+static DWT_SIGNAL _DwtWait(PVRSRV_DATA *psPVRSRVData, IMG_HANDLE hOSEvent,
+                           IMG_UINT32 ui32Timeout)
+{
+	PVRSRV_ERROR eError;
+
+	eError = OSEventObjectWaitKernel(hOSEvent, (IMG_UINT64) ui32Timeout * 1000);
+
+#ifdef PVR_TESTING_UTILS
+	psPVRSRVData->ui32DevicesWdWakeupCounter++;
+#endif
+
+	if (eError == PVRSRV_OK)
+	{
+		if (psPVRSRVData->bUnload)
+		{
+			PVR_DPF((PVR_DBG_MESSAGE, "DevicesWatchdogThread: Shutdown event"
+			        " received."));
+			return DWT_SIG_UNLOAD;
+		}
+		else
+		{
+			PVR_DPF((PVR_DBG_MESSAGE, "DevicesWatchdogThread: Power state "
+			        "change event received."));
+
+			if (_DwtIsPowerOn(psPVRSRVData))
+			{
+				return DWT_SIG_POWERON;
+			}
+			else
+			{
+				return DWT_SIG_POWEROFF;
+			}
+		}
+	}
+	else if (eError == PVRSRV_ERROR_TIMEOUT)
+	{
+		return DWT_SIG_TIMEOUT;
+	}
+
+	PVR_DPF((PVR_DBG_ERROR, "DevicesWatchdogThread: Error (%d) when"
+	        " waiting for event!", eError));
+	return DWT_SIG_ERROR;
+}
+
+#endif /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
+
 static void DevicesWatchdogThread(void *pvData)
 {
 	PVRSRV_DATA *psPVRSRVData = pvData;
 	PVRSRV_DEVICE_HEALTH_STATUS ePreviousHealthStatus = PVRSRV_DEVICE_HEALTH_STATUS_OK;
 	IMG_HANDLE hOSEvent;
 	PVRSRV_ERROR  eError;
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+	DWT_STATE eState = DWT_ST_INIT;
+	const IMG_UINT32 ui32OnTimeout = DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT;
+	const IMG_UINT32 ui32OffTimeout = INFINITE_SLEEP_TIMEOUT;
+#else
 	IMG_UINT32 ui32Timeout = DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT;
 	/* Flag used to defer the sleep timeout change by 1 loop iteration.
 	 * This helps to ensure at least two health checks are performed before a long sleep.
 	 */
 	IMG_BOOL bDoDeferredTimeoutChange = IMG_FALSE;
+#endif
 
 	PVR_DPF((PVR_DBG_MESSAGE, "DevicesWatchdogThread: Power off sleep time: %d.",
 			DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT));
@@ -543,11 +641,121 @@ static void DevicesWatchdogThread(void *pvData)
 	while (!psPVRSRVData->bUnload)
 #endif
 	{
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+
+		switch (eState)
+		{
+			case DWT_ST_INIT:
+			{
+				if (_DwtIsPowerOn(psPVRSRVData))
+				{
+					eState = DWT_ST_SLEEP_POWERON;
+				}
+				else
+				{
+					eState = DWT_ST_SLEEP_POWEROFF;
+				}
+
+				break;
+			}
+			case DWT_ST_SLEEP_POWERON:
+			{
+				DWT_SIGNAL eSignal = _DwtWait(psPVRSRVData, hOSEvent,
+				                                    ui32OnTimeout);
+
+				switch (eSignal) {
+					case DWT_SIG_POWERON:
+						/* self-transition, nothing to do */
+						break;
+					case DWT_SIG_POWEROFF:
+						eState = DWT_ST_SLEEP_DEFERRED;
+						break;
+					case DWT_SIG_TIMEOUT:
+						_DwtCheckHealthStatus(psPVRSRVData,
+						                      &ePreviousHealthStatus);
+						/* self-transition */
+						break;
+					case DWT_SIG_UNLOAD:
+						eState = DWT_ST_FINAL;
+						break;
+					case DWT_SIG_ERROR:
+						/* deliberately ignored */
+						break;
+				}
+
+				break;
+			}
+			case DWT_ST_SLEEP_POWEROFF:
+			{
+				DWT_SIGNAL eSignal = _DwtWait(psPVRSRVData, hOSEvent,
+				                                    ui32OffTimeout);
+
+				switch (eSignal) {
+					case DWT_SIG_POWERON:
+						eState = DWT_ST_SLEEP_POWERON;
+						_DwtCheckHealthStatus(psPVRSRVData,
+						                      &ePreviousHealthStatus);
+						break;
+					case DWT_SIG_POWEROFF:
+						/* self-transition, nothing to do */
+						break;
+					case DWT_SIG_TIMEOUT:
+						/* self-transition */
+						_DwtCheckHealthStatus(psPVRSRVData,
+						                      &ePreviousHealthStatus);
+						break;
+					case DWT_SIG_UNLOAD:
+						eState = DWT_ST_FINAL;
+						break;
+					case DWT_SIG_ERROR:
+						/* deliberately ignored */
+						break;
+				}
+
+				break;
+			}
+			case DWT_ST_SLEEP_DEFERRED:
+			{
+				DWT_SIGNAL eSignal =_DwtWait(psPVRSRVData, hOSEvent,
+				                                   ui32OnTimeout);
+
+				switch (eSignal) {
+					case DWT_SIG_POWERON:
+						eState = DWT_ST_SLEEP_POWERON;
+						_DwtCheckHealthStatus(psPVRSRVData,
+						                      &ePreviousHealthStatus);
+						break;
+					case DWT_SIG_POWEROFF:
+						/* self-transition, nothing to do */
+						break;
+					case DWT_SIG_TIMEOUT:
+						eState = DWT_ST_SLEEP_POWEROFF;
+						_DwtCheckHealthStatus(psPVRSRVData,
+						                      &ePreviousHealthStatus);
+						break;
+					case DWT_SIG_UNLOAD:
+						eState = DWT_ST_FINAL;
+						break;
+					case DWT_SIG_ERROR:
+						/* deliberately ignored */
+						break;
+				}
+
+				break;
+			}
+			case DWT_ST_FINAL:
+				/* the loop should terminate on next spin if this state is
+				 * reached so nothing to do here. */
+				break;
+		}
+
+#else /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
 		IMG_BOOL bPwrIsOn = IMG_FALSE;
 
 		/* Wait time between polls (done at the start of the loop to allow devices
 		   to initialise) or for the event signal (shutdown or power on). */
 		eError = OSEventObjectWaitKernel(hOSEvent, (IMG_UINT64)ui32Timeout * 1000);
+
 #ifdef PVR_TESTING_UTILS
 		psPVRSRVData->ui32DevicesWdWakeupCounter++;
 #endif
@@ -572,6 +780,7 @@ static void DevicesWatchdogThread(void *pvData)
 
 		bPwrIsOn = List_PVRSRV_DEVICE_NODE_IMG_BOOL_Any(psPVRSRVData->psDeviceNodeList,
 														DevicesWatchdogThread_Powered_Any);
+
 		if (bPwrIsOn || psPVRSRVData->ui32DevicesWatchdogPwrTrans)
 		{
 			psPVRSRVData->ui32DevicesWatchdogPwrTrans = 0;
@@ -600,9 +809,12 @@ static void DevicesWatchdogThread(void *pvData)
 										   DevicesWatchdogThread_ForEachVaCb,
 										   &ePreviousHealthStatus);
 
+
 #if defined(SUPPORT_GPUVIRT_VALIDATION) && defined(EMULATOR)
 		SysPrintAndResetFaultStatusRegister();
 #endif
+
+#endif /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
 	}
 
 	eError = OSEventObjectClose(hOSEvent);
@@ -880,24 +1092,6 @@ PVRSRVDriverInit(void)
 		goto Error;
 	}
 
-	eError = _CleanupThreadPrepare(gpsPVRSRVData);
-	PVR_LOGG_IF_ERROR(eError, "_CleanupThreadPrepare", Error);
-
-	/* Create a thread which is used to do the deferred cleanup */
-	eError = OSThreadCreatePriority(&gpsPVRSRVData->hCleanupThread,
-							"pvr_defer_free",
-							CleanupThread,
-							CleanupThreadDumpInfo,
-							IMG_TRUE,
-							gpsPVRSRVData,
-							OS_THREAD_LOWEST_PRIORITY);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to create deferred cleanup thread",
-				 __func__));
-		goto Error;
-	}
-
 	OSCreateKMAppHintState(&pvAppHintState);
 	ui32AppHintDefault = PVRSRV_APPHINT_CLEANUPTHREADPRIORITY;
 	OSGetKMAppHintUINT32(pvAppHintState, CleanupThreadPriority,
@@ -913,6 +1107,23 @@ PVRSRVDriverInit(void)
 	                     &ui32AppHintDefault, &ui32AppHintWatchdogThreadWeight);
 	OSFreeKMAppHintState(pvAppHintState);
 	pvAppHintState = NULL;
+
+	eError = _CleanupThreadPrepare(gpsPVRSRVData);
+	PVR_LOGG_IF_ERROR(eError, "_CleanupThreadPrepare", Error);
+
+	/* Create a thread which is used to do the deferred cleanup */
+	eError = OSThreadCreate(&gpsPVRSRVData->hCleanupThread,
+							"pvr_defer_free",
+							CleanupThread,
+							CleanupThreadDumpInfo,
+							IMG_TRUE,
+							gpsPVRSRVData);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to create deferred cleanup thread",
+				 __func__));
+		goto Error;
+	}
 
 	eError = OSSetThreadPriority(gpsPVRSRVData->hCleanupThread,
 								 ui32AppHintCleanupThreadPriority,
@@ -1227,6 +1438,11 @@ PVRSRVDriverDeInit(void)
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR, "%s: PhysHeapDeinit failed", __func__));
+	}
+
+	if (OSLockDestroy(gpsPVRSRVData->hConnectionsLock) != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: ConnectionLock destruction failed", __func__));
 	}
 
 	OSFreeMem(gpsPVRSRVData);
@@ -1755,6 +1971,17 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceCreate(void *pvOSDevice,
 	eError = SyncCheckpointInit(psDeviceNode);
 	PVR_LOG_IF_ERROR(eError, "SyncCheckpointInit");
 
+#if defined(SUPPORT_RGX) && defined(SUPPORT_DEDICATED_FW_MEMORY) && !defined(NO_HARDWARE)
+	eError = PhysmemInitFWDedicatedMem(psDeviceNode, psDevConfig);
+	
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to initialise dedicated FW memory heap",
+				 __func__));
+		goto ErrorOnFWMemInit;
+	}
+#endif
+
 	/* Perform additional vz initialisation */
 	eError = _VzDeviceCreate(psDeviceNode);
 	PVR_LOG_IF_ERROR(eError, "_VzDeviceCreate");
@@ -1854,6 +2081,11 @@ ErrorDecrementDeviceCount:
 
 	/* Perform vz deinitialisation */
 	_VzDeviceDestroy(psDeviceNode);
+
+#if defined(SUPPORT_RGX) && defined(SUPPORT_DEDICATED_FW_MEMORY) && !defined(NO_HARDWARE)
+ErrorOnFWMemInit:
+	PhysmemDeinitFWDedicatedMem(psDeviceNode);
+#endif
 
 	ServerSyncDeinit(psDeviceNode);
 
@@ -2291,6 +2523,10 @@ PVRSRV_ERROR IMG_CALLCONV PVRSRVDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 	SyncCheckpointDeinit(psDeviceNode);
 
 	ServerSyncDeinit(psDeviceNode);
+
+#if defined(SUPPORT_RGX) && defined(SUPPORT_DEDICATED_FW_MEMORY) && !defined(NO_HARDWARE)
+	PhysmemDeinitFWDedicatedMem(psDeviceNode);
+#endif
 
 	/* Remove RAs and RA names for local card memory */
 	for (ui32RegionIdx = 0;
@@ -3142,6 +3378,7 @@ PVRSRVSystemBIFTilingHeapGetXStride(PVRSRV_DEVICE_CONFIG *psDevConfig,
 
 	if (uiHeapNum < 1 || uiHeapNum > psDevConfig->ui32BIFTilingHeapCount)
 	{
+		*puiXStride = 0;
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 

@@ -55,7 +55,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "devicemem_typedefs.h"
 #include "pvrsrv_sync_km.h"
 
-
 #define PVRSRV_BRIDGE_RGXRAY_CMD_FIRST			0
 #define PVRSRV_BRIDGE_RGXRAY_RGXCREATERPMFREELIST			PVRSRV_BRIDGE_RGXRAY_CMD_FIRST+0
 #define PVRSRV_BRIDGE_RGXRAY_RGXDESTROYRPMFREELIST			PVRSRV_BRIDGE_RGXRAY_CMD_FIRST+1
@@ -67,7 +66,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PVRSRV_BRIDGE_RGXRAY_RGXDESTROYRAYCONTEXT			PVRSRV_BRIDGE_RGXRAY_CMD_FIRST+7
 #define PVRSRV_BRIDGE_RGXRAY_RGXSETRAYCONTEXTPRIORITY			PVRSRV_BRIDGE_RGXRAY_CMD_FIRST+8
 #define PVRSRV_BRIDGE_RGXRAY_CMD_LAST			(PVRSRV_BRIDGE_RGXRAY_CMD_FIRST+8)
-
 
 /*******************************************
             RGXCreateRPMFreeList          
@@ -81,7 +79,7 @@ typedef struct PVRSRV_BRIDGE_IN_RGXCREATERPMFREELIST_TAG
 	IMG_UINT32 ui32GrowFLPages;
 	IMG_DEV_VIRTADDR sFreeListDevVAddr;
 	IMG_BOOL bIsExternal;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXCREATERPMFREELIST;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXCREATERPMFREELIST;
 
 /* Bridge out structure for RGXCreateRPMFreeList */
 typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERPMFREELIST_TAG
@@ -89,8 +87,7 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERPMFREELIST_TAG
 	IMG_HANDLE hCleanupCookie;
 	IMG_UINT32 ui32HWFreeList;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXCREATERPMFREELIST;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXCREATERPMFREELIST;
 
 /*******************************************
             RGXDestroyRPMFreeList          
@@ -100,14 +97,13 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERPMFREELIST_TAG
 typedef struct PVRSRV_BRIDGE_IN_RGXDESTROYRPMFREELIST_TAG
 {
 	IMG_HANDLE hCleanupCookie;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYRPMFREELIST;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYRPMFREELIST;
 
 /* Bridge out structure for RGXDestroyRPMFreeList */
 typedef struct PVRSRV_BRIDGE_OUT_RGXDESTROYRPMFREELIST_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYRPMFREELIST;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYRPMFREELIST;
 
 /*******************************************
             RGXCreateRPMContext          
@@ -123,7 +119,7 @@ typedef struct PVRSRV_BRIDGE_IN_RGXCREATERPMCONTEXT_TAG
 	IMG_HANDLE hSceneHeap;
 	IMG_DEV_VIRTADDR sRPMPageTableBaseAddr;
 	IMG_HANDLE hRPMPageTableHeap;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXCREATERPMCONTEXT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXCREATERPMCONTEXT;
 
 /* Bridge out structure for RGXCreateRPMContext */
 typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERPMCONTEXT_TAG
@@ -132,8 +128,7 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERPMCONTEXT_TAG
 	IMG_HANDLE hHWMemDesc;
 	IMG_UINT32 ui32HWFrameData;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXCREATERPMCONTEXT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXCREATERPMCONTEXT;
 
 /*******************************************
             RGXDestroyRPMContext          
@@ -143,14 +138,13 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERPMCONTEXT_TAG
 typedef struct PVRSRV_BRIDGE_IN_RGXDESTROYRPMCONTEXT_TAG
 {
 	IMG_HANDLE hCleanupCookie;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYRPMCONTEXT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYRPMCONTEXT;
 
 /* Bridge out structure for RGXDestroyRPMContext */
 typedef struct PVRSRV_BRIDGE_OUT_RGXDESTROYRPMCONTEXT_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYRPMCONTEXT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYRPMCONTEXT;
 
 /*******************************************
             RGXKickRS          
@@ -162,36 +156,35 @@ typedef struct PVRSRV_BRIDGE_IN_RGXKICKRS_TAG
 	IMG_HANDLE hRayContext;
 	IMG_UINT32 ui32ClientCacheOpSeqNum;
 	IMG_UINT32 ui32ClientFenceCount;
-	IMG_HANDLE * phClientFenceUFOSyncPrimBlock;
-	IMG_UINT32 * pui32ClientFenceSyncOffset;
-	IMG_UINT32 * pui32ClientFenceValue;
+	IMG_HANDLE *phClientFenceUFOSyncPrimBlock;
+	IMG_UINT32 *pui32ClientFenceSyncOffset;
+	IMG_UINT32 *pui32ClientFenceValue;
 	IMG_UINT32 ui32ClientUpdateCount;
-	IMG_HANDLE * phClientUpdateUFOSyncPrimBlock;
-	IMG_UINT32 * pui32ClientUpdateSyncOffset;
-	IMG_UINT32 * pui32ClientUpdateValue;
+	IMG_HANDLE *phClientUpdateUFOSyncPrimBlock;
+	IMG_UINT32 *pui32ClientUpdateSyncOffset;
+	IMG_UINT32 *pui32ClientUpdateValue;
 	IMG_UINT32 ui32ServerSyncCount;
-	IMG_UINT32 * pui32ServerSyncFlags;
-	IMG_HANDLE * phServerSyncs;
+	IMG_UINT32 *pui32ServerSyncFlags;
+	IMG_HANDLE *phServerSyncs;
 	PVRSRV_FENCE hCheckFenceFD;
 	PVRSRV_TIMELINE hUpdateTimeline;
-	IMG_CHAR * puiUpdateFenceName;
+	IMG_CHAR *puiUpdateFenceName;
 	IMG_UINT32 ui32CmdSize;
-	IMG_BYTE * psDMCmd;
+	IMG_BYTE *psDMCmd;
 	IMG_UINT32 ui32FCCmdSize;
-	IMG_BYTE * psFCDMCmd;
+	IMG_BYTE *psFCDMCmd;
 	IMG_UINT32 ui32FrameContext;
 	IMG_UINT32 ui32PDumpFlags;
 	IMG_UINT32 ui32ExtJobRef;
 	IMG_DEV_VIRTADDR ssRobustnessResetReason;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXKICKRS;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXKICKRS;
 
 /* Bridge out structure for RGXKickRS */
 typedef struct PVRSRV_BRIDGE_OUT_RGXKICKRS_TAG
 {
 	PVRSRV_FENCE hUpdateFence;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXKICKRS;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXKICKRS;
 
 /*******************************************
             RGXKickVRDM          
@@ -203,33 +196,32 @@ typedef struct PVRSRV_BRIDGE_IN_RGXKICKVRDM_TAG
 	IMG_HANDLE hRayContext;
 	IMG_UINT32 ui32ClientCacheOpSeqNum;
 	IMG_UINT32 ui32ClientFenceCount;
-	IMG_HANDLE * phClientFenceUFOSyncPrimBlock;
-	IMG_UINT32 * pui32ClientFenceSyncOffset;
-	IMG_UINT32 * pui32ClientFenceValue;
+	IMG_HANDLE *phClientFenceUFOSyncPrimBlock;
+	IMG_UINT32 *pui32ClientFenceSyncOffset;
+	IMG_UINT32 *pui32ClientFenceValue;
 	IMG_UINT32 ui32ClientUpdateCount;
-	IMG_HANDLE * phClientUpdateUFOSyncPrimBlock;
-	IMG_UINT32 * pui32ClientUpdateSyncOffset;
-	IMG_UINT32 * pui32ClientUpdateValue;
+	IMG_HANDLE *phClientUpdateUFOSyncPrimBlock;
+	IMG_UINT32 *pui32ClientUpdateSyncOffset;
+	IMG_UINT32 *pui32ClientUpdateValue;
 	IMG_UINT32 ui32ServerSyncCount;
-	IMG_UINT32 * pui32ServerSyncFlags;
-	IMG_HANDLE * phServerSyncs;
+	IMG_UINT32 *pui32ServerSyncFlags;
+	IMG_HANDLE *phServerSyncs;
 	PVRSRV_FENCE hCheckFenceFD;
 	PVRSRV_TIMELINE hUpdateTimeline;
-	IMG_CHAR * puiUpdateFenceName;
+	IMG_CHAR *puiUpdateFenceName;
 	IMG_UINT32 ui32CmdSize;
-	IMG_BYTE * psDMCmd;
+	IMG_BYTE *psDMCmd;
 	IMG_UINT32 ui32PDumpFlags;
 	IMG_UINT32 ui32ExtJobRef;
 	IMG_DEV_VIRTADDR ssRobustnessResetReason;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXKICKVRDM;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXKICKVRDM;
 
 /* Bridge out structure for RGXKickVRDM */
 typedef struct PVRSRV_BRIDGE_OUT_RGXKICKVRDM_TAG
 {
 	PVRSRV_FENCE hUpdateFence;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXKICKVRDM;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXKICKVRDM;
 
 /*******************************************
             RGXCreateRayContext          
@@ -241,17 +233,16 @@ typedef struct PVRSRV_BRIDGE_IN_RGXCREATERAYCONTEXT_TAG
 	IMG_UINT32 ui32Priority;
 	IMG_DEV_VIRTADDR sVRMCallStackAddr;
 	IMG_UINT32 ui32FrameworkCmdSize;
-	IMG_BYTE * psFrameworkCmd;
+	IMG_BYTE *psFrameworkCmd;
 	IMG_HANDLE hPrivData;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXCREATERAYCONTEXT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXCREATERAYCONTEXT;
 
 /* Bridge out structure for RGXCreateRayContext */
 typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERAYCONTEXT_TAG
 {
 	IMG_HANDLE hRayContext;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXCREATERAYCONTEXT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXCREATERAYCONTEXT;
 
 /*******************************************
             RGXDestroyRayContext          
@@ -261,14 +252,13 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXCREATERAYCONTEXT_TAG
 typedef struct PVRSRV_BRIDGE_IN_RGXDESTROYRAYCONTEXT_TAG
 {
 	IMG_HANDLE hRayContext;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYRAYCONTEXT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYRAYCONTEXT;
 
 /* Bridge out structure for RGXDestroyRayContext */
 typedef struct PVRSRV_BRIDGE_OUT_RGXDESTROYRAYCONTEXT_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYRAYCONTEXT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYRAYCONTEXT;
 
 /*******************************************
             RGXSetRayContextPriority          
@@ -279,13 +269,12 @@ typedef struct PVRSRV_BRIDGE_IN_RGXSETRAYCONTEXTPRIORITY_TAG
 {
 	IMG_HANDLE hRayContext;
 	IMG_UINT32 ui32Priority;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXSETRAYCONTEXTPRIORITY;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXSETRAYCONTEXTPRIORITY;
 
 /* Bridge out structure for RGXSetRayContextPriority */
 typedef struct PVRSRV_BRIDGE_OUT_RGXSETRAYCONTEXTPRIORITY_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXSETRAYCONTEXTPRIORITY;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXSETRAYCONTEXTPRIORITY;
 
 #endif /* COMMON_RGXRAY_BRIDGE_H */

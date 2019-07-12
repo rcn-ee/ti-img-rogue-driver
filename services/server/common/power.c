@@ -460,16 +460,23 @@ PVRSRV_ERROR PVRSRVSetDevicePowerStateKM(PPVRSRV_DEVICE_NODE psDeviceNode,
 		if (eNewPowerState == PVRSRV_DEV_POWER_STATE_ON)
 		{
 			psPVRSRVData->ui32DevicesWatchdogPwrTrans++;
-
+#if !defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
 			if (psPVRSRVData->ui32DevicesWatchdogTimeout == DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT)
+#endif
 			{
-				if (psPVRSRVData->hDevicesWatchdogEvObj)
-				{
-					eError = OSEventObjectSignal(psPVRSRVData->hDevicesWatchdogEvObj);
-					PVR_LOG_IF_ERROR(eError, "OSEventObjectSignal");
-				}
+				eError = OSEventObjectSignal(psPVRSRVData->hDevicesWatchdogEvObj);
+				PVR_LOG_IF_ERROR(eError, "OSEventObjectSignal");
 			}
 		}
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+		else if (eNewPowerState == PVRSRV_DEV_POWER_STATE_OFF)
+		{
+			/* signal watchdog thread and give it a chance to switch to
+			 * longer / infinite wait time */
+			eError = OSEventObjectSignal(psPVRSRVData->hDevicesWatchdogEvObj);
+			PVR_LOG_IF_ERROR(eError, "OSEventObjectSignal");
+		}
+#endif /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
 	}
 
 	return PVRSRV_OK;

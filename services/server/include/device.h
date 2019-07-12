@@ -275,6 +275,8 @@ typedef struct _PVRSRV_DEVICE_NODE_
 
 	IMG_INT32	(*pfnGetDeviceFeatureValue)(struct _PVRSRV_DEVICE_NODE_ *psDevNode, enum _RGX_FEATURE_WITH_VALUE_INDEX_ eFeatureIndex);
 
+	IMG_BOOL (*pfnHasFBCDCVersion31)(struct _PVRSRV_DEVICE_NODE_ *psDevNode);
+
 	PVRSRV_DEVICE_CONFIG	*psDevConfig;
 
 	/* device post-finalise compatibility check */
@@ -331,6 +333,11 @@ typedef struct _PVRSRV_DEVICE_NODE_
 	 *  three physical heap IDs, the last being for PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL allocations
 	 */
 	PHYS_HEAP				*apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_LAST];
+
+#if defined(SUPPORT_DEDICATED_FW_MEMORY)
+	PHYS_HEAP				*psDedicatedFWMemHeap;
+	RA_ARENA				*psDedicatedFWMemArena;
+#endif
 
 	struct _PVRSRV_DEVICE_NODE_	*psNext;
 	struct _PVRSRV_DEVICE_NODE_	**ppsThis;

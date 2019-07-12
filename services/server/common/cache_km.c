@@ -93,7 +93,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 //#define CACHEOP_NO_CACHE_LINE_ALIGNED_ROUNDING		/* Force OS page (not cache line) flush granularity */
 #define CACHEOP_PVR_ASSERT(x)							/* Define as PVR_ASSERT(x), enable for swdev & testing */
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+#define CACHEOP_THREAD_WAIT_TIMEOUT			0ULL		/* Wait indefinitely */
+#else
 #define CACHEOP_THREAD_WAIT_TIMEOUT			500000ULL	/* Wait 500ms between wait unless woken-up on demand */
+#endif
 #define CACHEOP_FENCE_WAIT_TIMEOUT			1000ULL		/* Wait 1ms between wait events unless woken-up */
 #define CACHEOP_FENCE_RETRY_ABORT			1000ULL		/* Fence retries that aborts fence operation */
 #define CACHEOP_SEQ_MIDPOINT (IMG_UINT32)	0x7FFFFFFF	/* Where seqNum(s) are rebase, compared at */
@@ -932,15 +936,11 @@ static void CacheOpConfigUpdate(IMG_UINT32 ui32Config)
 			/* Set UM/KM threshold, all request sizes above this goes to server for GF maintenance _only_
 			   because UM flushes already have VA acquired, no cost is incurred in per-page (re)mapping
 			   of the to-be maintained PMR/page(s) as it the case with KM flushing so disallow KDF */
-#if defined(ARM64) || defined(__aarch64__) || defined(__arm64__)
-			/* This value is set to be higher for ARM64 due to a very optimised UM flush implementation */
-			gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD] = gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD] << 4;
-#else
-			/* For others, assume an average UM flush performance, anything above should be promoted to GF.
+
+			/* Assume an average UM flush performance, anything above should be promoted to GF.
 			   For x86 UMA/LMA, we avoid KDF because remapping PMR/pages in KM might fail due to exhausted
 			   or fragmented VMALLOC kernel VA space */
 			gsCwq.pui32InfoPage[CACHEOP_INFO_UMKMTHRESHLD] = gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD];
-#endif
 		}
 	}
 
@@ -1585,7 +1585,7 @@ static PVRSRV_ERROR CacheOpPMRExec (PMR *psPMR,
 
 	/* Check for explicitly requested-for KGF or KRBF promoted to KGF requests */
 	if (uiCacheOp == PVRSRV_CACHE_OP_GLOBAL || uiSize == 0 ||
-		uiSize >= gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD])
+	    (IMG_UINT32)uiSize > gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD])
 	{
 		/* Discard if an else-when KGF has occurred in the interim time */
 		if (gsCwq.pui32InfoPage[CACHEOP_INFO_GFSEQNUM0] > ui32GFlushSeqNum)
@@ -2248,7 +2248,7 @@ static INLINE PVRSRV_ERROR CacheOpQListExec(void)
 
 	if (CacheOpConfigSupports(CACHEOP_CONFIG_KGF) &&
 		(!CacheOpConfigSupports(CACHEOP_CONFIG_KRBF)
-		 || OSAtomicRead(&gsCwq.hDeferredSize) >= gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD]))
+		 || OSAtomicRead(&gsCwq.hDeferredSize) > gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD]))
 	{
 		eError = CacheOpQListExecGlobal();
 		PVR_LOG_IF_ERROR(eError, "CacheOpQListExecGlobal");
@@ -2858,7 +2858,7 @@ PVRSRV_ERROR CacheOpExec (PPVRSRV_DEVICE_NODE psDevNode,
 	if (gsCwq.bInit)
 	{
 		IMG_DEVMEM_SIZE_T uiSize = sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr;
-		if (uiSize >= (IMG_DEVMEM_SIZE_T)gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD])
+		if ((IMG_UINT32)uiSize > gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD])
 		{
 			eError = CacheOpGlobalFlush();
 		}
@@ -2933,7 +2933,7 @@ PVRSRV_ERROR CacheOpValExec(PMR *psPMR,
 {
 	PVRSRV_ERROR eError;
 	IMG_CPU_VIRTADDR pvAddress = (IMG_CPU_VIRTADDR)(uintptr_t)uiAddress;
-	IMG_BOOL bUseGlobalFlush = uiSize >= gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD];
+	IMG_BOOL bUseGlobalFlush = (IMG_UINT32)uiSize > gsCwq.pui32InfoPage[CACHEOP_INFO_KMGFTHRESHLD];
 #if	defined(CACHEOP_DEBUG)
 	CACHEOP_WORK_ITEM sCacheOpWorkItem = {0};
 	gsCwq.ui32TotalExecOps += 1;
@@ -3255,7 +3255,11 @@ PVRSRV_ERROR CacheOpInit2 (void)
 	PVR_LOGG_IF_ERROR(eError, "OSLockCreate", e0);
 
 	/* Determine CPU cache ISA maintenance mechanism available, GF and UMF */
-	gsCwq.bNoGlobalFlushImpl = (IMG_BOOL)OSCPUOperation(PVRSRV_CACHE_OP_FLUSH);
+#if defined(__arm__) || defined(__arm64__) || defined(__aarch64__)
+	gsCwq.bNoGlobalFlushImpl = IMG_TRUE;
+#else
+	gsCwq.bNoGlobalFlushImpl = (OSCPUOperation(PVRSRV_CACHE_OP_FLUSH) != PVRSRV_OK) ? IMG_TRUE : IMG_FALSE;
+#endif
 	if (! gsCwq.bNoGlobalFlushImpl)
 	{
 		IMG_UINT64 uiIdx;

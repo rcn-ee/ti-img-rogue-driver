@@ -50,14 +50,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "pvrsrv_error.h"
 
-
-
 #define PVRSRV_BRIDGE_SMM_CMD_FIRST			0
 #define PVRSRV_BRIDGE_SMM_PMRSECUREEXPORTPMR			PVRSRV_BRIDGE_SMM_CMD_FIRST+0
 #define PVRSRV_BRIDGE_SMM_PMRSECUREUNEXPORTPMR			PVRSRV_BRIDGE_SMM_CMD_FIRST+1
 #define PVRSRV_BRIDGE_SMM_PMRSECUREIMPORTPMR			PVRSRV_BRIDGE_SMM_CMD_FIRST+2
 #define PVRSRV_BRIDGE_SMM_CMD_LAST			(PVRSRV_BRIDGE_SMM_CMD_FIRST+2)
-
 
 /*******************************************
             PMRSecureExportPMR          
@@ -67,15 +64,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct PVRSRV_BRIDGE_IN_PMRSECUREEXPORTPMR_TAG
 {
 	IMG_HANDLE hPMR;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PMRSECUREEXPORTPMR;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PMRSECUREEXPORTPMR;
 
 /* Bridge out structure for PMRSecureExportPMR */
 typedef struct PVRSRV_BRIDGE_OUT_PMRSECUREEXPORTPMR_TAG
 {
 	IMG_SECURE_TYPE Export;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PMRSECUREEXPORTPMR;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PMRSECUREEXPORTPMR;
 
 /*******************************************
             PMRSecureUnexportPMR          
@@ -85,14 +81,13 @@ typedef struct PVRSRV_BRIDGE_OUT_PMRSECUREEXPORTPMR_TAG
 typedef struct PVRSRV_BRIDGE_IN_PMRSECUREUNEXPORTPMR_TAG
 {
 	IMG_HANDLE hPMR;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PMRSECUREUNEXPORTPMR;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PMRSECUREUNEXPORTPMR;
 
 /* Bridge out structure for PMRSecureUnexportPMR */
 typedef struct PVRSRV_BRIDGE_OUT_PMRSECUREUNEXPORTPMR_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PMRSECUREUNEXPORTPMR;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PMRSECUREUNEXPORTPMR;
 
 /*******************************************
             PMRSecureImportPMR          
@@ -102,7 +97,7 @@ typedef struct PVRSRV_BRIDGE_OUT_PMRSECUREUNEXPORTPMR_TAG
 typedef struct PVRSRV_BRIDGE_IN_PMRSECUREIMPORTPMR_TAG
 {
 	IMG_SECURE_TYPE Export;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PMRSECUREIMPORTPMR;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PMRSECUREIMPORTPMR;
 
 /* Bridge out structure for PMRSecureImportPMR */
 typedef struct PVRSRV_BRIDGE_OUT_PMRSECUREIMPORTPMR_TAG
@@ -111,7 +106,6 @@ typedef struct PVRSRV_BRIDGE_OUT_PMRSECUREIMPORTPMR_TAG
 	IMG_DEVMEM_SIZE_T uiSize;
 	IMG_DEVMEM_ALIGN_T sAlign;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PMRSECUREIMPORTPMR;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PMRSECUREIMPORTPMR;
 
 #endif /* COMMON_SMM_BRIDGE_H */

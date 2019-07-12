@@ -54,11 +54,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_rgxpdump_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpTraceBuffer(IMG_HANDLE hBridge,
-							      IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpTraceBuffer(IMG_HANDLE
+							      hBridge,
+							      IMG_UINT32
+							      ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpSignatureBuffer(IMG_HANDLE hBridge,
-								  IMG_UINT32 ui32PDumpFlags);
-
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpSignatureBuffer(IMG_HANDLE
+								  hBridge,
+								  IMG_UINT32
+								  ui32PDumpFlags);
 
 #endif /* CLIENT_RGXPDUMP_BRIDGE_H */

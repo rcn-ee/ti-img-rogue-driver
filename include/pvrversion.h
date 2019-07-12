@@ -53,16 +53,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define PVRVERSION_FAMILY           "rogueddk"
 #define PVRVERSION_BRANCHNAME       "1.10"
-#define PVRVERSION_BUILD             5187610
-#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux_WS"
+#define PVRVERSION_BUILD             5371573
+#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux"
 
-#define PVRVERSION_STRING           "Rogue_DDK_Linux_WS rogueddk 1.10@" PVR_STR2(PVRVERSION_BUILD)
+#define PVRVERSION_STRING           "Rogue_DDK_Linux rogueddk 1.10@" PVR_STR2(PVRVERSION_BUILD)
 #define PVRVERSION_STRING_SHORT     "1.10@" PVR_STR2(PVRVERSION_BUILD) ""
 
 #define COPYRIGHT_TXT               "Copyright (c) Imagination Technologies Ltd. All Rights Reserved."
 
-#define PVRVERSION_BUILD_HI          518
-#define PVRVERSION_BUILD_LO          7610
+#define PVRVERSION_BUILD_HI          537
+#define PVRVERSION_BUILD_LO          1573
 #define PVRVERSION_STRING_NUMERIC    PVR_STR2(PVRVERSION_MAJ) "." PVR_STR2(PVRVERSION_MIN) "." PVR_STR2(PVRVERSION_BUILD_HI) "." PVR_STR2(PVRVERSION_BUILD_LO)
 
 #define PVRVERSION_PACK(MAJ,MIN) ((((MAJ)&0xFFFF) << 16) | (((MIN)&0xFFFF) << 0))

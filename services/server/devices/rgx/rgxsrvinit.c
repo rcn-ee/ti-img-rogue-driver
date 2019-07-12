@@ -158,6 +158,9 @@ typedef struct _RGX_SRVINIT_APPHINTS_
 	IMG_BOOL   bAssertOnOutOfMem;
 #endif
 	IMG_BOOL   bAssertOnHWRTrigger;
+#if defined(SUPPORT_VALIDATION)
+	IMG_UINT32 ui32FBCDCVersionOverride;
+#endif
 	IMG_BOOL   bCheckMlist;
 	IMG_BOOL   bDisableClockGating;
 	IMG_BOOL   bDisableDMOverlap;
@@ -415,6 +418,10 @@ static INLINE void GetApphints(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_SRVINIT_APPHIN
 	SrvInitParamUnreferenced(FWContextSwitchCrossDM);
 #endif
 
+#if defined(SUPPORT_VALIDATION)
+	SrvInitParamGetUINT32(pvParamState,  FBCDCVersionOverride, psHints->ui32FBCDCVersionOverride);
+#endif
+
 	/*
 	 * FW logs apphints
 	 */
@@ -501,7 +508,8 @@ static INLINE void GetApphints(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_SRVINIT_APPHIN
  @Return        void
 
 ******************************************************************************/
-static INLINE void GetFWConfigFlags(RGX_SRVINIT_APPHINTS *psHints,
+static INLINE void GetFWConfigFlags(PVRSRV_DEVICE_NODE *psDeviceNode,
+                                    RGX_SRVINIT_APPHINTS *psHints,
                                     IMG_UINT32 *pui32FWConfigFlags,
                                     IMG_UINT32 *pui32FWConfigFlagsExt)
 {
@@ -531,6 +539,18 @@ static INLINE void GetFWConfigFlags(RGX_SRVINIT_APPHINTS *psHints,
 
 	*pui32FWConfigFlags    = ui32FWConfigFlags;
 	*pui32FWConfigFlagsExt = psHints->ui32FWContextSwitchCrossDM;
+
+#if defined(SUPPORT_VALIDATION)
+	if (psHints->ui32FBCDCVersionOverride > 0)
+	{
+		*pui32FWConfigFlagsExt |= (psHints->ui32FBCDCVersionOverride == 2) ? RGXFWIF_INICFG_EXT_FBCDC_V3_1_EN : 0;
+	}
+	else
+#endif
+	{
+		*pui32FWConfigFlagsExt |= psDeviceNode->pfnHasFBCDCVersion31(psDeviceNode) ? RGXFWIF_INICFG_EXT_FBCDC_V3_1_EN : 0;
+	}
+
 	*pui32FWConfigFlagsExt |= RGXFWIF_INICFG_EXT_HWPERF_FEATURE_FLAGS;
 }
 
@@ -926,7 +946,7 @@ static PVRSRV_ERROR InitFirmware(PVRSRV_DEVICE_NODE *psDeviceNode,
 	 * Setup Firmware initialisation data
 	 */
 
-	GetFWConfigFlags(psHints, &ui32FWConfigFlags, &ui32FWConfigFlagsExt);
+	GetFWConfigFlags(psDeviceNode, psHints, &ui32FWConfigFlags, &ui32FWConfigFlagsExt);
 
 	eError = PVRSRVRGXInitFirmwareKM(psDeviceNode,
 	                                 &sRGXFwInit,

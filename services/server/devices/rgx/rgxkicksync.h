@@ -47,9 +47,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_error.h"
 #include "connection_server.h"
 #include "sync_server.h"
+#include "rgxdevice.h"
 
 
 typedef struct _RGX_SERVER_KICKSYNC_CONTEXT_ RGX_SERVER_KICKSYNC_CONTEXT;
+
+/**************************************************************************/ /*!
+@Function       CheckForStalledKickSyncCtxt
+@Description    Function that checks if a kick sync ctx is stalled
+@Return         none
+ */ /**************************************************************************/
+void CheckForStalledKickSyncCtxt(PVRSRV_RGXDEV_INFO *psDevInfo,
+                                 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+                                 void *pvDumpDebugFile);
+
+/**************************************************************************/ /*!
+@Function       CheckForStalledClientKickSyncCtxt
+@Description    Function that checks if a kick sync client is stalled
+@Return         RGX_KICK_TYPE_DM_GP on stalled context. Otherwise, 0
+ */ /**************************************************************************/
+IMG_UINT32 CheckForStalledClientKickSyncCtxt(PVRSRV_RGXDEV_INFO *psDevInfo);
 
 /**************************************************************************/ /*!
 @Function       PVRSRVRGXCreateKickSyncContextKM

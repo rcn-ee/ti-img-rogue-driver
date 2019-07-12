@@ -75,6 +75,8 @@ THE SOFTWARE.
  */
 #if !defined(__KERNEL__)
 #define DRM_FORMAT_YVU444_PACK10_IMG fourcc_code('I', 'M', 'G', '2')
+#define DRM_FORMAT_YUV422_2PLANE_PACK10_IMG fourcc_code('I', 'M', 'G', '3')
+#define DRM_FORMAT_YUV420_2PLANE_PACK10_IMG fourcc_code('I', 'M', 'G', '4')
 #endif
 
 /*

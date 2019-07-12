@@ -463,7 +463,7 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 		{
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 			OSFreeMem(psCpuPAddr);
-			goto e1;
+			goto e2;
 		}
 	}
 	else
@@ -605,10 +605,14 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 
 	/* Error exit paths follow */
  e3:
+	if (pbValid != abValid)
+	{
+		OSFreeMem(pbValid);
+	}
+ e2:
 	if (psCpuPAddr != asCpuPAddr)
 	{
 		OSFreeMem(psCpuPAddr);
-		OSFreeMem(pbValid);
 	}
  e1:
 	PMRUnlockSysPhysAddresses(psPMR);

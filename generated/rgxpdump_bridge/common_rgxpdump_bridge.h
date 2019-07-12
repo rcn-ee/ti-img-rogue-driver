@@ -52,12 +52,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgx_bridge.h"
 
-
 #define PVRSRV_BRIDGE_RGXPDUMP_CMD_FIRST			0
 #define PVRSRV_BRIDGE_RGXPDUMP_PDUMPTRACEBUFFER			PVRSRV_BRIDGE_RGXPDUMP_CMD_FIRST+0
 #define PVRSRV_BRIDGE_RGXPDUMP_PDUMPSIGNATUREBUFFER			PVRSRV_BRIDGE_RGXPDUMP_CMD_FIRST+1
 #define PVRSRV_BRIDGE_RGXPDUMP_CMD_LAST			(PVRSRV_BRIDGE_RGXPDUMP_CMD_FIRST+1)
-
 
 /*******************************************
             PDumpTraceBuffer          
@@ -67,14 +65,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct PVRSRV_BRIDGE_IN_PDUMPTRACEBUFFER_TAG
 {
 	IMG_UINT32 ui32PDumpFlags;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PDUMPTRACEBUFFER;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PDUMPTRACEBUFFER;
 
 /* Bridge out structure for PDumpTraceBuffer */
 typedef struct PVRSRV_BRIDGE_OUT_PDUMPTRACEBUFFER_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PDUMPTRACEBUFFER;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PDUMPTRACEBUFFER;
 
 /*******************************************
             PDumpSignatureBuffer          
@@ -84,13 +81,12 @@ typedef struct PVRSRV_BRIDGE_OUT_PDUMPTRACEBUFFER_TAG
 typedef struct PVRSRV_BRIDGE_IN_PDUMPSIGNATUREBUFFER_TAG
 {
 	IMG_UINT32 ui32PDumpFlags;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PDUMPSIGNATUREBUFFER;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PDUMPSIGNATUREBUFFER;
 
 /* Bridge out structure for PDumpSignatureBuffer */
 typedef struct PVRSRV_BRIDGE_OUT_PDUMPSIGNATUREBUFFER_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PDUMPSIGNATUREBUFFER;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PDUMPSIGNATUREBUFFER;
 
 #endif /* COMMON_RGXPDUMP_BRIDGE_H */

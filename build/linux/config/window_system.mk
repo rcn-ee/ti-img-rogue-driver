@@ -149,14 +149,18 @@ else ifeq ($(WINDOW_SYSTEM),gigacluster_ws)
  SUPPORT_GIGACLUSTER := 1
 endif
 
-# Linux emu platforms not ready for Fence Sync default on just yet
+# Some Linux platforms can not support Fence Sync, older kernels, ill configured.
 ifeq ($(EXCLUDE_FENCE_SYNC_SUPPORT),1)
  override SUPPORT_FALLBACK_FENCE_SYNC := 0
  override SUPPORT_NATIVE_FENCE_SYNC := 0
+ override SUPPORT_SERVER_SYNC := 1
 endif
 
 ifeq ($(MESA_EGL),1)
  EGL_BASENAME_SUFFIX := _PVR_MESA
  SUPPORT_OPENGLES1_V1_ONLY := 1
+ ifeq ($(SUPPORT_NATIVE_FENCE_SYNC),1)
+  EGL_EXTENSION_ANDROID_NATIVE_FENCE_SYNC := 1
+ endif
 endif
 

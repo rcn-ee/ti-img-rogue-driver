@@ -260,6 +260,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	gsDevices[0].pfnSysDevFeatureDepInit = &SysDevFeatureDepInit;
 	gsDevices[0].pfnSysDriverMode		 = NULL;
 
+	gsDevices[0].bHasFBCDCVersion31	= IMG_FALSE;
+
 	/* Virtualization support services needs to know which heap ID corresponds to FW */
 	PVR_ASSERT(ui32NextPhysHeapID < ARRAY_SIZE(gsPhysHeapConfig));
 	gsDevices[0].aui32PhysHeapID[PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL] = ui32NextPhysHeapID;

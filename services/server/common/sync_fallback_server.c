@@ -1995,6 +1995,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			continue;
 		}
 
+		OSLockAcquire(gsSyncFbContext.hFbContextLock);
 		OSLockAcquire(psSyncPt->psTl->hTlLock);
 		psNode = dllist_get_next_node(&psSyncPt->sSignalCallbacks);
 		psSyncCB = IMG_CONTAINER_OF(psNode, PVRSRV_SYNC_SIGNAL_CB, sCallbackNode);
@@ -2017,6 +2018,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			if (eError != PVRSRV_OK)
 			{
 				OSLockRelease(psSyncPt->psTl->hTlLock);
+				OSLockRelease(gsSyncFbContext.hFbContextLock);
 				goto e2;
 			}
 
@@ -2025,6 +2027,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			{
 				eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 				OSLockRelease(psSyncPt->psTl->hTlLock);
+				OSLockRelease(gsSyncFbContext.hFbContextLock);
 				goto e3;
 			}
 
@@ -2043,6 +2046,7 @@ PVRSRV_ERROR SyncFbFenceResolvePVR(PSYNC_CHECKPOINT_CONTEXT psContext,
 			}
 		}
 		OSLockRelease(psSyncPt->psTl->hTlLock);
+		OSLockRelease(gsSyncFbContext.hFbContextLock);
 
 		/* Take a reference, resolve caller is responsible
 		 * to drop it after use */

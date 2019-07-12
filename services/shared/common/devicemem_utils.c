@@ -405,6 +405,8 @@ PVRSRV_ERROR _DevmemMemDescAlloc(DEVMEM_MEMDESC **ppsMemDesc)
 	{
 		goto failCMDLock;
 	}
+	
+	OSAtomicWrite(&psMemDesc->hRefCount, 0);
 
 	*ppsMemDesc = psMemDesc;
 
@@ -1002,8 +1004,8 @@ PVRSRV_ERROR _DevmemImportStructCPUMap(DEVMEM_IMPORT *psImport)
 			goto failMap;
 		}
 
-		/* There is no reason the mapping length is different to the size */
-		PVR_ASSERT(uiMappingLength == psImport->uiSize);
+		/* MappingLength might be rounded up to page size */
+		PVR_ASSERT(uiMappingLength >= psImport->uiSize);
 	}
 	OSLockRelease(psCPUImport->hLock);
 

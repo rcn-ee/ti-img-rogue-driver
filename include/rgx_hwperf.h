@@ -1087,7 +1087,7 @@ typedef enum
 	RGX_CNTBLK_ID_BLACKPEARL3	= 0x0053,
 	RGX_CNTBLK_ID_BLACKPEARL_ALL= 0x4050,
 
-	RGX_CNTBLK_ID_PBE0			= 0x0060, /* Addressable by Cluster, S7 only */
+	RGX_CNTBLK_ID_PBE0			= 0x0060, /* Addressable by Cluster in S7 and PBE2_IN_XE */
 	RGX_CNTBLK_ID_PBE1			= 0x0061,
 	RGX_CNTBLK_ID_PBE2			= 0x0062,
 	RGX_CNTBLK_ID_PBE3			= 0x0063,

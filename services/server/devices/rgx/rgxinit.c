@@ -122,7 +122,7 @@ static PVRSRV_ERROR RGXSoftReset(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT64  u
 static PVRSRV_ERROR RGXVzInitCreateFWKernelMemoryContext(PVRSRV_DEVICE_NODE *psDeviceNode);
 static void RGXVzDeInitDestroyFWKernelMemoryContext(PVRSRV_DEVICE_NODE *psDeviceNode);
 static PVRSRV_ERROR RGXVzInitHeaps(DEVICE_MEMORY_INFO *psNewMemoryInfo,
-		DEVMEM_HEAP_BLUEPRINT *psDeviceMemoryHeapCursor);
+		DEVMEM_HEAP_BLUEPRINT *psDeviceMemoryHeapCursor, PVRSRV_RGXDEV_INFO *psDevInfo);
 static void RGXVzDeInitHeaps(DEVICE_MEMORY_INFO *psDevMemoryInfo);
 
 #define RGX_MMU_LOG2_PAGE_SIZE_4KB   (12)
@@ -175,23 +175,32 @@ static LISR_EXECUTION_INFO g_sLISRExecutionInfo;
 /*************************************************************************/ /*!
 @Function       SampleIRQCount
 @Description    Utility function taking snapshots of RGX FW interrupt count.
-@Input          paui32Input  A pointer to RGX FW IRQ count array.
-                             Size of the array should be equal to RGX FW thread
-                             count.
-@Input          paui32Output A pointer to array containing sampled RGX FW
-                             IRQ counts
+@Input          psDevInfo    Device Info structure
+
 @Return         IMG_BOOL     Returns IMG_TRUE, if RGX FW IRQ is not equal to
                              sampled RGX FW IRQ count for any RGX FW thread.
  */ /**************************************************************************/
-static INLINE IMG_BOOL SampleIRQCount(volatile IMG_UINT32 *paui32Input,
-		volatile IMG_UINT32 *paui32Output)
+static INLINE IMG_BOOL SampleIRQCount(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
-	IMG_UINT32 ui32TID;
 	IMG_BOOL bReturnVal = IMG_FALSE;
+	volatile IMG_UINT32 *aui32SampleIrqCount = psDevInfo->aui32SampleIRQCount;
+	IMG_UINT32 ui32IrqCnt;
 
-	for (ui32TID = 0; ui32TID < RGXFW_THREAD_NUM; ui32TID++)
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+	get_irq_cnt_val(ui32IrqCnt, RGXFW_HYPERVISOR_OS, psDevInfo);
+
+	if (ui32IrqCnt != aui32SampleIrqCount[RGXFW_THREAD_0])
 	{
-		if (paui32Output[ui32TID] != paui32Input[ui32TID])
+		aui32SampleIrqCount[RGXFW_THREAD_0] = ui32IrqCnt;
+		bReturnVal = IMG_TRUE;
+	}
+#else
+	IMG_UINT32 ui32TID;
+
+	for_each_irq_cnt(ui32TID)
+	{
+		get_irq_cnt_val(ui32IrqCnt, ui32TID, psDevInfo);
+		if (aui32SampleIrqCount[ui32TID] != ui32IrqCnt)
 		{
 			/**
 			 * we are handling any unhandled interrupts here so align the host
@@ -199,10 +208,11 @@ static INLINE IMG_BOOL SampleIRQCount(volatile IMG_UINT32 *paui32Input,
 			 */
 
 			/* Sample the current count from the FW _after_ we've cleared the interrupt. */
-			paui32Output[ui32TID] = paui32Input[ui32TID];
+			aui32SampleIrqCount[ui32TID] = ui32IrqCnt;
 			bReturnVal = IMG_TRUE;
 		}
 	}
+#endif
 
 	return bReturnVal;
 }
@@ -210,7 +220,6 @@ static INLINE IMG_BOOL SampleIRQCount(volatile IMG_UINT32 *paui32Input,
 static IMG_BOOL _WaitForInterruptsTimeoutCheck(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	RGXFWIF_TRACEBUF *psRGXFWIfTraceBuf = psDevInfo->psRGXFWIfTraceBuf;
-	IMG_BOOL bScheduleMISR = IMG_FALSE;
 #if defined(PVRSRV_DEBUG_LISR_EXECUTION)
 	IMG_UINT32 ui32TID;
 #endif
@@ -239,9 +248,7 @@ static IMG_BOOL _WaitForInterruptsTimeoutCheck(PVRSRV_RGXDEV_INFO *psDevInfo)
 				(unsigned int) psRGXFWIfTraceBuf->ePowState));
 	}
 
-	bScheduleMISR = SampleIRQCount(psRGXFWIfTraceBuf->aui32InterruptCount,
-			psDevInfo->aui32SampleIRQCount);
-	return bScheduleMISR;
+	return SampleIRQCount(psDevInfo);
 }
 
 void RGX_WaitForInterruptsTimeout(PVRSRV_RGXDEV_INFO *psDevInfo)
@@ -348,8 +355,7 @@ static IMG_BOOL RGX_LISRHandler (void *pvData)
 		OSWriteHWReg32(psDevInfo->pvRegsBaseKM, RGX_CR_OCP_IRQSTATUS_2, RGX_CR_OCP_IRQSTATUS_2_RGX_IRQ_STATUS_EN);
 #endif
 
-		bInterruptProcessed = SampleIRQCount(psRGXFWIfTraceBuf->aui32InterruptCount,
-				psDevInfo->aui32SampleIRQCount);
+		bInterruptProcessed = SampleIRQCount(psDevInfo);
 
 		if (!bInterruptProcessed)
 		{
@@ -722,7 +728,13 @@ static PVRSRV_ERROR RGXBootldrDataInit(PVRSRV_DEVICE_NODE *psDeviceNode,
 #endif
 
 	/* MIPS Page Table physical address. There are 16 pages for a firmware heap of 32 MB */
-	MMU_AcquireBaseAddr(psDevInfo->psKernelMMUCtx, &sPhyAddr);
+	eError = MMU_AcquireBaseAddr(psDevInfo->psKernelMMUCtx, &sPhyAddr);
+	if (eError !=  PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,"RGXBootldrDataInit: MMU_AcquireBaseAddr failed (%u)",
+				eError));
+		return eError;
+	}
 	pui64BootConfig[RGXMIPSFW_PAGE_TABLE_BASE_PHYADDR_OFFSET] = sPhyAddr.uiAddr;
 
 	/* MIPS Stack Pointer Physical Address */
@@ -786,7 +798,13 @@ static PVRSRV_ERROR RGXPDumpBootldrData(PVRSRV_DEVICE_NODE *psDeviceNode,
 	/* Page Table physical Address */
 	ui32ParamOffset = ui32BootConfOffset + (RGXMIPSFW_PAGE_TABLE_BASE_PHYADDR_OFFSET * sizeof(IMG_UINT64));
 
-	MMU_AcquireBaseAddr(psDevInfo->psKernelMMUCtx, &sTmpAddr);
+	eError = MMU_AcquireBaseAddr(psDevInfo->psKernelMMUCtx, &sTmpAddr);
+	if (eError !=  PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,"RGXBootldrDataInit: MMU_AcquireBaseAddr failed (%u)",
+				eError));
+		return eError;
+	}
 
 	eError = PDumpPTBaseObjectToMem64(psDeviceNode->psFirmwareMMUDevAttrs->pszMMUPxPDumpMemSpaceName,
 			psFWDataPMR,
@@ -954,7 +972,7 @@ static PVRSRV_ERROR RGXSetPowerParams(PVRSRV_RGXDEV_INFO   *psDevInfo,
 
 		psDevInfo->sLayerParams.sCodeRemapAddr = sPhyAddr;
 
-		psDevInfo->sLayerParams.sTrampolineRemapAddr.uiAddr = psDevInfo->sTrampoline.sPhysAddr.uiAddr;
+		psDevInfo->sLayerParams.sTrampolineRemapAddr.uiAddr = psDevInfo->psTrampoline->sPhysAddr.uiAddr;
 
 #if defined(SUPPORT_DEVICE_PA0_AS_VALID)
 		psDevInfo->sLayerParams.bDevicePA0IsValid = psDevConfig->bDevicePA0IsValid;
@@ -1021,6 +1039,67 @@ PVRSRV_ERROR PVRSRVRGXInitReleaseFWInitResourcesKM(PVRSRV_DEVICE_NODE *psDeviceN
 	PVR_UNREFERENCED_PARAMETER(psHWPerfPMR);
 
 	return PVRSRV_OK;
+}
+
+/*
+	RGXSystemHasFBCDCVersion31
+*/
+static IMG_BOOL RGXSystemHasFBCDCVersion31(PVRSRV_DEVICE_NODE *psDeviceNode)
+{
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+#if defined(SUPPORT_VALIDATION)
+	IMG_UINT32 ui32FBCDCVersionOverride = 0;
+#endif
+
+	if (RGX_IS_ERN_SUPPORTED(psDevInfo, 66622))
+	{
+#if defined(SUPPORT_VALIDATION)
+		void *pvAppHintState = NULL;
+	
+		IMG_UINT32 ui32AppHintDefault;
+	
+		OSCreateKMAppHintState(&pvAppHintState);
+		ui32AppHintDefault = PVRSRV_APPHINT_FBCDCVERSIONOVERRIDE;
+		OSGetKMAppHintUINT32(pvAppHintState, FBCDCVersionOverride,
+		                     &ui32AppHintDefault, &ui32FBCDCVersionOverride);
+	
+		if (ui32FBCDCVersionOverride > 0)
+		{
+			if (ui32FBCDCVersionOverride == 2)
+			{
+				return IMG_TRUE;
+			}
+		}
+		else
+#endif
+		{
+			if (psDeviceNode->psDevConfig->bHasFBCDCVersion31)
+			{
+				return IMG_TRUE;
+			}
+		}
+	}
+	else 
+	{
+
+#if defined(SUPPORT_VALIDATION)
+		if (ui32FBCDCVersionOverride == 2)
+		{
+			PVR_DPF((PVR_DBG_WARNING,"RGXSystemHasFBCDCVersion31: \
+						FBCDCVersionOverride forces FBC3.1 but this core doesn't support it!"));
+		}
+#endif
+
+#if !defined(NO_HARDWARE)
+		if (psDeviceNode->psDevConfig->bHasFBCDCVersion31)
+		{
+			PVR_DPF((PVR_DBG_ERROR,"RGXSystemHasFBCDCVersion31: \
+						System uses FBCDC3.1 but GPU doesn't support it!"));
+		}
+#endif
+	}
+
+	return IMG_FALSE;
 }
 
 /*
@@ -1473,7 +1552,27 @@ PVRSRV_ERROR RGXAllocateFWCodeRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
 	}
 #endif
 
-#if !defined(SUPPORT_TRUSTED_DEVICE)
+#if defined(SUPPORT_DEDICATED_FW_MEMORY)
+	uiMemAllocFlags |= PVRSRV_MEMALLOCFLAG_CPU_WRITE_COMBINE |
+			PVRSRV_MEMALLOCFLAG_ZERO_ON_ALLOC;
+
+	if (bFWCorememCode)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: Dedicated FW core memory code not supported", __func__));
+
+		return PVRSRV_ERROR_NOT_IMPLEMENTED;
+	}
+
+	PDUMPCOMMENT("Allocate dedicated FW code memory");
+
+	eError = DevmemAllocateDedicatedFWMem(psDeviceNode,
+			ui32FWCodeAllocSize,
+			uiLog2Align,
+			uiMemAllocFlags,
+			pszText,
+			ppsMemDescPtr);
+	return eError;
+#elif !defined(SUPPORT_TRUSTED_DEVICE)
 	uiMemAllocFlags |= PVRSRV_MEMALLOCFLAG_CPU_WRITE_COMBINE |
 			PVRSRV_MEMALLOCFLAG_ZERO_ON_ALLOC;
 
@@ -1499,6 +1598,41 @@ PVRSRV_ERROR RGXAllocateFWCodeRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
 			uiMemAllocFlags,
 			bFWCorememCode,
 			ppsMemDescPtr);
+	return eError;
+#endif
+}
+
+static
+PVRSRV_ERROR RGXAllocateFWPrivateDataRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
+		IMG_DEVMEM_SIZE_T ui32FWDataAllocSize,
+		IMG_UINT32 uiMemAllocFlags,
+		const IMG_PCHAR pszText,
+		DEVMEM_MEMDESC **ppsMemDescPtr)
+{
+	PVRSRV_ERROR eError;
+	IMG_DEVMEM_LOG2ALIGN_T uiLog2Align = OSGetPageShift();
+
+#if defined(SUPPORT_DEDICATED_FW_MEMORY)
+	PDUMPCOMMENT("Allocate dedicated FW private data memory");
+
+	eError = DevmemAllocateDedicatedFWMem(psDeviceNode,
+			ui32FWDataAllocSize,
+			uiLog2Align,
+			uiMemAllocFlags,
+			pszText,
+			ppsMemDescPtr);
+
+	return eError;
+#else
+	PDUMPCOMMENT("Allocate and export FW private data memory");
+
+	eError = DevmemFwAllocateExportable(psDeviceNode,
+			ui32FWDataAllocSize,
+			1ULL << uiLog2Align,
+			uiMemAllocFlags,
+			pszText,
+			ppsMemDescPtr);
+
 	return eError;
 #endif
 }
@@ -2545,32 +2679,41 @@ static void RGXFreeTrampoline(PVRSRV_DEVICE_NODE *psDeviceNode)
 
 	DevPhysMemFree(psDeviceNode,
 #if defined(PDUMP)
-			psDevInfo->sTrampoline.hPdumpPages,
+			psDevInfo->psTrampoline->hPdumpPages,
 #endif
-			&psDevInfo->sTrampoline.sPages);
-	psDevInfo->sTrampoline = sNullTrampoline;
+			&psDevInfo->psTrampoline->sPages);
+
+	if (psDevInfo->psTrampoline != &sNullTrampoline)
+	{
+		OSFreeMem(psDevInfo->psTrampoline);
+	}
+	psDevInfo->psTrampoline = (RGX_MIPS_ADDRESS_TRAMPOLINE *)&sNullTrampoline;
 }
+
+#define RANGES_OVERLAP(x,y,size) (x < (y+size) && y < (x+size))
+#define TRAMPOLINE_ALLOC_MAX_RETIRES (3)
 
 static PVRSRV_ERROR RGXAllocTrampoline(PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 	PVRSRV_ERROR eError;
 	IMG_INT32 i, j;
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
-	RGX_MIPS_ADDRESS_TRAMPOLINE asTrampoline[RGXMIPSFW_TRAMPOLINE_NUMPAGES];
+	RGX_MIPS_ADDRESS_TRAMPOLINE *pasTrampoline[TRAMPOLINE_ALLOC_MAX_RETIRES];
 
 	PDUMPCOMMENT("Allocate pages for trampoline");
 
-	/* Retry the allocation of the trampoline, retaining any allocations
-	 * overlapping with the target range until we get an allocation that
-	 * doesn't overlap with the target range. Any allocation like this
-	 * will require a maximum of 3 tries.
-	 * Free the unused allocations only after the desired range is obtained
-	 * to prevent the alloc function from returning the same bad range
-	 * repeatedly.
+	/* Retry the allocation of the trampoline block (16KB), retaining any
+	 * previous allocations overlapping  with the target range until we get an
+	 * allocation that doesn't overlap with the target range.
+	 * Any allocation like this will require a maximum of 3 tries as we are
+	 * allocating a physical contiguous block of memory, not individual pages.
+	 * Free the unused allocations at the end only after the desired range
+	 * is obtained to prevent the alloc function from returning the same bad
+	 * range repeatedly.
 	 */
-#define RANGES_OVERLAP(x,y,size) (x < (y+size) && y < (x+size))
-	for (i = 0; i < 3; i++)
+	for (i = 0; i < TRAMPOLINE_ALLOC_MAX_RETIRES; i++)
 	{
+		pasTrampoline[i] = OSAllocMem(sizeof(RGX_MIPS_ADDRESS_TRAMPOLINE));
 		eError = DevPhysMemAlloc(psDeviceNode,
 				RGXMIPSFW_TRAMPOLINE_SIZE,
 				RGXMIPSFW_TRAMPOLINE_LOG2_SEGMENT_SIZE,
@@ -2579,10 +2722,10 @@ static PVRSRV_ERROR RGXAllocTrampoline(PVRSRV_DEVICE_NODE *psDeviceNode)
 #if defined(PDUMP)
 				psDeviceNode->psFirmwareMMUDevAttrs->pszMMUPxPDumpMemSpaceName,
 				"TrampolineRegion",
-				&asTrampoline[i].hPdumpPages,
+				&pasTrampoline[i]->hPdumpPages,
 #endif
-				&asTrampoline[i].sPages,
-				&asTrampoline[i].sPhysAddr);
+				&pasTrampoline[i]->sPages,
+				&pasTrampoline[i]->sPhysAddr);
 		if (PVRSRV_OK != eError)
 		{
 			PVR_DPF((PVR_DBG_ERROR,"%s failed (%u)",
@@ -2590,38 +2733,45 @@ static PVRSRV_ERROR RGXAllocTrampoline(PVRSRV_DEVICE_NODE *psDeviceNode)
 			goto fail;
 		}
 
-		if (!RANGES_OVERLAP(asTrampoline[i].sPhysAddr.uiAddr,
+		if (!RANGES_OVERLAP(pasTrampoline[i]->sPhysAddr.uiAddr,
 				RGXMIPSFW_TRAMPOLINE_TARGET_PHYS_ADDR,
 				RGXMIPSFW_TRAMPOLINE_SIZE))
 		{
 			break;
 		}
 	}
-	if (RGXMIPSFW_TRAMPOLINE_NUMPAGES == i)
+	if (TRAMPOLINE_ALLOC_MAX_RETIRES == i)
 	{
+		/* Failed to find a physical allocation after 3 attempts */
 		eError = PVRSRV_ERROR_FAILED_TO_ALLOC_PAGES;
 		PVR_DPF((PVR_DBG_ERROR,
 				"%s failed to allocate non-overlapping pages (%u)",
 				__func__, eError));
-		goto fail;
+		/* Fall through, clean up and return error. */
 	}
-#undef RANGES_OVERLAP
+	else
+	{
+		/* Remember the last physical block allocated, it will not be freed */
+		psDevInfo->psTrampoline = pasTrampoline[i];
+	}
 
-	psDevInfo->sTrampoline = asTrampoline[i];
-
-	fail:
+fail:
 	/* free all unused allocations */
 	for (j = 0; j < i; j++)
 	{
 		DevPhysMemFree(psDeviceNode,
 #if defined(PDUMP)
-				asTrampoline[j].hPdumpPages,
+				pasTrampoline[j]->hPdumpPages,
 #endif
-				&asTrampoline[j].sPages);
+				&pasTrampoline[j]->sPages);
+		OSFreeMem(pasTrampoline[j]);
 	}
 
 	return eError;
 }
+
+#undef RANGES_OVERLAP
+
 
 PVRSRV_ERROR PVRSRVRGXInitAllocFWImgMemKM(PVRSRV_DEVICE_NODE   *psDeviceNode,
 		IMG_DEVMEM_SIZE_T    uiFWCodeLen,
@@ -2713,14 +2863,12 @@ PVRSRV_ERROR PVRSRVRGXInitAllocFWImgMemKM(PVRSRV_DEVICE_NODE   *psDeviceNode,
 			PVRSRV_MEMALLOCFLAG_CPU_WRITE_COMBINE |
 			PVRSRV_MEMALLOCFLAG_ZERO_ON_ALLOC;
 
-	PDUMPCOMMENT("Allocate and export data memory for fw");
-
-	eError = DevmemFwAllocateExportable(psDeviceNode,
+	eError = RGXAllocateFWPrivateDataRegion(psDeviceNode,
 			uiFWDataLen,
-			OSGetPageSize(),
 			uiMemAllocFlags,
 			"FwExDataRegion",
 			&psDevInfo->psRGXFWDataMemDesc);
+
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR,"Failed to allocate fw data mem (%u)",
@@ -3560,7 +3708,7 @@ PVRSRV_ERROR DevDeInitRGX (PVRSRV_DEVICE_NODE *psDeviceNode)
 
 	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, MIPS))
 	{
-		if (psDevInfo->sTrampoline.sPages.u.pvHandle)
+		if (psDevInfo->psTrampoline->sPages.u.pvHandle)
 		{
 			/* Free trampoline region */
 			PDUMPCOMMENT("Freeing trampoline memory");
@@ -3669,7 +3817,8 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 		IMG_UINT64 heap_base,
 		IMG_DEVMEM_SIZE_T heap_length,
 		IMG_UINT32 log2_import_alignment,
-		IMG_UINT32 tiling_mode)
+		IMG_UINT32 tiling_mode,
+		PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	DEVMEM_HEAP_BLUEPRINT b = {
 			.pszName = name,
@@ -3718,6 +3867,17 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 		OSFreeKMAppHintState(pvAppHintState);
 	}
 
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, MIPS))
+	{
+		/* MIPS FW must use 4K pages even when kernel is using 64K pages */
+		if (OSStringCompare(name, RGX_FIRMWARE_MAIN_HEAP_IDENT) == 0 ||
+			OSStringCompare(name, RGX_FIRMWARE_CONFIG_HEAP_IDENT) == 0 ||
+			OSStringCompare(name, RGX_FIRMWARE_GUEST_RAW_HEAP_IDENT) == 0  )
+		{
+			b.uiLog2DataPageSize = RGX_HEAP_4KB_PAGE_SHIFT;
+		}
+	}
+
 	return b;
 }
 
@@ -3727,7 +3887,7 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 						     RGX_ ## NAME ## _HEAP_IDENT, \
 						     RGX_ ## NAME ## _HEAP_BASE, \
 						     RGX_ ## NAME ## _HEAP_SIZE, \
-						     0, 0); \
+						     0, 0, psDevInfo); \
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
 
@@ -3737,7 +3897,7 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 						     RGX_FIRMWARE_MAIN_HEAP_IDENT, \
 						     RGX_FIRMWARE_ ## MODE ## _MAIN_HEAP_BASE, \
 						     RGX_FIRMWARE_ ## FWCORE ## _MAIN_HEAP_SIZE, \
-						     0, 0); \
+						     0, 0, psDevInfo); \
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
 
@@ -3747,7 +3907,7 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 						     RGX_FIRMWARE_CONFIG_HEAP_IDENT, \
 						     RGX_FIRMWARE_ ## MODE ## _CONFIG_HEAP_BASE, \
 						     RGX_FIRMWARE_CONFIG_HEAP_SIZE, \
-						     0, 0); \
+						     0, 0, psDevInfo); \
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
 
@@ -3757,7 +3917,7 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 						     STR, \
 						     RGX_ ## NAME ## _HEAP_BASE, \
 						     RGX_ ## NAME ## _HEAP_SIZE, \
-						     0, 0); \
+						     0, 0, psDevInfo); \
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
 
@@ -3770,7 +3930,8 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 						     RGX_BIF_TILING_HEAP_ ## N ## _BASE, \
 						     RGX_BIF_TILING_HEAP_SIZE, \
 						     RGX_BIF_TILING_HEAP_ALIGN_LOG2_FROM_XSTRIDE(xstride), \
-						     (IMG_UINT32)M); \
+						     (IMG_UINT32)M, \
+							 psDevInfo); \
 						     psDeviceMemoryHeapCursor++; \
     } while (0)
 
@@ -3947,7 +4108,7 @@ static PVRSRV_ERROR RGXInitHeaps(PVRSRV_RGXDEV_INFO *psDevInfo,
 	psNewMemoryInfo->psDeviceMemoryHeapConfigArray[1].psHeapBlueprintArray = psDeviceMemoryHeapCursor-2;
 
 	/* Perform additional virtualization initialization */
-	if (RGXVzInitHeaps(psNewMemoryInfo, psDeviceMemoryHeapCursor) != PVRSRV_OK)
+	if (RGXVzInitHeaps(psNewMemoryInfo, psDeviceMemoryHeapCursor, psDevInfo) != PVRSRV_OK)
 	{
 		goto e1;
 	}
@@ -4064,6 +4225,9 @@ PVRSRV_ERROR RGXRegisterDevice(PVRSRV_DEVICE_NODE *psDeviceNode,
 	psDeviceNode->pfnCheckDeviceFeature = RGXBvncCheckFeatureSupported;
 	psDeviceNode->pfnGetDeviceFeatureValue = RGXBvncGetSupportedFeatureValue;
 
+	/* Callback for checking if system layer supports FBC 3.1 */
+	psDeviceNode->pfnHasFBCDCVersion31 = RGXSystemHasFBCDCVersion31;
+
 	/*Set up required support for dummy page */
 	OSAtomicWrite(&(psDeviceNode->sDummyPage.atRefCounter), 0);
 
@@ -4097,6 +4261,8 @@ PVRSRV_ERROR RGXRegisterDevice(PVRSRV_DEVICE_NODE *psDeviceNode,
 		PVR_DPF((PVR_DBG_ERROR,"DevInitRGXPart1 : Failed to alloc memory for DevInfo"));
 		return (PVRSRV_ERROR_OUT_OF_MEMORY);
 	}
+	/* Default psTrampoline to point to null struct */
+	psDevInfo->psTrampoline = (RGX_MIPS_ADDRESS_TRAMPOLINE *)&sNullTrampoline;
 
 	/* create locks for the context lists stored in the DevInfo structure.
 	 * these lists are modified on context create/destroy and read by the
@@ -4521,7 +4687,8 @@ static void RGXVzDeInitDestroyFWKernelMemoryContext(PVRSRV_DEVICE_NODE *psDevice
  @Description	Called to perform additional initialisation
  ******************************************************************************/
 static PVRSRV_ERROR RGXVzInitHeaps(DEVICE_MEMORY_INFO *psNewMemoryInfo,
-		DEVMEM_HEAP_BLUEPRINT *psDeviceMemoryHeapCursor)
+		DEVMEM_HEAP_BLUEPRINT *psDeviceMemoryHeapCursor,
+		PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_GUEST, PVRSRV_OK);
 	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_NATIVE, PVRSRV_OK);
@@ -4559,7 +4726,8 @@ static PVRSRV_ERROR RGXVzInitHeaps(DEVICE_MEMORY_INFO *psNewMemoryInfo,
 					RGX_FIRMWARE_RAW_HEAP_BASE + (uiIdx * RGX_FIRMWARE_RAW_HEAP_SIZE),
 					RGX_FIRMWARE_RAW_HEAP_SIZE,
 					0,
-					0);
+					0,
+					psDevInfo);
 
 			/* Append additional guest(s) firmware heap to host driver firmware context heap configuration */
 			psNewMemoryInfo->psDeviceMemoryHeapConfigArray[1].uiNumHeaps += 1;

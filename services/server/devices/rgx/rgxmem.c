@@ -62,6 +62,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	For now just get global state, but what we really want is to do
 	this per memory context
 */
+/* 
+ * TestAndReset of gui32CacheOps is protected by the device power-lock,
+ * in the following way:
+ *
+ *   LOCK(Power-Lock);
+ *     ui32CacheOps = _GetCacheOpsPending(); // Gets gui32CacheOpps
+ *     if(ui32CacheOps)
+ *     {
+ *         _PrepareAndSubmitCacheCommand(ui32CacheOps);
+ *         _CacheOpsCompleted(ui32CacheOps); // Resets gui32CacheOpps
+ *     }
+ *   UNLOCK(Power-lock);
+ */
 static IMG_UINT32 gui32CacheOpps;
 /* FIXME: End */
 
@@ -102,73 +115,34 @@ void RGXMMUCacheInvalidate(PVRSRV_DEVICE_NODE *psDeviceNode,
 	}
 }
 
-PVRSRV_ERROR RGXMMUCacheInvalidateKick(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                       IMG_UINT16 *pui16MMUInvalidateUpdate,
-                                       IMG_BOOL bInterrupt)
+static inline IMG_UINT32 _GetCacheOpsPending(void)
 {
-	PVRSRV_ERROR eError;
-
-	eError = PVRSRVPowerLock(psDeviceNode);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_WARNING, "%s: failed to acquire powerlock (%s)",
-					__func__, PVRSRVGetErrorStringKM(eError)));
-		goto RGXMMUCacheInvalidateKick_exit;
-	}
-
-	/* Ensure device is powered up before sending any commands */
-	PDUMPPOWCMDSTART();
-	eError = PVRSRVSetDevicePowerStateKM(psDeviceNode,
-										 PVRSRV_DEV_POWER_STATE_ON,
-										 IMG_FALSE);
-	PDUMPPOWCMDEND();
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_WARNING, "%s: failed to transition RGX to ON (%s)",
-					__func__, PVRSRVGetErrorStringKM(eError)));
-		goto _PVRSRVSetDevicePowerStateKM_Exit;
-	}
-
-	eError = RGXPreKickCacheCommand(psDeviceNode->pvDevice,
-	                                RGXFWIF_DM_GP,
-	                                pui16MMUInvalidateUpdate,
-	                                bInterrupt);
-_PVRSRVSetDevicePowerStateKM_Exit:
-	PVRSRVPowerUnlock(psDeviceNode);
-
-RGXMMUCacheInvalidateKick_exit:
-	return eError;
+	return gui32CacheOpps;
 }
 
-/* Caller should ensure that power lock is held before calling this function */
-PVRSRV_ERROR RGXPreKickCacheCommand(PVRSRV_RGXDEV_INFO *psDevInfo,
-                                    RGXFWIF_DM eDM,
-                                    IMG_UINT16 *pui16MMUInvalidateUpdate,
-                                    IMG_BOOL bInterrupt)
+static inline void _CacheOpsCompleted(IMG_UINT32 ui32CacheOpsServiced)
 {
-	PVRSRV_DEVICE_NODE *psDeviceNode = psDevInfo->psDeviceNode;
-	RGXFWIF_KCCB_CMD sFlushCmd;
+	/* Mark in the global cache-ops that ui32CacheOpsServiced were submitted */
+	gui32CacheOpps ^= ui32CacheOpsServiced;
+}
+
+static
+PVRSRV_ERROR _PrepareAndSubmitCacheCommand(PVRSRV_DEVICE_NODE *psDeviceNode,
+                                           RGXFWIF_DM eDM, IMG_UINT32 ui32CacheOps,
+										   IMG_BOOL bInterrupt,
+										   IMG_UINT16 *pui16MMUInvalidateUpdate)
+{
 	PVRSRV_ERROR eError;
-	IMG_UINT32 ui32CacheOps = gui32CacheOpps; /* Shadow copy global cache ops to
-	                                             avoid working on (possible)
-												 changing cache ops requests */
+	RGXFWIF_KCCB_CMD sFlushCmd;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 
-	if (!ui32CacheOps)
-	{
-		return PVRSRV_OK;
-	}
-
-	*pui16MMUInvalidateUpdate = psDeviceNode->ui16NextMMUInvalidateUpdate;
+	*pui16MMUInvalidateUpdate = psDeviceNode->ui16NextMMUInvalidateUpdate++;
 
 	/* Setup cmd and add the device nodes sync object */
 	sFlushCmd.eCmdType = RGXFWIF_KCCB_CMD_MMUCACHE;
-	sFlushCmd.uCmdData.sMMUCacheData.ui16MMUCacheSyncUpdateValue = psDeviceNode->ui16NextMMUInvalidateUpdate;
+	sFlushCmd.uCmdData.sMMUCacheData.ui16MMUCacheSyncUpdateValue = *pui16MMUInvalidateUpdate;
 	SyncPrimGetFirmwareAddr(psDeviceNode->psMMUCacheSyncPrim,
 	                        &sFlushCmd.uCmdData.sMMUCacheData.sMMUCacheSync.ui32Addr);
-
-	/* Set the update value for the next kick */
-	psDeviceNode->ui16NextMMUInvalidateUpdate++;
-
 	sFlushCmd.uCmdData.sMMUCacheData.ui32Flags =
 		ui32CacheOps |
 		/* Set which memory context this command is for (all ctxs for now) */
@@ -181,21 +155,99 @@ PVRSRV_ERROR RGXPreKickCacheCommand(PVRSRV_RGXDEV_INFO *psDevInfo,
 	                      sFlushCmd.uCmdData.sMMUCacheData.ui32Flags);
 #endif
 
-	/* Mark in the global cache ops that we just scheduled cache ops specified in ui32CacheOps */
-	gui32CacheOpps ^= ui32CacheOps;
-
 	/* Schedule MMU cache command */
-	eError = RGXSendCommand(psDevInfo,
-	                           eDM,
-	                           &sFlushCmd,
-	                           sizeof(RGXFWIF_KCCB_CMD),
-	                           PDUMP_FLAGS_CONTINUOUS);
-
+	eError = RGXSendCommand(psDevInfo, eDM, &sFlushCmd, sizeof(RGXFWIF_KCCB_CMD),
+	                        PDUMP_FLAGS_CONTINUOUS);
 	if (eError != PVRSRV_OK)
 	{
-		PVR_DPF((PVR_DBG_ERROR,"RGXPreKickCacheCommand: Failed to schedule MMU "
-		                       "cache command to DM=%d with error (%u)", eDM, eError));
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to schedule MMU cache command to "
+		                        "DM=%d with error (%u)", __func__, eDM, eError));
 	}
+
+	return eError;
+}
+
+PVRSRV_ERROR RGXMMUCacheInvalidateKick(PVRSRV_DEVICE_NODE *psDeviceNode,
+                                       IMG_UINT16 *pui16MMUInvalidateUpdate,
+                                       IMG_BOOL bInterrupt)
+{
+	PVRSRV_ERROR eError;
+	IMG_UINT32 ui32CacheOps;
+
+	eError = PVRSRVPowerLock(psDeviceNode);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_WARNING, "%s: failed to acquire powerlock (%s)",
+					__func__, PVRSRVGetErrorStringKM(eError)));
+		goto RGXMMUCacheInvalidateKick_exit;
+	}
+
+	ui32CacheOps = _GetCacheOpsPending();
+	if (ui32CacheOps == 0)
+	{
+		eError = PVRSRV_OK;
+		goto _PowerUnlockAndReturnErr;
+	}
+
+	/* Ensure device is powered up before sending cache command */
+	PDUMPPOWCMDSTART();
+	eError = PVRSRVSetDevicePowerStateKM(psDeviceNode,
+										 PVRSRV_DEV_POWER_STATE_ON,
+										 IMG_FALSE);
+	PDUMPPOWCMDEND();
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_WARNING, "%s: failed to transition RGX to ON (%s)",
+					__func__, PVRSRVGetErrorStringKM(eError)));
+		goto _PowerUnlockAndReturnErr;
+	}
+
+	eError = _PrepareAndSubmitCacheCommand(psDeviceNode, RGXFWIF_DM_GP,
+	                                       ui32CacheOps, bInterrupt,
+										   pui16MMUInvalidateUpdate);
+	if (eError != PVRSRV_OK)
+	{
+		/* failed to submit cache operations, return failure */
+		goto _PowerUnlockAndReturnErr;
+	}
+
+	/* Mark the cache ops we serviced */
+	_CacheOpsCompleted(ui32CacheOps);
+
+_PowerUnlockAndReturnErr:
+	PVRSRVPowerUnlock(psDeviceNode);
+
+RGXMMUCacheInvalidateKick_exit:
+	return eError;
+}
+
+PVRSRV_ERROR RGXPreKickCacheCommand(PVRSRV_RGXDEV_INFO *psDevInfo,
+                                    RGXFWIF_DM eDM,
+                                    IMG_UINT16 *pui16MMUInvalidateUpdate,
+                                    IMG_BOOL bInterrupt)
+{
+	PVRSRV_DEVICE_NODE *psDeviceNode = psDevInfo->psDeviceNode;
+	PVRSRV_ERROR eError;
+	IMG_UINT32 ui32CacheOps;
+
+	/* Caller should ensure that power lock is held before calling this function */
+	PVR_ASSERT(OSLockIsLocked(psDeviceNode->hPowerLock));
+
+	ui32CacheOps = _GetCacheOpsPending();
+	if (ui32CacheOps == 0)
+	{
+		return PVRSRV_OK;
+	}
+
+	eError = _PrepareAndSubmitCacheCommand(psDeviceNode, eDM, ui32CacheOps,
+	                                       bInterrupt, pui16MMUInvalidateUpdate);
+	if (eError != PVRSRV_OK)
+	{
+		/* failed to submit cache operations, return failure */
+		return eError;
+	}
+
+	_CacheOpsCompleted(ui32CacheOps);
 
 	return eError;
 }
@@ -683,13 +735,14 @@ IMG_BOOL RGXPCPIDToProcessInfo(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_PID uiPID,
 	 */
 	if(bRet == IMG_FALSE)
 	{
-		 IMG_UINT32 i;
+		const IMG_UINT32 ui32Mask = UNREGISTERED_MEMORY_CONTEXTS_HISTORY_SIZE - 1;
+		IMG_UINT32 i, j;
 
 		 OSLockAcquire(psDevInfo->hMMUCtxUnregLock);
 
-		 for(i = (gui32UnregisteredMemCtxsHead > 0) ? (gui32UnregisteredMemCtxsHead - 1) :
-		 					UNREGISTERED_MEMORY_CONTEXTS_HISTORY_SIZE;
-							i != gui32UnregisteredMemCtxsHead; i--)
+		for (i = (gui32UnregisteredMemCtxsHead - 1) & ui32Mask, j = 0;
+		     j < UNREGISTERED_MEMORY_CONTEXTS_HISTORY_SIZE;
+		     i = (gui32UnregisteredMemCtxsHead - 1) & ui32Mask, j++)
 		{
 			UNREGISTERED_MEMORY_CONTEXT *psRecord = &gasUnregisteredMemCtxs[i];
 

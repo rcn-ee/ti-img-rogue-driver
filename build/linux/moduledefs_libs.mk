@@ -72,7 +72,7 @@ ifeq ($(SUPPORT_ANDROID_PLATFORM)$(SUPPORT_ARC_PLATFORM),1)
   define set-extlibs-from-package
    ifeq ($(1),libdrm)
     $(THIS_MODULE)_extlibs += drm
-   else ifeq ($(1),libsync)
+   else ifeq ($(1),sync)
     $(THIS_MODULE)_extlibs += sync
    else
     $$(warning Unknown package for '$(THIS_MODULE)': $(1))

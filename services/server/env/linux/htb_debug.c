@@ -435,7 +435,7 @@ static void *_DebugHBTraceSeqStart(struct seq_file *psSeqFile,
 	PVRSRV_ERROR	eError;
 	IMG_UINT32		uiTLMode;
 	void			*retVal;
-
+	IMG_HANDLE		hStream;
 
 	/* Open the stream in non-blocking mode so that we can determine if there
 	 * is no data to consume. Also disable the producer callback (if any) and
@@ -446,33 +446,40 @@ static void *_DebugHBTraceSeqStart(struct seq_file *psSeqFile,
 			   PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK|
 			   PVRSRV_STREAM_FLAG_IGNORE_OPEN_CALLBACK;
 
-	/* Handle the case where we have a persistent unclosed (as yet) reference
-	 * to the HTB stream. If our stream handle is neither NULL nor closed we
-	 * have probably encountered an error in mid-processing. In this case
-	 * we will not attempt to re-open the stream as that will fail.
-	 * Instead, we allow the cycle Start->Show->Next/End to close the stream
-	 * correctly.
-	 */
+	/* If two or more processes try to read from this file at the same time
+	 * the TLClientOpenStream() function will handle this by allowing only
+	 * one of them to actually open the stream. The other process will get
+	 * an error stating that the stream is already open. The open function
+	 * is threads safe. */
+	eError = TLClientOpenStream(DIRECT_BRIDGE_HANDLE, HTB_STREAM_NAME, uiTLMode,
+	    &hStream);
 
-	if (g_sHTBData.hStream == NULL || g_sHTBData.hStream == HTB_STREAM_CLOSED)
+	if (PVRSRV_ERROR_ALREADY_OPEN == eError)
 	{
-		eError = TLClientOpenStream(DIRECT_BRIDGE_HANDLE,
-			HTB_STREAM_NAME, uiTLMode, &g_sHTBData.hStream);
-
-		if (PVRSRV_OK != eError) {
-			/*
-		 	 * No stream available so nothing to report
-		 	 */
-			return NULL;
-		}
-	}
+		/* Stream allows only one reader so return error if it's already
+		 * opened. */
 #ifdef HTB_CHATTY
-	else
-	{
-		PVR_DPF((PVR_DBG_WARNING, "%s: Stream handle %p still present for %s",
+		PVR_DPF((PVR_DBG_WARNING, "%s: Stream handle %p already exists for %s",
 		    __func__, g_sHTBData.hStream, HTB_STREAM_NAME));
+#endif
+		return ERR_PTR(-EBUSY);
 	}
-#endif	/* HTB_CHATTY */
+	else if (PVRSRV_OK != eError)
+	{
+		/*
+		 * No stream available so nothing to report
+		 */
+		return NULL;
+	}
+
+	/* There is a window where hStream can be NULL but the stream is already
+	 * opened. This shouldn't matter since the TLClientOpenStream() will make
+	 * sure that only one stream can be opened and only one process can reach
+	 * this place at a time. Also the .stop function will be always called
+	 * after this function returns so there should be no risk of stream
+	 * not being closed. */
+	PVR_ASSERT(g_sHTBData.hStream == NULL);
+	g_sHTBData.hStream = hStream;
 
 	/*
 	 * Ensure we have our debug-specific data store allocated and hooked from
@@ -540,7 +547,9 @@ static void _DebugHBTraceSeqStop(struct seq_file *psSeqFile, void *pvData)
 	PVR_DPF((PVR_DBG_WARNING, "%s: MsgLen = %d", __func__, uiMsgLen));
 #endif	/* HTB_CHATTY */
 
-	if (g_sHTBData.hStream != NULL && g_sHTBData.hStream != HTB_STREAM_CLOSED)
+	/* If we get here the handle should never be NULL because
+	 * _DebugHBTraceSeqStart() shouldn't allow that. */
+	if (g_sHTBData.hStream != NULL)
 	{
 		PVRSRV_ERROR eError;
 
@@ -564,7 +573,7 @@ static void _DebugHBTraceSeqStop(struct seq_file *psSeqFile, void *pvData)
 				"TLClientCloseStream", PVRSRVGETERRORSTRING(eError),
 				__func__));
 		}
-		g_sHTBData.hStream = HTB_STREAM_CLOSED;
+		g_sHTBData.hStream = NULL;
 	}
 
 	if (pSentinel != NULL)
@@ -952,7 +961,7 @@ DecodeHTB(HTB_Sentinel_t *pSentinel,
 		IMG_UINT32 ui32Timestamp, ui32PID;
 		IMG_CHAR	*szBuffer = pSentinel->szBuffer;	// Buffer start
 		IMG_CHAR	*pszBuffer = pSentinel->szBuffer;	// Current place in buf
-		size_t		uBufSize = sizeof ( pSentinel->szBuffer );
+		size_t		uBufBytesAvailable = sizeof(pSentinel->szBuffer);
 		IMG_UINT32	*pui32Data = (IMG_UINT32 *)pData;
 		IMG_UINT32	ui_aGroupIdx;
 
@@ -970,17 +979,17 @@ DecodeHTB(HTB_Sentinel_t *pSentinel,
 		 * and then PVR_DUMPDEBUG_LOG() that in one shot
 		 */
 		ui_aGroupIdx = MIN(HTB_SF_GID(ui32Data), uiMax_aGroups);
- 		nPrinted = OSSNPrintf(szBuffer, uBufSize, "%10u:%5u-%s> ",
+ 		nPrinted = OSSNPrintf(szBuffer, uBufBytesAvailable, "%10u:%5u-%s> ",
 			ui32Timestamp, ui32PID, aGroups[ui_aGroupIdx]);
-		if (nPrinted >= uBufSize)
+		if (nPrinted >= uBufBytesAvailable)
 		{
 			PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed, max space %ld\n",
-				(long) nPrinted, (long) uBufSize);
+				(long) nPrinted, (long) uBufBytesAvailable);
 		}
 
 		/* Update where our next 'output' point in the buffer is */
-		pszBuffer += OSStringLength(szBuffer);
-		uBufSize -= (pszBuffer - szBuffer);
+		pszBuffer += nPrinted;
+		uBufBytesAvailable -= nPrinted;
 
 		/*
 		 * Print one argument at a time as this simplifies handling variable
@@ -992,19 +1001,22 @@ DecodeHTB(HTB_Sentinel_t *pSentinel,
 		{
 			if (pszFmt)
 			{
-				nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
-				if (nPrinted >= uBufSize)
+				nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable, pszFmt);
+				if (nPrinted >= uBufBytesAvailable)
 				{
 					PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
-						" max space %ld\n", (long) nPrinted, (long) uBufSize);
+						" max space %ld\n", (long) nPrinted, (long) uBufBytesAvailable);
 				}
-				pszBuffer = szBuffer + OSStringLength(szBuffer);
-				uBufSize -= (pszBuffer - szBuffer);
+				pszBuffer += nPrinted;
+				/* Don't update the uBufBytesAvailable as we have finished this
+				 * message decode. pszBuffer - szBuffer is the total amount of
+				 * data we have decoded.
+				 */
 			}
 		}
 		else
 		{
-			while ( IS_VALID_FMT_STRING(pszFmt) && (uBufSize > 0) )
+			while ( IS_VALID_FMT_STRING(pszFmt) && (uBufBytesAvailable > 0) )
 			{
 				IMG_UINT32 ui32TmpArg = *pui32Data;
 				TRACEBUF_ARG_TYPE eArgType;
@@ -1017,48 +1029,51 @@ DecodeHTB(HTB_Sentinel_t *pSentinel,
 				switch (eArgType)
 				{
 					case TRACEBUF_ARG_TYPE_INT:
-						nPrinted = OSSNPrintf(pszBuffer, uBufSize,
+						nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable,
 							aszOneArgFmt, ui32TmpArg);
 						break;
 
 					case TRACEBUF_ARG_TYPE_NONE:
-						nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
+						nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable,
+						    pszFmt);
 						break;
 
 					default:
-						nPrinted = OSSNPrintf(pszBuffer, uBufSize,
+						nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable,
 							"Error processing  arguments, type not "
 							"recognized (fmt: %s)", aszOneArgFmt);
 						break;
 				}
-				if (nPrinted >= uBufSize)
+				if (nPrinted >= uBufBytesAvailable)
 				{
 					PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
-						" max space %ld\n", (long) nPrinted, (long) uBufSize);
+						" max space %ld\n", (long) nPrinted,
+					    (long) uBufBytesAvailable);
 				}
-				pszBuffer = szBuffer + OSStringLength(szBuffer);
-				uBufSize -= (pszBuffer - szBuffer);
+				pszBuffer += nPrinted;
+				uBufBytesAvailable -= nPrinted;
 			}
 			/* Display any remaining text in pszFmt string */
 			if (pszFmt)
 			{
-				nPrinted = OSSNPrintf(pszBuffer, uBufSize, pszFmt);
-				if (nPrinted >= uBufSize)
+				nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable, pszFmt);
+				if (nPrinted >= uBufBytesAvailable)
 				{
 					PVR_DUMPDEBUG_LOG("Buffer overrun - %ld printed,"
-						" max space %ld\n", (long) nPrinted, (long) uBufSize);
+						" max space %ld\n", (long) nPrinted, (long) uBufBytesAvailable);
 				}
-				pszBuffer = szBuffer + OSStringLength(szBuffer);
-				uBufSize -= (pszBuffer - szBuffer);
+				pszBuffer += nPrinted;
+				/* Don't update the uBufBytesAvailable as we have finished this
+				 * message decode. pszBuffer - szBuffer is the total amount of
+				 * data we have decoded.
+				 */
 			}
 		}
-
-		uBufSize = (IMG_UINT32)(pszBuffer - szBuffer);
 
 		PVR_DUMPDEBUG_LOG(szBuffer);
 
 		/* Update total bytes processed */
-		pSentinel->uiTotal += uBufSize;
+		pSentinel->uiTotal += (pszBuffer - szBuffer);
 	}
 	return 0;
 }

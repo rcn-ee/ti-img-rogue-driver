@@ -260,7 +260,7 @@ SUPPORT_META_DMA :=\
 
 # Only the Firmware needs this make macro. 
 SUPPORT_META_COREMEM :=\
- $(shell grep -qe 'RGX_FEATURE_META_COREMEM_SIZE ([123456789][1234567890]*)' $(RGX_BNC_CONFIG_KM) && echo 1)
+ $(shell grep -qe 'RGX_FEATURE_META_COREMEM_SIZE ([123456789][1234567890]*U*)' $(RGX_BNC_CONFIG_KM) && echo 1)
 
 # Client drivers, firmware and libsrvum need this make macro. 
 SUPPORT_COMPUTE := \
@@ -268,11 +268,11 @@ SUPPORT_COMPUTE := \
 
 # Macro used by client driver makefiles only. 
 SUPPORT_OPENCL_2_X ?= \
- $(shell grep -qw "RGX_FEATURE_CDM_CONTROL_STREAM_FORMAT (2)" $(RGX_BNC_CONFIG_KM) && echo 1)
+ $(shell grep -qw "RGX_FEATURE_CDM_CONTROL_STREAM_FORMAT (2U*)" $(RGX_BNC_CONFIG_KM) && echo 1)
 
 # Macro used by client driver makefiles only. 
 OPENCL_CDM_FORMAT_2 ?= \
- $(shell grep -qw "RGX_FEATURE_CDM_CONTROL_STREAM_FORMAT (2)" $(RGX_BNC_CONFIG_KM) && echo 1)
+ $(shell grep -qw "RGX_FEATURE_CDM_CONTROL_STREAM_FORMAT (2U*)" $(RGX_BNC_CONFIG_KM) && echo 1)
 
 # Only the Firmware needs this make macro. 
 SUPPORT_MIPS_FIRMWARE :=\
@@ -818,6 +818,11 @@ $(eval $(call TunableBothConfigC,SUPPORT_TRUSTED_DEVICE,,\
 Enable a build mode targeting an REE._\
 ))
 
+$(eval $(call TunableBothConfigC,SECURE_FW_CODE_OSID,,\
+Emit specified OSID when the FW fetches code from memory._\
+In MIPS this will only work for statically mapped FW code._\
+))
+
 ifeq ($(SUPPORT_TRUSTED_DEVICE),1)
 override SUPPORT_MIPS_CONTIGUOUS_FW_CODE := 1
 endif
@@ -853,6 +858,10 @@ Poison on alloc value))
 $(eval $(call TunableBothConfigC,PVRSRV_POISON_ON_FREE_VALUE,0x63,\
 Poison on free value))
 
+$(eval $(call TunableBothConfigC,SUPPORT_MIPS_64K_PAGE_KERNEL,,\
+Enable this when kernel is using 64K pages._\
+))
+
 #
 # GPU virtualization support
 #
@@ -871,6 +880,9 @@ The virtual machine manager type, defaults to stub implementation))
 $(eval $(call TunableBothConfigC,RGX_FW_HEAP_SHIFT, $(RGX_FW_HEAP_SHIFT),\
 Firmware physical heap log2 size per OSID (minimum 4MiB, default 32MiB).))
 
+ifneq ($(PVRSRV_VZ_NUM_OSID),1)
+$(eval $(call TunableBothConfigC,RGX_FW_IRQ_OS_COUNTERS,))
+endif
 $(eval $(call TunableBothConfigC,SUPPORT_VALIDATION,))
 $(eval $(call TunableBothConfigC,FIX_DUSTS_POW_ON_INIT,,\
 Enable WA for power controllers that power up dusts by default._\
@@ -881,14 +893,25 @@ $(eval $(call TunableKernelConfigC,PVR_DVFS,,\
 Enables PVR DVFS implementation to actively change frequency / voltage depending_\
 on current GPU load. Currently only supported on Linux._\
 ))
+
+#
+# GPU power monitoring configuration
+#
 $(eval $(call TunableBothConfigC,PVR_POWER_ACTOR,,\
 Enables PVR power actor implementation for registration with a kernel configured_\
 with IPA. Enables power counter measurement timer in the FW which is periodically_\
-read by the host DVFS in order to operate within a governor set power envelope._\
-))
+read by the host DVFS in order to operate within a governor set power envelope.))
+$(eval $(call TunableBothConfigC,PVR_POWER_ACTOR_MEASUREMENT_PERIOD_MS,10U,\
+Period of time between regular power measurements. Default 10ms))
+$(eval $(call BothConfigC,PVR_POWER_MONITOR_HWPERF,,\
+Enables the generation of hwperf power monitoring packets._\
+This incurs an additional performance cost.))
+$(eval $(call TunableBothConfigC,PVR_POWER_MONITOR_DYNAMIC_ENERGY,,\
+Configures the power monitoring module to calculate dynamic energy_\
+instead of the default total power.))
 $(eval $(call TunableBothConfigC,PVR_POWER_ACTOR_SCALING,,\
-Scaling factor for the dynamic power coefficients._\
-))
+Scaling factor for the dynamic power coefficients.))
+
 $(eval $(call TunableKernelConfigC,DEBUG_HANDLEALLOC_INFO_KM,))
 $(eval $(call TunableKernelConfigC,SUPPORT_LINUX_X86_WRITECOMBINE,1))
 $(eval $(call TunableKernelConfigC,SUPPORT_LINUX_X86_PAT,1))
@@ -925,6 +948,10 @@ override PVR_ANNOTATION_MAX_LEN ?= 96
 # Currently disable FENCE_SYNC when PDUMP defined for all OSs & target platforms
 override SUPPORT_FALLBACK_FENCE_SYNC := 0
 override SUPPORT_NATIVE_FENCE_SYNC := 0
+# Android is the only build target that does not support/use server syncs
+ifneq ($(SUPPORT_ANDROID_PLATFORM),1)
+override SUPPORT_SERVER_SYNC := 1
+endif
 endif
 
 $(eval $(call TunableKernelConfigC,SUPPORT_MMU_PENDING_FAULT_PROTECTION,1,\
@@ -951,6 +978,10 @@ memory safe and are used by default on AARCH64 platform._\
 $(eval $(call TunableBothConfigC,PVRSRV_BRIDGE_LOGGING,,\
 If enabled$(comma) provides a debugfs entry which logs the number of calls_\
 made to each bridge function._\
+))
+
+$(eval $(call TunableKernelConfigC,PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP,,\
+If enabled it will make kernel threads to sleep indefinitely until signalled._\
 ))
 
 # If we are building against a ChromeOS kernel, set this.
@@ -1159,12 +1190,12 @@ Array of comma separated strings that define BVNC info of the devices.\
 # Build-only AppHint configuration values
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_ENABLETRUSTEDDEVICEACECONFIG,IMG_FALSE,\
 Enable trusted device ACE config))
-$(eval $(call AppHintConfigC,PVRSRV_APPHINT_CLEANUPTHREADPRIORITY,0,\
-Set the priority of the cleanup thread))
+$(eval $(call AppHintConfigC,PVRSRV_APPHINT_CLEANUPTHREADPRIORITY,5,\
+Set the priority of the cleanup thread (0 - default, 1 - highest, 5 - lowest)))
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_CLEANUPTHREADWEIGHT,0,\
 Set the weight of the cleanup thread))
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_WATCHDOGTHREADPRIORITY,0,\
-Set the priority of the watchdog thread))
+Set the priority of the watchdog thread (0 - default, 1 - highest, 5 - lowest)))
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_WATCHDOGTHREADWEIGHT,0,\
 Set the weight of the watchdog thread))
 
@@ -1191,6 +1222,13 @@ Specify output mechanism for firmware log data))
 
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_HTBOPERATIONMODE,HTB_OPMODE_DROPOLDEST,\
 Configure host trace buffer behaviour))
+
+$(eval $(call AppHintConfigC,PVRSRV_APPHINT_FBCDCVERSIONOVERRIDE,0,\
+Override system layer FBCDC version settings \
+(0) No override \
+(1) Force v3 \
+(2) Force v3.1))
+
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_HTBUFFERSIZE,64,\
 Buffer size in Kbytes for Host Trace log data))
 $(eval $(call AppHintConfigC,PVRSRV_APPHINT_ENABLEFTRACEGPU,IMG_FALSE,\
@@ -1272,6 +1310,11 @@ Enabling this feature provides the ability for the firmware to drive the_\
 display controller via GPIO and support Strip Rendering._\
 ))
 $(eval $(call TunableBothConfigC,SUPPORT_STRIP_RENDERING,))
+
+$(eval $(call TunableBothConfigMake,SUPPORT_DEDICATED_FW_MEMORY,,\
+Allocate FW code and private data from dedicated FW memory._\
+))
+$(eval $(call TunableBothConfigC,SUPPORT_DEDICATED_FW_MEMORY,))
 
 #
 # Ensure top-level PDVFS build defines are set correctly
@@ -1606,8 +1649,8 @@ preferred by services is still the DMABuf API and the wrap extmem method should 
 as a simple replacement if the DMABuf API cannot be used.\
 ))
 
-$(eval $(call TunableBothConfigC,SUPPORT_SERVER_SYNC,1))
-$(eval $(call TunableBothConfigMake,SUPPORT_SERVER_SYNC,1))
+$(eval $(call TunableBothConfigC,SUPPORT_SERVER_SYNC,))
+$(eval $(call TunableBothConfigMake,SUPPORT_SERVER_SYNC,))
 
 # Fence Sync build tunables
 # Default values dependent on WINDOW_SYSTEM and found in window_system.mk

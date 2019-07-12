@@ -456,6 +456,8 @@ PVRSRVDebugRequest(PVRSRV_DEVICE_NODE *psDevNode,
 	PVR_DUMPDEBUG_LOG("------------[ PVR DBG: START (%s) ]------------",
 			szVerbosityLevel);
 
+	OSDumpVersionInfo(pfnDumpDebugPrintf, pvDumpDebugFile);
+
 	PVR_DUMPDEBUG_LOG("DDK info: %s (%s) %s",
 					   PVRVERSION_STRING, PVR_BUILD_TYPE, PVR_BUILD_DIR);
 	PVR_DUMPDEBUG_LOG("Time now: %015" IMG_UINT64_FMTSPECx, OSClockus64());

@@ -47,7 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "devicemem_history_server.h"
 
-
 #include "common_devicememhistory_bridge.h"
 
 #include "allocmem.h"
@@ -64,51 +63,50 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "lock.h"
 
-
 #if defined(SUPPORT_DEVICEMEMHISTORY_BRIDGE)
-
-
 
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgeDevicememHistoryMap(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYMAP *psDevicememHistoryMapIN,
-					  PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYMAP *psDevicememHistoryMapOUT,
-					 CONNECTION_DATA *psConnection)
+				PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYMAP *
+				psDevicememHistoryMapIN,
+				PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYMAP *
+				psDevicememHistoryMapOUT,
+				CONNECTION_DATA * psConnection)
 {
 	IMG_HANDLE hPMR = psDevicememHistoryMapIN->hPMR;
-	PMR * psPMRInt = NULL;
+	PMR *psPMRInt = NULL;
 	IMG_CHAR *uiTextInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psDevicememHistoryMapIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psDevicememHistoryMapIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psDevicememHistoryMapIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psDevicememHistoryMapIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -117,85 +115,78 @@ PVRSRVBridgeDevicememHistoryMap(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psDevicememHistoryMapOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psDevicememHistoryMapOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto DevicememHistoryMap_exit;
 			}
 		}
 	}
 
-	
 	{
-		uiTextInt = (IMG_CHAR*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
+		uiTextInt =
+		    (IMG_CHAR *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				  ui32NextOffset);
 		ui32NextOffset += DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR);
 	}
 
-			/* Copy the data over */
-			if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
-			{
-				if ( OSCopyFromUser(NULL, uiTextInt, (const void __user *) psDevicememHistoryMapIN->puiText, DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK )
-				{
-					psDevicememHistoryMapOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, uiTextInt,
+		     (const void __user *)psDevicememHistoryMapIN->puiText,
+		     DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK)
+		{
+			psDevicememHistoryMapOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistoryMap_exit;
-				}
-			}
+			goto DevicememHistoryMap_exit;
+		}
+	}
 
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psDevicememHistoryMapOUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &psPMRInt,
-											hPMR,
-											PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-											IMG_TRUE);
-					if(psDevicememHistoryMapOUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto DevicememHistoryMap_exit;
-					}
+	/* Look up the address from the handle */
+	psDevicememHistoryMapOUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&psPMRInt,
+				       hPMR,
+				       PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+				       IMG_TRUE);
+	if (psDevicememHistoryMapOUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto DevicememHistoryMap_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psDevicememHistoryMapOUT->eError =
-		DevicememHistoryMapKM(
-					psPMRInt,
-					psDevicememHistoryMapIN->uiOffset,
-					psDevicememHistoryMapIN->sDevVAddr,
-					psDevicememHistoryMapIN->uiSize,
-					uiTextInt,
-					psDevicememHistoryMapIN->ui32Log2PageSize,
-					psDevicememHistoryMapIN->ui32AllocationIndex,
-					&psDevicememHistoryMapOUT->ui32AllocationIndexOut);
+	    DevicememHistoryMapKM(psPMRInt,
+				  psDevicememHistoryMapIN->uiOffset,
+				  psDevicememHistoryMapIN->sDevVAddr,
+				  psDevicememHistoryMapIN->uiSize,
+				  uiTextInt,
+				  psDevicememHistoryMapIN->ui32Log2PageSize,
+				  psDevicememHistoryMapIN->ui32AllocationIndex,
+				  &psDevicememHistoryMapOUT->
+				  ui32AllocationIndexOut);
 
-
-
-
-DevicememHistoryMap_exit:
+ DevicememHistoryMap_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(psPMRInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hPMR,
-										PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
-					}
+	/* Unreference the previously looked up handle */
+	if (psPMRInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hPMR,
+					    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
@@ -203,53 +194,53 @@ DevicememHistoryMap_exit:
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
-
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeDevicememHistoryUnmap(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYUNMAP *psDevicememHistoryUnmapIN,
-					  PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYUNMAP *psDevicememHistoryUnmapOUT,
-					 CONNECTION_DATA *psConnection)
+				  PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYUNMAP *
+				  psDevicememHistoryUnmapIN,
+				  PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYUNMAP *
+				  psDevicememHistoryUnmapOUT,
+				  CONNECTION_DATA * psConnection)
 {
 	IMG_HANDLE hPMR = psDevicememHistoryUnmapIN->hPMR;
-	PMR * psPMRInt = NULL;
+	PMR *psPMRInt = NULL;
 	IMG_CHAR *uiTextInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psDevicememHistoryUnmapIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psDevicememHistoryUnmapIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psDevicememHistoryUnmapIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psDevicememHistoryUnmapIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -258,85 +249,79 @@ PVRSRVBridgeDevicememHistoryUnmap(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psDevicememHistoryUnmapOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psDevicememHistoryUnmapOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto DevicememHistoryUnmap_exit;
 			}
 		}
 	}
 
-	
 	{
-		uiTextInt = (IMG_CHAR*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
+		uiTextInt =
+		    (IMG_CHAR *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				  ui32NextOffset);
 		ui32NextOffset += DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR);
 	}
 
-			/* Copy the data over */
-			if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
-			{
-				if ( OSCopyFromUser(NULL, uiTextInt, (const void __user *) psDevicememHistoryUnmapIN->puiText, DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK )
-				{
-					psDevicememHistoryUnmapOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, uiTextInt,
+		     (const void __user *)psDevicememHistoryUnmapIN->puiText,
+		     DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK)
+		{
+			psDevicememHistoryUnmapOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistoryUnmap_exit;
-				}
-			}
+			goto DevicememHistoryUnmap_exit;
+		}
+	}
 
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psDevicememHistoryUnmapOUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &psPMRInt,
-											hPMR,
-											PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-											IMG_TRUE);
-					if(psDevicememHistoryUnmapOUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto DevicememHistoryUnmap_exit;
-					}
+	/* Look up the address from the handle */
+	psDevicememHistoryUnmapOUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&psPMRInt,
+				       hPMR,
+				       PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+				       IMG_TRUE);
+	if (psDevicememHistoryUnmapOUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto DevicememHistoryUnmap_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psDevicememHistoryUnmapOUT->eError =
-		DevicememHistoryUnmapKM(
-					psPMRInt,
-					psDevicememHistoryUnmapIN->uiOffset,
-					psDevicememHistoryUnmapIN->sDevVAddr,
-					psDevicememHistoryUnmapIN->uiSize,
-					uiTextInt,
-					psDevicememHistoryUnmapIN->ui32Log2PageSize,
-					psDevicememHistoryUnmapIN->ui32AllocationIndex,
-					&psDevicememHistoryUnmapOUT->ui32AllocationIndexOut);
+	    DevicememHistoryUnmapKM(psPMRInt,
+				    psDevicememHistoryUnmapIN->uiOffset,
+				    psDevicememHistoryUnmapIN->sDevVAddr,
+				    psDevicememHistoryUnmapIN->uiSize,
+				    uiTextInt,
+				    psDevicememHistoryUnmapIN->ui32Log2PageSize,
+				    psDevicememHistoryUnmapIN->
+				    ui32AllocationIndex,
+				    &psDevicememHistoryUnmapOUT->
+				    ui32AllocationIndexOut);
 
-
-
-
-DevicememHistoryUnmap_exit:
+ DevicememHistoryUnmap_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(psPMRInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hPMR,
-										PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
-					}
+	/* Unreference the previously looked up handle */
+	if (psPMRInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hPMR,
+					    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
@@ -344,52 +329,53 @@ DevicememHistoryUnmap_exit:
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
-
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeDevicememHistoryMapVRange(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYMAPVRANGE *psDevicememHistoryMapVRangeIN,
-					  PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYMAPVRANGE *psDevicememHistoryMapVRangeOUT,
-					 CONNECTION_DATA *psConnection)
+				      PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYMAPVRANGE
+				      * psDevicememHistoryMapVRangeIN,
+				      PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYMAPVRANGE
+				      * psDevicememHistoryMapVRangeOUT,
+				      CONNECTION_DATA * psConnection)
 {
 	IMG_CHAR *uiTextInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) +
-			0;
-
+	IMG_UINT32 ui32BufferSize =
+	    (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) + 0;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
-
-
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psDevicememHistoryMapVRangeIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psDevicememHistoryMapVRangeIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psDevicememHistoryMapVRangeIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psDevicememHistoryMapVRangeIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -398,100 +384,107 @@ PVRSRVBridgeDevicememHistoryMapVRange(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psDevicememHistoryMapVRangeOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psDevicememHistoryMapVRangeOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto DevicememHistoryMapVRange_exit;
 			}
 		}
 	}
 
-	
 	{
-		uiTextInt = (IMG_CHAR*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
+		uiTextInt =
+		    (IMG_CHAR *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				  ui32NextOffset);
 		ui32NextOffset += DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR);
 	}
 
-			/* Copy the data over */
-			if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
-			{
-				if ( OSCopyFromUser(NULL, uiTextInt, (const void __user *) psDevicememHistoryMapVRangeIN->puiText, DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK )
-				{
-					psDevicememHistoryMapVRangeOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, uiTextInt,
+		     (const void __user *)psDevicememHistoryMapVRangeIN->
+		     puiText,
+		     DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK)
+		{
+			psDevicememHistoryMapVRangeOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistoryMapVRange_exit;
-				}
-			}
-
+			goto DevicememHistoryMapVRange_exit;
+		}
+	}
 
 	psDevicememHistoryMapVRangeOUT->eError =
-		DevicememHistoryMapVRangeKM(
-					psDevicememHistoryMapVRangeIN->sBaseDevVAddr,
-					psDevicememHistoryMapVRangeIN->ui32ui32StartPage,
-					psDevicememHistoryMapVRangeIN->ui32NumPages,
-					psDevicememHistoryMapVRangeIN->uiAllocSize,
-					uiTextInt,
-					psDevicememHistoryMapVRangeIN->ui32Log2PageSize,
-					psDevicememHistoryMapVRangeIN->ui32AllocationIndex,
-					&psDevicememHistoryMapVRangeOUT->ui32AllocationIndexOut);
+	    DevicememHistoryMapVRangeKM(psDevicememHistoryMapVRangeIN->
+					sBaseDevVAddr,
+					psDevicememHistoryMapVRangeIN->
+					ui32ui32StartPage,
+					psDevicememHistoryMapVRangeIN->
+					ui32NumPages,
+					psDevicememHistoryMapVRangeIN->
+					uiAllocSize, uiTextInt,
+					psDevicememHistoryMapVRangeIN->
+					ui32Log2PageSize,
+					psDevicememHistoryMapVRangeIN->
+					ui32AllocationIndex,
+					&psDevicememHistoryMapVRangeOUT->
+					ui32AllocationIndexOut);
 
-
-
-
-DevicememHistoryMapVRange_exit:
-
-
+ DevicememHistoryMapVRange_exit:
 
 	/* Allocated space should be equal to the last updated offset */
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
-
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeDevicememHistoryUnmapVRange(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYUNMAPVRANGE *psDevicememHistoryUnmapVRangeIN,
-					  PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYUNMAPVRANGE *psDevicememHistoryUnmapVRangeOUT,
-					 CONNECTION_DATA *psConnection)
+					PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYUNMAPVRANGE
+					* psDevicememHistoryUnmapVRangeIN,
+					PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYUNMAPVRANGE
+					* psDevicememHistoryUnmapVRangeOUT,
+					CONNECTION_DATA * psConnection)
 {
 	IMG_CHAR *uiTextInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) +
-			0;
-
+	IMG_UINT32 ui32BufferSize =
+	    (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) + 0;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
-
-
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psDevicememHistoryUnmapVRangeIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psDevicememHistoryUnmapVRangeIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psDevicememHistoryUnmapVRangeIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psDevicememHistoryUnmapVRangeIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -500,105 +493,113 @@ PVRSRVBridgeDevicememHistoryUnmapVRange(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psDevicememHistoryUnmapVRangeOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psDevicememHistoryUnmapVRangeOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto DevicememHistoryUnmapVRange_exit;
 			}
 		}
 	}
 
-	
 	{
-		uiTextInt = (IMG_CHAR*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
+		uiTextInt =
+		    (IMG_CHAR *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				  ui32NextOffset);
 		ui32NextOffset += DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR);
 	}
 
-			/* Copy the data over */
-			if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
-			{
-				if ( OSCopyFromUser(NULL, uiTextInt, (const void __user *) psDevicememHistoryUnmapVRangeIN->puiText, DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK )
-				{
-					psDevicememHistoryUnmapVRangeOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, uiTextInt,
+		     (const void __user *)psDevicememHistoryUnmapVRangeIN->
+		     puiText,
+		     DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK)
+		{
+			psDevicememHistoryUnmapVRangeOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistoryUnmapVRange_exit;
-				}
-			}
-
+			goto DevicememHistoryUnmapVRange_exit;
+		}
+	}
 
 	psDevicememHistoryUnmapVRangeOUT->eError =
-		DevicememHistoryUnmapVRangeKM(
-					psDevicememHistoryUnmapVRangeIN->sBaseDevVAddr,
-					psDevicememHistoryUnmapVRangeIN->ui32ui32StartPage,
-					psDevicememHistoryUnmapVRangeIN->ui32NumPages,
-					psDevicememHistoryUnmapVRangeIN->uiAllocSize,
-					uiTextInt,
-					psDevicememHistoryUnmapVRangeIN->ui32Log2PageSize,
-					psDevicememHistoryUnmapVRangeIN->ui32AllocationIndex,
-					&psDevicememHistoryUnmapVRangeOUT->ui32AllocationIndexOut);
+	    DevicememHistoryUnmapVRangeKM(psDevicememHistoryUnmapVRangeIN->
+					  sBaseDevVAddr,
+					  psDevicememHistoryUnmapVRangeIN->
+					  ui32ui32StartPage,
+					  psDevicememHistoryUnmapVRangeIN->
+					  ui32NumPages,
+					  psDevicememHistoryUnmapVRangeIN->
+					  uiAllocSize, uiTextInt,
+					  psDevicememHistoryUnmapVRangeIN->
+					  ui32Log2PageSize,
+					  psDevicememHistoryUnmapVRangeIN->
+					  ui32AllocationIndex,
+					  &psDevicememHistoryUnmapVRangeOUT->
+					  ui32AllocationIndexOut);
 
-
-
-
-DevicememHistoryUnmapVRange_exit:
-
-
+ DevicememHistoryUnmapVRange_exit:
 
 	/* Allocated space should be equal to the last updated offset */
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
-
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeDevicememHistorySparseChange(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYSPARSECHANGE *psDevicememHistorySparseChangeIN,
-					  PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYSPARSECHANGE *psDevicememHistorySparseChangeOUT,
-					 CONNECTION_DATA *psConnection)
+					 PVRSRV_BRIDGE_IN_DEVICEMEMHISTORYSPARSECHANGE
+					 * psDevicememHistorySparseChangeIN,
+					 PVRSRV_BRIDGE_OUT_DEVICEMEMHISTORYSPARSECHANGE
+					 * psDevicememHistorySparseChangeOUT,
+					 CONNECTION_DATA * psConnection)
 {
 	IMG_HANDLE hPMR = psDevicememHistorySparseChangeIN->hPMR;
-	PMR * psPMRInt = NULL;
+	PMR *psPMRInt = NULL;
 	IMG_CHAR *uiTextInt = NULL;
 	IMG_UINT32 *ui32AllocPageIndicesInt = NULL;
 	IMG_UINT32 *ui32FreePageIndicesInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) +
-			(psDevicememHistorySparseChangeIN->ui32AllocPageCount * sizeof(IMG_UINT32)) +
-			(psDevicememHistorySparseChangeIN->ui32FreePageCount * sizeof(IMG_UINT32)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) +
+	    (psDevicememHistorySparseChangeIN->ui32AllocPageCount *
+	     sizeof(IMG_UINT32)) +
+	    (psDevicememHistorySparseChangeIN->ui32FreePageCount *
+	     sizeof(IMG_UINT32)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psDevicememHistorySparseChangeIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psDevicememHistorySparseChangeIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psDevicememHistorySparseChangeIN;
+			IMG_BYTE *pInputBuffer =
+			    (IMG_BYTE *) psDevicememHistorySparseChangeIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -607,121 +608,143 @@ PVRSRVBridgeDevicememHistorySparseChange(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psDevicememHistorySparseChangeOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psDevicememHistorySparseChangeOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto DevicememHistorySparseChange_exit;
 			}
 		}
 	}
 
-	
 	{
-		uiTextInt = (IMG_CHAR*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
+		uiTextInt =
+		    (IMG_CHAR *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				  ui32NextOffset);
 		ui32NextOffset += DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR);
 	}
 
-			/* Copy the data over */
-			if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
-			{
-				if ( OSCopyFromUser(NULL, uiTextInt, (const void __user *) psDevicememHistorySparseChangeIN->puiText, DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK )
-				{
-					psDevicememHistorySparseChangeOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, uiTextInt,
+		     (const void __user *)psDevicememHistorySparseChangeIN->
+		     puiText,
+		     DEVMEM_ANNOTATION_MAX_LEN * sizeof(IMG_CHAR)) != PVRSRV_OK)
+		{
+			psDevicememHistorySparseChangeOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistorySparseChange_exit;
-				}
-			}
+			goto DevicememHistorySparseChange_exit;
+		}
+	}
 	if (psDevicememHistorySparseChangeIN->ui32AllocPageCount != 0)
 	{
-		ui32AllocPageIndicesInt = (IMG_UINT32*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
-		ui32NextOffset += psDevicememHistorySparseChangeIN->ui32AllocPageCount * sizeof(IMG_UINT32);
+		ui32AllocPageIndicesInt =
+		    (IMG_UINT32 *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				    ui32NextOffset);
+		ui32NextOffset +=
+		    psDevicememHistorySparseChangeIN->ui32AllocPageCount *
+		    sizeof(IMG_UINT32);
 	}
 
-			/* Copy the data over */
-			if (psDevicememHistorySparseChangeIN->ui32AllocPageCount * sizeof(IMG_UINT32) > 0)
-			{
-				if ( OSCopyFromUser(NULL, ui32AllocPageIndicesInt, (const void __user *) psDevicememHistorySparseChangeIN->pui32AllocPageIndices, psDevicememHistorySparseChangeIN->ui32AllocPageCount * sizeof(IMG_UINT32)) != PVRSRV_OK )
-				{
-					psDevicememHistorySparseChangeOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (psDevicememHistorySparseChangeIN->ui32AllocPageCount *
+	    sizeof(IMG_UINT32) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, ui32AllocPageIndicesInt,
+		     (const void __user *)psDevicememHistorySparseChangeIN->
+		     pui32AllocPageIndices,
+		     psDevicememHistorySparseChangeIN->ui32AllocPageCount *
+		     sizeof(IMG_UINT32)) != PVRSRV_OK)
+		{
+			psDevicememHistorySparseChangeOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistorySparseChange_exit;
-				}
-			}
+			goto DevicememHistorySparseChange_exit;
+		}
+	}
 	if (psDevicememHistorySparseChangeIN->ui32FreePageCount != 0)
 	{
-		ui32FreePageIndicesInt = (IMG_UINT32*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
-		ui32NextOffset += psDevicememHistorySparseChangeIN->ui32FreePageCount * sizeof(IMG_UINT32);
+		ui32FreePageIndicesInt =
+		    (IMG_UINT32 *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				    ui32NextOffset);
+		ui32NextOffset +=
+		    psDevicememHistorySparseChangeIN->ui32FreePageCount *
+		    sizeof(IMG_UINT32);
 	}
 
-			/* Copy the data over */
-			if (psDevicememHistorySparseChangeIN->ui32FreePageCount * sizeof(IMG_UINT32) > 0)
-			{
-				if ( OSCopyFromUser(NULL, ui32FreePageIndicesInt, (const void __user *) psDevicememHistorySparseChangeIN->pui32FreePageIndices, psDevicememHistorySparseChangeIN->ui32FreePageCount * sizeof(IMG_UINT32)) != PVRSRV_OK )
-				{
-					psDevicememHistorySparseChangeOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (psDevicememHistorySparseChangeIN->ui32FreePageCount *
+	    sizeof(IMG_UINT32) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, ui32FreePageIndicesInt,
+		     (const void __user *)psDevicememHistorySparseChangeIN->
+		     pui32FreePageIndices,
+		     psDevicememHistorySparseChangeIN->ui32FreePageCount *
+		     sizeof(IMG_UINT32)) != PVRSRV_OK)
+		{
+			psDevicememHistorySparseChangeOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto DevicememHistorySparseChange_exit;
-				}
-			}
+			goto DevicememHistorySparseChange_exit;
+		}
+	}
 
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psDevicememHistorySparseChangeOUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &psPMRInt,
-											hPMR,
-											PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-											IMG_TRUE);
-					if(psDevicememHistorySparseChangeOUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto DevicememHistorySparseChange_exit;
-					}
+	/* Look up the address from the handle */
+	psDevicememHistorySparseChangeOUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&psPMRInt,
+				       hPMR,
+				       PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+				       IMG_TRUE);
+	if (psDevicememHistorySparseChangeOUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto DevicememHistorySparseChange_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psDevicememHistorySparseChangeOUT->eError =
-		DevicememHistorySparseChangeKM(
-					psPMRInt,
-					psDevicememHistorySparseChangeIN->uiOffset,
-					psDevicememHistorySparseChangeIN->sDevVAddr,
-					psDevicememHistorySparseChangeIN->uiSize,
-					uiTextInt,
-					psDevicememHistorySparseChangeIN->ui32Log2PageSize,
-					psDevicememHistorySparseChangeIN->ui32AllocPageCount,
-					ui32AllocPageIndicesInt,
-					psDevicememHistorySparseChangeIN->ui32FreePageCount,
-					ui32FreePageIndicesInt,
-					psDevicememHistorySparseChangeIN->ui32AllocationIndex,
-					&psDevicememHistorySparseChangeOUT->ui32AllocationIndexOut);
+	    DevicememHistorySparseChangeKM(psPMRInt,
+					   psDevicememHistorySparseChangeIN->
+					   uiOffset,
+					   psDevicememHistorySparseChangeIN->
+					   sDevVAddr,
+					   psDevicememHistorySparseChangeIN->
+					   uiSize, uiTextInt,
+					   psDevicememHistorySparseChangeIN->
+					   ui32Log2PageSize,
+					   psDevicememHistorySparseChangeIN->
+					   ui32AllocPageCount,
+					   ui32AllocPageIndicesInt,
+					   psDevicememHistorySparseChangeIN->
+					   ui32FreePageCount,
+					   ui32FreePageIndicesInt,
+					   psDevicememHistorySparseChangeIN->
+					   ui32AllocationIndex,
+					   &psDevicememHistorySparseChangeOUT->
+					   ui32AllocationIndexOut);
 
-
-
-
-DevicememHistorySparseChange_exit:
+ DevicememHistorySparseChange_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(psPMRInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hPMR,
-										PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
-					}
+	/* Unreference the previously looked up handle */
+	if (psPMRInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hPMR,
+					    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
@@ -729,18 +752,14 @@ DevicememHistorySparseChange_exit:
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
 
-
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -759,23 +778,34 @@ PVRSRV_ERROR DeinitDEVICEMEMHISTORYBridge(void);
  */
 PVRSRV_ERROR InitDEVICEMEMHISTORYBridge(void)
 {
-	PVR_LOGR_IF_ERROR(OSLockCreate(&pDEVICEMEMHISTORYBridgeLock, LOCK_TYPE_PASSIVE), "OSLockCreate");
+	PVR_LOGR_IF_ERROR(OSLockCreate
+			  (&pDEVICEMEMHISTORYBridgeLock, LOCK_TYPE_PASSIVE),
+			  "OSLockCreate");
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAP, PVRSRVBridgeDevicememHistoryMap,
-					pDEVICEMEMHISTORYBridgeLock, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+			      PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAP,
+			      PVRSRVBridgeDevicememHistoryMap,
+			      pDEVICEMEMHISTORYBridgeLock, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAP, PVRSRVBridgeDevicememHistoryUnmap,
-					pDEVICEMEMHISTORYBridgeLock, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+			      PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAP,
+			      PVRSRVBridgeDevicememHistoryUnmap,
+			      pDEVICEMEMHISTORYBridgeLock, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAPVRANGE, PVRSRVBridgeDevicememHistoryMapVRange,
-					pDEVICEMEMHISTORYBridgeLock, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+			      PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAPVRANGE,
+			      PVRSRVBridgeDevicememHistoryMapVRange,
+			      pDEVICEMEMHISTORYBridgeLock, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAPVRANGE, PVRSRVBridgeDevicememHistoryUnmapVRange,
-					pDEVICEMEMHISTORYBridgeLock, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+			      PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAPVRANGE,
+			      PVRSRVBridgeDevicememHistoryUnmapVRange,
+			      pDEVICEMEMHISTORYBridgeLock, bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYSPARSECHANGE, PVRSRVBridgeDevicememHistorySparseChange,
-					pDEVICEMEMHISTORYBridgeLock, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+			      PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYSPARSECHANGE,
+			      PVRSRVBridgeDevicememHistorySparseChange,
+			      pDEVICEMEMHISTORYBridgeLock, bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -785,19 +815,23 @@ PVRSRV_ERROR InitDEVICEMEMHISTORYBridge(void)
  */
 PVRSRV_ERROR DeinitDEVICEMEMHISTORYBridge(void)
 {
-	PVR_LOGR_IF_ERROR(OSLockDestroy(pDEVICEMEMHISTORYBridgeLock), "OSLockDestroy");
+	PVR_LOGR_IF_ERROR(OSLockDestroy(pDEVICEMEMHISTORYBridgeLock),
+			  "OSLockDestroy");
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAP);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+				PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAP);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAP);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+				PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAP);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAPVRANGE);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+				PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYMAPVRANGE);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAPVRANGE);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+				PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYUNMAPVRANGE);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY, PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYSPARSECHANGE);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DEVICEMEMHISTORY,
+				PVRSRV_BRIDGE_DEVICEMEMHISTORY_DEVICEMEMHISTORYSPARSECHANGE);
 
 	return PVRSRV_OK;
 }

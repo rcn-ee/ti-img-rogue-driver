@@ -124,6 +124,21 @@ cbSpaceLeft(IMG_UINT32 ui32Read, IMG_UINT32 ui32Write, IMG_UINT32 ui32size)
 	}
 }
 
+IMG_UINT32 TLStreamGetUT(IMG_HANDLE hStream)
+{
+	PTL_STREAM psStream = (PTL_STREAM) hStream;
+	IMG_UINT32 ui32LRead = psStream->ui32Read, ui32LWrite = psStream->ui32Write;
+
+	if (ui32LWrite >= ui32LRead)
+	{
+		return (ui32LWrite-ui32LRead);
+	}
+	else
+	{
+		return (psStream->ui32Size-ui32LRead+ui32LWrite);
+	}
+}
+
 PVRSRV_ERROR TLAllocSharedMemIfNull(IMG_HANDLE hStream)
 {
 	PTL_STREAM psStream = (PTL_STREAM) hStream;
@@ -288,12 +303,24 @@ TLStreamCreate(IMG_HANDLE *phStream,
 
 	/* Round the requested bytes to a multiple of array elements' size, eg round 3 to 4 */
 	psTmp->ui32Size = PVRSRVTL_ALIGN(ui32Size);
+
+	/* Signalling from TLStreamCommit is deferred until buffer is slightly (~12%) filled */
+	psTmp->ui32ThresholdUsageForSignal = psTmp->ui32Size >> 3;
 	psTmp->ui32MaxPacketSize = GET_TL_MAX_PACKET_SIZE(psTmp->ui32Size);
 	psTmp->ui32Read = 0;
 	psTmp->ui32Write = 0;
 	psTmp->ui32Pending = NOTHING_PENDING;
 	psTmp->psDevNode = psDevNode;
 	psTmp->bReadPending = IMG_FALSE;
+	psTmp->bSignalPending = IMG_FALSE;
+
+#if defined (TL_BUFFER_STATS)
+	OSAtomicWrite(&psTmp->bNoReaderSinceFirstReserve, 0);
+	/* Setting MAX possible value for "minimum" time to full,
+	 * helps in the logic which calculates this time */
+	psTmp->ui32MinTimeToFullInUs = IMG_UINT32_MAX;
+#endif
+
 	/* Memory will be allocated on first connect to the stream */
 	if (!(ui32StreamFlags & TL_FLAG_ALLOCATE_ON_FIRST_OPEN))
 	{
@@ -662,6 +689,20 @@ DoTLStreamReserve(IMG_HANDLE hStream,
 	 * this function from other context(s) fail with PVRSRV_ERROR_NOT_READY */
 	OSLockAcquire (psTmp->hStreamWLock);
 
+#if defined (TL_BUFFER_STATS)
+	/* If writing into an empty buffer, start recording time-to-full */
+	if (psTmp->ui32Read == psTmp->ui32Write)
+	{
+		OSAtomicWrite(&psTmp->bNoReaderSinceFirstReserve, 1);
+		psTmp->ui32TimeStart = OSClockus();
+	}
+
+	if (ui32ReqSize > psTmp->ui32MaxReserveWatermark)
+	{
+		psTmp->ui32MaxReserveWatermark = ui32ReqSize;
+	}
+#endif
+
 	/* Get a local copy of the stream buffer parameters */
 	ui32LRead  = psTmp->ui32Read;
 	ui32LWrite = psTmp->ui32Write;
@@ -962,19 +1003,53 @@ TLStreamCommit(IMG_HANDLE hStream, IMG_UINT32 ui32ReqSize)
 	psTmp->ui32Write = ui32LWrite;
 	psTmp->ui32Pending = ui32LPending;
 
-	OSLockRelease (psTmp->hStreamWLock);
-
-	/* If  we have transitioned from an empty buffer to a non-empty buffer,
-	 * signal any consumers that may be waiting */
-	if (ui32OldWrite == ui32LRead && !psTmp->bNoSignalOnCommit)
+#if defined(TL_BUFFER_STATS)
+	/* IF there has been no-reader since first reserve on an empty-buffer,
+	 * AND current utilisation is considerably high (90%), calculate the
+	 * time taken to fill up the buffer */
+	if ((OSAtomicRead(&psTmp->bNoReaderSinceFirstReserve) == 1) &&
+	    (TLStreamGetUT(psTmp) >= 90 * psTmp->ui32Size/100))
 	{
-		/* Signal consumers that may be waiting */
-		eError = OSEventObjectSignal(psTmp->psNode->hReadEventObj);
-		if ( eError != PVRSRV_OK)
+		IMG_UINT32 ui32TimeToFullInUs = OSClockus() - psTmp->ui32TimeStart;
+		if (psTmp->ui32MinTimeToFullInUs > ui32TimeToFullInUs)
 		{
-			PVR_DPF_RETURN_RC(eError);
+			psTmp->ui32MinTimeToFullInUs = ui32TimeToFullInUs;
+		}
+		/* Following write ensures ui32MinTimeToFullInUs doesn't lose its
+		 * real (expected) value in case there is no reader until next Commit call */
+		OSAtomicWrite(&psTmp->bNoReaderSinceFirstReserve, 0);
+	}
+#endif
+
+	if (!psTmp->bNoSignalOnCommit)
+	{
+		/* If we have transitioned from an empty buffer to a non-empty buffer, we
+		 * must signal possibly waiting consumer. BUT, let the signal be "deferred"
+		 * until buffer is at least `ui32ThresholdUsageForSignal` bytes full. This
+		 * avoids a race between OSEventObjectSignal and OSEventObjectWaitTimeout
+		 * (in TLServerAcquireDataKM), where a "signal" might happen before "wait",
+		 * resulting into signal being lost and stream-reader waiting even though
+		 * buffer is no-more empty */
+		if (ui32OldWrite == ui32LRead)
+		{
+			psTmp->bSignalPending = IMG_TRUE;
+		}
+
+		if (psTmp->bSignalPending && (TLStreamGetUT(psTmp) >= psTmp->ui32ThresholdUsageForSignal))
+		{
+			TL_COUNTER_INC(psTmp->ui32SignalsSent);
+			psTmp->bSignalPending = IMG_FALSE;
+
+			/* Signal consumers that may be waiting */
+			eError = OSEventObjectSignal(psTmp->psNode->hReadEventObj);
+			if ( eError != PVRSRV_OK)
+			{
+				PVR_DPF_RETURN_RC(eError);
+			}
 		}
 	}
+	OSLockRelease (psTmp->hStreamWLock);
+
 	PVR_DPF_RETURN_OK;
 }
 
@@ -1200,6 +1275,11 @@ TLStreamAcquireReadPos(PTL_STREAM psStream,
 		}
 		PVR_DPF_RETURN_VAL(0);
 	}
+
+#if defined (TL_BUFFER_STATS)
+	/* The moment reader knows it will see a non-zero data, it marks its presence in writer's eyes */
+	OSAtomicWrite (&psStream->bNoReaderSinceFirstReserve, 0);
+#endif
 
 	/* Data is available to read... */
 	*puiReadOffset = ui32LRead;

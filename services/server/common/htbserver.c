@@ -334,7 +334,10 @@ HTBInit(void)
 	 * We do this here as there is no other infrastructure for obtaining
 	 * the value.
 	 */
-	PVR_LOG(("%s: HTBufferSizeInKB = %u", __func__, g_ui32HTBufferSize));
+	if (g_ui32HTBufferSize != ui32AppHintDefault)
+	{
+		PVR_LOG(("Increasing HTBufferSize to %uKB", g_ui32HTBufferSize));
+	}
 
 	return PVRSRV_OK;
 }

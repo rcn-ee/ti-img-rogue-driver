@@ -60,6 +60,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem_tdsecbuf.h"
 #endif
 
+#if defined(SUPPORT_DEDICATED_FW_MEMORY)
+#include "physmem_fwdedicatedmem.h"
+#endif
+
 
 /*
  * Firmware-only allocation (which are initialised by the host) must be aligned to the SLC cache line size.
@@ -339,6 +343,81 @@ MapError:
 ImportError:
 	/* Unref and destroy the PMR */
 	PMRUnrefPMR(psTDSecureBufPMR);
+PMRCreateError:
+
+	return eError;
+}
+#endif
+
+
+#if defined(SUPPORT_DEDICATED_FW_MEMORY)
+static INLINE
+PVRSRV_ERROR DevmemAllocateDedicatedFWMem(PVRSRV_DEVICE_NODE *psDeviceNode,
+                                          IMG_DEVMEM_SIZE_T uiSize,
+                                          PMR_LOG2ALIGN_T uiLog2Align,
+                                          IMG_UINT32 uiMemAllocFlags,
+                                          const IMG_CHAR *pszText,
+                                          DEVMEM_MEMDESC **ppsMemDescPtr)
+{
+	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *) psDeviceNode->pvDevice;
+	PMR *psPMR;
+	IMG_DEV_VIRTADDR sTmpDevVAddr;
+	IMG_DEVMEM_SIZE_T uiMemDescSize;
+	IMG_DEVMEM_ALIGN_T uiAlign = 1 << uiLog2Align;
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(ppsMemDescPtr);
+
+	DevmemExportalignAdjustSizeAndAlign(DevmemGetHeapLog2PageSize(psDevInfo->psFirmwareMainHeap),
+	                                    &uiSize,
+	                                    &uiAlign);
+
+	eError = PhysmemNewFWDedicatedMemPMR(psDeviceNode,
+	                                     uiSize,
+	                                     uiLog2Align,
+	                                     uiMemAllocFlags,
+	                                     &psPMR);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "PhysmemNewFWDedicatedMemPMR failed (%u)", eError));
+		goto PMRCreateError;
+	}
+
+	/* NB: FWDedicatedMemPMR refcount: 1 -> 2 */
+	eError = DevmemLocalImport(psDeviceNode,
+	                           psPMR,
+	                           uiMemAllocFlags,
+	                           ppsMemDescPtr,
+	                           &uiMemDescSize,
+	                           pszText);
+	if(eError != PVRSRV_OK)
+	{
+		goto ImportError;
+	}
+
+	eError = DevmemMapToDevice(*ppsMemDescPtr,
+	                           psDevInfo->psFirmwareMainHeap,
+	                           &sTmpDevVAddr);
+	if(eError != PVRSRV_OK)
+	{
+		PVR_DPF((PVR_DBG_ERROR,"Failed to map dedicated FW memory (%u)", eError));
+		goto MapError;
+	}
+
+	/* NB: FWDedicatedMemPMR refcount: 2 -> 1
+	 * The PMR will be unreferenced again (and destroyed) when
+	 * the memdesc tracking it is cleaned up
+	 */
+	PMRUnrefPMR(psPMR);
+
+	return PVRSRV_OK;
+
+MapError:
+	DevmemFree(*ppsMemDescPtr);
+	*ppsMemDescPtr = NULL;
+ImportError:
+	/* Unref and destroy the PMR */
+	PMRUnrefPMR(psPMR);
 PMRCreateError:
 
 	return eError;

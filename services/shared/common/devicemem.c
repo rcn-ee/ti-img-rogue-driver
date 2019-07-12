@@ -351,9 +351,9 @@ _SubAllocImportAlloc(RA_PERARENA_HANDLE hArena,
 	   a 1:1 (i.e. virtual : physical) offset correlation but we
 	   force this behaviour for all drivers to maintain consistency
 	   (i.e. heap->VA uiAlign <= heap->PA uiLog2Quantum) */
-	if (uiAlign > (IMG_DEVMEM_ALIGN_T)(1 << psHeap->uiLog2Quantum))
+	if (uiAlign > (IMG_DEVMEM_ALIGN_T)(1ULL << psHeap->uiLog2Quantum))
 	{
-		uiAlign = (IMG_DEVMEM_ALIGN_T)(1 << psHeap->uiLog2Quantum);
+		uiAlign = (IMG_DEVMEM_ALIGN_T)(1ULL << psHeap->uiLog2Quantum);
 	}
 
 	/* The RA should not have invoked us with a size that is not a
@@ -1324,7 +1324,7 @@ DevmemSubAllocate(IMG_UINT8 uiPreAllocMultiplier,
 		const IMG_CHAR *pszText,
 		DEVMEM_MEMDESC **ppsMemDescPtr)
 {
-	RA_BASE_T uiAllocatedAddr;
+	RA_BASE_T uiAllocatedAddr = 0;
 	RA_LENGTH_T uiAllocatedSize;
 	RA_PERISPAN_HANDLE hImport; /* the "import" from which this sub-allocation came */
 	PVRSRV_ERROR eError;
@@ -1433,7 +1433,7 @@ DevmemSubAllocate(IMG_UINT8 uiPreAllocMultiplier,
 	 * So we check if uiSize is a page multiple and mark it as exportable
 	 * if it is not.
 	 * */
-	if (!(uiSize & ((1 << psHeap->uiLog2Quantum) - 1)) &&
+	if (!(uiSize & ((1ULL << psHeap->uiLog2Quantum) - 1)) &&
 			(uiPreAllocMultiplier == RA_NO_IMPORT_MULTIPLIER) )
 	{
 		psImport->uiProperties |= DEVMEM_PROPERTIES_EXPORTABLE;

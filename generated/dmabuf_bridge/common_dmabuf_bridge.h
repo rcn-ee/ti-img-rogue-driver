@@ -52,13 +52,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "pvrsrv_memallocflags.h"
 
-
 #define PVRSRV_BRIDGE_DMABUF_CMD_FIRST			0
 #define PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUF			PVRSRV_BRIDGE_DMABUF_CMD_FIRST+0
 #define PVRSRV_BRIDGE_DMABUF_PHYSMEMEXPORTDMABUF			PVRSRV_BRIDGE_DMABUF_CMD_FIRST+1
 #define PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTSPARSEDMABUF			PVRSRV_BRIDGE_DMABUF_CMD_FIRST+2
 #define PVRSRV_BRIDGE_DMABUF_CMD_LAST			(PVRSRV_BRIDGE_DMABUF_CMD_FIRST+2)
-
 
 /*******************************************
             PhysmemImportDmaBuf          
@@ -70,8 +68,8 @@ typedef struct PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUF_TAG
 	IMG_INT ifd;
 	PVRSRV_MEMALLOCFLAGS_T uiFlags;
 	IMG_UINT32 ui32NameSize;
-	const IMG_CHAR * puiName;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUF;
+	const IMG_CHAR *puiName;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUF;
 
 /* Bridge out structure for PhysmemImportDmaBuf */
 typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF_TAG
@@ -80,8 +78,7 @@ typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF_TAG
 	IMG_DEVMEM_SIZE_T uiSize;
 	IMG_DEVMEM_ALIGN_T sAlign;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF;
 
 /*******************************************
             PhysmemExportDmaBuf          
@@ -91,15 +88,14 @@ typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF_TAG
 typedef struct PVRSRV_BRIDGE_IN_PHYSMEMEXPORTDMABUF_TAG
 {
 	IMG_HANDLE hPMR;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PHYSMEMEXPORTDMABUF;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PHYSMEMEXPORTDMABUF;
 
 /* Bridge out structure for PhysmemExportDmaBuf */
 typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMEXPORTDMABUF_TAG
 {
 	IMG_INT iFd;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMEXPORTDMABUF;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMEXPORTDMABUF;
 
 /*******************************************
             PhysmemImportSparseDmaBuf          
@@ -113,10 +109,10 @@ typedef struct PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF_TAG
 	IMG_DEVMEM_SIZE_T uiChunkSize;
 	IMG_UINT32 ui32NumPhysChunks;
 	IMG_UINT32 ui32NumVirtChunks;
-	IMG_UINT32 * pui32MappingTable;
+	IMG_UINT32 *pui32MappingTable;
 	IMG_UINT32 ui32NameSize;
-	const IMG_CHAR * puiName;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF;
+	const IMG_CHAR *puiName;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF;
 
 /* Bridge out structure for PhysmemImportSparseDmaBuf */
 typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF_TAG
@@ -125,7 +121,6 @@ typedef struct PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF_TAG
 	IMG_DEVMEM_SIZE_T uiSize;
 	IMG_DEVMEM_ALIGN_T sAlign;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF;
 
 #endif /* COMMON_DMABUF_BRIDGE_H */

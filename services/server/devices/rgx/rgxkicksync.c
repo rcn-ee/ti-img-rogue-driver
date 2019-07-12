@@ -210,6 +210,51 @@ PVRSRV_ERROR PVRSRVRGXDestroyKickSyncContextKM(RGX_SERVER_KICKSYNC_CONTEXT * psK
 	return PVRSRV_OK;
 }
 
+void CheckForStalledKickSyncCtxt(PVRSRV_RGXDEV_INFO *psDevInfo,
+		DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+		void *pvDumpDebugFile)
+{
+	DLLIST_NODE *psNode, *psNext;
+	OSWRLockAcquireRead(psDevInfo->hKickSyncCtxListLock);
+	dllist_foreach_node(&psDevInfo->sKickSyncCtxtListHead, psNode, psNext)
+	{
+		RGX_SERVER_KICKSYNC_CONTEXT *psCurrentServerKickSyncCtx =
+				IMG_CONTAINER_OF(psNode, RGX_SERVER_KICKSYNC_CONTEXT, sListNode);
+
+		if (NULL != psCurrentServerKickSyncCtx->psServerCommonContext)
+		{
+			DumpStalledFWCommonContext(psCurrentServerKickSyncCtx->psServerCommonContext,
+			                           pfnDumpDebugPrintf, pvDumpDebugFile);
+		}
+	}
+	OSWRLockReleaseRead(psDevInfo->hKickSyncCtxListLock);
+}
+
+IMG_UINT32 CheckForStalledClientKickSyncCtxt(PVRSRV_RGXDEV_INFO *psDevInfo)
+{
+	DLLIST_NODE *psNode, *psNext;
+	IMG_UINT32 ui32ContextBitMask = 0;
+
+	OSWRLockAcquireRead(psDevInfo->hKickSyncCtxListLock);
+
+	dllist_foreach_node(&psDevInfo->sKickSyncCtxtListHead, psNode, psNext)
+	{
+		RGX_SERVER_KICKSYNC_CONTEXT *psCurrentServerKickSyncCtx =
+			IMG_CONTAINER_OF(psNode, RGX_SERVER_KICKSYNC_CONTEXT, sListNode);
+
+		if (NULL != psCurrentServerKickSyncCtx->psServerCommonContext)
+		{
+			if (CheckStalledClientCommonContext(psCurrentServerKickSyncCtx->psServerCommonContext, RGX_KICK_TYPE_DM_GP) == PVRSRV_ERROR_CCCB_STALLED)
+			{
+				ui32ContextBitMask |= RGX_KICK_TYPE_DM_GP;
+			}
+		}
+	}
+
+	OSWRLockReleaseRead(psDevInfo->hKickSyncCtxListLock);
+	return ui32ContextBitMask;
+}
+
 PVRSRV_ERROR PVRSRVRGXKickSyncKM(RGX_SERVER_KICKSYNC_CONTEXT * psKickSyncContext,
 
                                  IMG_UINT32                    ui32ClientCacheOpSeqNum,

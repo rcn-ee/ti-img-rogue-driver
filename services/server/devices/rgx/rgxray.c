@@ -1344,7 +1344,7 @@ PVRSRV_ERROR _RGXMapRPMPBBlock(RGX_DEVMEM_NODE	*psDevMemNode,
 	if (eBlockType == NODE_SCENE_HIERARCHY)
 	{
 		/* the mapped-in scene hierarchy device address will be used to set up the FPL entries */
-		psDevMemNode->sAddr.uiAddr = sDevVAddrBase.uiAddr + (*pui32MappingIndex * ui32ChunkSize);
+		psDevMemNode->sAddr.uiAddr = sDevVAddrBase.uiAddr + ((IMG_UINT64) *pui32MappingIndex * (IMG_UINT64) ui32ChunkSize);
 	}
 	psDevMemNode->ui32NumPhysPages = ui32NumPhysPages;
 	psDevMemNode->ui32StartOfMappingIndex = *pui32MappingIndex;

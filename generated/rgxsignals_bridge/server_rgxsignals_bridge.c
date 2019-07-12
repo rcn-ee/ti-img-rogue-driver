@@ -47,7 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgxsignals.h"
 
-
 #include "common_rgxsignals_bridge.h"
 
 #include "allocmem.h"
@@ -62,100 +61,80 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
 #include "rgx_bvnc_defs_km.h"
-
-
-
 
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgeRGXNotifySignalUpdate(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_RGXNOTIFYSIGNALUPDATE *psRGXNotifySignalUpdateIN,
-					  PVRSRV_BRIDGE_OUT_RGXNOTIFYSIGNALUPDATE *psRGXNotifySignalUpdateOUT,
-					 CONNECTION_DATA *psConnection)
+				  PVRSRV_BRIDGE_IN_RGXNOTIFYSIGNALUPDATE *
+				  psRGXNotifySignalUpdateIN,
+				  PVRSRV_BRIDGE_OUT_RGXNOTIFYSIGNALUPDATE *
+				  psRGXNotifySignalUpdateOUT,
+				  CONNECTION_DATA * psConnection)
 {
 	IMG_HANDLE hPrivData = psRGXNotifySignalUpdateIN->hPrivData;
 	IMG_HANDLE hPrivDataInt = NULL;
-
 
 	{
 		PVRSRV_DEVICE_NODE *psDeviceNode = OSGetDevData(psConnection);
 
 		/* Check that device supports the required feature */
 		if ((psDeviceNode->pfnCheckDeviceFeature) &&
-			!psDeviceNode->pfnCheckDeviceFeature(psDeviceNode, RGX_FEATURE_SIGNAL_SNOOPING_BIT_MASK))
+		    !psDeviceNode->pfnCheckDeviceFeature(psDeviceNode,
+							 RGX_FEATURE_SIGNAL_SNOOPING_BIT_MASK))
 		{
-			psRGXNotifySignalUpdateOUT->eError = PVRSRV_ERROR_NOT_SUPPORTED;
+			psRGXNotifySignalUpdateOUT->eError =
+			    PVRSRV_ERROR_NOT_SUPPORTED;
 
 			goto RGXNotifySignalUpdate_exit;
 		}
 	}
 
-
-
-
-
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psRGXNotifySignalUpdateOUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &hPrivDataInt,
-											hPrivData,
-											PVRSRV_HANDLE_TYPE_DEV_PRIV_DATA,
-											IMG_TRUE);
-					if(psRGXNotifySignalUpdateOUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto RGXNotifySignalUpdate_exit;
-					}
+	/* Look up the address from the handle */
+	psRGXNotifySignalUpdateOUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&hPrivDataInt,
+				       hPrivData,
+				       PVRSRV_HANDLE_TYPE_DEV_PRIV_DATA,
+				       IMG_TRUE);
+	if (psRGXNotifySignalUpdateOUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto RGXNotifySignalUpdate_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psRGXNotifySignalUpdateOUT->eError =
-		PVRSRVRGXNotifySignalUpdateKM(psConnection, OSGetDevData(psConnection),
-					hPrivDataInt,
-					psRGXNotifySignalUpdateIN->sDevSignalAddress);
+	    PVRSRVRGXNotifySignalUpdateKM(psConnection,
+					  OSGetDevData(psConnection),
+					  hPrivDataInt,
+					  psRGXNotifySignalUpdateIN->
+					  sDevSignalAddress);
 
-
-
-
-RGXNotifySignalUpdate_exit:
+ RGXNotifySignalUpdate_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(hPrivDataInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hPrivData,
-										PVRSRV_HANDLE_TYPE_DEV_PRIV_DATA);
-					}
+	/* Unreference the previously looked up handle */
+	if (hPrivDataInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hPrivData,
+					    PVRSRV_HANDLE_TYPE_DEV_PRIV_DATA);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
-
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -172,9 +151,10 @@ PVRSRV_ERROR DeinitRGXSIGNALSBridge(void);
 PVRSRV_ERROR InitRGXSIGNALSBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXSIGNALS, PVRSRV_BRIDGE_RGXSIGNALS_RGXNOTIFYSIGNALUPDATE, PVRSRVBridgeRGXNotifySignalUpdate,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXSIGNALS,
+			      PVRSRV_BRIDGE_RGXSIGNALS_RGXNOTIFYSIGNALUPDATE,
+			      PVRSRVBridgeRGXNotifySignalUpdate, NULL,
+			      bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -185,9 +165,8 @@ PVRSRV_ERROR InitRGXSIGNALSBridge(void)
 PVRSRV_ERROR DeinitRGXSIGNALSBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXSIGNALS, PVRSRV_BRIDGE_RGXSIGNALS_RGXNOTIFYSIGNALUPDATE);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXSIGNALS,
+				PVRSRV_BRIDGE_RGXSIGNALS_RGXNOTIFYSIGNALUPDATE);
 
 	return PVRSRV_OK;
 }

@@ -1473,13 +1473,13 @@ _ApplyCacheMaintenance(PVRSRV_DEVICE_NODE *psDevNode,
 	PVRSRV_ERROR eError = PVRSRV_ERROR_RETRY;
 	void * pvAddr;
 
-
+#if !defined(__arm__) && !defined(__arm64__) && !defined(__aarch64__)
 	if ((uiNumPages << PAGE_SHIFT) >= PVR_DIRTY_BYTES_FLUSH_THRESHOLD)
 	{
 		/* May fail so fallback to range-based flush */
 		eError = OSCPUOperation(PVRSRV_CACHE_OP_FLUSH);
 	}
-
+#endif
 
 	if (eError != PVRSRV_OK)
 	{

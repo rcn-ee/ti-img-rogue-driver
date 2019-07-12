@@ -308,6 +308,11 @@ typedef struct
 
 #endif 
 
+#if defined(SECURE_FW_CODE_OSID) && defined(RGX_FEATURE_META)
+#error "SECURE_FW_CODE_OSID is not supported on META cores"
+#endif
+
+
 /************************************************************************
 * RGX FW Bootloader defaults
 ************************************************************************/

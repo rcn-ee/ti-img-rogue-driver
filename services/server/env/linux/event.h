@@ -49,3 +49,7 @@ PVRSRV_ERROR LinuxEventObjectWait(IMG_HANDLE hOSEventObject,
                                   IMG_UINT64 ui64Timeoutus,
                                   IMG_BOOL bHoldBridgeLock,
                                   IMG_BOOL bFreezable);
+void LinuxEventObjectDumpDebugInfo(IMG_HANDLE hOSEventObject);
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+PVRSRV_ERROR LinuxEventObjectWaitUntilSignalled(IMG_HANDLE hOSEventObject);
+#endif

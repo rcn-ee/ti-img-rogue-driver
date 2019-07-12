@@ -48,32 +48,33 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgxpdump.h"
 
-
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpTraceBuffer(IMG_HANDLE hBridge,
-							      IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpTraceBuffer(IMG_HANDLE
+							      hBridge,
+							      IMG_UINT32
+							      ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-
 	eError =
-		PVRSRVPDumpTraceBufferKM(NULL, (PVRSRV_DEVICE_NODE *)((void*) hBridge)
-		,
-					ui32PDumpFlags);
+	    PVRSRVPDumpTraceBufferKM(NULL,
+				     (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
+				     ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpSignatureBuffer(IMG_HANDLE hBridge,
-								  IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePDumpSignatureBuffer(IMG_HANDLE
+								  hBridge,
+								  IMG_UINT32
+								  ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-
 	eError =
-		PVRSRVPDumpSignatureBufferKM(NULL, (PVRSRV_DEVICE_NODE *)((void*) hBridge)
-		,
-					ui32PDumpFlags);
+	    PVRSRVPDumpSignatureBufferKM(NULL,
+					 (PVRSRV_DEVICE_NODE *) ((void *)
+								 hBridge),
+					 ui32PDumpFlags);
 
 	return eError;
 }
-

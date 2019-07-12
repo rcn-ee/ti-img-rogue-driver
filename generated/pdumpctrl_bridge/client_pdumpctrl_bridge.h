@@ -54,21 +54,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_pdumpctrl_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpGetState(IMG_HANDLE hBridge,
-								 IMG_UINT64 *pui64State);
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpGetState(IMG_HANDLE
+								 hBridge,
+								 IMG_UINT64 *
+								 pui64State);
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpGetFrame(IMG_HANDLE hBridge,
-								 IMG_UINT32 *pui32Frame);
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpGetFrame(IMG_HANDLE
+								 hBridge,
+								 IMG_UINT32 *
+								 pui32Frame);
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpSetDefaultCaptureParams(IMG_HANDLE hBridge,
-										IMG_UINT32 ui32Mode,
-										IMG_UINT32 ui32Start,
-										IMG_UINT32 ui32End,
-										IMG_UINT32 ui32Interval,
-										IMG_UINT32 ui32MaxParamFileSize);
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV
+BridgePVRSRVPDumpSetDefaultCaptureParams(IMG_HANDLE hBridge,
+					 IMG_UINT32 ui32Mode,
+					 IMG_UINT32 ui32Start,
+					 IMG_UINT32 ui32End,
+					 IMG_UINT32 ui32Interval,
+					 IMG_UINT32 ui32MaxParamFileSize);
 
-IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV BridgePVRSRVPDumpIsLastCaptureFrame(IMG_HANDLE hBridge,
-									   IMG_BOOL *pbpbIsLastCaptureFrame);
-
+IMG_INTERNAL PVRSRV_ERROR IMG_CALLCONV
+BridgePVRSRVPDumpIsLastCaptureFrame(IMG_HANDLE hBridge,
+				    IMG_BOOL * pbpbIsLastCaptureFrame);
 
 #endif /* CLIENT_PDUMPCTRL_BRIDGE_H */

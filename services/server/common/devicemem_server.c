@@ -673,7 +673,7 @@ DevmemIntMapPMR(DEVMEMINT_HEAP *psDevmemHeap,
 
 
 	ui32NumDevPages = 0xffffffffU & ( ( (uiAllocationSize - 1) >> uiLog2HeapContiguity) + 1);
-	PVR_ASSERT(ui32NumDevPages << uiLog2HeapContiguity == uiAllocationSize);
+	PVR_ASSERT((IMG_DEVMEM_SIZE_T) ui32NumDevPages << uiLog2HeapContiguity == uiAllocationSize);
 
 	eError = PMRLockSysPhysAddresses(psPMR);
 	if (eError != PVRSRV_OK)

@@ -522,7 +522,19 @@ PVRSRV_ERROR RGXGrowFreeList(RGX_FREELIST *psFreeList,
 	 *  of pages is the first one and there is no ability to grow, then
 	 *  we can skip allocating one 4K page for the lowest entry.
 	 */
-	psPMRNode->bFirstPageMissing = (psFreeList->ui32GrowFLPages == 0  &&  ui32NumPages > 1);
+	if (OSGetPageSize() > RGX_BIF_PM_PHYSICAL_PAGE_SIZE)
+	{
+		/*
+		 * Allocation size will be rounded up to the OS page size,
+		 * any attempt to change it a bit now will be invalidated later.
+		 */
+		psPMRNode->bFirstPageMissing = IMG_FALSE;
+	}
+	else
+	{
+		psPMRNode->bFirstPageMissing = (psFreeList->ui32GrowFLPages == 0  &&  ui32NumPages > 1);
+	}
+
 	psPMRNode->ui32NumPages = ui32NumPages;
 	psPMRNode->psFreeList = psFreeList;
 
@@ -684,15 +696,15 @@ PVRSRV_ERROR RGXGrowFreeList(RGX_FREELIST *psFreeList,
 	/* Update number of available pages */
 	psFreeList->ui32CurrentFLPages += ui32NumPages;
 
-	/* Reserve a number ready pages to allow the FW to process OOM quickly and asynchronously request a grow. */
-	psFreeList->ui32ReadyFLPages    = _CalculateFreelistReadyPages(psFreeList, psFreeList->ui32CurrentFLPages);
-	psFreeList->ui32CurrentFLPages -= psFreeList->ui32ReadyFLPages;
-
-	/* Update statistics */
+	/* Update statistics (needs to happen before the ReadyFL calculation to also count those pages) */
 	if (psFreeList->ui32NumHighPages < psFreeList->ui32CurrentFLPages)
 	{
 		psFreeList->ui32NumHighPages = psFreeList->ui32CurrentFLPages;
 	}
+
+	/* Reserve a number ready pages to allow the FW to process OOM quickly and asynchronously request a grow. */
+	psFreeList->ui32ReadyFLPages    = _CalculateFreelistReadyPages(psFreeList, psFreeList->ui32CurrentFLPages);
+	psFreeList->ui32CurrentFLPages -= psFreeList->ui32ReadyFLPages;
 
 	if (psFreeList->bCheckFreelist)
 	{
@@ -871,7 +883,7 @@ static RGX_FREELIST *FindFreeList(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32
 }
 
 void RGXProcessRequestGrow(PVRSRV_RGXDEV_INFO *psDevInfo,
-		IMG_UINT32 ui32FreelistID)
+                           IMG_UINT32 ui32FreelistID)
 {
 	RGX_FREELIST *psFreeList = NULL;
 	RGXFWIF_KCCB_CMD s3DCCBCmd;
@@ -1119,7 +1131,7 @@ void RGXProcessRequestFreelistsReconstruction(PVRSRV_RGXDEV_INFO *psDevInfo,
 		for (ui32Loop = 0; ui32Loop < ui32FreelistsCount; ui32Loop++)
 		{
 			if (paui32Freelists[ui32Loop] == psFreeList->ui32FreelistID  ||
-					paui32Freelists[ui32Loop] == psFreeList->ui32FreelistGlobalID)
+			    paui32Freelists[ui32Loop] == psFreeList->ui32FreelistGlobalID)
 			{
 				bReconstruct = IMG_TRUE;
 				break;
@@ -1527,6 +1539,32 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 	RGX_FREELIST				*psFreeList;
 	PVRSRV_RGXDEV_INFO			*psDevInfo = psDeviceNode->pvDevice;
 
+	if (OSGetPageShift() > RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT)
+	{
+		IMG_UINT32 ui32Size, ui32NewInitFLPages, ui32NewMaxFLPages, ui32NewGrowFLPages;
+
+		/* Round up number of FL pages to the next multiple of the OS page size */
+
+		ui32Size = ui32InitFLPages << RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+		ui32Size = PVR_ALIGN(ui32Size, (IMG_DEVMEM_SIZE_T)OSGetPageSize());
+		ui32NewInitFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+
+		ui32Size = ui32GrowFLPages << RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+		ui32Size = PVR_ALIGN(ui32Size, (IMG_DEVMEM_SIZE_T)OSGetPageSize());
+		ui32NewGrowFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+
+		ui32Size = ui32MaxFLPages << RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+		ui32Size = PVR_ALIGN(ui32Size, (IMG_DEVMEM_SIZE_T)OSGetPageSize());
+		ui32NewMaxFLPages = ui32Size >> RGX_BIF_PM_PHYSICAL_PAGE_ALIGNSHIFT;
+
+		PVR_DPF((PVR_DBG_WARNING, "%s: Increased number of PB pages: Init %u -> %u, Grow %u -> %u, Max %u -> %u",
+				 __func__, ui32InitFLPages, ui32NewInitFLPages, ui32GrowFLPages, ui32NewGrowFLPages, ui32MaxFLPages, ui32NewMaxFLPages));
+
+		ui32InitFLPages = ui32NewInitFLPages;
+		ui32GrowFLPages = ui32NewGrowFLPages;
+		ui32MaxFLPages = ui32NewMaxFLPages;
+	}
+
 	/* Allocate kernel freelist struct */
 	psFreeList = OSAllocZMem(sizeof(*psFreeList));
 	if (psFreeList == NULL)
@@ -1578,7 +1616,7 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 	psFreeList->uiFreeListPMROffset = uiFreeListPMROffset;
 	psFreeList->psFWFreelistMemDesc = psFWFreelistMemDesc;
 	RGXSetFirmwareAddress(&psFreeList->sFreeListFWDevVAddr, psFWFreelistMemDesc, 0, RFW_FWADDR_FLAG_NONE);
-	psFreeList->ui32FreelistID = psDevInfo->ui32FreelistCurrID++;
+	/* psFreeList->ui32FreelistID set below with lock... */
 	psFreeList->ui32FreelistGlobalID = (psGlobalFreeList ? psGlobalFreeList->ui32FreelistID : 0);
 	psFreeList->ui32MaxFLPages = ui32MaxFLPages;
 	psFreeList->ui32InitFLPages = ui32InitFLPages;
@@ -1596,6 +1634,7 @@ PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
 
 	/* Add to list of freelists */
 	OSLockAcquire(psDevInfo->hLockFreeList);
+	psFreeList->ui32FreelistID = psDevInfo->ui32FreelistCurrID++;
 	dllist_add_to_tail(&psDevInfo->sFreeListHead, &psFreeList->sNode);
 	OSLockRelease(psDevInfo->hLockFreeList);
 
@@ -1963,10 +2002,11 @@ PVRSRV_ERROR RGXCreateZSBufferKM(CONNECTION_DATA * psConnection,
 	psZSBuffer->bOnDemand = bOnDemand;
 	if (bOnDemand)
 	{
-		psZSBuffer->ui32ZSBufferID = psDevInfo->ui32ZSBufferCurrID++;
+		/* psZSBuffer->ui32ZSBufferID set below with lock... */
 		psZSBuffer->psMapping = NULL;
 
 		OSLockAcquire(psDevInfo->hLockZSBuffer);
+		psZSBuffer->ui32ZSBufferID = psDevInfo->ui32ZSBufferCurrID++;
 		dllist_add_to_tail(&psDevInfo->sZSBufferHead, &psZSBuffer->sNode);
 		OSLockRelease(psDevInfo->hLockZSBuffer);
 	}
@@ -2502,7 +2542,7 @@ PVRSRV_ERROR _Create3DContext(CONNECTION_DATA *psConnection,
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError;
-	IMG_UINT	uiNumISPStoreRegs = 1; /* default value 1 expected */
+	IMG_UINT	uiNumISPStoreRegs;
 	IMG_UINT	ui3DRegISPStateStoreSize = 0;
 
 	/*
@@ -2511,7 +2551,12 @@ PVRSRV_ERROR _Create3DContext(CONNECTION_DATA *psConnection,
 	 */
 	PDUMPCOMMENT("Allocate RGX firmware 3D context suspend state");
 
-	if(!RGX_IS_FEATURE_SUPPORTED(psDevInfo, XE_MEMORY_HIERARCHY))
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, XE_MEMORY_HIERARCHY))
+	{
+		uiNumISPStoreRegs = psDeviceNode->pfnGetDeviceFeatureValue(psDeviceNode,
+				RGX_FEATURE_NUM_RASTER_PIPES_IDX);
+	}
+	else
 	{
 		uiNumISPStoreRegs = psDeviceNode->pfnGetDeviceFeatureValue(psDeviceNode,
 				RGX_FEATURE_NUM_ISP_IPP_PIPES_IDX);
@@ -3403,6 +3448,7 @@ PVRSRV_ERROR PVRSRVRGXKickTA3DKM(RGX_SERVER_RENDER_CONTEXT	*psRenderContext,
 			return eError;
 		}
 
+#if !defined(SUPPORT_STRIP_RENDERING)
 		/* Append buffer sync fences to TA fences */
 		if (ui32BufferFenceSyncCheckpointCount > 0)
 		{
@@ -3420,6 +3466,29 @@ PVRSRV_ERROR PVRSRVRGXKickTA3DKM(RGX_SERVER_RENDER_CONTEXT	*psRenderContext,
 			}
 			ui32ClientTAFenceCount += ui32BufferFenceSyncCheckpointCount;
 		}
+#else
+		/* Append buffer sync fences to 3D fences */
+		if (ui32BufferFenceSyncCheckpointCount > 0)
+		{
+			CHKPT_DBG((PVR_DBG_ERROR,
+					   "%s:   Append %d buffer sync checkpoints to 3D Fence "
+					   "(&psRenderContext->sSyncAddrList3DFence=<%p>, "
+					   "pauiClient3DFenceUFOAddress=<%p>)...",
+					   __func__,
+					   ui32BufferFenceSyncCheckpointCount,
+					   (void*)&psRenderContext->sSyncAddrList3DFence,
+					   (void*)pauiClient3DFenceUFOAddress));
+			SyncAddrListAppendAndDeRefCheckpoints(&psRenderContext->sSyncAddrList3DFence,
+					ui32BufferFenceSyncCheckpointCount,
+					apsBufferFenceSyncCheckpoints);
+			if (!pauiClient3DFenceUFOAddress)
+			{
+				pauiClient3DFenceUFOAddress = psRenderContext->sSyncAddrList3DFence.pasFWAddrs;
+			}
+			ui32Client3DFenceCount += ui32BufferFenceSyncCheckpointCount;
+		}
+		PVR_UNREFERENCED_PARAMETER(bTAFenceOnSyncCheckpointsOnly);
+#endif
 
 		if (psBufferUpdateSyncCheckpoint)
 		{
@@ -3439,16 +3508,23 @@ PVRSRV_ERROR PVRSRVRGXKickTA3DKM(RGX_SERVER_RENDER_CONTEXT	*psRenderContext,
 			}
 			else
 			{
-				CHKPT_DBG((PVR_DBG_ERROR, "%s:   Append 1 buffer sync checkpoint<%p> to TA Update (&psRenderContext->sSyncAddrListTAUpdate=<%p>, pauiClient3DUpdateUFOAddress=<%p>)...", __FUNCTION__, (void*)psBufferUpdateSyncCheckpoint, (void*)&psRenderContext->sSyncAddrListTAUpdate , (void*)pauiClientTAUpdateUFOAddress));
-				/* Append buffer sync update to TA updates */
-				SyncAddrListAppendCheckpoints(&psRenderContext->sSyncAddrListTAUpdate,
+				CHKPT_DBG((PVR_DBG_ERROR,
+				           "%s:   Append 1 buffer sync checkpoint<%p> to PR Update"
+				           " (&psRenderContext->sSyncAddrList3DUpdate=<%p>,"
+						   " pauiClientPRUpdateUFOAddress=<%p>)...",
+						   __func__,
+						   (void*)psBufferUpdateSyncCheckpoint,
+						   (void*)&psRenderContext->sSyncAddrList3DUpdate,
+						   (void*)pauiClientPRUpdateUFOAddress));
+				/* Attach update to the 3D (used for PR) Updates */
+				SyncAddrListAppendCheckpoints(&psRenderContext->sSyncAddrList3DUpdate,
 						1,
 						&psBufferUpdateSyncCheckpoint);
-				if (!pauiClientTAUpdateUFOAddress)
+				if (!pauiClientPRUpdateUFOAddress)
 				{
-					pauiClientTAUpdateUFOAddress = psRenderContext->sSyncAddrListTAUpdate.pasFWAddrs;
+					pauiClientPRUpdateUFOAddress = psRenderContext->sSyncAddrList3DUpdate.pasFWAddrs;
 				}
-				ui32ClientTAUpdateCount++;
+				ui32ClientPRUpdateCount++;
 			}
 		}
 		CHKPT_DBG((PVR_DBG_ERROR, "%s:   (after buffer_sync) ui32ClientTAFenceCount=%d, ui32ClientTAUpdateCount=%d, ui32Client3DFenceCount=%d, ui32Client3DUpdateCount=%d, ui32ClientPRUpdateCount=%d,", __FUNCTION__, ui32ClientTAFenceCount, ui32ClientTAUpdateCount, ui32Client3DFenceCount, ui32Client3DUpdateCount, ui32ClientPRUpdateCount));

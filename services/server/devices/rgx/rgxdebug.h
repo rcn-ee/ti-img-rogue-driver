@@ -57,19 +57,52 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * LISR for each RGX FW thread.
  * Macro takes pointer to PVRSRV_RGXDEV_INFO as input.
  */
-#define RGXDEBUG_PRINT_IRQ_COUNT(psRgxDevInfo) \
-	do \
-	{ \
-		IMG_UINT32 ui32TID; \
-		for (ui32TID = 0; ui32TID < RGXFW_THREAD_NUM; ui32TID++) \
-		{ \
-			PVR_DPF((DBGPRIV_VERBOSE, \
-					"RGX FW thread %u: FW IRQ count = %u, Last sampled IRQ count in LISR = %u)", \
-					ui32TID, \
-					(psRgxDevInfo)->psRGXFWIfTraceBuf->aui32InterruptCount[ui32TID], \
-					(psRgxDevInfo)->aui32SampleIRQCount[ui32TID])); \
-		} \
-	} while(0)
+
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+#define for_each_irq_cnt(ui32idx) \
+	for (ui32idx = 0; ui32idx < RGXFW_NUM_OS; ui32idx++)
+
+#define get_irq_cnt_val(ui32Dest, ui32idx, psRgxDevInfo) \
+	extern const IMG_UINT32 gaui32FwOsIrqCntRegAddr[RGXFW_MAX_NUM_OS]; \
+	ui32Dest = OSReadHWReg32((psRgxDevInfo)->pvRegsBaseKM, gaui32FwOsIrqCntRegAddr[ui32idx]);
+
+#define MSG_IRQ_CNT_TYPE "OS"
+
+#else
+
+#define for_each_irq_cnt(ui32idx) \
+	for (ui32idx = 0; ui32idx < RGXFW_THREAD_NUM; ui32idx++)
+
+#define get_irq_cnt_val(ui32Dest, ui32idx, psRgxDevInfo) \
+	ui32Dest = (psRgxDevInfo)->psRGXFWIfTraceBuf->aui32InterruptCount[ui32idx]
+
+#define MSG_IRQ_CNT_TYPE "Thread"
+#endif /* RGX_FW_IRQ_OS_COUNTERS */
+
+static inline void RGXDEBUG_PRINT_IRQ_COUNT(PVRSRV_RGXDEV_INFO* psRgxDevInfo)
+{
+#if defined(PVRSRV_NEED_PVR_DPF) && defined(DEBUG)
+	IMG_UINT32 ui32idx;
+
+	for_each_irq_cnt(ui32idx)
+	{
+		IMG_UINT32 ui32IrqCnt;
+
+		get_irq_cnt_val(ui32IrqCnt, ui32idx, psRgxDevInfo);
+
+		PVR_DPF((DBGPRIV_VERBOSE, MSG_IRQ_CNT_TYPE
+		         " %u FW IRQ count = %u", ui32idx, ui32IrqCnt));
+
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+		if (ui32idx == RGXFW_HYPERVISOR_OS)
+#endif
+		{
+			PVR_DPF((DBGPRIV_VERBOSE, "Last sampled IRQ count in LISR = %u",
+			        (psRgxDevInfo)->aui32SampleIRQCount[ui32idx]));
+		}
+	}
+#endif /* PVRSRV_NEED_PVR_DPF */
+}
 
 /*!
 *******************************************************************************

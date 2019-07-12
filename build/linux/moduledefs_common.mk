@@ -133,7 +133,7 @@ ifeq ($(SUPPORT_ANDROID_PLATFORM)$(SUPPORT_ARC_PLATFORM),1)
      $(TARGET_ROOT)/product/$(TARGET_DEVICE)/obj/include \
      $(TARGET_ROOT)/product/$(TARGET_DEVICE)/obj/include/libdrm
    endif
-  else ifeq ($(1),libsync)
+  else ifeq ($(1),sync)
    # Nothing to add in this case
   else
    $$(warning Unknown package for '$(THIS_MODULE)': $(1))

@@ -199,7 +199,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 		#define IMG_INTERNAL
 		#define IMG_EXPORT
 		#define IMG_CALLCONV	
-	#elif defined(LINUX) || defined(__METAG) || defined(__QNXNTO__)
+	#elif defined(LINUX) || defined(__METAG) || defined(__mips) || defined(__QNXNTO__)
 		#define IMG_CALLCONV
 		#define C_CALLCONV
 

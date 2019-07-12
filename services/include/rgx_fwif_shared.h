@@ -278,7 +278,7 @@ typedef struct _RGXFWIF_HWRTDATA_
 	RGXFWIF_RTDATA_STATE				eState;
 
 	IMG_UINT32							ui32NumPartialRenders; /*!< Number of partial renders. Used to setup ZLS bits correctly */
-	IMG_BOOL							bLastWasPartial; /*!< Whether the last render was a partial render */
+	IMG_BOOL							bFirstBRN65101Strip; /*!< Used only for BRN65101 workaround */
 	IMG_DEV_VIRTADDR					RGXFW_ALIGN psPMMListDevVAddr; /*!< MList Data Store */
 
 	IMG_UINT64							RGXFW_ALIGN ui64VCECatBase[4];

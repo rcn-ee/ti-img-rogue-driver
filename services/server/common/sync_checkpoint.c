@@ -787,6 +787,7 @@ SyncCheckpointDumpInfoOnStalledUFOs(IMG_UINT32 ui32NumUFOs, IMG_UINT32 *pui32Vad
 
 	if (!g_pfnDumpInfoOnStalledUFOs)
 	{
+		*pui32NumSyncOwnedUFOs = 0;
 		PVR_DPF((PVR_DBG_ERROR,
 				"%s: ERROR (eError=PVRSRV_ERROR_SYNC_NATIVESYNC_NOT_REGISTERED)",
 				__FUNCTION__));

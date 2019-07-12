@@ -48,7 +48,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sync.h"
 #include "sync_server.h"
 
-
 #include "common_synctracking_bridge.h"
 
 #include "allocmem.h"
@@ -63,47 +62,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/slab.h>
 
-
-
-
-
-
 /* ***************************************************************************
  * Server-side bridge entry points
  */
- 
+
 static IMG_INT
 PVRSRVBridgeSyncRecordRemoveByHandle(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_SYNCRECORDREMOVEBYHANDLE *psSyncRecordRemoveByHandleIN,
-					  PVRSRV_BRIDGE_OUT_SYNCRECORDREMOVEBYHANDLE *psSyncRecordRemoveByHandleOUT,
-					 CONNECTION_DATA *psConnection)
+				     PVRSRV_BRIDGE_IN_SYNCRECORDREMOVEBYHANDLE *
+				     psSyncRecordRemoveByHandleIN,
+				     PVRSRV_BRIDGE_OUT_SYNCRECORDREMOVEBYHANDLE
+				     * psSyncRecordRemoveByHandleOUT,
+				     CONNECTION_DATA * psConnection)
 {
-
-
-
-
-
-
-
-
 
 	/* Lock over handle destruction. */
 	LockHandle();
 
-
-
-
-
 	psSyncRecordRemoveByHandleOUT->eError =
-		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-					(IMG_HANDLE) psSyncRecordRemoveByHandleIN->hhRecord,
+	    PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					(IMG_HANDLE)
+					psSyncRecordRemoveByHandleIN->hhRecord,
 					PVRSRV_HANDLE_TYPE_SYNC_RECORD_HANDLE);
-	if ((psSyncRecordRemoveByHandleOUT->eError != PVRSRV_OK) &&
-	    (psSyncRecordRemoveByHandleOUT->eError != PVRSRV_ERROR_RETRY))
+	if ((psSyncRecordRemoveByHandleOUT->eError != PVRSRV_OK)
+	    && (psSyncRecordRemoveByHandleOUT->eError != PVRSRV_ERROR_RETRY))
 	{
 		PVR_DPF((PVR_DBG_ERROR,
-		        "PVRSRVBridgeSyncRecordRemoveByHandle: %s",
-		        PVRSRVGetErrorStringKM(psSyncRecordRemoveByHandleOUT->eError)));
+			 "PVRSRVBridgeSyncRecordRemoveByHandle: %s",
+			 PVRSRVGetErrorStringKM(psSyncRecordRemoveByHandleOUT->
+						eError)));
 		UnlockHandle();
 		goto SyncRecordRemoveByHandle_exit;
 	}
@@ -111,54 +97,48 @@ PVRSRVBridgeSyncRecordRemoveByHandle(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have destroyed handles. */
 	UnlockHandle();
 
-
-
-SyncRecordRemoveByHandle_exit:
-
-
-
+ SyncRecordRemoveByHandle_exit:
 
 	return 0;
 }
 
-
 static IMG_INT
 PVRSRVBridgeSyncRecordAdd(IMG_UINT32 ui32DispatchTableEntry,
-					  PVRSRV_BRIDGE_IN_SYNCRECORDADD *psSyncRecordAddIN,
-					  PVRSRV_BRIDGE_OUT_SYNCRECORDADD *psSyncRecordAddOUT,
-					 CONNECTION_DATA *psConnection)
+			  PVRSRV_BRIDGE_IN_SYNCRECORDADD * psSyncRecordAddIN,
+			  PVRSRV_BRIDGE_OUT_SYNCRECORDADD * psSyncRecordAddOUT,
+			  CONNECTION_DATA * psConnection)
 {
 	SYNC_RECORD_HANDLE pshRecordInt = NULL;
-	IMG_HANDLE hhServerSyncPrimBlock = psSyncRecordAddIN->hhServerSyncPrimBlock;
-	SYNC_PRIMITIVE_BLOCK * pshServerSyncPrimBlockInt = NULL;
+	IMG_HANDLE hhServerSyncPrimBlock =
+	    psSyncRecordAddIN->hhServerSyncPrimBlock;
+	SYNC_PRIMITIVE_BLOCK *pshServerSyncPrimBlockInt = NULL;
 	IMG_CHAR *uiClassNameInt = NULL;
 
 	IMG_UINT32 ui32NextOffset = 0;
-	IMG_BYTE   *pArrayArgsBuffer = NULL;
+	IMG_BYTE *pArrayArgsBuffer = NULL;
 #if !defined(INTEGRITY_OS)
 	IMG_BOOL bHaveEnoughSpace = IMG_FALSE;
 #endif
 
-	IMG_UINT32 ui32BufferSize = 
-			(psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR)) +
-			0;
-
-
-
-
+	IMG_UINT32 ui32BufferSize =
+	    (psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR)) + 0;
 
 	if (ui32BufferSize != 0)
 	{
 #if !defined(INTEGRITY_OS)
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
-		IMG_UINT32 ui32InBufferOffset = PVR_ALIGN(sizeof(*psSyncRecordAddIN), sizeof(unsigned long));
-		IMG_UINT32 ui32InBufferExcessSize = ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 :
-			PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+		IMG_UINT32 ui32InBufferOffset =
+		    PVR_ALIGN(sizeof(*psSyncRecordAddIN),
+			      sizeof(unsigned long));
+		IMG_UINT32 ui32InBufferExcessSize =
+		    ui32InBufferOffset >=
+		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE -
+		    ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
 		if (bHaveEnoughSpace)
 		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *)psSyncRecordAddIN;
+			IMG_BYTE *pInputBuffer = (IMG_BYTE *) psSyncRecordAddIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
 		}
@@ -167,9 +147,10 @@ PVRSRVBridgeSyncRecordAdd(IMG_UINT32 ui32DispatchTableEntry,
 		{
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if(!pArrayArgsBuffer)
+			if (!pArrayArgsBuffer)
 			{
-				psSyncRecordAddOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+				psSyncRecordAddOUT->eError =
+				    PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto SyncRecordAdd_exit;
 			}
 		}
@@ -177,54 +158,58 @@ PVRSRVBridgeSyncRecordAdd(IMG_UINT32 ui32DispatchTableEntry,
 
 	if (psSyncRecordAddIN->ui32ClassNameSize != 0)
 	{
-		uiClassNameInt = (IMG_CHAR*)(((IMG_UINT8 *)pArrayArgsBuffer) + ui32NextOffset);
-		ui32NextOffset += psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR);
+		uiClassNameInt =
+		    (IMG_CHAR *) (((IMG_UINT8 *) pArrayArgsBuffer) +
+				  ui32NextOffset);
+		ui32NextOffset +=
+		    psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR);
 	}
 
-			/* Copy the data over */
-			if (psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR) > 0)
-			{
-				if ( OSCopyFromUser(NULL, uiClassNameInt, (const void __user *) psSyncRecordAddIN->puiClassName, psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR)) != PVRSRV_OK )
-				{
-					psSyncRecordAddOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	/* Copy the data over */
+	if (psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR) > 0)
+	{
+		if (OSCopyFromUser
+		    (NULL, uiClassNameInt,
+		     (const void __user *)psSyncRecordAddIN->puiClassName,
+		     psSyncRecordAddIN->ui32ClassNameSize * sizeof(IMG_CHAR)) !=
+		    PVRSRV_OK)
+		{
+			psSyncRecordAddOUT->eError =
+			    PVRSRV_ERROR_INVALID_PARAMS;
 
-					goto SyncRecordAdd_exit;
-				}
-			}
+			goto SyncRecordAdd_exit;
+		}
+	}
 
 	/* Lock over handle lookup. */
 	LockHandle();
 
-
-
-
-
-					/* Look up the address from the handle */
-					psSyncRecordAddOUT->eError =
-						PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-											(void **) &pshServerSyncPrimBlockInt,
-											hhServerSyncPrimBlock,
-											PVRSRV_HANDLE_TYPE_SYNC_PRIMITIVE_BLOCK,
-											IMG_TRUE);
-					if(psSyncRecordAddOUT->eError != PVRSRV_OK)
-					{
-						UnlockHandle();
-						goto SyncRecordAdd_exit;
-					}
+	/* Look up the address from the handle */
+	psSyncRecordAddOUT->eError =
+	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
+				       (void **)&pshServerSyncPrimBlockInt,
+				       hhServerSyncPrimBlock,
+				       PVRSRV_HANDLE_TYPE_SYNC_PRIMITIVE_BLOCK,
+				       IMG_TRUE);
+	if (psSyncRecordAddOUT->eError != PVRSRV_OK)
+	{
+		UnlockHandle();
+		goto SyncRecordAdd_exit;
+	}
 	/* Release now we have looked up handles. */
 	UnlockHandle();
 
 	psSyncRecordAddOUT->eError =
-		PVRSRVSyncRecordAddKM(psConnection, OSGetDevData(psConnection),
-					&pshRecordInt,
-					pshServerSyncPrimBlockInt,
-					psSyncRecordAddIN->ui32ui32FwBlockAddr,
-					psSyncRecordAddIN->ui32ui32SyncOffset,
-					psSyncRecordAddIN->bbServerSync,
-					psSyncRecordAddIN->ui32ClassNameSize,
-					uiClassNameInt);
+	    PVRSRVSyncRecordAddKM(psConnection, OSGetDevData(psConnection),
+				  &pshRecordInt,
+				  pshServerSyncPrimBlockInt,
+				  psSyncRecordAddIN->ui32ui32FwBlockAddr,
+				  psSyncRecordAddIN->ui32ui32SyncOffset,
+				  psSyncRecordAddIN->bbServerSync,
+				  psSyncRecordAddIN->ui32ClassNameSize,
+				  uiClassNameInt);
 	/* Exit early if bridged call fails */
-	if(psSyncRecordAddOUT->eError != PVRSRV_OK)
+	if (psSyncRecordAddOUT->eError != PVRSRV_OK)
 	{
 		goto SyncRecordAdd_exit;
 	}
@@ -232,17 +217,14 @@ PVRSRVBridgeSyncRecordAdd(IMG_UINT32 ui32DispatchTableEntry,
 	/* Lock over handle creation. */
 	LockHandle();
 
-
-
-
-
-	psSyncRecordAddOUT->eError = PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-
-							&psSyncRecordAddOUT->hhRecord,
-							(void *) pshRecordInt,
-							PVRSRV_HANDLE_TYPE_SYNC_RECORD_HANDLE,
-							PVRSRV_HANDLE_ALLOC_FLAG_NONE
-							,(PFN_HANDLE_RELEASE)&PVRSRVSyncRecordRemoveByHandleKM);
+	psSyncRecordAddOUT->eError =
+	    PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
+				      &psSyncRecordAddOUT->hhRecord,
+				      (void *)pshRecordInt,
+				      PVRSRV_HANDLE_TYPE_SYNC_RECORD_HANDLE,
+				      PVRSRV_HANDLE_ALLOC_FLAG_NONE,
+				      (PFN_HANDLE_RELEASE) &
+				      PVRSRVSyncRecordRemoveByHandleKM);
 	if (psSyncRecordAddOUT->eError != PVRSRV_OK)
 	{
 		UnlockHandle();
@@ -252,26 +234,18 @@ PVRSRVBridgeSyncRecordAdd(IMG_UINT32 ui32DispatchTableEntry,
 	/* Release now we have created handles. */
 	UnlockHandle();
 
-
-
-SyncRecordAdd_exit:
+ SyncRecordAdd_exit:
 
 	/* Lock over handle lookup cleanup. */
 	LockHandle();
 
-
-
-
-
-
-
-					/* Unreference the previously looked up handle */
-					if(pshServerSyncPrimBlockInt)
-					{
-						PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-										hhServerSyncPrimBlock,
-										PVRSRV_HANDLE_TYPE_SYNC_PRIMITIVE_BLOCK);
-					}
+	/* Unreference the previously looked up handle */
+	if (pshServerSyncPrimBlockInt)
+	{
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
+					    hhServerSyncPrimBlock,
+					    PVRSRV_HANDLE_TYPE_SYNC_PRIMITIVE_BLOCK);
+	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle();
 
@@ -287,18 +261,14 @@ SyncRecordAdd_exit:
 	PVR_ASSERT(ui32BufferSize == ui32NextOffset);
 
 #if defined(INTEGRITY_OS)
-	if(pArrayArgsBuffer)
+	if (pArrayArgsBuffer)
 #else
-	if(!bHaveEnoughSpace && pArrayArgsBuffer)
+	if (!bHaveEnoughSpace && pArrayArgsBuffer)
 #endif
 		OSFreeMemNoStats(pArrayArgsBuffer);
 
-
 	return 0;
 }
-
-
-
 
 /* *************************************************************************** 
  * Server bridge dispatch related glue 
@@ -315,12 +285,14 @@ PVRSRV_ERROR DeinitSYNCTRACKINGBridge(void);
 PVRSRV_ERROR InitSYNCTRACKINGBridge(void)
 {
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING, PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDREMOVEBYHANDLE, PVRSRVBridgeSyncRecordRemoveByHandle,
-					NULL, bUseLock);
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING,
+			      PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDREMOVEBYHANDLE,
+			      PVRSRVBridgeSyncRecordRemoveByHandle, NULL,
+			      bUseLock);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING, PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDADD, PVRSRVBridgeSyncRecordAdd,
-					NULL, bUseLock);
-
+	SetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING,
+			      PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDADD,
+			      PVRSRVBridgeSyncRecordAdd, NULL, bUseLock);
 
 	return PVRSRV_OK;
 }
@@ -331,11 +303,11 @@ PVRSRV_ERROR InitSYNCTRACKINGBridge(void)
 PVRSRV_ERROR DeinitSYNCTRACKINGBridge(void)
 {
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING, PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDREMOVEBYHANDLE);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING,
+				PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDREMOVEBYHANDLE);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING, PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDADD);
-
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_SYNCTRACKING,
+				PVRSRV_BRIDGE_SYNCTRACKING_SYNCRECORDADD);
 
 	return PVRSRV_OK;
 }

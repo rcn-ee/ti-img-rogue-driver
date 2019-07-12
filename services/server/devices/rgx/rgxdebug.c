@@ -72,6 +72,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "fwtrace_string.h"
 
 #include "rgxta3d.h"
+#include "rgxkicksync.h"
 #include "rgxcompute.h"
 #include "rgxtransfer.h"
 #include "rgxtdmtransfer.h"
@@ -2594,11 +2595,11 @@ static void _DumpFWHWRHostView(MMU_FAULT_DATA *psFaultData,
 					void *pvDumpDebugFile,
 					MMU_FAULT_DATA *psOutFaultData)
 {
-	MMU_LEVEL eLevel;
+	MMU_LEVEL eTopLevel;
 	const IMG_CHAR szPageLevel[][4] = {"", "PTE", "PDE", "PCE" };
 	const IMG_CHAR szPageError[][3] = {"", "PT",  "PD",  "PC"  };
 
-	eLevel = psFaultData->eTopLevel;
+	eTopLevel = psFaultData->eTopLevel;
 
 	if (psFaultData->eType == MMU_FAULT_TYPE_UNKNOWN)
 	{
@@ -2610,9 +2611,12 @@ static void _DumpFWHWRHostView(MMU_FAULT_DATA *psFaultData,
 	}
 	else
 	{
-		PVR_ASSERT(eLevel < MMU_LEVEL_LAST);
-		while(eLevel >= MMU_LEVEL_0)
-		{
+		MMU_LEVEL eCurrLevel;
+		PVR_ASSERT(eTopLevel < MMU_LEVEL_LAST);
+
+		for (eCurrLevel = MMU_LEVEL_0; eCurrLevel <= eTopLevel; eCurrLevel++)
+ 		{
+			MMU_LEVEL eLevel = eTopLevel - eCurrLevel;
 			MMU_LEVEL_DATA *psMMULevelData = &psFaultData->sLevelData[eLevel];
 			if (psMMULevelData->ui64Address)
 			{
@@ -2641,7 +2645,6 @@ static void _DumpFWHWRHostView(MMU_FAULT_DATA *psFaultData,
 							psMMULevelData->ui32NumOfEntries);
 				break;
 			}
-			eLevel--;
 		}
 	}
 
@@ -3057,13 +3060,9 @@ static PVRSRV_ERROR _RGXMipsExtraDebug(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_MIPS_S
 	void __iomem *pvRegsBaseKM = psDevInfo->pvRegsBaseKM;
 	IMG_UINT32 ui32RegRead;
 	IMG_UINT32 eError = PVRSRV_OK;
-	/* This pointer contains a kernel mapping of a particular memory area shared
-	   between the driver and the firmware. This area is used for exchanging info
-	   about the internal state of the MIPS*/
 	IMG_UINT32 *pui32NMIMemoryPointer;
-	IMG_UINT32 *pui32NMIPageBasePointer;
+	IMG_UINT32 volatile *pui32SyncFlag;
 	IMG_DEVMEM_OFFSET_T uiNMIMemoryBootOffset;
-	PMR *psPMR = (PMR *)(psDevInfo->psRGXFWDataMemDesc->psImport->hPMR);
 
 	/* Map the FW code area to the kernel */
 	eError = DevmemAcquireCpuVirtAddr(psDevInfo->psRGXFWDataMemDesc,
@@ -3072,10 +3071,6 @@ static PVRSRV_ERROR _RGXMipsExtraDebug(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_MIPS_S
 	{
 		PVR_DPF((PVR_DBG_ERROR,"_RGXMipsExtraDebug: Failed to acquire NMI shared memory area (%u)", eError));
 		goto map_error_fail;
-	}
-	else
-	{
-		pui32NMIPageBasePointer = pui32NMIMemoryPointer;
 	}
 
 	/* Calculate offset to the boot/NMI data page */
@@ -3088,14 +3083,10 @@ static PVRSRV_ERROR _RGXMipsExtraDebug(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_MIPS_S
 	OSLockAcquire(psDevInfo->hNMILock);
 
 	/* Make sure the synchronisation flag is set to 0 */
-	pui32NMIMemoryPointer[RGXMIPSFW_NMI_SYNC_FLAG_OFFSET] = 0;
-
-	/* Flush out the dirty locations of the NMI page */
-	CacheOpValExec(psPMR,
-				(IMG_UINT64)(uintptr_t)pui32NMIPageBasePointer,
-				uiNMIMemoryBootOffset,
-				RGXMIPSFW_PAGE_SIZE/(sizeof(IMG_UINT32)),
-				PVRSRV_CACHE_OP_FLUSH);
+	pui32SyncFlag = &pui32NMIMemoryPointer[RGXMIPSFW_NMI_SYNC_FLAG_OFFSET];
+	*pui32SyncFlag = 0;
+	OSWriteMemoryBarrier();
+	(void) *pui32SyncFlag;
 
 	/* Enable NMI issuing in the MIPS wrapper */
 	OSWriteHWReg64(pvRegsBaseKM,
@@ -3139,14 +3130,9 @@ static PVRSRV_ERROR _RGXMipsExtraDebug(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_MIPS_S
 	ui32RegRead = 0;
 
 	/* Allow the firmware to proceed */
-	pui32NMIMemoryPointer[RGXMIPSFW_NMI_SYNC_FLAG_OFFSET] = 1;
-
-	/* Flush out the dirty locations of the NMI page */
-	CacheOpValExec(psPMR,
-				(IMG_UINT64)(uintptr_t)pui32NMIPageBasePointer,
-				uiNMIMemoryBootOffset,
-				RGXMIPSFW_PAGE_SIZE/(sizeof(IMG_UINT32)),
-				PVRSRV_CACHE_OP_FLUSH);
+	*pui32SyncFlag = 1;
+	OSWriteMemoryBarrier();
+	(void) *pui32SyncFlag;
 
 	/* Wait for the FW to have finished the NMI routine */
 	ui32RegRead = OSReadHWReg32(pvRegsBaseKM,
@@ -4932,7 +4918,7 @@ void RGXDebugRequestProcess(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR, "Failed to acquire kernel FW IF Init struct"));
-		return;
+		goto ExitUnlock;
 	}
 
 	switch (ui32VerbLevel)
@@ -5040,17 +5026,26 @@ void RGXDebugRequestProcess(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 				                  psDevInfo->psRGXFWIfTraceBuf->ui32KCCBCmdsExecuted);
 			}
 
-			/* Dump the IRQ info for threads*/
+			/* Dump the IRQ info for threads or OS IDs*/
 			if (!PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
 			{
-				IMG_UINT32 ui32TID;
+				IMG_UINT32 ui32idx;
 
-				for (ui32TID = 0; ui32TID < RGXFW_THREAD_NUM; ui32TID++)
+				for_each_irq_cnt(ui32idx)
 				{
-					PVR_DUMPDEBUG_LOG("RGX FW thread %u: FW IRQ count = %u, Last sampled IRQ count in LISR = %u",
-									  ui32TID,
-									  psDevInfo->psRGXFWIfTraceBuf->aui32InterruptCount[ui32TID],
-									  psDevInfo->aui32SampleIRQCount[ui32TID]);
+					IMG_UINT32 ui32IrqCnt;
+
+					get_irq_cnt_val(ui32IrqCnt, ui32idx, psDevInfo);
+					if (ui32IrqCnt)
+					{
+						PVR_DUMPDEBUG_LOG(MSG_IRQ_CNT_TYPE "%u: FW IRQ count = %u", ui32idx, ui32IrqCnt);
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+						if (ui32idx == RGXFW_HYPERVISOR_OS)
+#endif
+						{
+							PVR_DUMPDEBUG_LOG("Last sampled IRQ count in LISR = %u", psDevInfo->aui32SampleIRQCount[ui32idx]);
+						}
+					}
 				}
 			}
 
@@ -5213,8 +5208,12 @@ void RGXDebugRequestProcess(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 				PVR_DUMPDEBUG_LOG("------[ Stalled FWCtxs ]------");
 #endif
 				CheckForStalledTransferCtxt(psDevInfo, pfnDumpDebugPrintf, pvDumpDebugFile);
+
 				CheckForStalledRenderCtxt(psDevInfo, pfnDumpDebugPrintf, pvDumpDebugFile);
-				if(RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))
+
+				CheckForStalledKickSyncCtxt(psDevInfo, pfnDumpDebugPrintf, pvDumpDebugFile);
+
+				if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))
 				{
 					CheckForStalledComputeCtxt(psDevInfo, pfnDumpDebugPrintf, pvDumpDebugFile);
 				}
@@ -5241,7 +5240,7 @@ void RGXDebugRequestProcess(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 			if (eError != PVRSRV_OK)
 			{
 				PVR_DPF((PVR_DBG_ERROR, "RGXDebugRequestProcess: Error retrieving RGX power state. No debug info dumped."));
-				return;
+				goto Exit;
 			}
 
 			bRGXPoweredON = (ePowerState == PVRSRV_DEV_POWER_STATE_ON);
@@ -5256,6 +5255,7 @@ void RGXDebugRequestProcess(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 
 Exit:
 	DevmemReleaseCpuVirtAddr(psDevInfo->psRGXFWIfInitMemDesc);
+ExitUnlock:
 	PVRSRVPowerUnlock(psDeviceNode);
 }
 

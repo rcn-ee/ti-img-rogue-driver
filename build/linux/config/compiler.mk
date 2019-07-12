@@ -55,25 +55,29 @@ define calculate-compiler-preferred-target
    $$(warning set correctly.)
    $$(error Unable to run compiler '$(2)')
   endif
-  ifneq ($$(filter x86_64-%,$$($(1)_compiler_preferred_target)),)
-   $(1)_compiler_preferred_target := x86_64-linux-gnu
-  endif
-  ifneq ($$(filter i386-% i486-% i586-% i686-%,$$($(1)_compiler_preferred_target)),)
-   $(1)_compiler_preferred_target := i386-linux-gnu
-  endif
-  ifneq ($$(filter armv7a-cros-linux-gnueabi armv7l-tizen-linux-gnueabi,$$($(1)_compiler_preferred_target)),)
-   $(1)_compiler_preferred_target := arm-linux-gnueabi
-  endif
-  ifneq ($$(filter arm-linux-android,$$($(1)_compiler_preferred_target)),)
-   $(1)_compiler_preferred_target := arm-linux-androideabi
-  endif
-  ifneq ($$(filter clang%,$(2)),)
-   ifeq ($(1),target)
-    ifeq (arm-linux-gnueabihf,$$(CROSS_TRIPLE))
-     $(1)_compiler_preferred_target := arm-linux-gnueabihf
-    endif
-    ifeq (arm-linux-gnueabi,$$(CROSS_TRIPLE))
-     $(1)_compiler_preferred_target := arm-linux-gnueabi
+  ifneq ($$(filter %-w64-mingw32,$$($(1)_compiler_preferred_target)),)
+   # Use the compiler target name.
+  else
+   ifneq ($$(filter x86_64-%,$$($(1)_compiler_preferred_target)),)
+    $(1)_compiler_preferred_target := x86_64-linux-gnu
+   endif
+   ifneq ($$(filter i386-% i486-% i586-% i686-%,$$($(1)_compiler_preferred_target)),)
+    $(1)_compiler_preferred_target := i386-linux-gnu
+   endif
+   ifneq ($$(filter armv7a-cros-linux-gnueabi armv7l-tizen-linux-gnueabi,$$($(1)_compiler_preferred_target)),)
+    $(1)_compiler_preferred_target := arm-linux-gnueabi
+   endif
+   ifneq ($$(filter arm-linux-android,$$($(1)_compiler_preferred_target)),)
+    $(1)_compiler_preferred_target := arm-linux-androideabi
+   endif
+   ifneq ($$(filter clang%,$(2)),)
+    ifeq ($(1),target)
+     ifeq (arm-linux-gnueabihf,$$(CROSS_TRIPLE))
+      $(1)_compiler_preferred_target := arm-linux-gnueabihf
+     endif
+     ifeq (arm-linux-gnueabi,$$(CROSS_TRIPLE))
+      $(1)_compiler_preferred_target := arm-linux-gnueabi
+     endif
     endif
    endif
   endif
@@ -145,6 +149,7 @@ $(eval $(call BothConfigMake,HOST_FORCE_32BIT,$(HOST_FORCE_32BIT)))
 TARGET_ALL_ARCH := 
 TARGET_PRIMARY_ARCH :=
 TARGET_SECONDARY_ARCH :=
+TARGET_OS :=
 
 # Work out the target compiler cross triple, and include the corresponding
 # compilers/*.mk file, which sets TARGET_PRIMARY_ARCH and
@@ -248,10 +253,14 @@ $(eval $(call BothConfigMake,TARGET_PRIMARY_ARCH,$(TARGET_PRIMARY_ARCH)))
 $(eval $(call BothConfigMake,TARGET_SECONDARY_ARCH,$(TARGET_SECONDARY_ARCH)))
 $(eval $(call BothConfigMake,TARGET_ALL_ARCH,$(TARGET_ALL_ARCH)))
 $(eval $(call BothConfigMake,TARGET_FORCE_32BIT,$(TARGET_FORCE_32BIT)))
+$(eval $(call BothConfigMake,TARGET_OS,$(TARGET_OS)))
 
 $(info ******* Multiarch build: $(if $(MULTIARCH),yes,no))
 $(info ******* Primary arch:    $(if $(TARGET_PRIMARY_ARCH),$(TARGET_PRIMARY_ARCH),none))
 $(info ******* Secondary arch:  $(if $(TARGET_SECONDARY_ARCH),$(TARGET_SECONDARY_ARCH),none))
+ifneq ($(TARGET_OS),)
+$(info ******* Target OS	$(TARGET_OS))
+endif
 
 # Find the paths to libgcc for the primary and secondary architectures.
 

@@ -52,13 +52,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "devicemem_typedefs.h"
 
-
 #define PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST			0
 #define PVRSRV_BRIDGE_HTBUFFER_HTBCONFIGURE			PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST+0
 #define PVRSRV_BRIDGE_HTBUFFER_HTBCONTROL			PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST+1
 #define PVRSRV_BRIDGE_HTBUFFER_HTBLOG			PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST+2
 #define PVRSRV_BRIDGE_HTBUFFER_CMD_LAST			(PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST+2)
-
 
 /*******************************************
             HTBConfigure          
@@ -68,16 +66,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct PVRSRV_BRIDGE_IN_HTBCONFIGURE_TAG
 {
 	IMG_UINT32 ui32NameSize;
-	const IMG_CHAR * puiName;
+	const IMG_CHAR *puiName;
 	IMG_UINT32 ui32BufferSize;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_HTBCONFIGURE;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_HTBCONFIGURE;
 
 /* Bridge out structure for HTBConfigure */
 typedef struct PVRSRV_BRIDGE_OUT_HTBCONFIGURE_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_HTBCONFIGURE;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_HTBCONFIGURE;
 
 /*******************************************
             HTBControl          
@@ -87,19 +84,18 @@ typedef struct PVRSRV_BRIDGE_OUT_HTBCONFIGURE_TAG
 typedef struct PVRSRV_BRIDGE_IN_HTBCONTROL_TAG
 {
 	IMG_UINT32 ui32NumGroups;
-	IMG_UINT32 * pui32GroupEnable;
+	IMG_UINT32 *pui32GroupEnable;
 	IMG_UINT32 ui32LogLevel;
 	IMG_UINT32 ui32EnablePID;
 	IMG_UINT32 ui32LogMode;
 	IMG_UINT32 ui32OpMode;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_HTBCONTROL;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_HTBCONTROL;
 
 /* Bridge out structure for HTBControl */
 typedef struct PVRSRV_BRIDGE_OUT_HTBCONTROL_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_HTBCONTROL;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_HTBCONTROL;
 
 /*******************************************
             HTBLog          
@@ -112,14 +108,13 @@ typedef struct PVRSRV_BRIDGE_IN_HTBLOG_TAG
 	IMG_UINT32 ui32TimeStamp;
 	IMG_UINT32 ui32SF;
 	IMG_UINT32 ui32NumArgs;
-	IMG_UINT32 * pui32Args;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_HTBLOG;
+	IMG_UINT32 *pui32Args;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_HTBLOG;
 
 /* Bridge out structure for HTBLog */
 typedef struct PVRSRV_BRIDGE_OUT_HTBLOG_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_HTBLOG;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_HTBLOG;
 
 #endif /* COMMON_HTBUFFER_BRIDGE_H */

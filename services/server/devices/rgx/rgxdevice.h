@@ -78,7 +78,7 @@ typedef struct {
  * GPU DVFS Table
  *****************************************************************************/
 
-#define RGX_GPU_DVFS_TABLE_SIZE                      16
+#define RGX_GPU_DVFS_TABLE_SIZE                      32
 #define RGX_GPU_DVFS_FIRST_CALIBRATION_TIME_US       25000     /* Time required to calibrate a clock frequency the first time */
 #define RGX_GPU_DVFS_TRANSITION_CALIBRATION_TIME_US  150000    /* Time required for a recalibration after a DVFS transition */
 #define RGX_GPU_DVFS_PERIODIC_CALIBRATION_TIME_US    10000000  /* Time before the next periodic calibration and correlation */
@@ -327,7 +327,7 @@ typedef struct _PVRSRV_RGXDEV_INFO_
 	IMG_DEV_VIRTADDR		sFWCodeDevVAddrBase;
 	DEVMEM_MEMDESC			*psRGXFWDataMemDesc;
 	IMG_DEV_VIRTADDR		sFWDataDevVAddrBase;
-	RGX_MIPS_ADDRESS_TRAMPOLINE	sTrampoline;
+	RGX_MIPS_ADDRESS_TRAMPOLINE	*psTrampoline;
 
 	DEVMEM_MEMDESC			*psRGXFWCorememMemDesc;
 	IMG_DEV_VIRTADDR		sFWCorememCodeDevVAddrBase;
@@ -637,6 +637,8 @@ typedef struct _RGX_DATA_
 	IMG_UINT32 uiTDFWCodePhysHeapID;
 	IMG_BOOL bHasTDSecureBufPhysHeap;
 	IMG_UINT32 uiTDSecureBufPhysHeapID;
+	IMG_BOOL bHasFWMemPhysHeap;
+	IMG_UINT32 uiFWMemPhysHeapID;
 } RGX_DATA;
 
 

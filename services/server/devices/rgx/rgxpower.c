@@ -152,8 +152,8 @@ PVRSRV_ERROR RGXPrePowerState (IMG_HANDLE				hDevHandle,
 							   IMG_BOOL					bForced)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
-	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_GUEST, PVRSRV_OK);
 
+	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_GUEST, PVRSRV_OK);
 	if ((eNewPowerState != eCurrentPowerState) &&
 		(eNewPowerState != PVRSRV_DEV_POWER_STATE_ON))
 	{
@@ -197,24 +197,31 @@ PVRSRV_ERROR RGXPrePowerState (IMG_HANDLE				hDevHandle,
 			if (psFWTraceBuf->ePowState == RGXFWIF_POW_OFF)
 			{
 #if !defined(NO_HARDWARE)
-				IMG_UINT32 ui32TID;
-				for (ui32TID = 0; ui32TID < RGXFW_THREAD_NUM; ui32TID++)
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+				IMG_UINT32 ui32idx = RGXFW_HYPERVISOR_OS;
+#else
+				IMG_UINT32 ui32idx;
+				for_each_irq_cnt(ui32idx)
+#endif /* RGX_FW_IRQ_OS_COUNTERS */
 				{
-					/* Wait for the pending META/MIPS to host interrupts to come back. */
-					eError = PVRSRVPollForValueKM((IMG_UINT32 __iomem *)&psDevInfo->aui32SampleIRQCount[ui32TID],
-										          psFWTraceBuf->aui32InterruptCount[ui32TID],
+					IMG_UINT32 ui32IrqCnt;
+
+					get_irq_cnt_val(ui32IrqCnt, ui32idx, psDevInfo);
+
+					/* Wait for the pending META to host interrupts to come back. */
+					eError = PVRSRVPollForValueKM((IMG_UINT32 __iomem *)&psDevInfo->aui32SampleIRQCount[ui32idx],
+										          ui32IrqCnt,
 										          0xffffffff);
 
 					if (eError != PVRSRV_OK)
 					{
 						PVR_DPF((PVR_DBG_ERROR, \
-								"RGXPrePowerState: Wait for pending interrupts failed. Thread %u: Host:%u, FW: %u", \
-								ui32TID, \
-								psDevInfo->aui32SampleIRQCount[ui32TID], \
-								psFWTraceBuf->aui32InterruptCount[ui32TID]));
+								"RGXPrePowerState: Wait for pending interrupts failed." MSG_IRQ_CNT_TYPE " %u Host:%u, FW: %u", \
+								ui32idx, \
+								psDevInfo->aui32SampleIRQCount[ui32idx], \
+								ui32IrqCnt));
 
 						RGX_WaitForInterruptsTimeout(psDevInfo);
-						break;
 					}
 				}
 #endif /* NO_HARDWARE */

@@ -209,6 +209,6 @@ void SetFirmwareHandshakeIdleTime(IMG_UINT64 ui64Duration);
 
 /* Functions used for calculating the memory usage statistics of a process */
 PVRSRV_ERROR PVRSRVFindProcessMemStats(IMG_PID pid, IMG_UINT32 ui32ArrSize,
-                                       IMG_BOOL bAllProcessStats, IMG_UINT32 *ui32MemoryStats);
+                                       IMG_BOOL bAllProcessStats, IMG_UINT32 *pui32MemoryStats);
 
 #endif /* __PROCESS_STATS_H__ */

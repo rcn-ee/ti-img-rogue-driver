@@ -151,13 +151,13 @@ static int devfreq_get_dev_status(struct device *dev, struct devfreq_dev_status 
 	RGX_DATA                *psRGXData = (RGX_DATA*) gpsDeviceNode->psDevConfig->hDevData;
 	RGX_TIMING_INFORMATION  *psRGXTimingInfo = psRGXData->psRGXTimingInfo;
 	RGXFWIF_GPU_UTIL_STATS   sGpuUtilStats;
-	PVRSRV_ERROR             eError = PVRSRV_OK;
+	PVRSRV_ERROR             eError;
 
 	stat->current_frequency = psRGXTimingInfo->ui32CoreClockSpeed;
 
 	if (psDevInfo->pfnGetGpuUtilStats == NULL)
 	{
-		/* Not yet ready.  So set times to something sensible. */
+		/* Not yet ready. So set times to something sensible. */
 		stat->busy_time = 0;
 		stat->total_time = 0;
 		return 0;
@@ -371,6 +371,8 @@ PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	PVRSRV_ERROR            eError;
 	int                     err;
 
+	PVRSRV_VZ_RET_IF_MODE(DRIVER_MODE_GUEST, PVRSRV_OK);
+
 	if (gpsDeviceNode)
 	{
 		PVR_DPF((PVR_DBG_ERROR,
@@ -476,8 +478,13 @@ PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 		goto err_exit;
 	}
 
+#if	defined(CHROMIUMOS_KERNEL) && (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
+	psDVFSDevice->psDevFreq->policy.user.min_freq = min_freq;
+	psDVFSDevice->psDevFreq->policy.user.max_freq = max_freq;
+#else
 	psDVFSDevice->psDevFreq->min_freq = min_freq;
 	psDVFSDevice->psDevFreq->max_freq = max_freq;
+#endif
 
 	err = devfreq_register_opp_notifier(psDev, psDVFSDevice->psDevFreq);
 	if (err)
@@ -513,6 +520,8 @@ void DeinitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	IMG_DVFS_DEVICE *psDVFSDevice = &psDeviceNode->psDevConfig->sDVFS.sDVFSDevice;
 	struct device *psDev = psDeviceNode->psDevConfig->pvOSDevice;
 	IMG_INT32 i32Error;
+
+	PVRSRV_VZ_RETN_IF_MODE(DRIVER_MODE_GUEST);
 
 	PVR_ASSERT(psDeviceNode == gpsDeviceNode);
 

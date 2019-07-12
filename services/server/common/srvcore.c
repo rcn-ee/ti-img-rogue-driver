@@ -309,6 +309,11 @@ PVRSRVConnectKM(CONNECTION_DATA *psConnection,
 		*pui32CapabilityFlags |= PVRSRV_NONMAPPABLE_MEMORY_PRESENT_FLAG;
 	}
 
+	if (psDeviceNode->pfnHasFBCDCVersion31(psDeviceNode))
+	{
+		*pui32CapabilityFlags |= PVRSRV_FBCDC_V3_1_USED;
+	}
+
 	/* Set flags to indicate shared-virtual-memory (SVM) allocation availability */
 	if (! psDeviceNode->ui64GeneralSVMHeapTopVA || ! ui64ProcessVASpaceSize)
 	{

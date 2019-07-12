@@ -273,8 +273,9 @@ typedef struct _RGXFWIF_TRACEBUF_
 	volatile IMG_UINT32			aui32InterruptCount[RGXFW_THREAD_NUM]; /*!< Interrupt count from Threads > */
 	IMG_UINT32				ui32KCCBCmdsExecuted;
 	IMG_UINT64 RGXFW_ALIGN			ui64StartIdleTime;
-	IMG_UINT32				ui32PowMonEnergy;	/* Non-volatile power monitor energy count */
-
+	IMG_UINT32				ui32PowMonEstimate;	/* Non-volatile power monitoring results:
+													   static power (by default)
+													   energy count (PVR_POWER_MONITOR_DYNAMIC_ENERGY) */
 #define RGXFWIF_MAX_PCX 16
 	IMG_UINT32				ui32T1PCX[RGXFWIF_MAX_PCX];
 	IMG_UINT32				ui32T1PCXWOff;
@@ -499,6 +500,7 @@ typedef struct _RGXFWIF_HWRINFOBUF_
 #define RGXFWIF_INICFG_EXT_LOW_PRIO_CS_SHG			(0x1 <<  4)
 #define RGXFWIF_INICFG_EXT_TRACEBUF_FIELD			(0x1 <<  5) /*!< The tracebuffer and HWRInfoBufCtl fields are included in the OSConfig Struct > */
 #define RGXFWIF_INICFG_EXT_HWPERF_FEATURE_FLAGS    (0x1 <<  6) /*!< The BvncKmFeatureFlags are included in the init struct > */
+#define RGXFWIF_INICFG_EXT_FBCDC_V3_1_EN			(0x1 << 7)
 
 #define RGXFWIF_SRVCFG_DISABLE_PDP_EN 		(0x1 << 31)
 #define RGXFWIF_SRVCFG_ALL					(0x80000000U)

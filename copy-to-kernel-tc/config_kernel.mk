@@ -22,7 +22,7 @@ override SUPPORT_DMA_FENCE := 1
 override SUPPORT_GPUTRACE_EVENTS := 1
 override SUPPORT_NATIVE_FENCE_SYNC := 1
 override SUPPORT_RGX := 1
-override SUPPORT_SERVER_SYNC := 1
+override TARGET_OS :=
 override VMM_TYPE := stub
 override undefine SUPPORT_DISPLAY_CLASS
 ifeq ($(CONFIG_DRM_POWERVR_ROGUE_DEBUG),y)

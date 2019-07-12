@@ -855,6 +855,7 @@ PhysmemImportSparseDmaBuf(CONNECTION_DATA *psConnection,
 	}
 
 	/* Terminate string from bridge to prevent corrupt annotations in RI */
+	if (pszName != NULL)
 	{
 		IMG_CHAR* pszName0 = (IMG_CHAR*) pszName; 
 		pszName0[ui32NameSize-1] = '\0';
@@ -981,11 +982,18 @@ err:
 	}
 	else
 	{
+		/* if ui32NumPhysChunks == 0 pui32MappingTable is NULL and because
+		 * is ui32NumPhysChunks is set to 1 below we don't allow NULL array */
+		if (pui32MappingTable == NULL)
+		{
+			eError = PVRSRV_ERROR_INVALID_PARAMS;
+			goto errUnlockAndDMAPut;
+		}
+
 		/* Make sure parameters are valid for non-sparse allocations as well */
 		uiChunkSize = psDmaBuf->size;
 		ui32NumPhysChunks = 1;
 		ui32NumVirtChunks = 1;
-		pui32MappingTable[0] = 0;
 	}
 
 

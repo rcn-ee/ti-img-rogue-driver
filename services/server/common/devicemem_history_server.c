@@ -1496,10 +1496,10 @@ static void MapUnmapCommandGetInfo(COMMAND_WRAPPER *psCommand,
 		MapRangeUnpack(psMapRange, &ui32StartPage, &ui32Count);
 
 		psDevVAddrStart->uiAddr = psAlloc->sDevVAddr.uiAddr +
-				((1U << psAlloc->ui32Log2PageSize) * ui32StartPage);
+				((1ULL << psAlloc->ui32Log2PageSize) * ui32StartPage);
 
 		psDevVAddrEnd->uiAddr = psDevVAddrStart->uiAddr +
-				((1U << psAlloc->ui32Log2PageSize) * ui32Count) - 1;
+				((1ULL << psAlloc->ui32Log2PageSize) * ui32Count) - 1;
 	}
 	else
 	{

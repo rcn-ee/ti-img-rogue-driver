@@ -1412,6 +1412,7 @@ _PMR_ReadBytesPhysical(PMR *psPMR,
 
 	e0:
 	PVR_ASSERT(eError != PVRSRV_OK);
+	*puiNumBytes = 0;
 	return eError;
 }
 
@@ -1579,6 +1580,7 @@ _PMR_WriteBytesPhysical(PMR *psPMR,
 
 	e0:
 	PVR_ASSERT(eError != PVRSRV_OK);
+	*puiNumBytes = 0;
 	return eError;
 }
 
@@ -3026,13 +3028,13 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
            The latter is unlikely. :)  but the check is required in order to justify the cast.
 		 */
 		eError = PVRSRV_ERROR_PMR_NOT_PAGE_MULTIPLE;
-		goto e0;
+		goto return_error;
 	}
 	uiWordSize = (IMG_UINT32)uiTableLength / uiNumPages;
 	if (uiNumPages * uiWordSize != uiTableLength)
 	{
 		eError = PVRSRV_ERROR_PMR_NOT_PAGE_MULTIPLE;
-		goto e0;
+		goto return_error;
 	}
 
 	/* Check we're not being asked to write off the end of the PMR */
@@ -3041,7 +3043,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 		/* table memory insufficient to store all the entries */
 		/* table insufficient to store addresses of whole block */
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
-		goto e0;
+		goto return_error;
 	}
 
 	/* the PMR into which we are writing must not be user CPU mappable: */
@@ -3050,21 +3052,21 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 		PVR_DPF((PVR_DBG_ERROR, "masked flags = 0x%08x", (uiFlags & (PVRSRV_MEMALLOCFLAG_CPU_READABLE | PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE))));
 		PVR_DPF((PVR_DBG_ERROR, "Page list PMR allows CPU mapping (0x%08x)", uiFlags));
 		eError = PVRSRV_ERROR_DEVICEMEM_INVALID_PMR_FLAGS;
-		goto e0;
+		goto return_error;
 	}
 
 	if (_PMRIsSparse(psPageListPMR))
 	{
 		PVR_DPF((PVR_DBG_ERROR, "PageList PMR is sparse"));
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
-		goto e0;
+		goto return_error;
 	}
 
 	if (_PMRIsSparse(psReferencePMR))
 	{
 		PVR_DPF((PVR_DBG_ERROR, "Reference PMR is sparse"));
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
-		goto e0;
+		goto return_error;
 	}
 
 	psPageList = OSAllocMem(sizeof(PMR_PAGELIST));
@@ -3072,7 +3074,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 	{
 		PVR_DPF((PVR_DBG_ERROR, "Failed to allocate PMR page list"));
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-		goto e0;
+		goto return_error;
 	}
 	psPageList->psReferencePMR = psReferencePMR;
 
@@ -3081,7 +3083,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 	eError = PMRLockSysPhysAddresses(psReferencePMR);
 	if (eError != PVRSRV_OK)
 	{
-		goto e1;
+		goto free_page_list;
 	}
 
 #if !defined(NO_HARDWARE)
@@ -3092,7 +3094,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 		{
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate PMR page list"));
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-			goto e2;
+			goto unlock_phys_addrs;
 		}
 
 		pbPageIsValid = OSAllocMem(uiNumPages * sizeof(IMG_BOOL));
@@ -3103,7 +3105,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate PMR page state"));
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
-			goto e2;
+			goto free_devaddr_array;
 		}
 	}
 	else
@@ -3118,7 +3120,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 	if (eError != PVRSRV_OK)
 	{
 		PVR_DPF((PVR_DBG_ERROR, "Failed to map PMR pages into device physical addresses"));
-		goto e3;
+		goto free_valid_array;
 	}
 #endif
 
@@ -3201,7 +3203,7 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 			{
 				PVR_DPF((PVR_DBG_ERROR, "Error mapping page list PMR page (%" IMG_UINT64_FMTSPEC ") into kernel (%d)",
 						uiPageListPMRPage, eError));
-				goto e3;
+				goto free_valid_array;
 			}
 
 			uiPrevPageListPMRPage = uiPageListPMRPage;
@@ -3238,18 +3240,27 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
       error exit paths follow
 	 */
 #if !defined(NO_HARDWARE)
-	e3:
-	if (pasDevAddrPtr != asDevPAddr)
+
+free_valid_array:
+	if (pbPageIsValid != abValid)
 	{
 		OSFreeMem(pbPageIsValid);
+	}
+
+free_devaddr_array:
+	if (pasDevAddrPtr != asDevPAddr)
+	{
 		OSFreeMem(pasDevAddrPtr);
 	}
-	e2:
+
+unlock_phys_addrs:
 	PMRUnlockSysPhysAddresses(psReferencePMR);
 #endif
-	e1:
+
+free_page_list:
 	OSFreeMem(psPageList);
-	e0:
+
+return_error:
 	PVR_ASSERT(eError != PVRSRV_OK);
 	return eError;
 }

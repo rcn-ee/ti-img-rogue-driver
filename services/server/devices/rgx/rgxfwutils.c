@@ -85,6 +85,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 #include "rgxmem.h"
 #include "rgxta3d.h"
+#include "rgxkicksync.h"
 #include "rgxutils.h"
 #include "rgxtimecorr.h"
 #include "sync_internal.h"
@@ -133,6 +134,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGXFWIF_FWCCB_NUMCMDS_LOG2   (8)
 #else
 #define RGXFWIF_FWCCB_NUMCMDS_LOG2   (5)
+#endif
+
+#if defined(RGX_FW_IRQ_OS_COUNTERS)
+const IMG_UINT32 gaui32FwOsIrqCntRegAddr[RGXFW_MAX_NUM_OS] = {IRQ_COUNTER_STORAGE_REGS};
 #endif
 
 /* Workload Estimation Firmware CCB length */
@@ -915,6 +920,7 @@ PVRSRV_ERROR FWCommonContextAllocate(CONNECTION_DATA *psConnection,
 		psFWCommonContext->psRFCmd.ui32Addr = 0;
 	}
 
+	psFWCommonContext->ui32Flags = RGXFWIF_CONTEXT_XE_RASTER_PIPE_ALLOC;
 	psFWCommonContext->ui32Priority = ui32Priority;
 	psFWCommonContext->ui32PrioritySeqNum = 0;
 
@@ -2712,7 +2718,7 @@ PVRSRV_ERROR RGXSetupFirmware(PVRSRV_DEVICE_NODE       *psDeviceNode,
 	psDevInfo->psRGXFWIfTraceBuf->ui32HWPerfDropCount = 0;
 	psDevInfo->psRGXFWIfTraceBuf->ui32FirstDropOrdinal = 0;
 	psDevInfo->psRGXFWIfTraceBuf->ui32LastDropOrdinal = 0;
-	psDevInfo->psRGXFWIfTraceBuf->ui32PowMonEnergy = 0;
+	psDevInfo->psRGXFWIfTraceBuf->ui32PowMonEstimate = 0;
 
 	/* Second stage initialisation or HWPerf, hHWPerfLock created in first
 	 * stage. See RGXRegisterDevice() call to RGXHWPerfInit(). */
@@ -3762,7 +3768,7 @@ static PVRSRV_ERROR _AllocDeferredCommand(PVRSRV_RGXDEV_INFO	*psDevInfo,
 
 	if (!psDeferredCommand)
 	{
-		PVR_DPF((PVR_DBG_WARNING,"Deferring a KCCB command failed: allocation failure: requesting retry"));
+		PVR_DPF((PVR_DBG_ERROR,"Deferring a KCCB command failed: allocation failure: requesting retry"));
 		return PVRSRV_ERROR_RETRY;
 	}
 
@@ -3773,7 +3779,7 @@ static PVRSRV_ERROR _AllocDeferredCommand(PVRSRV_RGXDEV_INFO	*psDevInfo,
 
 	if (eKCCBType == RGXFWIF_DM_GP)
 	{
-		PVR_DPF((PVR_DBG_ERROR,"Deferring a KCCB GP command. This is not expected"));
+		PVR_DPF((PVR_DBG_WARNING,"Deferring a KCCB GP command. This is not expected"));
 	}
 	OSLockAcquire(psDevInfo->hLockKCCBDeferredCommandsList);
 	dllist_add_to_tail(&(psDevInfo->sKCCBDeferredCommandsListHead), &(psDeferredCommand->sListNode));
@@ -4613,6 +4619,14 @@ PVRSRV_ERROR RGXWaitForFWOp(PVRSRV_RGXDEV_INFO	*psDevInfo,
 			{
 				break;
 			}
+
+			/*
+			 * In case the KCCB was full we must ensure we flush any deferred
+			 * commands because they may be preventing the RGXFWIF_KCCB_CMD_SYNC
+			 * from being sent. No need to check the error, if the KCCB is
+			 * still full then we wait anyway.
+			 */
+			RGXSendCommandsFromDeferredList(psDevInfo, IMG_FALSE);
 		}
 
 		if (eError == PVRSRV_ERROR_TIMEOUT)
@@ -4879,6 +4893,14 @@ PVRSRV_ERROR RGXFWRequestCommonContextCleanUp(PVRSRV_DEVICE_NODE *psDeviceNode,
 	RGXFWIF_KCCB_CMD			sRCCleanUpCmd = {0};
 	PVRSRV_ERROR				eError;
 	PRGXFWIF_FWCOMMONCONTEXT	psFWCommonContextFWAddr;
+	PVRSRV_RGXDEV_INFO			*psDevInfo = (PVRSRV_RGXDEV_INFO*)psDeviceNode->pvDevice;
+
+	/* Force retry if this context's CCB is currently being dumped
+	 * as part of the stalled CCB debug */
+	if (psDevInfo->pvEarliestStalledClientCCB == (void*)psServerCommonContext->psClientCCB)
+	{
+		return PVRSRV_ERROR_RETRY;
+	}
 
 	psFWCommonContextFWAddr = FWCommonContextGetFWAddress(psServerCommonContext);
 
@@ -5448,8 +5470,10 @@ void RGXCheckForStalledClientContexts(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_BOOL bI
 
 	ui32StalledClientMask |= CheckForStalledClientRenderCtxt(psDevInfo);
 
+	ui32StalledClientMask |= CheckForStalledClientKickSyncCtxt(psDevInfo);
+
 #if	!defined(UNDER_WDDM)
-	if(psDevInfo->sDevFeatureCfg.ui64Features & RGX_FEATURE_COMPUTE_BIT_MASK)
+	if (psDevInfo->sDevFeatureCfg.ui64Features & RGX_FEATURE_COMPUTE_BIT_MASK)
 	{
 		ui32StalledClientMask |= CheckForStalledClientComputeCtxt(psDevInfo);
 	}
@@ -5731,23 +5755,38 @@ PVRSRV_ERROR RGXUpdateHealthStatus(PVRSRV_DEVICE_NODE* psDevNode,
 
 PVRSRV_ERROR CheckStalledClientCommonContext(RGX_SERVER_COMMON_CONTEXT *psCurrentServerCommonContext, RGX_KICK_TYPE_DM eKickTypeDM)
 {
-	RGX_CLIENT_CCB	*psCurrentClientCCB = psCurrentServerCommonContext->psClientCCB;
+	if (psCurrentServerCommonContext == NULL)
+	{
+		/* the context has already been freed so there is nothing to do here */
+		return PVRSRV_OK;
+	}
 
-	return CheckForStalledCCB(psCurrentServerCommonContext->psDevInfo->psDeviceNode, psCurrentClientCCB, eKickTypeDM);
+	return CheckForStalledCCB(psCurrentServerCommonContext->psDevInfo->psDeviceNode,
+	                          psCurrentServerCommonContext->psClientCCB,
+	                          eKickTypeDM);
 }
 
 void DumpStalledFWCommonContext(RGX_SERVER_COMMON_CONTEXT *psCurrentServerCommonContext,
 		DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 		void *pvDumpDebugFile)
 {
-	RGX_CLIENT_CCB	*psCurrentClientCCB = psCurrentServerCommonContext->psClientCCB;
-	PRGXFWIF_FWCOMMONCONTEXT sFWCommonContext = psCurrentServerCommonContext->sFWCommonContextFWAddr;
+	if (psCurrentServerCommonContext == NULL)
+	{
+		/* the context has already been freed so there is nothing to do here */
+		return;
+	}
 
 #if defined(PVRSRV_ENABLE_FULL_SYNC_TRACKING) || defined(PVRSRV_ENABLE_FULL_CCB_DUMP)
-	DumpCCB(psCurrentServerCommonContext->psDevInfo, sFWCommonContext,
-			psCurrentClientCCB, pfnDumpDebugPrintf, pvDumpDebugFile);
+	DumpCCB(psCurrentServerCommonContext->psDevInfo,
+	        psCurrentServerCommonContext->sFWCommonContextFWAddr,
+	        psCurrentServerCommonContext->psClientCCB,
+	        pfnDumpDebugPrintf,
+	        pvDumpDebugFile);
 #else
-	DumpStalledCCBCommand(sFWCommonContext, psCurrentClientCCB, pfnDumpDebugPrintf, pvDumpDebugFile);
+	DumpStalledCCBCommand(psCurrentServerCommonContext->sFWCommonContextFWAddr,
+	                      psCurrentServerCommonContext->psClientCCB,
+	                      pfnDumpDebugPrintf,
+	                      pvDumpDebugFile);
 #endif
 }
 

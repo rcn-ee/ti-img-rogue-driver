@@ -352,6 +352,11 @@ PVRSRV_ERROR TLClientAcquireData(IMG_HANDLE hSrvHandle,
 	PVR_ASSERT(ppPacketBuf);
 	PVR_ASSERT(pui32BufLen);
 
+	/* In case of non-blocking acquires, which can return no data, and
+	 * error paths ensure we clear the output parameters first. */
+	*ppPacketBuf = NULL;
+	*pui32BufLen = 0;
+
 	/* Check Acquire has not been called twice in a row without a release */
 	if (psSD->uiReadOffset != NO_ACQUIRE)
 	{
@@ -359,7 +364,6 @@ PVRSRV_ERROR TLClientAcquireData(IMG_HANDLE hSrvHandle,
 		return PVRSRV_ERROR_RETRY;
 	}
 
-	*pui32BufLen = 0;
 	/* Ask the kernel server for the next chunk of data to read */
 	eError = BridgeTLAcquireData(hSrvHandle, psSD->hServerSD,
 									&psSD->uiReadOffset, &psSD->uiReadLen);

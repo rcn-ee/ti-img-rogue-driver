@@ -1041,7 +1041,7 @@ RA_Create (IMG_CHAR *name,
 	pArena->pImportFree = imp_free;
 	pArena->pImportHandle = arena_handle;
 	pArena->pHeadSegment = NULL;
-	pArena->uQuantum = (IMG_UINT64) (1 << uLog2Quantum);
+	pArena->uQuantum = 1ULL << uLog2Quantum;
 	pArena->per_flags_buckets = NULL;
 	pArena->ui32LockClass = ui32LockClass;
 	pArena->bNoSplit = bNoSplit;

@@ -62,7 +62,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 #define APPHINT_LIST_BUILDVAR \
 /* name,                            type,           class,       default,                                         helper,         */ \
-X(HWRDebugDumpLimit,                UINT32,         DEBUG,       PVRSRV_APPHINT_HWRDEBUGDUMPLIMIT,                NO_PARAM_TABLE   ) \
+X(HWRDebugDumpLimit,                UINT32,         ALWAYS,      PVRSRV_APPHINT_HWRDEBUGDUMPLIMIT,                NO_PARAM_TABLE   ) \
 X(EnableTrustedDeviceAceConfig,     BOOL,           GPUVIRT_VAL, PVRSRV_APPHINT_ENABLETRUSTEDDEVICEACECONFIG,     NO_PARAM_TABLE   ) \
 X(CleanupThreadPriority,            UINT32,         NEVER,       PVRSRV_APPHINT_CLEANUPTHREADPRIORITY,            NO_PARAM_TABLE   ) \
 X(CleanupThreadWeight,              UINT32,         NEVER,       PVRSRV_APPHINT_CLEANUPTHREADWEIGHT,              NO_PARAM_TABLE   ) \
@@ -113,6 +113,7 @@ X(OSidRegion0Max,                   STRING,         GPUVIRT_VAL, PVRSRV_APPHINT_
 X(OSidRegion1Min,                   STRING,         GPUVIRT_VAL, PVRSRV_APPHINT_OSIDREGION1MIN,                   NO_PARAM_TABLE   ) \
 X(OSidRegion1Max,                   STRING,         GPUVIRT_VAL, PVRSRV_APPHINT_OSIDREGION1MAX,                   NO_PARAM_TABLE   ) \
 X(HTBufferSizeInKB,                 UINT32,         ALWAYS,      PVRSRV_APPHINT_HTBUFFERSIZE,                     NO_PARAM_TABLE   ) \
+X(FBCDCVersionOverride,             UINT32,         VALIDATION,  PVRSRV_APPHINT_FBCDCVERSIONOVERRIDE,             NO_PARAM_TABLE   )
 
 /*
 *******************************************************************************

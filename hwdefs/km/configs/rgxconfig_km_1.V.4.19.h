@@ -42,8 +42,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RGXCONFIG_KM_1_V_4_19_H
 #define RGXCONFIG_KM_1_V_4_19_H
 
-/***** Automatically generated file (10/10/2018 09:01:01): Do not edit manually ********************/
-/***** Timestamp:  (10/10/2018 09:01:01)************************************************************/
+/***** Automatically generated file (10/12/2018 09:00:59): Do not edit manually ********************/
+/***** Timestamp:  (10/12/2018 09:00:59)************************************************************/
 
 #define RGX_BNC_KM_B 1
 #define RGX_BNC_KM_N 4
@@ -52,22 +52,22 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /******************************************************************************
  * DDK Defines
  *****************************************************************************/
-#define RGX_FEATURE_VIRTUAL_ADDRESS_SPACE_BITS (40)
+#define RGX_FEATURE_VIRTUAL_ADDRESS_SPACE_BITS (40U)
 #define RGX_FEATURE_PERFBUS 
 #define RGX_FEATURE_TLA 
 #define RGX_FEATURE_GS_RTA_SUPPORT 
 #define RGX_FEATURE_COMPUTE 
 #define RGX_FEATURE_COMPUTE_OVERLAP 
-#define RGX_FEATURE_NUM_ISP_IPP_PIPES (3)
+#define RGX_FEATURE_NUM_ISP_IPP_PIPES (3U)
 #define RGX_FEATURE_META (MTP218)
-#define RGX_FEATURE_META_COREMEM_SIZE (0)
-#define RGX_FEATURE_NUM_CLUSTERS (4)
+#define RGX_FEATURE_META_COREMEM_SIZE (0U)
+#define RGX_FEATURE_NUM_CLUSTERS (4U)
 #define RGX_FEATURE_AXI_ACELITE 
-#define RGX_FEATURE_PHYS_BUS_WIDTH (40)
-#define RGX_FEATURE_SLC_SIZE_IN_BYTES (128*1024)
-#define RGX_FEATURE_SLC_CACHE_LINE_SIZE_BITS (512)
-#define RGX_FEATURE_FBCDC_ARCHITECTURE (1)
-#define RGX_FEATURE_FBCDC_ALGORITHM (1)
+#define RGX_FEATURE_PHYS_BUS_WIDTH (40U)
+#define RGX_FEATURE_SLC_SIZE_IN_BYTES (128U * 1024U)
+#define RGX_FEATURE_SLC_CACHE_LINE_SIZE_BITS (512U)
+#define RGX_FEATURE_FBCDC_ARCHITECTURE (1U)
+#define RGX_FEATURE_FBCDC_ALGORITHM (1U)
 
 
 #endif /* RGXCONFIG_1_V_4_19_H */

@@ -54,13 +54,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <powervr/sync_external.h>
 #include "pvrsrv_sync_km.h"
 
-
 #define PVRSRV_BRIDGE_RGXKICKSYNC_CMD_FIRST			0
 #define PVRSRV_BRIDGE_RGXKICKSYNC_RGXCREATEKICKSYNCCONTEXT			PVRSRV_BRIDGE_RGXKICKSYNC_CMD_FIRST+0
 #define PVRSRV_BRIDGE_RGXKICKSYNC_RGXDESTROYKICKSYNCCONTEXT			PVRSRV_BRIDGE_RGXKICKSYNC_CMD_FIRST+1
 #define PVRSRV_BRIDGE_RGXKICKSYNC_RGXKICKSYNC			PVRSRV_BRIDGE_RGXKICKSYNC_CMD_FIRST+2
 #define PVRSRV_BRIDGE_RGXKICKSYNC_CMD_LAST			(PVRSRV_BRIDGE_RGXKICKSYNC_CMD_FIRST+2)
-
 
 /*******************************************
             RGXCreateKickSyncContext          
@@ -70,15 +68,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 typedef struct PVRSRV_BRIDGE_IN_RGXCREATEKICKSYNCCONTEXT_TAG
 {
 	IMG_HANDLE hPrivData;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXCREATEKICKSYNCCONTEXT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXCREATEKICKSYNCCONTEXT;
 
 /* Bridge out structure for RGXCreateKickSyncContext */
 typedef struct PVRSRV_BRIDGE_OUT_RGXCREATEKICKSYNCCONTEXT_TAG
 {
 	IMG_HANDLE hKickSyncContext;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXCREATEKICKSYNCCONTEXT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXCREATEKICKSYNCCONTEXT;
 
 /*******************************************
             RGXDestroyKickSyncContext          
@@ -88,14 +85,13 @@ typedef struct PVRSRV_BRIDGE_OUT_RGXCREATEKICKSYNCCONTEXT_TAG
 typedef struct PVRSRV_BRIDGE_IN_RGXDESTROYKICKSYNCCONTEXT_TAG
 {
 	IMG_HANDLE hKickSyncContext;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYKICKSYNCCONTEXT;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXDESTROYKICKSYNCCONTEXT;
 
 /* Bridge out structure for RGXDestroyKickSyncContext */
 typedef struct PVRSRV_BRIDGE_OUT_RGXDESTROYKICKSYNCCONTEXT_TAG
 {
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYKICKSYNCCONTEXT;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXDESTROYKICKSYNCCONTEXT;
 
 /*******************************************
             RGXKickSync          
@@ -107,28 +103,27 @@ typedef struct PVRSRV_BRIDGE_IN_RGXKICKSYNC_TAG
 	IMG_HANDLE hKickSyncContext;
 	IMG_UINT32 ui32ClientCacheOpSeqNum;
 	IMG_UINT32 ui32ClientFenceCount;
-	IMG_HANDLE * phFenceUFOSyncPrimBlock;
-	IMG_UINT32 * pui32FenceSyncOffset;
-	IMG_UINT32 * pui32FenceValue;
+	IMG_HANDLE *phFenceUFOSyncPrimBlock;
+	IMG_UINT32 *pui32FenceSyncOffset;
+	IMG_UINT32 *pui32FenceValue;
 	IMG_UINT32 ui32ClientUpdateCount;
-	IMG_HANDLE * phUpdateUFOSyncPrimBlock;
-	IMG_UINT32 * pui32UpdateSyncOffset;
-	IMG_UINT32 * pui32UpdateValue;
+	IMG_HANDLE *phUpdateUFOSyncPrimBlock;
+	IMG_UINT32 *pui32UpdateSyncOffset;
+	IMG_UINT32 *pui32UpdateValue;
 	IMG_UINT32 ui32ServerSyncCount;
-	IMG_UINT32 * pui32ServerSyncFlags;
-	IMG_HANDLE * phServerSync;
+	IMG_UINT32 *pui32ServerSyncFlags;
+	IMG_HANDLE *phServerSync;
 	PVRSRV_FENCE hCheckFenceFD;
 	PVRSRV_TIMELINE hTimelineFenceFD;
-	IMG_CHAR * puiUpdateFenceName;
+	IMG_CHAR *puiUpdateFenceName;
 	IMG_UINT32 ui32ExtJobRef;
-} __attribute__((packed)) PVRSRV_BRIDGE_IN_RGXKICKSYNC;
+} __attribute__ ((packed)) PVRSRV_BRIDGE_IN_RGXKICKSYNC;
 
 /* Bridge out structure for RGXKickSync */
 typedef struct PVRSRV_BRIDGE_OUT_RGXKICKSYNC_TAG
 {
 	PVRSRV_FENCE hUpdateFenceFD;
 	PVRSRV_ERROR eError;
-} __attribute__((packed)) PVRSRV_BRIDGE_OUT_RGXKICKSYNC;
-
+} __attribute__ ((packed)) PVRSRV_BRIDGE_OUT_RGXKICKSYNC;
 
 #endif /* COMMON_RGXKICKSYNC_BRIDGE_H */

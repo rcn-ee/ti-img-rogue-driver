@@ -1332,19 +1332,21 @@ PVRSRV_ERROR PMRChangeSparseMemCPUMapLocalMem(PMR_IMPL_PRIVDATA pPriv,
                                               IMG_UINT32 ui32FreePageCount,
                                               IMG_UINT32 *pai32FreeIndices)
 {
+	PVRSRV_ERROR eError;
 	IMG_DEV_PHYADDR *psPageArray;
 	PMR_LMALLOCARRAY_DATA *psPMRPageArrayData = (PMR_LMALLOCARRAY_DATA *)pPriv;
 	uintptr_t sCpuVABase = sCpuVAddrBase;
 	IMG_CPU_PHYADDR sCpuAddrPtr;
-	IMG_BOOL bValid;
+	IMG_BOOL bValid = IMG_FALSE;
 
 	/*Get the base address of the heap */
-	PMR_CpuPhysAddr(psPMR,
-	                psPMRPageArrayData->uiLog2AllocSize,
-	                1,
-	                0,	/* offset zero here mean first page in the PMR */
-	                &sCpuAddrPtr,
-	                &bValid);
+	eError = PMR_CpuPhysAddr(psPMR,
+	                         psPMRPageArrayData->uiLog2AllocSize,
+	                         1,
+	                         0,	/* offset zero here mean first page in the PMR */
+	                         &sCpuAddrPtr,
+	                         &bValid);
+	PVR_LOGR_IF_ERROR(eError, "PMR_CpuPhysAddr");
 
 	/* Phys address of heap is computed here by subtracting the offset of this page
 	 * basically phys address of any page = Base address of heap + offset of the page */
