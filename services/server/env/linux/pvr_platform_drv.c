@@ -190,6 +190,7 @@ static int pvr_probe(struct platform_device *pdev)
 	if (!ddev)
 		return -ENOMEM;
 #endif
+	platform_set_drvdata(pdev, ddev);
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
 	/* Needed by drm_platform_set_busid */
