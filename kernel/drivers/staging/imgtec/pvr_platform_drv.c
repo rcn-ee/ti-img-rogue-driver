@@ -111,6 +111,12 @@ static int pvr_devices_register(void)
 	};
 	unsigned int i;
 
+	/* No need to separate platform registration if dt is already is
+	 * populated
+	 */
+	if (of_have_populated_dt())
+		return 0;
+
 	BUG_ON(pvr_num_devices == 0 || pvr_num_devices > MAX_DEVICES);
 
 	pvr_devices = kmalloc_array(pvr_num_devices, sizeof(*pvr_devices),
@@ -136,6 +142,9 @@ static void pvr_devices_unregister(void)
 {
 #if defined(MODULE) && !defined(PVR_LDM_PLATFORM_PRE_REGISTERED)
 	unsigned int i;
+
+	if (of_have_populated_dt())
+		return;
 
 	BUG_ON(!pvr_devices);
 
