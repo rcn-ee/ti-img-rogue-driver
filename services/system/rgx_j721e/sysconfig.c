@@ -306,18 +306,27 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 
 	*ppsDevConfig = &gsDevices[0];
 
-    SysDevPowerDomainsInit(&psDev->dev);
-    pm_runtime_enable(&psDev->dev);
-    if (pm_runtime_get_sync(&psDev->dev) < 0)
-    {
-        PVR_LOG(("%s: failed to enable clock\n", __func__));
-    }
+	SysDevPowerDomainsInit(&psDev->dev);
+	pm_runtime_enable(&psDev->dev);
+	if (pm_runtime_get_sync(&psDev->dev) < 0)
+	{
+		PVR_LOG(("%s: failed to enable clock\n", __func__));
+	}
 
 	return PVRSRV_OK;
 }
 
 void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
+	struct platform_device *psDev;
+	int r;
+
+	psDev = to_platform_device((struct device *)psDevConfig->pvOSDevice);
+
+	r = pm_runtime_put_sync(&psDev->dev);
+	WARN_ON(r < 0 && r != -ENOSYS);
+	pm_runtime_disable(&psDev->dev);
+
 	psDevConfig->pvOSDevice = NULL;
 }
 
