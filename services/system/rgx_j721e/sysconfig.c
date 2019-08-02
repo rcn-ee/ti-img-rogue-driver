@@ -144,15 +144,23 @@ static void SysDevFeatureDepInit(PVRSRV_DEVICE_CONFIG *psDevConfig, IMG_UINT64 u
 		}
 }
 
+static void SysDevPowerDomainsDeinit(struct device *dev)
+{
+	struct device_link *link;
+
+	list_for_each_entry(link, &dev->links.consumers, s_node)
+		device_link_del(link);
+}
+
 static int SysDevPowerDomainsInit(struct device *dev)
 {
 	int err;
-    struct device *gpu_0, *gpucore_0;
-    struct device_link *gpu_0_dl, *gpucore_0_dl;
+	struct device *gpu_0, *gpucore_0;
+	struct device_link *gpu_0_dl, *gpucore_0_dl;
 
-    gpu_0 = dev_pm_domain_attach_by_name(dev, "gpu_0");
+	gpu_0 = dev_pm_domain_attach_by_name(dev, "gpu_0");
 	if (IS_ERR(gpu_0))
-    {
+	{
 		err = PTR_ERR(gpu_0);
 		dev_err(dev, "failed to get gpu_0 pm-domain: %d\n", err);
 		return err;
@@ -160,7 +168,7 @@ static int SysDevPowerDomainsInit(struct device *dev)
 
 	gpucore_0 = dev_pm_domain_attach_by_name(dev, "gpucore_0");
 	if (IS_ERR(gpucore_0))
-    {
+	{
 		err = PTR_ERR(gpucore_0);
 		dev_err(dev, "failed to get gpucore_0 pm-domain: %d\n", err);
 		return err;
@@ -171,7 +179,7 @@ static int SysDevPowerDomainsInit(struct device *dev)
 					       DL_FLAG_STATELESS |
                            DL_FLAG_RPM_ACTIVE);
 	if (!gpu_0_dl)
-    {
+	{
 		dev_err(dev, "adding gpu_0 device link failed!\n");
 		return -ENODEV;
 	}
@@ -179,9 +187,9 @@ static int SysDevPowerDomainsInit(struct device *dev)
 	gpucore_0_dl = device_link_add(dev, gpucore_0,
 					     DL_FLAG_PM_RUNTIME |
 					     DL_FLAG_STATELESS |
-                         DL_FLAG_RPM_ACTIVE);
+					     DL_FLAG_RPM_ACTIVE);
 	if (!gpucore_0_dl)
-    {
+	{
 		dev_err(dev, "adding gpucore_0 device link failed!\n");
 		return -ENODEV;
 	}
@@ -306,18 +314,29 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 
 	*ppsDevConfig = &gsDevices[0];
 
-    SysDevPowerDomainsInit(&psDev->dev);
-    pm_runtime_enable(&psDev->dev);
-    if (pm_runtime_get_sync(&psDev->dev) < 0)
-    {
-        PVR_LOG(("%s: failed to enable clock\n", __func__));
-    }
+	SysDevPowerDomainsInit(&psDev->dev);
+	pm_runtime_enable(&psDev->dev);
+	if (pm_runtime_get_sync(&psDev->dev) < 0)
+	{
+		PVR_LOG(("%s: failed to enable clock\n", __func__));
+	}
 
 	return PVRSRV_OK;
 }
 
 void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
+	struct platform_device *psDev;
+	int r;
+
+	psDev = to_platform_device((struct device *)psDevConfig->pvOSDevice);
+
+	r = pm_runtime_put_sync(&psDev->dev);
+	WARN_ON(r < 0 && r != -ENOSYS);
+	pm_runtime_disable(&psDev->dev);
+
+	SysDevPowerDomainsDeinit(&psDev->dev);
+
 	psDevConfig->pvOSDevice = NULL;
 }
 
