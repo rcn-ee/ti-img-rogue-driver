@@ -96,6 +96,57 @@ extern PVRSRV_ERROR RIDumpAllKM(void);
 #else
 #define GET_ERROR_STRING(eError) PVRSRVGetErrorString(eError)
 #endif
+
+#if defined(__KERNEL__)
+/* Derive the virtual from the hPMR */
+static
+IMG_UINT64 _GuestFWHeapVA(PMR *psPMR, PVRSRV_DEVICE_NODE *psDevNode)
+{
+	PVRSRV_ERROR eError;
+	IMG_UINT64 ui64OptionalMapAddress = DEVICEMEM_UTILS_NO_ADDRESS;
+
+	IMG_DEV_PHYADDR sDevAddrPtr;
+	IMG_BOOL bValid;
+
+	PHYS_HEAP *psPhysHeap = psDevNode->apsPhysHeap[PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL];
+	IMG_DEV_PHYADDR sHeapAddr;
+
+	eError = PhysHeapRegionGetDevPAddr(psPhysHeap, 0, &sHeapAddr);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_LOG_IF_ERROR(eError, "_GuestFWHeapVA: PMRLockSysPhysAddr");
+		goto fail;
+	}
+
+	eError = PMRLockSysPhysAddresses(psPMR);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_LOG_IF_ERROR(eError, "_GuestFWHeapVA: PMRLockSysPhysAddr");
+		goto fail;
+	}
+
+	eError = PMR_DevPhysAddr(psPMR, OSGetPageShift(), 1, 0, &sDevAddrPtr, &bValid);
+	if (eError != PVRSRV_OK)
+	{
+		PVR_LOG_IF_ERROR(eError, "_GuestFWHeapVA: PMR_DevPhysAddr");
+		eError = PMRUnlockSysPhysAddresses(psPMR);
+		PVR_LOG_IF_ERROR(eError, "_GuestFWHeapVA: PMRUnlockSysPhysAddr");
+		goto fail;
+	}
+
+	eError = PMRUnlockSysPhysAddresses(psPMR);
+	PVR_LOG_IF_ERROR(eError, "_GuestFWHeapVA: PMRUnlockSysPhysAddr");
+
+	ui64OptionalMapAddress = RGX_FIRMWARE_RAW_HEAP_BASE | (sDevAddrPtr.uiAddr - sHeapAddr.uiAddr);
+
+	PVR_DPF((PVR_DBG_ALLOC, "%s: ui64OptionalMapAddress = RGX_FIRMWARE_RAW_HEAP_BASE [0x%llx] | (sDevAddrPtr.uiAddr[0x%llx] - sHeapAddr.uiAddr[0x%llx]) = 0x%llx ",
+	         __FUNCTION__, RGX_FIRMWARE_RAW_HEAP_BASE, sDevAddrPtr.uiAddr, sHeapAddr.uiAddr, ui64OptionalMapAddress));
+
+fail:
+	return ui64OptionalMapAddress;
+}
+#endif
+
 /*****************************************************************************
  *                    Sub allocation internals                               *
  *****************************************************************************/
@@ -428,6 +479,20 @@ _SubAllocImportAlloc(RA_PERARENA_HANDLE hArena,
 			{
 				PVR_DPF((PVR_DBG_ERROR, "%s: call to BridgeRIWritePMREntry failed (eError=%d)", __func__, eError));
 			}
+		}
+	}
+#endif
+
+#if defined(__KERNEL__)
+	{
+		PVRSRV_DEVICE_NODE *psDevNode = (PVRSRV_DEVICE_NODE *)psHeap->psCtx->hDevConnection;
+		PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *) psDevNode->pvDevice;
+
+		if (((psHeap == psDevInfo->psFirmwareMainHeap) ||
+		    (psHeap == psDevInfo->psFirmwareConfigHeap)) &&
+		    PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
+		{
+			ui64OptionalMapAddress = _GuestFWHeapVA(psImport->hPMR, psDevNode);
 		}
 	}
 #endif
@@ -2283,6 +2348,7 @@ DevmemMapToDevice(DEVMEM_MEMDESC *psMemDesc,
 	PVRSRV_ERROR eError;
 	IMG_BOOL bMap = IMG_TRUE;
 	IMG_BOOL bDestroyed = IMG_FALSE;
+	IMG_UINT64 ui64OptionalMapAddress = DEVICEMEM_UTILS_NO_ADDRESS;
 
 	/* Do not try to map unpinned memory */
 	if (psMemDesc->psImport->uiProperties & DEVMEM_PROPERTIES_UNPINNED)
@@ -2320,10 +2386,24 @@ DevmemMapToDevice(DEVMEM_MEMDESC *psMemDesc,
 	psImport = psMemDesc->psImport;
 	_DevmemMemDescAcquire(psMemDesc);
 
+#if defined(__KERNEL__)
+	{
+		PVRSRV_DEVICE_NODE *psDevNode = (PVRSRV_DEVICE_NODE *)psHeap->psCtx->hDevConnection;
+		PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *) psDevNode->pvDevice;
+
+		if (((psHeap == psDevInfo->psFirmwareMainHeap) ||
+		     (psHeap == psDevInfo->psFirmwareConfigHeap)) &&
+		     PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
+		{
+			ui64OptionalMapAddress = _GuestFWHeapVA(psImport->hPMR, psDevNode);
+		}
+	}
+#endif
+
 	eError = _DevmemImportStructDevMap(psHeap,
 			bMap,
 			psImport,
-			DEVICEMEM_UTILS_NO_ADDRESS);
+			ui64OptionalMapAddress);
 	if (eError != PVRSRV_OK)
 	{
 		goto failMap;

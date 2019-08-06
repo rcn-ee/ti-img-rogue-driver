@@ -3872,7 +3872,7 @@ static INLINE DEVMEM_HEAP_BLUEPRINT _blueprint_init(IMG_CHAR *name,
 		/* MIPS FW must use 4K pages even when kernel is using 64K pages */
 		if (OSStringCompare(name, RGX_FIRMWARE_MAIN_HEAP_IDENT) == 0 ||
 			OSStringCompare(name, RGX_FIRMWARE_CONFIG_HEAP_IDENT) == 0 ||
-			OSStringCompare(name, RGX_FIRMWARE_GUEST_RAW_HEAP_IDENT) == 0  )
+			OSStringNCompare(name, RGX_FIRMWARE_GUEST_RAW_HEAP_IDENT, OSStringLength(RGX_FIRMWARE_GUEST_RAW_HEAP_IDENT) - 3) == 0)
 		{
 			b.uiLog2DataPageSize = RGX_HEAP_4KB_PAGE_SHIFT;
 		}
