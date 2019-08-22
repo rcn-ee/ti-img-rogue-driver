@@ -57,9 +57,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/pm.h>
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
+#include <linux/kthread.h>
 #if defined(SUPPORT_PDVFS)
 #include "rgxpdvfs.h"
 #endif
+
+extern struct task_struct *psMisrTimerThread;
 
 static RGX_TIMING_INFORMATION	gsRGXTimingInfo;
 static RGX_DATA					gsRGXData;
@@ -338,6 +341,8 @@ void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	SysDevPowerDomainsDeinit(&psDev->dev);
 
 	psDevConfig->pvOSDevice = NULL;
+
+	kthread_stop(psMisrTimerThread);
 }
 
 PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,
