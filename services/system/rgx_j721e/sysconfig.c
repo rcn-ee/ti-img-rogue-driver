@@ -61,6 +61,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxpdvfs.h"
 #endif
 
+#define MAIN_I2C4_ENABLE_REG 0x0204002c
+#define MAIN_I2C4_RAW_STATUS_REG 0x02040024
+#define MAIN_I2C4_RAW_IRQ_STATUS_REG 0x02040028
+
+void __iomem *gpu_interrupt = 0;
+
 static RGX_TIMING_INFORMATION	gsRGXTimingInfo;
 static RGX_DATA					gsRGXData;
 static PVRSRV_DEVICE_CONFIG 	gsDevices[1];
@@ -321,6 +327,21 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 		PVR_LOG(("%s: failed to enable clock\n", __func__));
 	}
 
+	if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
+	{
+		gpu_interrupt = ioremap(MAIN_I2C4_RAW_IRQ_STATUS_REG, 4);
+	}
+	else if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST))
+	{
+		// Enable i2c register for interrupt
+		gpu_interrupt = ioremap(MAIN_I2C4_ENABLE_REG, 4);
+		writel(0x1, gpu_interrupt);
+		iounmap(gpu_interrupt);
+
+		// Map to raw status register for triggering interrupt for Guest
+		gpu_interrupt = ioremap(MAIN_I2C4_RAW_STATUS_REG, 4);
+	}
+
 	return PVRSRV_OK;
 }
 
@@ -338,6 +359,8 @@ void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	SysDevPowerDomainsDeinit(&psDev->dev);
 
 	psDevConfig->pvOSDevice = NULL;
+
+	iounmap(gpu_interrupt);
 }
 
 PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,

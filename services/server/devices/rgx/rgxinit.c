@@ -115,6 +115,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxpdvfs.h"
 #endif
 
+extern void __iomem *gpu_interrupt;
+
 static PVRSRV_ERROR RGXDevInitCompatCheck(PVRSRV_DEVICE_NODE *psDeviceNode);
 static PVRSRV_ERROR RGXDevVersionString(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_CHAR **ppszVersionString);
 static PVRSRV_ERROR RGXDevClockSpeed(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_PUINT32  pui32RGXClockSpeed);
@@ -288,6 +290,7 @@ static IMG_BOOL RGX_LISRHandler (void *pvData)
 
 	if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
 	{
+		writel(0x1, gpu_interrupt);
 		if (! psDevInfo->bRGXPowered)
 		{
 			return IMG_FALSE;
@@ -298,6 +301,10 @@ static IMG_BOOL RGX_LISRHandler (void *pvData)
 	}
 	else
 	{
+		if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST))
+		{
+			writel(0x1, gpu_interrupt);
+		}
 		bInterruptProcessed = IMG_FALSE;
 		psRGXFWIfTraceBuf = psDevInfo->psRGXFWIfTraceBuf;
 	}
