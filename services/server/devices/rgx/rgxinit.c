@@ -43,11 +43,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(LINUX)
 #include <linux/stddef.h>
-#include <linux/delay.h>
-#include <linux/time.h>
-#include <linux/timer.h>
-#include <linux/printk.h>
-#include <linux/kthread.h>
 #else
 #include <stddef.h>
 #endif
@@ -120,16 +115,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxpdvfs.h"
 #endif
 
-#define VM_DRIVER
-#ifdef VM_DRIVER
-struct timer_device_data
-{
-	struct timer_list timer;
-	PVRSRV_DEVICE_NODE *psDeviceNode;
-};
-struct task_struct *psMisrTimerThread;
-struct timer_device_data misr_timer_data;
-#endif
+extern void __iomem *gpu_interrupt;
 
 static PVRSRV_ERROR RGXDevInitCompatCheck(PVRSRV_DEVICE_NODE *psDeviceNode);
 static PVRSRV_ERROR RGXDevVersionString(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_CHAR **ppszVersionString);
@@ -304,6 +290,7 @@ static IMG_BOOL RGX_LISRHandler (void *pvData)
 
 	if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_GUEST))
 	{
+		writel(0x1, gpu_interrupt);
 		if (! psDevInfo->bRGXPowered)
 		{
 			return IMG_FALSE;
@@ -314,6 +301,10 @@ static IMG_BOOL RGX_LISRHandler (void *pvData)
 	}
 	else
 	{
+		if (PVRSRV_VZ_MODE_IS(DRIVER_MODE_HOST))
+		{
+			writel(0x1, gpu_interrupt);
+		}
 		bInterruptProcessed = IMG_FALSE;
 		psRGXFWIfTraceBuf = psDevInfo->psRGXFWIfTraceBuf;
 	}
@@ -1057,40 +1048,6 @@ PVRSRV_ERROR PVRSRVRGXInitReleaseFWInitResourcesKM(PVRSRV_DEVICE_NODE *psDeviceN
 	return PVRSRV_OK;
 }
 
-static void ScheduleMISR(struct timer_list *t)
-{
-	RGX_LISRHandler(misr_timer_data.psDeviceNode);
-	mod_timer(t, jiffies + HZ / 120);
-}
-
-static int CreateMISRTimer(void * psDeviceNode)
-{
-	misr_timer_data.psDeviceNode = psDeviceNode;
-	timer_setup(&misr_timer_data.timer, ScheduleMISR, 0);
-	mod_timer(&misr_timer_data.timer, jiffies + HZ);
-	printk("Timer Initialized\n");
-
-	while(!kthread_should_stop())
-	{
-		schedule();
-	}
-	del_timer(&misr_timer_data.timer);
-	do_exit(0);
-
-	return 0;
-}
-
-static int CreateMISRTimerThread(void* psDeviceNode)
-{
-	psMisrTimerThread = kthread_create(CreateMISRTimer, psDeviceNode, "MISRTimerThread");
-	if(psMisrTimerThread)
-	{
-		printk("Waking up MISR timer thread\n");
-		wake_up_process(psMisrTimerThread);
-	}
-	return 0;
-}
-
 /*
 	RGXSystemHasFBCDCVersion31
 */
@@ -1374,9 +1331,6 @@ PVRSRV_ERROR PVRSRVRGXInitDevPart2KM (PVRSRV_DEVICE_NODE	*psDeviceNode,
 			RGX_LISRHandler,
 			psDeviceNode,
 			&psDevInfo->pvLISRData);
-#ifdef VM_DRIVER
-	CreateMISRTimerThread(psDeviceNode);
-#endif
 	if (eError != PVRSRV_OK)
 	{
 		if (psDevInfo->pvAPMISRData != NULL)
