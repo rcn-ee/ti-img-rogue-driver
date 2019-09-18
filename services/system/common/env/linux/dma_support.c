@@ -207,7 +207,7 @@ PVRSRV_ERROR SysDmaAllocMem(DMA_ALLOC *psDmaAlloc)
 				psDmaAlloc->sBusAddr.uiAddr,
 				uiSize));
 	}
-	else if ((psPage = alloc_pages(GFP_KERNEL, __get_order(uiSize))))
+	else if ((psPage = alloc_pages(GFP_KERNEL, get_order(uiSize))))
 	{
 #if defined(CONFIG_L4)
 		/* L4 is a para-virtualized environment, the PFN space is a virtual space and not physical space */
@@ -219,8 +219,8 @@ PVRSRV_ERROR SysDmaAllocMem(DMA_ALLOC *psDmaAlloc)
 			PVR_DPF((PVR_DBG_ERROR,
 					"dma_map_page() failed, page 0x%p order %d",
 					psPage,
-					__get_order(uiSize)));
-			__free_pages(psPage, __get_order(uiSize));
+					get_order(uiSize)));
+			__free_pages(psPage, get_order(uiSize));
 			goto e0;
 		}
 		psDmaAlloc->psPage = psPage;
@@ -232,11 +232,11 @@ PVRSRV_ERROR SysDmaAllocMem(DMA_ALLOC *psDmaAlloc)
 			PVR_DPF((PVR_DBG_ERROR,
 					"SysDmaAcquireKernelAddress() failed, page 0x%p order %d",
 					psPage,
-					__get_order(uiSize)));
+					get_order(uiSize)));
 #if !defined(CONFIG_L4)
 			dma_unmap_page(psDev, psDmaAlloc->sBusAddr.uiAddr, uiSize, DMA_BIDIRECTIONAL);
 #endif
-			__free_pages(psPage, __get_order(uiSize));
+			__free_pages(psPage, get_order(uiSize));
 			goto e0;
 		}
 
@@ -297,7 +297,7 @@ void SysDmaFreeMem(DMA_ALLOC *psDmaAlloc)
 		dma_unmap_page(psDev, psDmaAlloc->sBusAddr.uiAddr, uiSize, DMA_BIDIRECTIONAL);
 		psPage = psDmaAlloc->psPage;
 #endif
-		__free_pages(psPage, __get_order(uiSize));
+		__free_pages(psPage, get_order(uiSize));
 		return;
 	}
 
