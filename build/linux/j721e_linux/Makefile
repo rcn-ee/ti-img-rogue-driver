@@ -49,6 +49,11 @@ PVR_SERVICES_DEBUG := 1
 
 SUPPORT_MIPS_64K_PAGE_KERNEL := 1
 
+# Virtualization Flags
+PVRSRV_VZ_NUM_OSID := 2
+VMM_TYPE := "jailhouse"
+RGX_FW_HEAP_SHIFT := 24
+
 ifeq ($(SUPPORT_KMS),1)
  PVR_DRM_MODESET_DRIVER_NAME := tidss
 else
