@@ -64,7 +64,7 @@ endif
 
 KERNEL_COMPONENTS := srvkm $(DISPLAY_CONTROLLER)
 
-HWR_DEFAULT_ENABLED := 0
+HWR_DEFAULT_ENABLED := 1
 
 # Should be last
 include ../config/core.mk
