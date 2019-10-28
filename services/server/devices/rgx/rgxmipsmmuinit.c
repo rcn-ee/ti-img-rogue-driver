@@ -205,7 +205,7 @@ PVRSRV_ERROR RGXMipsMMUInit_Register(PVRSRV_DEVICE_NODE *psDeviceNode)
 
 	sRGXMMUTopLevelDevVAddrConfig.uiPTIndexMask = IMG_UINT64_C(0xfffffff000); /* Get the PT address bits from a 40 bit virt. address (in a 64bit UINT) */
 	sRGXMMUTopLevelDevVAddrConfig.uiPTIndexShift = (IMG_UINT32)RGXMIPSFW_LOG2_PAGE_SIZE;
-	sRGXMMUTopLevelDevVAddrConfig.uiNumEntriesPT = RGX_FIRMWARE_RAW_HEAP_SIZE >> sRGXMMUTopLevelDevVAddrConfig.uiPTIndexShift;
+	sRGXMMUTopLevelDevVAddrConfig.uiNumEntriesPT = (1U << RGXMIPSFW_LOG2_PAGETABLE_PAGE_SIZE) >> RGXMIPSFW_LOG2_PTE_ENTRY_SIZE;
 
 /*
  *
@@ -272,7 +272,7 @@ PVRSRV_ERROR RGXMipsMMUInit_Register(PVRSRV_DEVICE_NODE *psDeviceNode)
 
 	sRGXMMUDevVAddrConfig_4KBDP.uiPTIndexMask = ~RGX_MIPS_MMUCTRL_VADDR_PT_INDEX_CLRMSK;
 	sRGXMMUDevVAddrConfig_4KBDP.uiPTIndexShift = RGX_MIPS_MMUCTRL_VADDR_PT_INDEX_SHIFT;
-	sRGXMMUDevVAddrConfig_4KBDP.uiNumEntriesPT = RGX_FIRMWARE_RAW_HEAP_SIZE >> sRGXMMUDevVAddrConfig_4KBDP.uiPTIndexShift;
+	sRGXMMUDevVAddrConfig_4KBDP.uiNumEntriesPT = (1U << RGXMIPSFW_LOG2_PAGETABLE_PAGE_SIZE) >> RGXMIPSFW_LOG2_PTE_ENTRY_SIZE;
 
 
 	sRGXMMUDevVAddrConfig_4KBDP.uiPageOffsetMask = IMG_UINT64_C(0x0000000fff);
