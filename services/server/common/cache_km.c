@@ -1449,7 +1449,11 @@ static INLINE PVRSRV_ERROR CacheOpValidateVAOffset(PMR *psPMR,
 #else
 	/* Validate VA, assume most basic address limit access_ok() check */
 	pvAddress = (void*)(uintptr_t)((uintptr_t)pvAddress + uiOffset);
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0))
+	if (! access_ok(pvAddress, uiSize))
+#else
 	if (! access_ok(VERIFY_READ, pvAddress, uiSize))
+#endif
 	{
 		pvAddress = NULL;
 		if (! mm)

@@ -501,7 +501,12 @@ static long pvr_sync_ioctl_rename(struct pvr_sync_timeline *timeline,
 	int err = 0;
 	struct pvr_sync_rename_ioctl_data data;
 
-	if (!access_ok(VERIFY_READ, user_data, sizeof(data))) {
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0))
+	if (!access_ok(user_data, sizeof(data)))
+#else
+	if (!access_ok(VERIFY_READ, user_data, sizeof(data)))
+#endif
+	{
 		err = -EFAULT;
 		goto err;
 	}
