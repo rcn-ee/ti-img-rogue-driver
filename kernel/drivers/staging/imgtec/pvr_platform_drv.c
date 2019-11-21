@@ -192,7 +192,7 @@ static int pvr_probe(struct platform_device *pdev)
 	BUG_ON(pvr_drm_platform_driver.load != NULL);
 	ret = pvr_drm_load(ddev, 0);
 	if (ret)
-		goto err_drm_dev_unref;
+		goto err_drm_dev_put;
 
 	ret = drm_dev_register(ddev, 0);
 	if (ret)
@@ -213,8 +213,8 @@ static int pvr_probe(struct platform_device *pdev)
 
 err_drm_dev_unload:
 	pvr_drm_unload(ddev);
-err_drm_dev_unref:
-	drm_dev_unref(ddev);
+err_drm_dev_put:
+	drm_dev_put(ddev);
 	return	ret;
 #else
 	DRM_DEBUG_DRIVER("device %p\n", &pdev->dev);
@@ -238,7 +238,7 @@ static int pvr_remove(struct platform_device *pdev)
 	BUG_ON(pvr_drm_platform_driver.unload != NULL);
 	pvr_drm_unload(ddev);
 
-	drm_dev_unref(ddev);
+	drm_dev_put(ddev);
 #else
 	drm_put_dev(ddev);
 #endif
