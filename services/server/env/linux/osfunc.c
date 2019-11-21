@@ -1817,7 +1817,11 @@ PVRSRV_ERROR OSChangeSparseMemCPUAddrMap(void **psPageArray,
 
 			if (bMixedMap)
 			{
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(4,20,0))
+				vm_fault_t vmf;
+				vmf = vmf_insert_mixed(psVMA, uiCPUVirtAddr, sPFN);
+				err = vm_fault_to_errno(vmf, 0);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
 				err = vm_insert_mixed(psVMA, uiCPUVirtAddr, sPFN);
 #else
 				err = vm_insert_mixed(psVMA, uiCPUVirtAddr, uiPFN);
