@@ -79,7 +79,7 @@ static inline unsigned long pvr_copy_from_user(void *pvTo, const void __user *pv
 static inline unsigned long pvr_copy_from_user(void *pvTo, const void __user *pvFrom, unsigned long ulBytes)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5,0,0))
-	if (access_ok(pvTo, ulBytes))
+	if (access_ok(pvFrom, ulBytes))
 #else
     /*
      * The compile time correctness checking introduced for copy_from_user in
