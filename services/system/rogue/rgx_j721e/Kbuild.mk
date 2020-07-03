@@ -41,7 +41,6 @@
 PVRSRVKM_NAME = $(PVRSRV_MODNAME)
 
 $(PVRSRVKM_NAME)-y += services/system/$(PVR_SYSTEM)/sysconfig.o \
- services/system/common/env/linux/interrupt_support.o \
  services/system/common/env/linux/dma_support.o \
  services/system/common/vz_physheap_generic.o \
  services/system/common/vz_physheap_common.o \
