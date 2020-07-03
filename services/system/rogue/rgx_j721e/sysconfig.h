@@ -53,18 +53,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_J721E_CORE_CLOCK_SPEED		(100000000)
 #define SYS_RGX_ACTIVE_POWER_LATENCY_MS		(100)
 
-/* BIF Tiling mode configuration */
-static RGXFWIF_BIFTILINGMODE geBIFTilingMode = RGXFWIF_BIFTILINGMODE_256x16;
-
-/* default BIF tiling heap x-stride configurations. */
-static IMG_UINT32 gauiBIFTilingHeapXStrides[RGXFWIF_NUM_BIF_TILING_CONFIGS] =
-{
-	0, /* BIF tiling heap 1 x-stride */
-	1, /* BIF tiling heap 2 x-stride */
-	2, /* BIF tiling heap 3 x-stride */
-	3  /* BIF tiling heap 4 x-stride */
-};
-
 /*****************************************************************************
  * system specific data structures
  *****************************************************************************/

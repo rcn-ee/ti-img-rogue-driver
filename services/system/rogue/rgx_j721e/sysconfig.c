@@ -280,10 +280,6 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	gsDevices[0].aui32PhysHeapID[PVRSRV_DEVICE_PHYS_HEAP_FW_LOCAL] = 0;
 	gsDevices[0].aui32PhysHeapID[PVRSRV_DEVICE_PHYS_HEAP_EXTERNAL] = 0;
 
-	gsDevices[0].eBIFTilingMode = geBIFTilingMode;
-	gsDevices[0].pui32BIFTilingHeapConfigs = gauiBIFTilingHeapXStrides;
-	gsDevices[0].ui32BIFTilingHeapCount = ARRAY_SIZE(gauiBIFTilingHeapXStrides);
-
 	/* No power management on VIRTUAL_PLATFORM system */
 	gsDevices[0].pfnPrePowerState       = NULL;
 	gsDevices[0].pfnPostPowerState      = NULL;
