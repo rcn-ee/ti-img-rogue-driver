@@ -193,7 +193,8 @@ PVRSRV_DATA *PVRSRVGetPVRSRVData(void);
 #define PVRSRV_VZ_RETN_IF_NOT_MODE(_expr)     do { if (! PVRSRV_VZ_MODE_IS(_expr)) { return; } } while (0)
 #define PVRSRV_VZ_RET_IF_MODE(_expr, _rc)     do { if (  PVRSRV_VZ_MODE_IS(_expr)) { return (_rc); } } while (0)
 #define PVRSRV_VZ_RET_IF_NOT_MODE(_expr, _rc) do { if (! PVRSRV_VZ_MODE_IS(_expr)) { return (_rc); } } while (0)
-
+#define PVRSRV_VZ_DRIVER_OSID                 (((IMG_INT)PVRSRVGetPVRSRVData()->eDriverMode) > (0) ? \
+												   ((IMG_UINT32)(PVRSRVGetPVRSRVData()->eDriverMode)) : (0))
 /*!
 ******************************************************************************
 @Note	The driver execution mode AppHint (i.e. PVRSRV_APPHINT_DRIVERMODE)
