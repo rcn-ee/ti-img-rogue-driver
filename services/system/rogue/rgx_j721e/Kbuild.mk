@@ -42,6 +42,7 @@ PVRSRVKM_NAME = $(PVRSRV_MODNAME)
 
 $(PVRSRVKM_NAME)-y += services/system/$(PVR_ARCH)/$(PVR_SYSTEM)/sysconfig.o \
  services/system/$(PVR_ARCH)/common/env/linux/dma_support.o \
+ services/system/$(PVR_ARCH)/common/env/linux/interrupt_support.o \
  services/server/common/vmm_pvz_client.o \
  services/server/common/vmm_pvz_server.o \
  services/server/common/vz_vmm_pvz.o \
