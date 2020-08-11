@@ -1036,7 +1036,7 @@ _SetDispatchTableEntry(IMG_UINT32 ui32BridgeGroup,
 #if defined(DEBUG_BRIDGE_KM_DISPATCH_TABLE)
 			PVR_DPF((PVR_DBG_ERROR,
 				 "%s: Adding dispatch table entry for %s clobbers an existing entry for %s (current pfn=<%p>, new pfn=<%p>)",
-				 __func__, pszIOCName, g_BridgeDispatchTable[ui32Index].pszIOCName),
+				 __func__, pszIOCName, g_BridgeDispatchTable[ui32Index].pszIOCName,
 				 (void*)g_BridgeDispatchTable[ui32Index].pfFunction, (void*)pfFunction));
 #else
 			PVR_DPF((PVR_DBG_ERROR,
