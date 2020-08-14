@@ -844,6 +844,9 @@ Poison on alloc value))
 $(eval $(call TunableBothConfigC,PVRSRV_POISON_ON_FREE_VALUE,0x63,\
 Poison on free value))
 
+$(eval $(call TunableBothConfigC,SUPPORT_MIPS_64K_PAGE_SIZE,,\
+Enable this to change the MIPS FW page size to 64K._\
+))
 
 $(eval $(call TunableBothConfigC,SUPPORT_MULTICORE,,\
 Set to the number of secondary cores contributing to a workload distribution in a multicore configuration._\
