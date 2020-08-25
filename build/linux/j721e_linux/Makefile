@@ -50,8 +50,8 @@ PVR_SERVICES_DEBUG := 1
 SUPPORT_MIPS_64K_PAGE_SIZE := 1
 
 # Virtualization Flags
-PVRSRV_VZ_NUM_OSID := 2
-VMM_TYPE := "jailhouse"
+PVRSRV_VZ_NUM_OSID := 1
+#VMM_TYPE := "jailhouse"
 RGX_FW_HEAP_SHIFT := 24
 
 ifeq ($(SUPPORT_KMS),1)
