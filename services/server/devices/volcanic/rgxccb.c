@@ -548,6 +548,10 @@ PVRSRV_ERROR RGXCreateCCB(PVRSRV_RGXDEV_INFO	*psDevInfo,
 	IMG_UINT32		ui32VirtualAllocSize = (1U << ui32CCBMaxSizeLog2);
 	IMG_UINT32		ui32NumVirtPages = ui32VirtualAllocSize / ui32FWPageSize;
 	IMG_UINT32		i;
+
+	/* Ensure we allocate at least one page */
+	ui32NumPages = (ui32NumPages != 0) ? (ui32NumPages) : (1);
+	ui32NumVirtPages = (ui32NumVirtPages != 0) ? (ui32NumVirtPages) : (1);
 #else
 	PVR_UNREFERENCED_PARAMETER(ui32CCBMaxSizeLog2);
 #endif /* defined(PVRSRV_ENABLE_CCCB_GROW) */
