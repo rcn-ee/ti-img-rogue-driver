@@ -77,6 +77,9 @@ define calculate-compiler-preferred-target
    ifneq ($$(filter riscv64-buildroot-linux-gnu riscv64-poky-linux,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := riscv64-linux-gnu
    endif
+   ifneq ($$(filter aarch64-%-linux-gnu,$$($(1)_compiler_preferred_target)),)
+    $(1)_compiler_preferred_target := aarch64-linux-gnu
+   endif
    ifneq ($$(filter clang%,$(2)),)
     ifeq ($(1),target)
      ifeq (arm-linux-gnueabihf,$$(CROSS_TRIPLE))
