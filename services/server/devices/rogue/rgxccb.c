@@ -538,8 +538,8 @@ PVRSRV_ERROR RGXCreateCCB(PVRSRV_RGXDEV_INFO	*psDevInfo,
 {
 	PVRSRV_ERROR	eError = PVRSRV_OK;
 	DEVMEM_FLAGS_T	uiClientCCBMemAllocFlags, uiClientCCBCtlMemAllocFlags;
-	IMG_UINT32		ui32AllocSize = (1U << ui32CCBSizeLog2);
-	IMG_UINT32		ui32MinAllocSize = (1U << MIN_SAFE_CCB_SIZE_LOG2);
+	IMG_UINT32		ui32AllocSize = MAX((1U << ui32CCBSizeLog2), (1 << PAGE_SHIFT));
+	IMG_UINT32		ui32MinAllocSize = MAX((1U << MIN_SAFE_CCB_SIZE_LOG2), (1 << PAGE_SHIFT));
 	RGX_CLIENT_CCB	*psClientCCB;
 #if defined(PVRSRV_ENABLE_CCCB_GROW)
 	IMG_UINT32		ui32FWLog2PageSize = DevmemGetHeapLog2PageSize(psDevInfo->psFirmwareMainHeap);
@@ -552,6 +552,7 @@ PVRSRV_ERROR RGXCreateCCB(PVRSRV_RGXDEV_INFO	*psDevInfo,
 	/* Ensure we allocate at least one page */
 	ui32NumPages = (ui32NumPages != 0) ? (ui32NumPages) : (1);
 	ui32NumVirtPages = (ui32NumVirtPages != 0) ? (ui32NumVirtPages) : (1);
+	PVR_ASSERT((ui32FWLog2PageSize >= PAGE_SHIFT));
 #else
 	PVR_UNREFERENCED_PARAMETER(ui32CCBMaxSizeLog2);
 #endif /* defined(PVRSRV_ENABLE_CCCB_GROW) */
