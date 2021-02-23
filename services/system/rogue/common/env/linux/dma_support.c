@@ -67,9 +67,7 @@ SysDmaAcquireKernelAddress(struct page *psPage, IMG_UINT64 ui64Size, void *pvOSD
 	PVRSRV_DEVICE_NODE *psDevNode = OSAllocZMemNoStats(sizeof(*psDevNode));
 	PVRSRV_DEVICE_CONFIG *psDevConfig = OSAllocZMemNoStats(sizeof(*psDevConfig));
 	struct page **pagearray = OSAllocZMemNoStats(ui32PgCount * sizeof(struct page *));
-#if defined(CONFIG_ARM64)
-	pgprot_t prot = pgprot_writecombine(PAGE_KERNEL);
-#else
+#if !defined(CONFIG_ARM64)
 	pgprot_t prot = pgprot_noncached(PAGE_KERNEL);
 #endif
 
@@ -140,7 +138,7 @@ SysDmaAcquireKernelAddress(struct page *psPage, IMG_UINT64 ui64Size, void *pvOSD
 #if !defined(CONFIG_64BIT) || defined(PVRSRV_FORCE_SLOWER_VMAP_ON_64BIT_BUILDS)
 	pvVirtAddr = vmap(pagearray, ui32PgCount, VM_READ | VM_WRITE, prot);
 #else
-	pvVirtAddr = vm_map_ram(pagearray, ui32PgCount, -1, prot);
+	pvVirtAddr = vm_map_ram(pagearray, ui32PgCount, -1);
 #endif
 
 	/* Clean-up tmp buffers */

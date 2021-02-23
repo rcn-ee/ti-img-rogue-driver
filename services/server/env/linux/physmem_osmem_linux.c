@@ -951,7 +951,7 @@ _ZeroPageArray(IMG_UINT32 uiNumToClean,
 #if !defined(CONFIG_64BIT) || defined(PVRSRV_FORCE_SLOWER_VMAP_ON_64BIT_BUILDS)
 		pvAddr = vmap(ppsCleanArray, uiToClean, VM_WRITE, pgprot);
 #else
-		pvAddr = vm_map_ram(ppsCleanArray, uiToClean, -1, pgprot);
+		pvAddr = vm_map_ram(ppsCleanArray, uiToClean, -1);
 #endif
 		if (!pvAddr)
 		{
@@ -1488,8 +1488,6 @@ _ApplyCacheMaintenance(PVRSRV_DEVICE_NODE *psDevNode,
 
 	if (OSCPUCacheOpAddressType() == OS_CACHE_OP_ADDR_TYPE_VIRTUAL)
 	{
-		pgprot_t pgprot = PAGE_KERNEL;
-
 		IMG_UINT32 uiNumToClean = uiNumPages;
 		struct page **ppsCleanArray = ppsPage;
 
@@ -1503,7 +1501,7 @@ _ApplyCacheMaintenance(PVRSRV_DEVICE_NODE *psDevNode,
 			IMG_CPU_PHYADDR sUnused =
 				{ IMG_CAST_TO_CPUPHYADDR_UINT(0xCAFEF00DDEADBEEFULL) };
 
-			pvAddr = vm_map_ram(ppsCleanArray, uiToClean, -1, pgprot);
+			pvAddr = vm_map_ram(ppsCleanArray, uiToClean, -1);
 			if (!pvAddr)
 			{
 				PVR_DPF((PVR_DBG_ERROR,
@@ -3180,7 +3178,7 @@ PMRAcquireKernelMappingDataOSMem(PMR_IMPL_PRIVDATA pvPriv,
 #if !defined(CONFIG_64BIT) || defined(PVRSRV_FORCE_SLOWER_VMAP_ON_64BIT_BUILDS)
 	pvAddress = vmap(pagearray, ui32PageCount, VM_READ | VM_WRITE, prot);
 #else
-	pvAddress = vm_map_ram(pagearray, ui32PageCount, -1, prot);
+	pvAddress = vm_map_ram(pagearray, ui32PageCount, -1);
 #endif
 	if (pvAddress == NULL)
 	{
