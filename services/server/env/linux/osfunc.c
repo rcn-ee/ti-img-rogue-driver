@@ -1523,7 +1523,7 @@ PVRSRV_ERROR OSChangeSparseMemCPUAddrMap(void **psPageArray,
 
 	/*
 	 * Acquire the lock before manipulating the VMA
-	 * In this case only mmap_sem lock would suffice as the pages associated with this VMA
+	 * In this case only mmap_lock would suffice as the pages associated with this VMA
 	 * are never meant to be swapped out.
 	 *
 	 * In the future, in case the pages are marked as swapped, page_table_lock needs
@@ -1538,8 +1538,8 @@ PVRSRV_ERROR OSChangeSparseMemCPUAddrMap(void **psPageArray,
 		return eError;
 	}
 
-	/* Acquire the memory sem */
-	down_write(&psMM->mmap_sem);
+	/* Acquire the memory lock */
+	mmap_write_lock(psMM);
 
 	psMapping = psVMA->vm_file->f_mapping;
 
@@ -1664,7 +1664,7 @@ PVRSRV_ERROR OSChangeSparseMemCPUAddrMap(void **psPageArray,
 
 	eError = PVRSRV_OK;
 eFailed:
-	up_write(&psMM->mmap_sem);
+	mmap_write_unlock(psMM);
 
 	return eError;
 }
