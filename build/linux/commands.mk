@@ -508,6 +508,7 @@ override ECHO              := $(if $(V),,@)$(shell which echo) -e
 override FLEX              := $(if $(V),,@)flex
 override FLEXXX            := $(if $(V),,@)flex++
 override FWINFO            := $(if $(V),,@)$(HOST_OUT)/fwinfo
+override FWINFO_64K        := $(if $(V),,@)$(HOST_OUT)/fwinfo_64k
 override GLSLC             := $(if $(V),,@)$(GLSLC)
 override GREP              := $(if $(V),,@)grep
 override HOST_AR           := $(if $(V),,@)$(HOST_AR)

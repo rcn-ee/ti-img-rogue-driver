@@ -1586,8 +1586,9 @@ ErrorExit:
 }
 
 #define VZ_RGX_FW_FILENAME_SUFFIX ".vz"
+#define RGX_64K_FW_FILENAME_SUFFIX ".64k"
 #define RGX_FW_FILENAME_MAX_SIZE   ((sizeof(RGX_FW_FILENAME)+ \
-			RGX_BVNC_STR_SIZE_MAX+sizeof(VZ_RGX_FW_FILENAME_SUFFIX)))
+			RGX_BVNC_STR_SIZE_MAX+sizeof(VZ_RGX_FW_FILENAME_SUFFIX) + sizeof(RGX_64K_FW_FILENAME_SUFFIX)))
 
 static void _GetFWFileName(PVRSRV_DEVICE_NODE *psDeviceNode,
 		IMG_CHAR *pszFWFilenameStr,
@@ -1597,19 +1598,24 @@ static void _GetFWFileName(PVRSRV_DEVICE_NODE *psDeviceNode,
 	const IMG_CHAR * const pszFWFilenameSuffix =
 			PVRSRV_VZ_MODE_IS(NATIVE) ? "" : VZ_RGX_FW_FILENAME_SUFFIX;
 
+	const IMG_CHAR * const pszFWFilenameSuffix2 =
+			((OSGetPageSize() == RGX_MMU_PAGE_SIZE_64KB) &&
+			 RGX_IS_FEATURE_SUPPORTED(psDevInfo, MIPS))
+			? RGX_64K_FW_FILENAME_SUFFIX : "";
+
 	OSSNPrintf(pszFWFilenameStr, RGX_FW_FILENAME_MAX_SIZE,
-			"%s." RGX_BVNC_STR_FMTSPEC "%s",
+			"%s." RGX_BVNC_STR_FMTSPEC "%s%s",
 			RGX_FW_FILENAME,
 			psDevInfo->sDevFeatureCfg.ui32B, psDevInfo->sDevFeatureCfg.ui32V,
 			psDevInfo->sDevFeatureCfg.ui32N, psDevInfo->sDevFeatureCfg.ui32C,
-			pszFWFilenameSuffix);
+			pszFWFilenameSuffix, pszFWFilenameSuffix2);
 
 	OSSNPrintf(pszFWpFilenameStr, RGX_FW_FILENAME_MAX_SIZE,
-			"%s." RGX_BVNC_STRP_FMTSPEC "%s",
+			"%s." RGX_BVNC_STRP_FMTSPEC "%s%s",
 			RGX_FW_FILENAME,
 			psDevInfo->sDevFeatureCfg.ui32B, psDevInfo->sDevFeatureCfg.ui32V,
 			psDevInfo->sDevFeatureCfg.ui32N, psDevInfo->sDevFeatureCfg.ui32C,
-			pszFWFilenameSuffix);
+			pszFWFilenameSuffix, pszFWFilenameSuffix2);
 }
 
 PVRSRV_ERROR RGXLoadAndGetFWData(PVRSRV_DEVICE_NODE *psDeviceNode,
