@@ -1,0 +1,5 @@
+KERNEL_DIR=common
+
+. ${ROOT_DIR}/${KERNEL_DIR}/build.config.ti
+
+EXT_MODULES="imgtech-module/"
