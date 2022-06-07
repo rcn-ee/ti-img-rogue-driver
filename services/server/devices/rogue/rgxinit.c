@@ -1342,7 +1342,7 @@ PVRSRV_ERROR RGXInitDevPart2(PVRSRV_DEVICE_NODE	*psDeviceNode,
 		if (bEnableAPM && (!PVRSRV_VZ_MODE_IS(NATIVE)))
 		{
 			PVR_DPF((PVR_DBG_WARNING, "%s: Active Power Management disabled in virtualization mode", __func__));
-			bEnableAPM = false;
+			bEnableAPM = IMG_FALSE;
 		}
 
 #if defined(RGX_NUM_OS_SUPPORTED) && (RGX_NUM_OS_SUPPORTED > 1) && defined(SUPPORT_AUTOVZ)
