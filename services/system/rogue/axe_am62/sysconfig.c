@@ -132,55 +132,21 @@ static PHYS_HEAP_CONFIG gsPhysHeapConfig = {
 
 static void SysDevPowerDomainsDeinit(struct device *dev)
 {
-	struct device_link *link;
-
-	list_for_each_entry(link, &dev->links.consumers, s_node)
-		device_link_del(link);
+	dev_pm_domain_detach(dev, false);
 }
 
 static int SysDevPowerDomainsInit(struct device *dev)
 {
-	int err;
-	struct device *gpu_0, *gpucore_0;
-	struct device_link *gpu_0_dl, *gpucore_0_dl;
+	int err = 0;
 
-	gpu_0 = dev_pm_domain_attach_by_name(dev, "gpu_0");
-	if (IS_ERR(gpu_0))
+	err = dev_pm_domain_attach(dev, false);
+	if (err)
 	{
-		err = PTR_ERR(gpu_0);
-		dev_err(dev, "failed to get gpu_0 pm-domain: %d\n", err);
-		return err;
+		err = PTR_ERR(dev);
+		dev_err(dev, "failed to get pm-domain: %d\n", err);
 	}
 
-	gpucore_0 = dev_pm_domain_attach_by_name(dev, "gpucore_0");
-	if (IS_ERR(gpucore_0))
-	{
-		err = PTR_ERR(gpucore_0);
-		dev_err(dev, "failed to get gpucore_0 pm-domain: %d\n", err);
-		return err;
-	}
-
-	gpu_0_dl = device_link_add(dev, gpu_0,
-					       DL_FLAG_PM_RUNTIME |
-					       DL_FLAG_STATELESS |
-                           DL_FLAG_RPM_ACTIVE);
-	if (!gpu_0_dl)
-	{
-		dev_err(dev, "adding gpu_0 device link failed!\n");
-		return -ENODEV;
-	}
-
-	gpucore_0_dl = device_link_add(dev, gpucore_0,
-					     DL_FLAG_PM_RUNTIME |
-					     DL_FLAG_STATELESS |
-					     DL_FLAG_RPM_ACTIVE);
-	if (!gpucore_0_dl)
-	{
-		dev_err(dev, "adding gpucore_0 device link failed!\n");
-		return -ENODEV;
-	}
-
-	return 0;
+	return err;
 }
 
 PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
