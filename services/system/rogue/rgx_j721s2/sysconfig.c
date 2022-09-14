@@ -1,5 +1,5 @@
 /*************************************************************************/ /*!
-@File
+@File           sysconfig.c
 @Title          System Configuration
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
 @Description    Implements the system layer for TI Keystone3 SoCs
@@ -41,44 +41,35 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
-
-#include "pvrsrv_device.h"
-#include "syscommon.h"
-#include "sysinfo.h"
-#include "sysconfig.h"
-#include "physheap.h"
-#include "interrupt_support.h"
+#include <linux/platform_device.h>
+#include <linux/of.h>
 #include <linux/pm.h>
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
-#if defined(SUPPORT_PDVFS)
-#include "rgxpdvfs.h"
-#endif
 
-static RGX_TIMING_INFORMATION	gsRGXTimingInfo;
-static RGX_DATA					gsRGXData;
-static PVRSRV_DEVICE_CONFIG		gsDevices[1];
-static PHYS_HEAP_FUNCTIONS		gsPhysHeapFuncs;
-static PHYS_HEAP_CONFIG			gsPhysHeapConfig[2];
+#include "img_defs.h"
+#include "physheap.h"
+#include "pvrsrv.h"
+#include "rgxdevice.h"
+#include "interrupt_support.h"
 
-#if defined(SUPPORT_PDVFS)
-static const IMG_OPP asOPPTable[] =
-{
-	{ 824,  240000000},
-	{ 856,  280000000},
-	{ 935,  380000000},
-	{ 982,  440000000},
-	{ 1061, 540000000},
+#define SYS_RGX_ACTIVE_POWER_LATENCY_MS 100
+#define RGX_HW_CORE_CLOCK_SPEED (800 * 1000 * 1000)
+
+/* Setup RGX specific timing data */
+static RGX_TIMING_INFORMATION gsRGXTimingInfo = {
+	.ui32CoreClockSpeed = RGX_HW_CORE_CLOCK_SPEED,
+	.bEnableActivePM = IMG_FALSE,
+	.ui32ActivePMLatencyms = SYS_RGX_ACTIVE_POWER_LATENCY_MS,
+	.bEnableRDPowIsland = IMG_FALSE,
 };
 
-#define LEVEL_COUNT (sizeof(asOPPTable) / sizeof(asOPPTable[0]))
+static RGX_DATA gsRGXData = {
+	.psRGXTimingInfo = &gsRGXTimingInfo,
+};
 
-static void SetFrequency(IMG_UINT32 ui32Frequency) {}
-
-static void SetVoltage(IMG_UINT32 ui32Volt) {}
-#endif
+static PVRSRV_DEVICE_CONFIG	gsDevice;
 
 /*
 	CPU to Device physical address translation
@@ -126,19 +117,18 @@ void UMAPhysHeapDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
 	}
 }
 
-static void SysDevFeatureDepInit(PVRSRV_DEVICE_CONFIG *psDevConfig, IMG_UINT64 ui64Features)
-{
-#if defined(SUPPORT_AXI_ACE_TEST)
-		if ( ui64Features & RGX_FEATURE_AXI_ACELITE_BIT_MASK)
-		{
-			gsDevices[0].eCacheSnoopingMode     = PVRSRV_DEVICE_SNOOP_CPU_ONLY;
-		}
-		else
-#endif
-		{
-			psDevConfig->eCacheSnoopingMode		= PVRSRV_DEVICE_SNOOP_NONE;
-		}
-}
+static PHYS_HEAP_FUNCTIONS gsPhysHeapFuncs = {
+	.pfnCpuPAddrToDevPAddr = UMAPhysHeapCpuPAddrToDevPAddr,
+	.pfnDevPAddrToCpuPAddr = UMAPhysHeapDevPAddrToCpuPAddr,
+};
+
+static PHYS_HEAP_CONFIG gsPhysHeapConfig = {
+	.pszPDumpMemspaceName = "SYSMEM",
+	.eType = PHYS_HEAP_TYPE_UMA,
+	.psMemFuncs = &gsPhysHeapFuncs,
+	.hPrivData = NULL,
+	.ui32UsageFlags = PHYS_HEAP_USAGE_GPU_LOCAL,
+};
 
 static void SysDevPowerDomainsDeinit(struct device *dev)
 {
@@ -195,114 +185,60 @@ static int SysDevPowerDomainsInit(struct device *dev)
 
 PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 {
-	IMG_UINT32 ui32NextPhysHeapID = 0;
-	int iIrq;
-	struct resource *psDevMemRes = NULL;
 	struct platform_device *psDev;
+	struct resource *dev_res = NULL;
+	int dev_irq;
 
 	psDev = to_platform_device((struct device *)pvOSDevice);
-
-	if (gsDevices[0].pvOSDevice)
-	{
-		return PVRSRV_ERROR_INVALID_DEVICE;
-	}
+	PVR_LOG(("Device: %s", psDev->name));
 
 	dma_set_mask(pvOSDevice, DMA_BIT_MASK(40));
 
-	/*
-	 * Setup information about physical memory heap(s) we have
-	 */
-	gsPhysHeapFuncs.pfnCpuPAddrToDevPAddr = UMAPhysHeapCpuPAddrToDevPAddr;
-	gsPhysHeapFuncs.pfnDevPAddrToCpuPAddr = UMAPhysHeapDevPAddrToCpuPAddr;
+	dev_irq = platform_get_irq(psDev, 0);
+	if (dev_irq < 0)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_irq failed (%d)", __func__, -dev_irq));
+		return PVRSRV_ERROR_INVALID_DEVICE;
+	}
 
-	gsPhysHeapConfig[ui32NextPhysHeapID].pszPDumpMemspaceName = "SYSMEM";
-	gsPhysHeapConfig[ui32NextPhysHeapID].eType = PHYS_HEAP_TYPE_UMA;
-	gsPhysHeapConfig[ui32NextPhysHeapID].psMemFuncs = &gsPhysHeapFuncs;
-	gsPhysHeapConfig[ui32NextPhysHeapID].hPrivData = NULL;
-	gsPhysHeapConfig[ui32NextPhysHeapID].ui32UsageFlags = PHYS_HEAP_USAGE_GPU_LOCAL;
-	ui32NextPhysHeapID += 1;
+	dev_res = platform_get_resource(psDev, IORESOURCE_MEM, 0);
+	if (dev_res == NULL)
+	{
+		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_resource failed", __func__));
+		return PVRSRV_ERROR_INVALID_DEVICE;
+	}
 
-	/*
-	 * Setup RGX specific timing data
-	 */
-	gsRGXTimingInfo.ui32CoreClockSpeed        = RGX_KS3_CORE_CLOCK_SPEED;
-	gsRGXTimingInfo.bEnableActivePM           = IMG_FALSE;
-	gsRGXTimingInfo.bEnableRDPowIsland        = IMG_FALSE;
-	gsRGXTimingInfo.ui32ActivePMLatencyms     = SYS_RGX_ACTIVE_POWER_LATENCY_MS;
+	/* Make sure everything we don't care about is set to 0 */
+	memset(&gsDevice, 0, sizeof(gsDevice));
 
-	/*
-	 *Setup RGX specific data
-	 */
-	gsRGXData.psRGXTimingInfo = &gsRGXTimingInfo;
-
-	/*
-	 * Setup device
-	 */
-	gsDevices[0].pvOSDevice				= pvOSDevice;
-	gsDevices[0].pszName 				= SYS_RGX_DEV_NAME;
-	gsDevices[0].pszVersion             = NULL;
+	/* Setup the device config */
+	gsDevice.pvOSDevice                         = pvOSDevice;
+	gsDevice.pszName                            = "rgx_j721s2";
+	gsDevice.pszVersion                         = NULL;
 
 	/* Device setup information */
-	psDevMemRes = platform_get_resource(psDev, IORESOURCE_MEM, 0);
-	if (psDevMemRes)
-	{
-		gsDevices[0].sRegsCpuPBase.uiAddr = psDevMemRes->start;
-		gsDevices[0].ui32RegsSize         = (unsigned int)(psDevMemRes->end - psDevMemRes->start);
-	}
-	else
-	{
-		PVR_LOG(("%s: platform_get_resource() failed", __func__));
-		return PVRSRV_ERROR_INIT_FAILURE;
-	}
-
-	iIrq = platform_get_irq(psDev, 0);
-	if (iIrq >= 0)
-	{
-		gsDevices[0].ui32IRQ = (IMG_UINT32) iIrq;
-	}
-	else
-	{
-		PVR_LOG(("%s: platform_get_irq() failed", __func__));
-		return PVRSRV_ERROR_INIT_FAILURE;
-	}
+	gsDevice.sRegsCpuPBase.uiAddr    = dev_res->start;
+	gsDevice.ui32RegsSize            = (unsigned int)(dev_res->end - dev_res->start);
+	gsDevice.ui32IRQ                 = dev_irq;
 
 	/* Device's physical heaps */
-	gsDevices[0].pasPhysHeaps = gsPhysHeapConfig;
-	gsDevices[0].ui32PhysHeapCount = ARRAY_SIZE(gsPhysHeapConfig);
+	gsDevice.pasPhysHeaps      = &gsPhysHeapConfig;
+	gsDevice.ui32PhysHeapCount = 1;
+	gsDevice.eDefaultHeap      = PVRSRV_PHYS_HEAP_GPU_LOCAL;
 
-	/* No power management on VIRTUAL_PLATFORM system */
-	gsDevices[0].pfnPrePowerState       = NULL;
-	gsDevices[0].pfnPostPowerState      = NULL;
+	/* Setup RGX specific timing data */
+	gsDevice.hDevData = &gsRGXData;
 
-	/* No clock frequency either */
-	gsDevices[0].pfnClockFreqGet        = NULL;
+	gsDevice.bHasFBCDCVersion31      = IMG_FALSE;
+	gsDevice.bDevicePA0IsValid       = IMG_FALSE;
 
-	gsDevices[0].hDevData               = &gsRGXData;
+	/* clock frequency */
+	gsDevice.pfnClockFreqGet        = NULL;
 
-	gsDevices[0].pfnSysDevFeatureDepInit = &SysDevFeatureDepInit;
+	/* Set gsDevice.pfnSysDevErrorNotify callback */
+	gsDevice.pfnSysDevErrorNotify = SysRGXErrorNotify;
 
-	gsDevices[0].bHasFBCDCVersion31	= IMG_FALSE;
-	gsDevices[0].bDevicePA0IsValid	= IMG_FALSE;
-
-	/* device error notify callback function */
-	gsDevices[0].pfnSysDevErrorNotify = NULL;
-
-	/* Virtualization support services needs to know which heap ID corresponds to FW */
-	PVR_ASSERT(ui32NextPhysHeapID < ARRAY_SIZE(gsPhysHeapConfig));
-	gsPhysHeapConfig[ui32NextPhysHeapID].pszPDumpMemspaceName = "SYSMEM";
-	gsPhysHeapConfig[ui32NextPhysHeapID].eType = PHYS_HEAP_TYPE_UMA;
-	gsPhysHeapConfig[ui32NextPhysHeapID].psMemFuncs = &gsPhysHeapFuncs;
-	gsPhysHeapConfig[ui32NextPhysHeapID].hPrivData = NULL;
-	gsPhysHeapConfig[ui32NextPhysHeapID].ui32UsageFlags = PHYS_HEAP_USAGE_FW_MAIN;
-
-#if defined(SUPPORT_PDVFS)
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.pasOPPTable = asOPPTable;
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.ui32OPPTableSize = LEVEL_COUNT;
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.pfnSetFrequency = SetFrequency;
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.pfnSetVoltage = SetVoltage;
-#endif
-
-	*ppsDevConfig = &gsDevices[0];
+	*ppsDevConfig = &gsDevice;
 
 	SysDevPowerDomainsInit(&psDev->dev);
 	pm_runtime_enable(&psDev->dev);
@@ -317,16 +253,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 	struct platform_device *psDev;
-	int r;
-
 	psDev = to_platform_device((struct device *)psDevConfig->pvOSDevice);
-
-	r = pm_runtime_put_sync(&psDev->dev);
-	WARN_ON(r < 0 && r != -ENOSYS);
-	pm_runtime_disable(&psDev->dev);
-
 	SysDevPowerDomainsDeinit(&psDev->dev);
-
 	psDevConfig->pvOSDevice = NULL;
 }
 
@@ -339,7 +267,7 @@ PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,
 {
 	PVR_UNREFERENCED_PARAMETER(hSysData);
 	return OSInstallSystemLISR(phLISRData, ui32IRQ, pszName, pfnLISR, pvData,
-								SYS_IRQ_FLAG_TRIGGER_DEFAULT);
+			SYS_IRQ_FLAG_TRIGGER_DEFAULT);
 }
 
 PVRSRV_ERROR SysUninstallDeviceLISR(IMG_HANDLE hLISRData)
