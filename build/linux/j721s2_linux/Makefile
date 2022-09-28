@@ -38,16 +38,14 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
+RGX_BVNC := 36.53.104.796
+PVR_SYSTEM := rgx_j721s2
+
 include ../config/preconfig.mk
 include ../config/window_system.mk
 
-PVR_SYSTEM := rgx_j721s2
-
-SUPPORT_NATIVE_FENCE_SYNC := 1
-
 ifeq ($(SUPPORT_KMS),1)
  PVR_DRM_MODESET_DRIVER_NAME := tidss
-# DISPLAY_CONTROLLER := drm_nulldisp
 else
  ifeq ($(SUPPORT_DISPLAY_CLASS),1)
   DISPLAY_CONTROLLER := dc_example
