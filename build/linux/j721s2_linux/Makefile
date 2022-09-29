@@ -38,6 +38,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
+RGX_BVNC := 36.53.104.796
+PVR_SYSTEM := rgx_j721s2
+
 include ../config/preconfig.mk
 include ../config/window_system.mk
 
@@ -45,10 +48,9 @@ ifneq ($(SUPPORT_KMS),1)
 $(error This platform only supports window systems that use the standard Linux driver model.)
 endif
 
-RGX_BVNC := 36.53.104.796
-PVR_SYSTEM := rgx_j721s2
 NO_HARDWARE := 0
 PVR_LDM_PLATFORM_PRE_REGISTERED := 1
+ENABLE_EMULATED_LARGE_TEXTURES := 1
 
 SUPPORT_NATIVE_FENCE_SYNC := 1
 
@@ -60,7 +62,6 @@ ifeq ($(PVR_REMVIEW),1)
  PVR_DRM_MODESET_DRIVER_NAME := nulldisp
 else
  PVR_DRM_MODESET_DRIVER_NAME := tidss
- PVR_DRM_MODESET_MODULE_NAME := dumb
 endif
 
 # Should be last
