@@ -65,7 +65,7 @@ define calculate-compiler-preferred-target
    ifneq ($$(filter i386-% i486-% i586-% i686-%,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := i386-linux-gnu
    endif
-   ifneq ($$(filter aarch64-poky-linux,$$($(1)_compiler_preferred_target)),)
+   ifneq ($$(filter aarch64-%-linux,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := aarch64-linux-gnu
    endif
    ifneq ($$(filter armv7a-cros-linux-gnueabi armv7l-tizen-linux-gnueabi,$$($(1)_compiler_preferred_target)),)
