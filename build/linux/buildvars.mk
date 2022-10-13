@@ -222,6 +222,7 @@ TESTED_KBUILD_FLAGS := \
  $(call kernel-cc-option,-Wno-unused-but-set-variable) \
  $(call kernel-cc-option,-Wno-ignored-qualifiers) \
  $(call kernel-cc-option,-Wno-error=implicit-fallthrough) \
+ $(call kernel-cc-option,-Wno-error=enum-conversion) \
  $(call kernel-cc-optional-warning,-Wbad-function-cast) \
  $(call kernel-cc-optional-warning,-Wcast-qual) \
  $(call kernel-cc-optional-warning,-Wcast-align) \
