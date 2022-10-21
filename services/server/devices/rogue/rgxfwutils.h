@@ -363,7 +363,9 @@ static INLINE IMG_UINT64 RGXReadHWTimerReg(PVRSRV_RGXDEV_INFO *psDevInfo)
                                            PVRSRV_MEMALLOCFLAG_GPU_UNCACHED | \
                                            PVRSRV_MEMALLOCFLAG_CPU_READABLE | \
                                            PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE | \
-                                           PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC | \
+                                           ((RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, NUM_OSIDS) && \
+                                            (RGX_GET_FEATURE_VALUE(psDevInfo, NUM_OSIDS) == 8)) ? \
+                                           PVRSRV_MEMALLOCFLAG_CPU_CACHE_INCOHERENT : PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC) | \
                                            PVRSRV_MEMALLOCFLAG_KERNEL_CPU_MAPPABLE | \
                                            PVRSRV_MEMALLOCFLAG_ZERO_ON_ALLOC | \
                                            PVRSRV_MEMALLOCFLAG_PHYS_HEAP_HINT(FW_MAIN))
