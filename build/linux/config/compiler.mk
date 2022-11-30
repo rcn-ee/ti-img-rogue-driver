@@ -74,7 +74,7 @@ define calculate-compiler-preferred-target
    ifneq ($$(filter arm-linux-android,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := arm-linux-androideabi
    endif
-   ifneq ($$(filter riscv64-buildroot-linux-gnu riscv64-img-linux-musl riscv64-poky-linux,$$($(1)_compiler_preferred_target)),)
+   ifneq ($$(filter riscv64-buildroot-linux-gnu riscv64-img-linux-musl riscv64-%-linux,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := riscv64-linux-gnu
    endif
    ifneq ($$(filter aarch64-%-linux-gnu,$$($(1)_compiler_preferred_target)),)
