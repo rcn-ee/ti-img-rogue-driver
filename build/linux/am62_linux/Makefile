@@ -44,6 +44,8 @@ PVR_SYSTEM := axe_am62
 include ../config/preconfig.mk
 include ../config/window_system.mk
 
+PVR_LDM_PLATFORM_PRE_REGISTERED := 1
+
 PVRSRV_NEED_PVR_DPF := 1
 PVRSRV_NEED_PVR_ASSERT := 1
 PVR_SERVICES_DEBUG := 1

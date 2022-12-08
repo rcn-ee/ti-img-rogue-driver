@@ -44,6 +44,8 @@ PVR_SYSTEM := rgx_j721s2
 include ../config/preconfig.mk
 include ../config/window_system.mk
 
+PVR_LDM_PLATFORM_PRE_REGISTERED := 1
+
 ifeq ($(SUPPORT_KMS),1)
  PVR_DRM_MODESET_DRIVER_NAME := tidss
 else

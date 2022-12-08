@@ -67,7 +67,6 @@
 #include "kernel_compatibility.h"
 
 static struct drm_driver pvr_drm_platform_driver;
-static int pvr_drm_init_done = 0;
 
 #if defined(MODULE) && !defined(PVR_LDM_PLATFORM_PRE_REGISTERED)
 /*
@@ -124,12 +123,6 @@ static int pvr_devices_register(void)
 	};
 	unsigned int i;
 
-	/* No need to separate platform registration if dt is already is
-	 * populated
-	 */
-	if (of_have_populated_dt())
-		return 0;
-
 	BUG_ON(pvr_num_devices == 0 || pvr_num_devices > MAX_DEVICES);
 
 	pvr_devices = kmalloc_array(pvr_num_devices, sizeof(*pvr_devices),
@@ -156,9 +149,6 @@ static void pvr_devices_unregister(void)
 #if defined(MODULE) && !defined(PVR_LDM_PLATFORM_PRE_REGISTERED)
 	unsigned int i;
 
-	if (of_have_populated_dt())
-		return;
-
 	BUG_ON(!pvr_devices);
 
 	for (i = 0; i < pvr_num_devices && pvr_devices[i]; i++)
@@ -175,11 +165,6 @@ static int pvr_probe(struct platform_device *pdev)
 	struct drm_device *ddev;
 	int ret;
 
-	/* HACK: check and return if probe is already completed */
-	if (pvr_drm_init_done) {
-		return 0;
-	}
-
 	DRM_DEBUG_DRIVER("device %p\n", &pdev->dev);
 
 	ddev = drm_dev_alloc(&pvr_drm_platform_driver, &pdev->dev);
@@ -190,7 +175,6 @@ static int pvr_probe(struct platform_device *pdev)
 	if (!ddev)
 		return -ENOMEM;
 #endif
-	platform_set_drvdata(pdev, ddev);
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
 	/* Needed by drm_platform_set_busid */
@@ -220,8 +204,6 @@ static int pvr_probe(struct platform_device *pdev)
 		pvr_drm_platform_driver.date,
 		ddev->primary->index);
 #endif
-	pvr_drm_init_done = 1;
-
 	return 0;
 
 err_drm_dev_unload:
@@ -255,8 +237,6 @@ static int pvr_remove(struct platform_device *pdev)
 #else
 	drm_put_dev(ddev);
 #endif
-
-	pvr_drm_init_done = 0;
 	return 0;
 }
 
@@ -314,7 +294,6 @@ static int __init pvr_init(void)
 
 	DRM_DEBUG_DRIVER("\n");
 
-	pvr_drm_init_done = 0;
 	pvr_drm_platform_driver = pvr_drm_generic_driver;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0)) && \
 	(LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0))
