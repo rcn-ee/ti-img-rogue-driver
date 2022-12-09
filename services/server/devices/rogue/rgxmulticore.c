@@ -142,6 +142,15 @@ PVRSRV_ERROR RGXInitMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode)
 		IMG_UINT32 ui32NumCores;
 		IMG_UINT32 i;
 
+		IMG_BOOL bPowerDown = (psDeviceNode->eCurrentSysPowerState == PVRSRV_SYS_POWER_STATE_OFF);
+
+		/* Power-up the device as required to read the registers */
+		if (bPowerDown)
+		{
+			eError = PVRSRVSetSystemPowerState(psDeviceNode->psDevConfig, PVRSRV_SYS_POWER_STATE_ON);
+			PVR_LOG_RETURN_IF_ERROR(eError, "PVRSRVSetSystemPowerState ON");
+		}
+
 		ui32NumCores = OSReadHWReg32(psDevInfo->pvRegsBaseKM, RGX_CR_MULTICORE_SYSTEM);
 #if !defined(NO_HARDWARE)
 		/* check that the number of cores reported is in-bounds */
@@ -192,6 +201,12 @@ PVRSRV_ERROR RGXInitMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode)
 			}
 
 			ui32MulticoreGPUReg += ui32MulticoreRegBankOffset;
+		}
+
+		if (bPowerDown)
+		{
+			eError = PVRSRVSetSystemPowerState(psDeviceNode->psDevConfig, PVRSRV_SYS_POWER_STATE_OFF);
+			PVR_LOG_RETURN_IF_ERROR(eError, "PVRSRVSetSystemPowerState OFF");
 		}
 
 		/* Register callback to return info about multicore setup to client bridge */
