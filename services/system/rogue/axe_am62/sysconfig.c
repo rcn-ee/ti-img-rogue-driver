@@ -43,9 +43,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include <linux/platform_device.h>
 #include <linux/dma-mapping.h>
-#if defined(SUPPORT_PDVFS)
-#include "pvr_debugfs.h"
-#endif
 
 #include "pvrsrv_device.h"
 #include "syscommon.h"
@@ -56,32 +53,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/pm.h>
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
-#if defined(SUPPORT_PDVFS)
-#include "rgxpdvfs.h"
-#endif
 
 static RGX_TIMING_INFORMATION	gsRGXTimingInfo;
 static RGX_DATA					gsRGXData;
-static PVRSRV_DEVICE_CONFIG 	gsDevices[1];
+static PVRSRV_DEVICE_CONFIG		gsDevices[1];
 static PHYS_HEAP_FUNCTIONS		gsPhysHeapFuncs;
 static PHYS_HEAP_CONFIG			gsPhysHeapConfig[2];
-
-#if defined(SUPPORT_PDVFS)
-static const IMG_OPP asOPPTable[] =
-{
-	{ 824,  240000000},
-	{ 856,  280000000},
-	{ 935,  380000000},
-	{ 982,  440000000},
-	{ 1061, 540000000},
-};
-
-#define LEVEL_COUNT (sizeof(asOPPTable) / sizeof(asOPPTable[0]))
-
-static void SetFrequency(IMG_UINT32 ui32Frequency) {}
-
-static void SetVoltage(IMG_UINT32 ui32Volt) {}
-#endif
 
 /*
 	CPU to Device physical address translation
@@ -132,25 +109,80 @@ void UMAPhysHeapDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
 static void SysDevFeatureDepInit(PVRSRV_DEVICE_CONFIG *psDevConfig, IMG_UINT64 ui64Features)
 {
 #if defined(SUPPORT_AXI_ACE_TEST)
-		if( ui64Features & RGX_FEATURE_AXI_ACELITE_BIT_MASK)
+		if ( ui64Features & RGX_FEATURE_AXI_ACELITE_BIT_MASK)
 		{
 			gsDevices[0].eCacheSnoopingMode     = PVRSRV_DEVICE_SNOOP_CPU_ONLY;
 		}
 		else
 #endif
 		{
-			psDevConfig->eCacheSnoopingMode = PVRSRV_DEVICE_SNOOP_NONE;
+			psDevConfig->eCacheSnoopingMode		= PVRSRV_DEVICE_SNOOP_NONE;
 		}
 }
 
 static void SysDevPowerDomainsDeinit(struct device *dev)
 {
-
+	dev_pm_domain_detach(dev, false);
 }
 
 static int SysDevPowerDomainsInit(struct device *dev)
 {
-	return 0;
+	int err = 0;
+
+	err = dev_pm_domain_attach(dev, false);
+	if (err)
+	{
+		err = PTR_ERR(dev);
+		dev_err(dev, "failed to get pm-domain: %d", err);
+	}
+
+	return err;
+}
+
+static PVRSRV_ERROR SysDevPrePowerState(
+		IMG_HANDLE hSysData,
+		PVRSRV_SYS_POWER_STATE eNewPowerState,
+		PVRSRV_SYS_POWER_STATE eCurrentPowerState,
+		IMG_BOOL bForced)
+{
+	struct platform_device *psDev = hSysData;
+
+	if ((PVRSRV_SYS_POWER_STATE_OFF == eNewPowerState) &&
+	    (PVRSRV_SYS_POWER_STATE_ON == eCurrentPowerState)) {
+#if defined(DEBUG)
+		PVR_LOG(("%s: attempting to suspend", __func__));
+#endif
+		if (pm_runtime_put_sync(&psDev->dev))
+			PVR_LOG(("%s: failed to suspend", __func__));
+	}
+	return PVRSRV_OK;
+}
+
+static PVRSRV_ERROR SysDevPostPowerState(
+		IMG_HANDLE hSysData,
+		PVRSRV_SYS_POWER_STATE eNewPowerState,
+		PVRSRV_SYS_POWER_STATE eCurrentPowerState,
+		IMG_BOOL bForced)
+{
+	PVRSRV_ERROR ret;
+	struct platform_device *psDev = hSysData;
+
+	if ((PVRSRV_SYS_POWER_STATE_ON == eNewPowerState) &&
+	    (PVRSRV_SYS_POWER_STATE_OFF == eCurrentPowerState)) {
+#if defined(DEBUG)
+		PVR_LOG(("%s: attempting to resume", __func__));
+#endif
+		if (pm_runtime_get_sync(&psDev->dev)) {
+			PVR_LOG(("%s: failed to resume", __func__));
+			ret = PVRSRV_ERROR_DEVICE_POWER_CHANGE_FAILURE;
+			goto done;
+		}
+	}
+
+	ret = PVRSRV_OK;
+
+done:
+	return ret;
 }
 
 PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
@@ -178,15 +210,15 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	gsPhysHeapConfig[ui32NextPhysHeapID].pszPDumpMemspaceName = "SYSMEM";
 	gsPhysHeapConfig[ui32NextPhysHeapID].eType = PHYS_HEAP_TYPE_UMA;
 	gsPhysHeapConfig[ui32NextPhysHeapID].psMemFuncs = &gsPhysHeapFuncs;
-	gsPhysHeapConfig[ui32NextPhysHeapID].ui32UsageFlags = PHYS_HEAP_USAGE_GPU_LOCAL;
 	gsPhysHeapConfig[ui32NextPhysHeapID].hPrivData = NULL;
+	gsPhysHeapConfig[ui32NextPhysHeapID].ui32UsageFlags = PHYS_HEAP_USAGE_GPU_LOCAL;
 	ui32NextPhysHeapID += 1;
 
 	/*
 	 * Setup RGX specific timing data
 	 */
 	gsRGXTimingInfo.ui32CoreClockSpeed        = RGX_AM62_CORE_CLOCK_SPEED;
-	gsRGXTimingInfo.bEnableActivePM           = IMG_FALSE;
+	gsRGXTimingInfo.bEnableActivePM           = IMG_TRUE;
 	gsRGXTimingInfo.bEnableRDPowIsland        = IMG_FALSE;
 	gsRGXTimingInfo.ui32ActivePMLatencyms     = SYS_RGX_ACTIVE_POWER_LATENCY_MS;
 
@@ -230,14 +262,11 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	gsDevices[0].pasPhysHeaps = gsPhysHeapConfig;
 	gsDevices[0].ui32PhysHeapCount = ARRAY_SIZE(gsPhysHeapConfig);
 
-	/* No power management on VIRTUAL_PLATFORM system */
-	gsDevices[0].pfnPrePowerState       = NULL;
-	gsDevices[0].pfnPostPowerState      = NULL;
-
 	/* No clock frequency either */
 	gsDevices[0].pfnClockFreqGet        = NULL;
 
 	gsDevices[0].hDevData               = &gsRGXData;
+	gsDevices[0].hSysData               = to_platform_device((struct device *)pvOSDevice);
 
 	gsDevices[0].pfnSysDevFeatureDepInit = &SysDevFeatureDepInit;
 
@@ -246,24 +275,17 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	gsPhysHeapConfig[ui32NextPhysHeapID].pszPDumpMemspaceName = "SYSMEM_FW";
 	gsPhysHeapConfig[ui32NextPhysHeapID].eType = PHYS_HEAP_TYPE_UMA;
 	gsPhysHeapConfig[ui32NextPhysHeapID].psMemFuncs = &gsPhysHeapFuncs;
-	gsPhysHeapConfig[ui32NextPhysHeapID].ui32UsageFlags = PHYS_HEAP_USAGE_FW_MAIN;
 	gsPhysHeapConfig[ui32NextPhysHeapID].hPrivData = NULL;
-
-#if defined(SUPPORT_PDVFS)
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.pasOPPTable = asOPPTable;
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.ui32OPPTableSize = LEVEL_COUNT;
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.pfnSetFrequency = SetFrequency;
-	gsDevices[0].sDVFS.sDVFSDeviceCfg.pfnSetVoltage = SetVoltage;
-#endif
-
-	*ppsDevConfig = &gsDevices[0];
+	gsPhysHeapConfig[ui32NextPhysHeapID].ui32UsageFlags = PHYS_HEAP_USAGE_FW_MAIN;
 
 	SysDevPowerDomainsInit(&psDev->dev);
 	pm_runtime_enable(&psDev->dev);
-	if (pm_runtime_get_sync(&psDev->dev) < 0)
-	{
-		PVR_LOG(("%s: failed to enable clock\n", __func__));
-	}
+
+	/* Power management */
+	gsDevices[0].pfnPrePowerState       = SysDevPrePowerState;
+	gsDevices[0].pfnPostPowerState      = SysDevPostPowerState;
+
+	*ppsDevConfig = &gsDevices[0];
 
 	return PVRSRV_OK;
 }
