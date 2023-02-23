@@ -60,7 +60,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Setup RGX specific timing data */
 static RGX_TIMING_INFORMATION gsRGXTimingInfo = {
 	.ui32CoreClockSpeed = RGX_HW_CORE_CLOCK_SPEED,
-	.bEnableActivePM = IMG_FALSE,
+	.bEnableActivePM = IMG_TRUE,
 	.ui32ActivePMLatencyms = SYS_RGX_ACTIVE_POWER_LATENCY_MS,
 	.bEnableRDPowIsland = IMG_FALSE,
 };
@@ -149,6 +149,52 @@ static int SysDevPowerDomainsInit(struct device *dev)
 	return err;
 }
 
+static PVRSRV_ERROR SysDevPrePowerState(
+		IMG_HANDLE hSysData,
+		PVRSRV_SYS_POWER_STATE eNewPowerState,
+		PVRSRV_SYS_POWER_STATE eCurrentPowerState,
+		PVRSRV_POWER_FLAGS ePwrFlags)
+{
+	struct platform_device *psDev = hSysData;
+
+	if ((PVRSRV_SYS_POWER_STATE_OFF == eNewPowerState) &&
+	    (PVRSRV_SYS_POWER_STATE_ON == eCurrentPowerState)) {
+#if defined(DEBUG)
+		PVR_LOG(("%s: attempting to suspend", __func__));
+#endif
+		if (pm_runtime_put_sync(&psDev->dev))
+			PVR_LOG(("%s: failed to suspend", __func__));
+	}
+	return PVRSRV_OK;
+}
+
+static PVRSRV_ERROR SysDevPostPowerState(
+		IMG_HANDLE hSysData,
+		PVRSRV_SYS_POWER_STATE eNewPowerState,
+		PVRSRV_SYS_POWER_STATE eCurrentPowerState,
+		PVRSRV_POWER_FLAGS ePwrFlags)
+{
+	PVRSRV_ERROR ret;
+	struct platform_device *psDev = hSysData;
+
+	if ((PVRSRV_SYS_POWER_STATE_ON == eNewPowerState) &&
+	    (PVRSRV_SYS_POWER_STATE_OFF == eCurrentPowerState)) {
+#if defined(DEBUG)
+		PVR_LOG(("%s: attempting to resume", __func__));
+#endif
+		if (pm_runtime_get_sync(&psDev->dev)) {
+			PVR_LOG(("%s: failed to resume", __func__));
+			ret = PVRSRV_ERROR_DEVICE_POWER_CHANGE_FAILURE;
+			goto done;
+		}
+	}
+
+	ret = PVRSRV_OK;
+
+done:
+	return ret;
+}
+
 PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 {
 	struct platform_device *psDev;
@@ -195,25 +241,27 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	/* Setup RGX specific timing data */
 	gsDevice.hDevData = &gsRGXData;
 
+	/* device info for power management */
+	gsDevice.hSysData = to_platform_device((struct device *)pvOSDevice);
+
 	/* clock frequency */
 	gsDevice.pfnClockFreqGet        = NULL;
+
+	/* power management on HW system */
+	gsDevice.pfnPrePowerState = SysDevPrePowerState;
+	gsDevice.pfnPostPowerState = SysDevPostPowerState;
 
 	*ppsDevConfig = &gsDevice;
 
 	SysDevPowerDomainsInit(&psDev->dev);
 	pm_runtime_enable(&psDev->dev);
-	if (pm_runtime_get_sync(&psDev->dev) < 0)
-	{
-		PVR_LOG(("%s: failed to enable clock\n", __func__));
-	}
-
 	return PVRSRV_OK;
 }
 
 void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 	struct platform_device *psDev;
-	psDev = to_platform_device((struct device *)psDevConfig->pvOSDevice);
+	psDev = psDevConfig->hSysData;
 	SysDevPowerDomainsDeinit(&psDev->dev);
 	psDevConfig->pvOSDevice = NULL;
 }
