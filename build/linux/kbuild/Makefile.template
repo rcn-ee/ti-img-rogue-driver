@@ -54,7 +54,7 @@
 
 include $(OUT)/config_kernel.mk
 
-.SECONDARY:
+.NOTINTERMEDIATE:
 
 define symlink-source-file
 @if [ ! -e $(dir $@) ]; then mkdir -p $(dir $@); fi
