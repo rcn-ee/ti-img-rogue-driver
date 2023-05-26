@@ -65,16 +65,16 @@ define calculate-compiler-preferred-target
    ifneq ($$(filter i386-% i486-% i586-% i686-%,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := i386-linux-gnu
    endif
-   ifneq ($$(filter aarch64-poky-linux arm64-%,$$($(1)_compiler_preferred_target)),)
+   ifneq ($$(filter aarch64-% arm64-%,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := aarch64-linux-gnu
    endif
-   ifneq ($$(filter armv7a-cros-linux-gnueabi armv7a-cros-linux-gnueabihf,$$($(1)_compiler_preferred_target)),)
+   ifneq ($$(filter armv7a-% arm-%,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := arm-linux-gnueabi
    endif
    ifneq ($$(filter arm-linux-android,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := arm-linux-androideabi
    endif
-   ifneq ($$(filter riscv64-buildroot-linux-gnu riscv64-img-linux-musl riscv64-poky-linux,$$($(1)_compiler_preferred_target)),)
+   ifneq ($$(filter riscv64-%,$$($(1)_compiler_preferred_target)),)
     $(1)_compiler_preferred_target := riscv64-linux-gnu
    endif
    ifneq ($$(filter clang%,$(2)),)
