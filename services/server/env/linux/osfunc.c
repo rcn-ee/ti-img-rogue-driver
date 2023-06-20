@@ -1741,7 +1741,11 @@ PVRSRV_ERROR OSChangeSparseMemCPUAddrMap(
 	}
 
 	if ((psVMA->vm_flags & VM_MIXEDMAP) || bIsLMA) {
+#if defined (ANDROID)
+		vm_flags_set(psVMA, VM_MIXEDMAP);
+#else
 		psVMA->vm_flags |= VM_MIXEDMAP;
+#endif
 		bMixedMap = IMG_TRUE;
 	} else {
 		if (ui32AllocPageCount && (NULL != pai32AllocIndices)) {
@@ -1762,7 +1766,11 @@ PVRSRV_ERROR OSChangeSparseMemCPUAddrMap(
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)) */
 				{
 					bMixedMap = IMG_TRUE;
+#if defined (ANDROID)
+					vm_flags_set(psVMA, VM_MIXEDMAP);
+#else
 					psVMA->vm_flags |= VM_MIXEDMAP;
+#endif
 					break;
 				}
 			}
