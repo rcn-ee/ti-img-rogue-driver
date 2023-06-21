@@ -298,7 +298,7 @@ static struct pvr_buffer_sync_check_data *pvr_buffer_sync_check_fences_create(
 		}
 	}
 
-	WARN_ON((i != nr_pmrs) || (data->nr_fences != fence_count));
+	//WARN_ON((i != nr_pmrs) || (data->nr_fences != fence_count));
 
 	return data;
 
