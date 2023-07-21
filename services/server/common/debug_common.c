@@ -1155,6 +1155,7 @@ static void *_FirmwareGcovDINext(OSDI_IMPL_ENTRY *psEntry, void *pvData,
 	PVR_UNREFERENCED_PARAMETER(psEntry);
 	PVR_UNREFERENCED_PARAMETER(pvData);
 	PVR_UNREFERENCED_PARAMETER(pui64Pos);
+	++(*pui64Pos);
 	return NULL;
 }
 
