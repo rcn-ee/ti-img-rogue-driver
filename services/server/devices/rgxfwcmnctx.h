@@ -85,64 +85,66 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                                         (elements might change from core to core)
 @Return         PVRSRV_OK if the context was successfully created
 */ /**************************************************************************/
-PVRSRV_ERROR FWCommonContextAllocate(CONNECTION_DATA *psConnection,
-									 PVRSRV_DEVICE_NODE *psDeviceNode,
-									 RGX_CCB_REQUESTOR_TYPE eRGXCCBRequestor,
-									 RGXFWIF_DM eDM,
-									 SERVER_MMU_CONTEXT *psServerMMUContext,
-									 DEVMEM_MEMDESC *psAllocatedMemDesc,
-									 IMG_UINT32 ui32AllocatedOffset,
-									 DEVMEM_MEMDESC *psFWMemContextMemDesc,
-									 DEVMEM_MEMDESC *psContextStateMemDesc,
-									 IMG_UINT32 ui32CCBAllocSizeLog2,
-									 IMG_UINT32 ui32CCBMaxAllocSizeLog2,
-									 IMG_UINT32 ui32ContextFlags,
-									 IMG_INT32 i32Priority,
-									 IMG_UINT32 ui32MaxDeadlineMS,
-									 IMG_UINT64 ui64RobustnessAddress,
-									 RGX_COMMON_CONTEXT_INFO *psInfo,
-									 RGX_SERVER_COMMON_CONTEXT **ppsServerCommonContext);
-
+PVRSRV_ERROR FWCommonContextAllocate(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	RGX_CCB_REQUESTOR_TYPE eRGXCCBRequestor, RGXFWIF_DM eDM,
+	SERVER_MMU_CONTEXT *psServerMMUContext,
+	DEVMEM_MEMDESC *psAllocatedMemDesc, IMG_UINT32 ui32AllocatedOffset,
+	DEVMEM_MEMDESC *psFWMemContextMemDesc,
+	DEVMEM_MEMDESC *psContextStateMemDesc, IMG_UINT32 ui32CCBAllocSizeLog2,
+	IMG_UINT32 ui32CCBMaxAllocSizeLog2, IMG_UINT32 ui32ContextFlags,
+	IMG_INT32 i32Priority, IMG_UINT32 ui32MaxDeadlineMS,
+	IMG_UINT64 ui64RobustnessAddress, RGX_COMMON_CONTEXT_INFO *psInfo,
+	RGX_SERVER_COMMON_CONTEXT **ppsServerCommonContext);
 
 void FWCommonContextFree(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
 
-PRGXFWIF_FWCOMMONCONTEXT FWCommonContextGetFWAddress(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
+PRGXFWIF_FWCOMMONCONTEXT
+FWCommonContextGetFWAddress(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
 
-RGX_CLIENT_CCB *FWCommonContextGetClientCCB(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
+RGX_CLIENT_CCB *
+FWCommonContextGetClientCCB(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
 
-SERVER_MMU_CONTEXT *FWCommonContextGetServerMMUCtx(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
+SERVER_MMU_CONTEXT *FWCommonContextGetServerMMUCtx(
+	RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
 
-RGX_CONTEXT_RESET_REASON FWCommonContextGetLastResetReason(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext,
-                                                           IMG_UINT32 *pui32LastResetJobRef);
+RGX_CONTEXT_RESET_REASON FWCommonContextGetLastResetReason(
+	RGX_SERVER_COMMON_CONTEXT *psServerCommonContext,
+	IMG_UINT32 *pui32LastResetJobRef);
 
-PVRSRV_RGXDEV_INFO* FWCommonContextGetRGXDevInfo(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
+PVRSRV_RGXDEV_INFO *
+FWCommonContextGetRGXDevInfo(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext);
 
-PVRSRV_ERROR RGXGetFWCommonContextAddrFromServerMMUCtx(PVRSRV_RGXDEV_INFO *psDevInfo,
-													   SERVER_MMU_CONTEXT *psServerMMUContext,
-													   PRGXFWIF_FWCOMMONCONTEXT *psFWCommonContextFWAddr);
+PVRSRV_ERROR RGXGetFWCommonContextAddrFromServerMMUCtx(
+	PVRSRV_RGXDEV_INFO *psDevInfo, SERVER_MMU_CONTEXT *psServerMMUContext,
+	PRGXFWIF_FWCOMMONCONTEXT *psFWCommonContextFWAddr);
 
-PRGXFWIF_FWCOMMONCONTEXT RGXGetFWCommonContextAddrFromServerCommonCtx(PVRSRV_RGXDEV_INFO *psDevInfo,
-													                  DLLIST_NODE *psNode);
+PRGXFWIF_FWCOMMONCONTEXT
+RGXGetFWCommonContextAddrFromServerCommonCtx(PVRSRV_RGXDEV_INFO *psDevInfo,
+					     DLLIST_NODE *psNode);
 
-PVRSRV_ERROR FWCommonContextSetFlags(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext,
-                                     IMG_UINT32 ui32ContextFlags);
+PVRSRV_ERROR
+FWCommonContextSetFlags(RGX_SERVER_COMMON_CONTEXT *psServerCommonContext,
+			IMG_UINT32 ui32ContextFlags);
 
 PVRSRV_ERROR ContextSetPriority(RGX_SERVER_COMMON_CONTEXT *psContext,
-								CONNECTION_DATA *psConnection,
-								PVRSRV_RGXDEV_INFO *psDevInfo,
-								IMG_INT32 i32Priority,
-								RGXFWIF_DM eDM);
+				CONNECTION_DATA *psConnection,
+				PVRSRV_RGXDEV_INFO *psDevInfo,
+				IMG_INT32 i32Priority, RGXFWIF_DM eDM);
 
-PVRSRV_ERROR CheckStalledClientCommonContext(RGX_SERVER_COMMON_CONTEXT *psCurrentServerCommonContext, RGX_KICK_TYPE_DM eKickTypeDM);
+PVRSRV_ERROR CheckStalledClientCommonContext(
+	RGX_SERVER_COMMON_CONTEXT *psCurrentServerCommonContext,
+	RGX_KICK_TYPE_DM eKickTypeDM);
 
-void DumpFWCommonContextInfo(RGX_SERVER_COMMON_CONTEXT *psCurrentServerCommonContext,
-                             DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                             void *pvDumpDebugFile,
-                             IMG_UINT32 ui32VerbLevel);
+void DumpFWCommonContextInfo(
+	RGX_SERVER_COMMON_CONTEXT *psCurrentServerCommonContext,
+	DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf, void *pvDumpDebugFile,
+	IMG_UINT32 ui32VerbLevel);
 
-void FWCommonContextListSetLastResetReason(PVRSRV_RGXDEV_INFO *psDevInfo,
-                                           IMG_UINT32 *pui32ErrorPid,
-                                           const RGXFWIF_FWCCB_CMD_CONTEXT_RESET_DATA *psCmdContextResetNotification);
+void FWCommonContextListSetLastResetReason(
+	PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 *pui32ErrorPid,
+	const RGXFWIF_FWCCB_CMD_CONTEXT_RESET_DATA
+		*psCmdContextResetNotification);
 
 #endif /* RGXFWCMNCTX_H */
 /******************************************************************************

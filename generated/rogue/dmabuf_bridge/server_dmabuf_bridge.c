@@ -69,25 +69,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 static PVRSRV_ERROR _PhysmemImportDmaBufpsPMRPtrIntRelease(void *pvData)
 {
 	PVRSRV_ERROR eError;
-	eError = PMRUnrefPMR((PMR *) pvData);
+	eError = PMRUnrefPMR((PMR *)pvData);
 	return eError;
 }
 
-static_assert(DEVMEM_ANNOTATION_MAX_LEN <= IMG_UINT32_MAX,
-	      "DEVMEM_ANNOTATION_MAX_LEN must not be larger than IMG_UINT32_MAX");
+static_assert(
+	DEVMEM_ANNOTATION_MAX_LEN <= IMG_UINT32_MAX,
+	"DEVMEM_ANNOTATION_MAX_LEN must not be larger than IMG_UINT32_MAX");
 
 static IMG_INT
 PVRSRVBridgePhysmemImportDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
-				IMG_UINT8 * psPhysmemImportDmaBufIN_UI8,
-				IMG_UINT8 * psPhysmemImportDmaBufOUT_UI8,
-				CONNECTION_DATA * psConnection)
+				IMG_UINT8 *psPhysmemImportDmaBufIN_UI8,
+				IMG_UINT8 *psPhysmemImportDmaBufOUT_UI8,
+				CONNECTION_DATA *psConnection)
 {
 	PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUF *psPhysmemImportDmaBufIN =
-	    (PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUF *) IMG_OFFSET_ADDR(psPhysmemImportDmaBufIN_UI8,
-								     0);
+		(PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUF *)IMG_OFFSET_ADDR(
+			psPhysmemImportDmaBufIN_UI8, 0);
 	PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF *psPhysmemImportDmaBufOUT =
-	    (PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF *) IMG_OFFSET_ADDR(psPhysmemImportDmaBufOUT_UI8,
-								      0);
+		(PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUF *)IMG_OFFSET_ADDR(
+			psPhysmemImportDmaBufOUT_UI8, 0);
 
 	IMG_CHAR *uiNameInt = NULL;
 	PMR *psPMRPtrInt = NULL;
@@ -98,98 +99,96 @@ PVRSRVBridgePhysmemImportDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
 
 	IMG_UINT32 ui32BufferSize = 0;
 	IMG_UINT64 ui64BufferSize =
-	    ((IMG_UINT64) psPhysmemImportDmaBufIN->ui32NameSize * sizeof(IMG_CHAR)) + 0;
+		((IMG_UINT64)psPhysmemImportDmaBufIN->ui32NameSize *
+		 sizeof(IMG_CHAR)) +
+		0;
 
-	if (unlikely(psPhysmemImportDmaBufIN->ui32NameSize > DEVMEM_ANNOTATION_MAX_LEN))
-	{
-		psPhysmemImportDmaBufOUT->eError = PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
+	if (unlikely(psPhysmemImportDmaBufIN->ui32NameSize >
+		     DEVMEM_ANNOTATION_MAX_LEN)) {
+		psPhysmemImportDmaBufOUT->eError =
+			PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
 		goto PhysmemImportDmaBuf_exit;
 	}
 
-	if (ui64BufferSize > IMG_UINT32_MAX)
-	{
-		psPhysmemImportDmaBufOUT->eError = PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
+	if (ui64BufferSize > IMG_UINT32_MAX) {
+		psPhysmemImportDmaBufOUT->eError =
+			PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
 		goto PhysmemImportDmaBuf_exit;
 	}
 
-	ui32BufferSize = (IMG_UINT32) ui64BufferSize;
+	ui32BufferSize = (IMG_UINT32)ui64BufferSize;
 
-	if (ui32BufferSize != 0)
-	{
+	if (ui32BufferSize != 0) {
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
 		IMG_UINT32 ui32InBufferOffset =
-		    PVR_ALIGN(sizeof(*psPhysmemImportDmaBufIN), sizeof(unsigned long));
+			PVR_ALIGN(sizeof(*psPhysmemImportDmaBufIN),
+				  sizeof(unsigned long));
 		IMG_UINT32 ui32InBufferExcessSize =
-		    ui32InBufferOffset >=
-		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+			ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ?
+				0 :
+				PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
-		if (bHaveEnoughSpace)
-		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *) (void *)psPhysmemImportDmaBufIN;
+		if (bHaveEnoughSpace) {
+			IMG_BYTE *pInputBuffer =
+				(IMG_BYTE *)(void *)psPhysmemImportDmaBufIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
-		}
-		else
-		{
+		} else {
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if (!pArrayArgsBuffer)
-			{
-				psPhysmemImportDmaBufOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+			if (!pArrayArgsBuffer) {
+				psPhysmemImportDmaBufOUT->eError =
+					PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto PhysmemImportDmaBuf_exit;
 			}
 		}
 	}
 
-	if (psPhysmemImportDmaBufIN->ui32NameSize != 0)
-	{
-		uiNameInt = (IMG_CHAR *) IMG_OFFSET_ADDR(pArrayArgsBuffer, ui32NextOffset);
-		ui32NextOffset += psPhysmemImportDmaBufIN->ui32NameSize * sizeof(IMG_CHAR);
+	if (psPhysmemImportDmaBufIN->ui32NameSize != 0) {
+		uiNameInt = (IMG_CHAR *)IMG_OFFSET_ADDR(pArrayArgsBuffer,
+							ui32NextOffset);
+		ui32NextOffset += psPhysmemImportDmaBufIN->ui32NameSize *
+				  sizeof(IMG_CHAR);
 	}
 
 	/* Copy the data over */
-	if (psPhysmemImportDmaBufIN->ui32NameSize * sizeof(IMG_CHAR) > 0)
-	{
-		if (OSCopyFromUser
-		    (NULL, uiNameInt, (const void __user *)psPhysmemImportDmaBufIN->puiName,
-		     psPhysmemImportDmaBufIN->ui32NameSize * sizeof(IMG_CHAR)) != PVRSRV_OK)
-		{
-			psPhysmemImportDmaBufOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	if (psPhysmemImportDmaBufIN->ui32NameSize * sizeof(IMG_CHAR) > 0) {
+		if (OSCopyFromUser(NULL, uiNameInt,
+				   (const void __user *)
+					   psPhysmemImportDmaBufIN->puiName,
+				   psPhysmemImportDmaBufIN->ui32NameSize *
+					   sizeof(IMG_CHAR)) != PVRSRV_OK) {
+			psPhysmemImportDmaBufOUT->eError =
+				PVRSRV_ERROR_INVALID_PARAMS;
 
 			goto PhysmemImportDmaBuf_exit;
 		}
-		((IMG_CHAR *) uiNameInt)[(psPhysmemImportDmaBufIN->ui32NameSize * sizeof(IMG_CHAR))
-					 - 1] = '\0';
+		((IMG_CHAR *)uiNameInt)[(psPhysmemImportDmaBufIN->ui32NameSize *
+					 sizeof(IMG_CHAR)) -
+					1] = '\0';
 	}
 
-	psPhysmemImportDmaBufOUT->eError =
-	    PhysmemImportDmaBuf(psConnection, OSGetDevNode(psConnection),
-				psPhysmemImportDmaBufIN->ifd,
-				psPhysmemImportDmaBufIN->uiFlags,
-				psPhysmemImportDmaBufIN->ui32NameSize,
-				uiNameInt,
-				&psPMRPtrInt,
-				&psPhysmemImportDmaBufOUT->uiSize,
-				&psPhysmemImportDmaBufOUT->uiAlign);
+	psPhysmemImportDmaBufOUT->eError = PhysmemImportDmaBuf(
+		psConnection, OSGetDevNode(psConnection),
+		psPhysmemImportDmaBufIN->ifd, psPhysmemImportDmaBufIN->uiFlags,
+		psPhysmemImportDmaBufIN->ui32NameSize, uiNameInt, &psPMRPtrInt,
+		&psPhysmemImportDmaBufOUT->uiSize,
+		&psPhysmemImportDmaBufOUT->uiAlign);
 	/* Exit early if bridged call fails */
-	if (unlikely(psPhysmemImportDmaBufOUT->eError != PVRSRV_OK))
-	{
+	if (unlikely(psPhysmemImportDmaBufOUT->eError != PVRSRV_OK)) {
 		goto PhysmemImportDmaBuf_exit;
 	}
 
 	/* Lock over handle creation. */
 	LockHandle(psConnection->psHandleBase);
 
-	psPhysmemImportDmaBufOUT->eError = PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-								     &psPhysmemImportDmaBufOUT->
-								     hPMRPtr, (void *)psPMRPtrInt,
-								     PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-								     PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
-								     (PFN_HANDLE_RELEASE) &
-								     _PhysmemImportDmaBufpsPMRPtrIntRelease);
-	if (unlikely(psPhysmemImportDmaBufOUT->eError != PVRSRV_OK))
-	{
+	psPhysmemImportDmaBufOUT->eError = PVRSRVAllocHandleUnlocked(
+		psConnection->psHandleBase, &psPhysmemImportDmaBufOUT->hPMRPtr,
+		(void *)psPMRPtrInt, PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+		PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+		(PFN_HANDLE_RELEASE)&_PhysmemImportDmaBufpsPMRPtrIntRelease);
+	if (unlikely(psPhysmemImportDmaBufOUT->eError != PVRSRV_OK)) {
 		UnlockHandle(psConnection->psHandleBase);
 		goto PhysmemImportDmaBuf_exit;
 	}
@@ -199,10 +198,8 @@ PVRSRVBridgePhysmemImportDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
 
 PhysmemImportDmaBuf_exit:
 
-	if (psPhysmemImportDmaBufOUT->eError != PVRSRV_OK)
-	{
-		if (psPMRPtrInt)
-		{
+	if (psPhysmemImportDmaBufOUT->eError != PVRSRV_OK) {
+		if (psPMRPtrInt) {
 			LockHandle(KERNEL_HANDLE_BASE);
 			PMRUnrefPMR(psPMRPtrInt);
 			UnlockHandle(KERNEL_HANDLE_BASE);
@@ -224,25 +221,28 @@ PhysmemImportDmaBuf_exit:
 static PVRSRV_ERROR _PhysmemImportDmaBufLockedpsPMRPtrIntRelease(void *pvData)
 {
 	PVRSRV_ERROR eError;
-	eError = PMRUnrefUnlockPMR((PMR *) pvData);
+	eError = PMRUnrefUnlockPMR((PMR *)pvData);
 	return eError;
 }
 
-static_assert(DEVMEM_ANNOTATION_MAX_LEN <= IMG_UINT32_MAX,
-	      "DEVMEM_ANNOTATION_MAX_LEN must not be larger than IMG_UINT32_MAX");
+static_assert(
+	DEVMEM_ANNOTATION_MAX_LEN <= IMG_UINT32_MAX,
+	"DEVMEM_ANNOTATION_MAX_LEN must not be larger than IMG_UINT32_MAX");
 
-static IMG_INT
-PVRSRVBridgePhysmemImportDmaBufLocked(IMG_UINT32 ui32DispatchTableEntry,
-				      IMG_UINT8 * psPhysmemImportDmaBufLockedIN_UI8,
-				      IMG_UINT8 * psPhysmemImportDmaBufLockedOUT_UI8,
-				      CONNECTION_DATA * psConnection)
+static IMG_INT PVRSRVBridgePhysmemImportDmaBufLocked(
+	IMG_UINT32 ui32DispatchTableEntry,
+	IMG_UINT8 *psPhysmemImportDmaBufLockedIN_UI8,
+	IMG_UINT8 *psPhysmemImportDmaBufLockedOUT_UI8,
+	CONNECTION_DATA *psConnection)
 {
-	PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUFLOCKED *psPhysmemImportDmaBufLockedIN =
-	    (PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUFLOCKED *)
-	    IMG_OFFSET_ADDR(psPhysmemImportDmaBufLockedIN_UI8, 0);
-	PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUFLOCKED *psPhysmemImportDmaBufLockedOUT =
-	    (PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUFLOCKED *)
-	    IMG_OFFSET_ADDR(psPhysmemImportDmaBufLockedOUT_UI8, 0);
+	PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUFLOCKED
+	*psPhysmemImportDmaBufLockedIN =
+		(PVRSRV_BRIDGE_IN_PHYSMEMIMPORTDMABUFLOCKED *)IMG_OFFSET_ADDR(
+			psPhysmemImportDmaBufLockedIN_UI8, 0);
+	PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUFLOCKED
+	*psPhysmemImportDmaBufLockedOUT =
+		(PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTDMABUFLOCKED *)IMG_OFFSET_ADDR(
+			psPhysmemImportDmaBufLockedOUT_UI8, 0);
 
 	IMG_CHAR *uiNameInt = NULL;
 	PMR *psPMRPtrInt = NULL;
@@ -253,99 +253,100 @@ PVRSRVBridgePhysmemImportDmaBufLocked(IMG_UINT32 ui32DispatchTableEntry,
 
 	IMG_UINT32 ui32BufferSize = 0;
 	IMG_UINT64 ui64BufferSize =
-	    ((IMG_UINT64) psPhysmemImportDmaBufLockedIN->ui32NameSize * sizeof(IMG_CHAR)) + 0;
+		((IMG_UINT64)psPhysmemImportDmaBufLockedIN->ui32NameSize *
+		 sizeof(IMG_CHAR)) +
+		0;
 
-	if (unlikely(psPhysmemImportDmaBufLockedIN->ui32NameSize > DEVMEM_ANNOTATION_MAX_LEN))
-	{
-		psPhysmemImportDmaBufLockedOUT->eError = PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
+	if (unlikely(psPhysmemImportDmaBufLockedIN->ui32NameSize >
+		     DEVMEM_ANNOTATION_MAX_LEN)) {
+		psPhysmemImportDmaBufLockedOUT->eError =
+			PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
 		goto PhysmemImportDmaBufLocked_exit;
 	}
 
-	if (ui64BufferSize > IMG_UINT32_MAX)
-	{
-		psPhysmemImportDmaBufLockedOUT->eError = PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
+	if (ui64BufferSize > IMG_UINT32_MAX) {
+		psPhysmemImportDmaBufLockedOUT->eError =
+			PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
 		goto PhysmemImportDmaBufLocked_exit;
 	}
 
-	ui32BufferSize = (IMG_UINT32) ui64BufferSize;
+	ui32BufferSize = (IMG_UINT32)ui64BufferSize;
 
-	if (ui32BufferSize != 0)
-	{
+	if (ui32BufferSize != 0) {
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
 		IMG_UINT32 ui32InBufferOffset =
-		    PVR_ALIGN(sizeof(*psPhysmemImportDmaBufLockedIN), sizeof(unsigned long));
+			PVR_ALIGN(sizeof(*psPhysmemImportDmaBufLockedIN),
+				  sizeof(unsigned long));
 		IMG_UINT32 ui32InBufferExcessSize =
-		    ui32InBufferOffset >=
-		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+			ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ?
+				0 :
+				PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
-		if (bHaveEnoughSpace)
-		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *) (void *)psPhysmemImportDmaBufLockedIN;
+		if (bHaveEnoughSpace) {
+			IMG_BYTE *pInputBuffer = (IMG_BYTE *)(void *)
+				psPhysmemImportDmaBufLockedIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
-		}
-		else
-		{
+		} else {
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if (!pArrayArgsBuffer)
-			{
-				psPhysmemImportDmaBufLockedOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+			if (!pArrayArgsBuffer) {
+				psPhysmemImportDmaBufLockedOUT->eError =
+					PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto PhysmemImportDmaBufLocked_exit;
 			}
 		}
 	}
 
-	if (psPhysmemImportDmaBufLockedIN->ui32NameSize != 0)
-	{
-		uiNameInt = (IMG_CHAR *) IMG_OFFSET_ADDR(pArrayArgsBuffer, ui32NextOffset);
-		ui32NextOffset += psPhysmemImportDmaBufLockedIN->ui32NameSize * sizeof(IMG_CHAR);
+	if (psPhysmemImportDmaBufLockedIN->ui32NameSize != 0) {
+		uiNameInt = (IMG_CHAR *)IMG_OFFSET_ADDR(pArrayArgsBuffer,
+							ui32NextOffset);
+		ui32NextOffset += psPhysmemImportDmaBufLockedIN->ui32NameSize *
+				  sizeof(IMG_CHAR);
 	}
 
 	/* Copy the data over */
-	if (psPhysmemImportDmaBufLockedIN->ui32NameSize * sizeof(IMG_CHAR) > 0)
-	{
-		if (OSCopyFromUser
-		    (NULL, uiNameInt, (const void __user *)psPhysmemImportDmaBufLockedIN->puiName,
-		     psPhysmemImportDmaBufLockedIN->ui32NameSize * sizeof(IMG_CHAR)) != PVRSRV_OK)
-		{
-			psPhysmemImportDmaBufLockedOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	if (psPhysmemImportDmaBufLockedIN->ui32NameSize * sizeof(IMG_CHAR) >
+	    0) {
+		if (OSCopyFromUser(
+			    NULL, uiNameInt,
+			    (const void __user *)
+				    psPhysmemImportDmaBufLockedIN->puiName,
+			    psPhysmemImportDmaBufLockedIN->ui32NameSize *
+				    sizeof(IMG_CHAR)) != PVRSRV_OK) {
+			psPhysmemImportDmaBufLockedOUT->eError =
+				PVRSRV_ERROR_INVALID_PARAMS;
 
 			goto PhysmemImportDmaBufLocked_exit;
 		}
 		((IMG_CHAR *)
-		 uiNameInt)[(psPhysmemImportDmaBufLockedIN->ui32NameSize * sizeof(IMG_CHAR)) - 1] =
-       '\0';
+			 uiNameInt)[(psPhysmemImportDmaBufLockedIN->ui32NameSize *
+				     sizeof(IMG_CHAR)) -
+				    1] = '\0';
 	}
 
-	psPhysmemImportDmaBufLockedOUT->eError =
-	    PhysmemImportDmaBufLocked(psConnection, OSGetDevNode(psConnection),
-				      psPhysmemImportDmaBufLockedIN->ifd,
-				      psPhysmemImportDmaBufLockedIN->uiFlags,
-				      psPhysmemImportDmaBufLockedIN->ui32NameSize,
-				      uiNameInt,
-				      &psPMRPtrInt,
-				      &psPhysmemImportDmaBufLockedOUT->uiSize,
-				      &psPhysmemImportDmaBufLockedOUT->uiAlign);
+	psPhysmemImportDmaBufLockedOUT->eError = PhysmemImportDmaBufLocked(
+		psConnection, OSGetDevNode(psConnection),
+		psPhysmemImportDmaBufLockedIN->ifd,
+		psPhysmemImportDmaBufLockedIN->uiFlags,
+		psPhysmemImportDmaBufLockedIN->ui32NameSize, uiNameInt,
+		&psPMRPtrInt, &psPhysmemImportDmaBufLockedOUT->uiSize,
+		&psPhysmemImportDmaBufLockedOUT->uiAlign);
 	/* Exit early if bridged call fails */
-	if (unlikely(psPhysmemImportDmaBufLockedOUT->eError != PVRSRV_OK))
-	{
+	if (unlikely(psPhysmemImportDmaBufLockedOUT->eError != PVRSRV_OK)) {
 		goto PhysmemImportDmaBufLocked_exit;
 	}
 
 	/* Lock over handle creation. */
 	LockHandle(psConnection->psHandleBase);
 
-	psPhysmemImportDmaBufLockedOUT->eError =
-	    PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-				      &psPhysmemImportDmaBufLockedOUT->hPMRPtr, (void *)psPMRPtrInt,
-				      PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-				      PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
-				      (PFN_HANDLE_RELEASE) &
-				      _PhysmemImportDmaBufLockedpsPMRPtrIntRelease);
-	if (unlikely(psPhysmemImportDmaBufLockedOUT->eError != PVRSRV_OK))
-	{
+	psPhysmemImportDmaBufLockedOUT->eError = PVRSRVAllocHandleUnlocked(
+		psConnection->psHandleBase,
+		&psPhysmemImportDmaBufLockedOUT->hPMRPtr, (void *)psPMRPtrInt,
+		PVRSRV_HANDLE_TYPE_PHYSMEM_PMR, PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+		(PFN_HANDLE_RELEASE)&_PhysmemImportDmaBufLockedpsPMRPtrIntRelease);
+	if (unlikely(psPhysmemImportDmaBufLockedOUT->eError != PVRSRV_OK)) {
 		UnlockHandle(psConnection->psHandleBase);
 		goto PhysmemImportDmaBufLocked_exit;
 	}
@@ -355,10 +356,8 @@ PVRSRVBridgePhysmemImportDmaBufLocked(IMG_UINT32 ui32DispatchTableEntry,
 
 PhysmemImportDmaBufLocked_exit:
 
-	if (psPhysmemImportDmaBufLockedOUT->eError != PVRSRV_OK)
-	{
-		if (psPMRPtrInt)
-		{
+	if (psPhysmemImportDmaBufLockedOUT->eError != PVRSRV_OK) {
+		if (psPMRPtrInt) {
 			LockHandle(KERNEL_HANDLE_BASE);
 			PMRUnrefUnlockPMR(psPMRPtrInt);
 			UnlockHandle(KERNEL_HANDLE_BASE);
@@ -379,16 +378,16 @@ PhysmemImportDmaBufLocked_exit:
 
 static IMG_INT
 PVRSRVBridgePhysmemExportDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
-				IMG_UINT8 * psPhysmemExportDmaBufIN_UI8,
-				IMG_UINT8 * psPhysmemExportDmaBufOUT_UI8,
-				CONNECTION_DATA * psConnection)
+				IMG_UINT8 *psPhysmemExportDmaBufIN_UI8,
+				IMG_UINT8 *psPhysmemExportDmaBufOUT_UI8,
+				CONNECTION_DATA *psConnection)
 {
 	PVRSRV_BRIDGE_IN_PHYSMEMEXPORTDMABUF *psPhysmemExportDmaBufIN =
-	    (PVRSRV_BRIDGE_IN_PHYSMEMEXPORTDMABUF *) IMG_OFFSET_ADDR(psPhysmemExportDmaBufIN_UI8,
-								     0);
+		(PVRSRV_BRIDGE_IN_PHYSMEMEXPORTDMABUF *)IMG_OFFSET_ADDR(
+			psPhysmemExportDmaBufIN_UI8, 0);
 	PVRSRV_BRIDGE_OUT_PHYSMEMEXPORTDMABUF *psPhysmemExportDmaBufOUT =
-	    (PVRSRV_BRIDGE_OUT_PHYSMEMEXPORTDMABUF *) IMG_OFFSET_ADDR(psPhysmemExportDmaBufOUT_UI8,
-								      0);
+		(PVRSRV_BRIDGE_OUT_PHYSMEMEXPORTDMABUF *)IMG_OFFSET_ADDR(
+			psPhysmemExportDmaBufOUT_UI8, 0);
 
 	IMG_HANDLE hPMR = psPhysmemExportDmaBufIN->hPMR;
 	PMR *psPMRInt = NULL;
@@ -397,12 +396,10 @@ PVRSRVBridgePhysmemExportDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
 	LockHandle(psConnection->psHandleBase);
 
 	/* Look up the address from the handle */
-	psPhysmemExportDmaBufOUT->eError =
-	    PVRSRVLookupHandleUnlocked(psConnection->psHandleBase,
-				       (void **)&psPMRInt,
-				       hPMR, PVRSRV_HANDLE_TYPE_PHYSMEM_PMR, IMG_TRUE);
-	if (unlikely(psPhysmemExportDmaBufOUT->eError != PVRSRV_OK))
-	{
+	psPhysmemExportDmaBufOUT->eError = PVRSRVLookupHandleUnlocked(
+		psConnection->psHandleBase, (void **)&psPMRInt, hPMR,
+		PVRSRV_HANDLE_TYPE_PHYSMEM_PMR, IMG_TRUE);
+	if (unlikely(psPhysmemExportDmaBufOUT->eError != PVRSRV_OK)) {
 		UnlockHandle(psConnection->psHandleBase);
 		goto PhysmemExportDmaBuf_exit;
 	}
@@ -410,8 +407,8 @@ PVRSRVBridgePhysmemExportDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
 	UnlockHandle(psConnection->psHandleBase);
 
 	psPhysmemExportDmaBufOUT->eError =
-	    PhysmemExportDmaBuf(psConnection, OSGetDevNode(psConnection),
-				psPMRInt, &psPhysmemExportDmaBufOUT->iFd);
+		PhysmemExportDmaBuf(psConnection, OSGetDevNode(psConnection),
+				    psPMRInt, &psPhysmemExportDmaBufOUT->iFd);
 
 PhysmemExportDmaBuf_exit:
 
@@ -419,10 +416,9 @@ PhysmemExportDmaBuf_exit:
 	LockHandle(psConnection->psHandleBase);
 
 	/* Unreference the previously looked up handle */
-	if (psPMRInt)
-	{
-		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase,
-					    hPMR, PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
+	if (psPMRInt) {
+		PVRSRVReleaseHandleUnlocked(psConnection->psHandleBase, hPMR,
+					    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
 	}
 	/* Release now we have cleaned up look up handles. */
 	UnlockHandle(psConnection->psHandleBase);
@@ -433,27 +429,31 @@ PhysmemExportDmaBuf_exit:
 static PVRSRV_ERROR _PhysmemImportSparseDmaBufpsPMRPtrIntRelease(void *pvData)
 {
 	PVRSRV_ERROR eError;
-	eError = PMRUnrefPMR((PMR *) pvData);
+	eError = PMRUnrefPMR((PMR *)pvData);
 	return eError;
 }
 
-static_assert(PMR_MAX_SUPPORTED_4K_PAGE_COUNT <= IMG_UINT32_MAX,
-	      "PMR_MAX_SUPPORTED_4K_PAGE_COUNT must not be larger than IMG_UINT32_MAX");
-static_assert(DEVMEM_ANNOTATION_MAX_LEN <= IMG_UINT32_MAX,
-	      "DEVMEM_ANNOTATION_MAX_LEN must not be larger than IMG_UINT32_MAX");
+static_assert(
+	PMR_MAX_SUPPORTED_4K_PAGE_COUNT <= IMG_UINT32_MAX,
+	"PMR_MAX_SUPPORTED_4K_PAGE_COUNT must not be larger than IMG_UINT32_MAX");
+static_assert(
+	DEVMEM_ANNOTATION_MAX_LEN <= IMG_UINT32_MAX,
+	"DEVMEM_ANNOTATION_MAX_LEN must not be larger than IMG_UINT32_MAX");
 
-static IMG_INT
-PVRSRVBridgePhysmemImportSparseDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
-				      IMG_UINT8 * psPhysmemImportSparseDmaBufIN_UI8,
-				      IMG_UINT8 * psPhysmemImportSparseDmaBufOUT_UI8,
-				      CONNECTION_DATA * psConnection)
+static IMG_INT PVRSRVBridgePhysmemImportSparseDmaBuf(
+	IMG_UINT32 ui32DispatchTableEntry,
+	IMG_UINT8 *psPhysmemImportSparseDmaBufIN_UI8,
+	IMG_UINT8 *psPhysmemImportSparseDmaBufOUT_UI8,
+	CONNECTION_DATA *psConnection)
 {
-	PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF *psPhysmemImportSparseDmaBufIN =
-	    (PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF *)
-	    IMG_OFFSET_ADDR(psPhysmemImportSparseDmaBufIN_UI8, 0);
-	PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF *psPhysmemImportSparseDmaBufOUT =
-	    (PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF *)
-	    IMG_OFFSET_ADDR(psPhysmemImportSparseDmaBufOUT_UI8, 0);
+	PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF
+	*psPhysmemImportSparseDmaBufIN =
+		(PVRSRV_BRIDGE_IN_PHYSMEMIMPORTSPARSEDMABUF *)IMG_OFFSET_ADDR(
+			psPhysmemImportSparseDmaBufIN_UI8, 0);
+	PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF
+	*psPhysmemImportSparseDmaBufOUT =
+		(PVRSRV_BRIDGE_OUT_PHYSMEMIMPORTSPARSEDMABUF *)IMG_OFFSET_ADDR(
+			psPhysmemImportSparseDmaBufOUT_UI8, 0);
 
 	IMG_UINT32 *ui32MappingTableInt = NULL;
 	IMG_CHAR *uiNameInt = NULL;
@@ -465,133 +465,137 @@ PVRSRVBridgePhysmemImportSparseDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
 
 	IMG_UINT32 ui32BufferSize = 0;
 	IMG_UINT64 ui64BufferSize =
-	    ((IMG_UINT64) psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks * sizeof(IMG_UINT32)) +
-	    ((IMG_UINT64) psPhysmemImportSparseDmaBufIN->ui32NameSize * sizeof(IMG_CHAR)) + 0;
+		((IMG_UINT64)psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks *
+		 sizeof(IMG_UINT32)) +
+		((IMG_UINT64)psPhysmemImportSparseDmaBufIN->ui32NameSize *
+		 sizeof(IMG_CHAR)) +
+		0;
 
-	if (unlikely
-	    (psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks > PMR_MAX_SUPPORTED_4K_PAGE_COUNT))
-	{
-		psPhysmemImportSparseDmaBufOUT->eError = PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
+	if (unlikely(psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks >
+		     PMR_MAX_SUPPORTED_4K_PAGE_COUNT)) {
+		psPhysmemImportSparseDmaBufOUT->eError =
+			PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
 		goto PhysmemImportSparseDmaBuf_exit;
 	}
 
-	if (unlikely(psPhysmemImportSparseDmaBufIN->ui32NameSize > DEVMEM_ANNOTATION_MAX_LEN))
-	{
-		psPhysmemImportSparseDmaBufOUT->eError = PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
+	if (unlikely(psPhysmemImportSparseDmaBufIN->ui32NameSize >
+		     DEVMEM_ANNOTATION_MAX_LEN)) {
+		psPhysmemImportSparseDmaBufOUT->eError =
+			PVRSRV_ERROR_BRIDGE_ARRAY_SIZE_TOO_BIG;
 		goto PhysmemImportSparseDmaBuf_exit;
 	}
 
-	if (ui64BufferSize > IMG_UINT32_MAX)
-	{
-		psPhysmemImportSparseDmaBufOUT->eError = PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
+	if (ui64BufferSize > IMG_UINT32_MAX) {
+		psPhysmemImportSparseDmaBufOUT->eError =
+			PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
 		goto PhysmemImportSparseDmaBuf_exit;
 	}
 
-	ui32BufferSize = (IMG_UINT32) ui64BufferSize;
+	ui32BufferSize = (IMG_UINT32)ui64BufferSize;
 
-	if (ui32BufferSize != 0)
-	{
+	if (ui32BufferSize != 0) {
 		/* Try to use remainder of input buffer for copies if possible, word-aligned for safety. */
 		IMG_UINT32 ui32InBufferOffset =
-		    PVR_ALIGN(sizeof(*psPhysmemImportSparseDmaBufIN), sizeof(unsigned long));
+			PVR_ALIGN(sizeof(*psPhysmemImportSparseDmaBufIN),
+				  sizeof(unsigned long));
 		IMG_UINT32 ui32InBufferExcessSize =
-		    ui32InBufferOffset >=
-		    PVRSRV_MAX_BRIDGE_IN_SIZE ? 0 : PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
+			ui32InBufferOffset >= PVRSRV_MAX_BRIDGE_IN_SIZE ?
+				0 :
+				PVRSRV_MAX_BRIDGE_IN_SIZE - ui32InBufferOffset;
 
 		bHaveEnoughSpace = ui32BufferSize <= ui32InBufferExcessSize;
-		if (bHaveEnoughSpace)
-		{
-			IMG_BYTE *pInputBuffer = (IMG_BYTE *) (void *)psPhysmemImportSparseDmaBufIN;
+		if (bHaveEnoughSpace) {
+			IMG_BYTE *pInputBuffer = (IMG_BYTE *)(void *)
+				psPhysmemImportSparseDmaBufIN;
 
 			pArrayArgsBuffer = &pInputBuffer[ui32InBufferOffset];
-		}
-		else
-		{
+		} else {
 			pArrayArgsBuffer = OSAllocMemNoStats(ui32BufferSize);
 
-			if (!pArrayArgsBuffer)
-			{
-				psPhysmemImportSparseDmaBufOUT->eError = PVRSRV_ERROR_OUT_OF_MEMORY;
+			if (!pArrayArgsBuffer) {
+				psPhysmemImportSparseDmaBufOUT->eError =
+					PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto PhysmemImportSparseDmaBuf_exit;
 			}
 		}
 	}
 
-	if (psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks != 0)
-	{
-		ui32MappingTableInt =
-		    (IMG_UINT32 *) IMG_OFFSET_ADDR(pArrayArgsBuffer, ui32NextOffset);
+	if (psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks != 0) {
+		ui32MappingTableInt = (IMG_UINT32 *)IMG_OFFSET_ADDR(
+			pArrayArgsBuffer, ui32NextOffset);
 		ui32NextOffset +=
-		    psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks * sizeof(IMG_UINT32);
+			psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks *
+			sizeof(IMG_UINT32);
 	}
 
 	/* Copy the data over */
-	if (psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks * sizeof(IMG_UINT32) > 0)
-	{
-		if (OSCopyFromUser
-		    (NULL, ui32MappingTableInt,
-		     (const void __user *)psPhysmemImportSparseDmaBufIN->pui32MappingTable,
-		     psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks * sizeof(IMG_UINT32)) !=
-		    PVRSRV_OK)
-		{
-			psPhysmemImportSparseDmaBufOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	if (psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks *
+		    sizeof(IMG_UINT32) >
+	    0) {
+		if (OSCopyFromUser(
+			    NULL, ui32MappingTableInt,
+			    (const void __user *)psPhysmemImportSparseDmaBufIN
+				    ->pui32MappingTable,
+			    psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks *
+				    sizeof(IMG_UINT32)) != PVRSRV_OK) {
+			psPhysmemImportSparseDmaBufOUT->eError =
+				PVRSRV_ERROR_INVALID_PARAMS;
 
 			goto PhysmemImportSparseDmaBuf_exit;
 		}
 	}
-	if (psPhysmemImportSparseDmaBufIN->ui32NameSize != 0)
-	{
-		uiNameInt = (IMG_CHAR *) IMG_OFFSET_ADDR(pArrayArgsBuffer, ui32NextOffset);
-		ui32NextOffset += psPhysmemImportSparseDmaBufIN->ui32NameSize * sizeof(IMG_CHAR);
+	if (psPhysmemImportSparseDmaBufIN->ui32NameSize != 0) {
+		uiNameInt = (IMG_CHAR *)IMG_OFFSET_ADDR(pArrayArgsBuffer,
+							ui32NextOffset);
+		ui32NextOffset += psPhysmemImportSparseDmaBufIN->ui32NameSize *
+				  sizeof(IMG_CHAR);
 	}
 
 	/* Copy the data over */
-	if (psPhysmemImportSparseDmaBufIN->ui32NameSize * sizeof(IMG_CHAR) > 0)
-	{
-		if (OSCopyFromUser
-		    (NULL, uiNameInt, (const void __user *)psPhysmemImportSparseDmaBufIN->puiName,
-		     psPhysmemImportSparseDmaBufIN->ui32NameSize * sizeof(IMG_CHAR)) != PVRSRV_OK)
-		{
-			psPhysmemImportSparseDmaBufOUT->eError = PVRSRV_ERROR_INVALID_PARAMS;
+	if (psPhysmemImportSparseDmaBufIN->ui32NameSize * sizeof(IMG_CHAR) >
+	    0) {
+		if (OSCopyFromUser(
+			    NULL, uiNameInt,
+			    (const void __user *)
+				    psPhysmemImportSparseDmaBufIN->puiName,
+			    psPhysmemImportSparseDmaBufIN->ui32NameSize *
+				    sizeof(IMG_CHAR)) != PVRSRV_OK) {
+			psPhysmemImportSparseDmaBufOUT->eError =
+				PVRSRV_ERROR_INVALID_PARAMS;
 
 			goto PhysmemImportSparseDmaBuf_exit;
 		}
 		((IMG_CHAR *)
-		 uiNameInt)[(psPhysmemImportSparseDmaBufIN->ui32NameSize * sizeof(IMG_CHAR)) - 1] =
-       '\0';
+			 uiNameInt)[(psPhysmemImportSparseDmaBufIN->ui32NameSize *
+				     sizeof(IMG_CHAR)) -
+				    1] = '\0';
 	}
 
-	psPhysmemImportSparseDmaBufOUT->eError =
-	    PhysmemImportSparseDmaBuf(psConnection, OSGetDevNode(psConnection),
-				      psPhysmemImportSparseDmaBufIN->ifd,
-				      psPhysmemImportSparseDmaBufIN->uiFlags,
-				      psPhysmemImportSparseDmaBufIN->uiChunkSize,
-				      psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks,
-				      psPhysmemImportSparseDmaBufIN->ui32NumVirtChunks,
-				      ui32MappingTableInt,
-				      psPhysmemImportSparseDmaBufIN->ui32NameSize,
-				      uiNameInt,
-				      &psPMRPtrInt,
-				      &psPhysmemImportSparseDmaBufOUT->uiSize,
-				      &psPhysmemImportSparseDmaBufOUT->uiAlign);
+	psPhysmemImportSparseDmaBufOUT->eError = PhysmemImportSparseDmaBuf(
+		psConnection, OSGetDevNode(psConnection),
+		psPhysmemImportSparseDmaBufIN->ifd,
+		psPhysmemImportSparseDmaBufIN->uiFlags,
+		psPhysmemImportSparseDmaBufIN->uiChunkSize,
+		psPhysmemImportSparseDmaBufIN->ui32NumPhysChunks,
+		psPhysmemImportSparseDmaBufIN->ui32NumVirtChunks,
+		ui32MappingTableInt,
+		psPhysmemImportSparseDmaBufIN->ui32NameSize, uiNameInt,
+		&psPMRPtrInt, &psPhysmemImportSparseDmaBufOUT->uiSize,
+		&psPhysmemImportSparseDmaBufOUT->uiAlign);
 	/* Exit early if bridged call fails */
-	if (unlikely(psPhysmemImportSparseDmaBufOUT->eError != PVRSRV_OK))
-	{
+	if (unlikely(psPhysmemImportSparseDmaBufOUT->eError != PVRSRV_OK)) {
 		goto PhysmemImportSparseDmaBuf_exit;
 	}
 
 	/* Lock over handle creation. */
 	LockHandle(psConnection->psHandleBase);
 
-	psPhysmemImportSparseDmaBufOUT->eError =
-	    PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-				      &psPhysmemImportSparseDmaBufOUT->hPMRPtr, (void *)psPMRPtrInt,
-				      PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-				      PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
-				      (PFN_HANDLE_RELEASE) &
-				      _PhysmemImportSparseDmaBufpsPMRPtrIntRelease);
-	if (unlikely(psPhysmemImportSparseDmaBufOUT->eError != PVRSRV_OK))
-	{
+	psPhysmemImportSparseDmaBufOUT->eError = PVRSRVAllocHandleUnlocked(
+		psConnection->psHandleBase,
+		&psPhysmemImportSparseDmaBufOUT->hPMRPtr, (void *)psPMRPtrInt,
+		PVRSRV_HANDLE_TYPE_PHYSMEM_PMR, PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+		(PFN_HANDLE_RELEASE)&_PhysmemImportSparseDmaBufpsPMRPtrIntRelease);
+	if (unlikely(psPhysmemImportSparseDmaBufOUT->eError != PVRSRV_OK)) {
 		UnlockHandle(psConnection->psHandleBase);
 		goto PhysmemImportSparseDmaBuf_exit;
 	}
@@ -601,10 +605,8 @@ PVRSRVBridgePhysmemImportSparseDmaBuf(IMG_UINT32 ui32DispatchTableEntry,
 
 PhysmemImportSparseDmaBuf_exit:
 
-	if (psPhysmemImportSparseDmaBufOUT->eError != PVRSRV_OK)
-	{
-		if (psPMRPtrInt)
-		{
+	if (psPhysmemImportSparseDmaBufOUT->eError != PVRSRV_OK) {
+		if (psPMRPtrInt) {
 			LockHandle(KERNEL_HANDLE_BASE);
 			PMRUnrefPMR(psPMRPtrInt);
 			UnlockHandle(KERNEL_HANDLE_BASE);
@@ -635,17 +637,20 @@ void DeinitDMABUFBridge(void);
  */
 PVRSRV_ERROR InitDMABUFBridge(void)
 {
-
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF, PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUF,
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
+			      PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUF,
 			      PVRSRVBridgePhysmemImportDmaBuf, NULL);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF, PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUFLOCKED,
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
+			      PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUFLOCKED,
 			      PVRSRVBridgePhysmemImportDmaBufLocked, NULL);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF, PVRSRV_BRIDGE_DMABUF_PHYSMEMEXPORTDMABUF,
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
+			      PVRSRV_BRIDGE_DMABUF_PHYSMEMEXPORTDMABUF,
 			      PVRSRVBridgePhysmemExportDmaBuf, NULL);
 
-	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF, PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTSPARSEDMABUF,
+	SetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
+			      PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTSPARSEDMABUF,
 			      PVRSRVBridgePhysmemImportSparseDmaBuf, NULL);
 
 	return PVRSRV_OK;
@@ -656,15 +661,15 @@ PVRSRV_ERROR InitDMABUFBridge(void)
  */
 void DeinitDMABUFBridge(void)
 {
-
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF, PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUF);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
+				PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUF);
 
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
 				PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTDMABUFLOCKED);
 
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF, PVRSRV_BRIDGE_DMABUF_PHYSMEMEXPORTDMABUF);
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
+				PVRSRV_BRIDGE_DMABUF_PHYSMEMEXPORTDMABUF);
 
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_DMABUF,
 				PVRSRV_BRIDGE_DMABUF_PHYSMEMIMPORTSPARSEDMABUF);
-
 }

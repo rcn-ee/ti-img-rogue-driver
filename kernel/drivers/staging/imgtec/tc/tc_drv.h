@@ -52,9 +52,9 @@
 #include <linux/device.h>
 
 /* Valid values for the TC_MEMORY_CONFIG configuration option */
-#define TC_MEMORY_LOCAL		1
-#define TC_MEMORY_HOST		2
-#define TC_MEMORY_HYBRID	3
+#define TC_MEMORY_LOCAL 1
+#define TC_MEMORY_HOST 2
+#define TC_MEMORY_HYBRID 3
 
 /* Baseboard implementation enumeration */
 #define TC_BASEBOARD_APOLLO 1
@@ -67,23 +67,23 @@
 
 /* NOTE: This should be kept in sync with the user side (in buffer_generic.c) */
 #if defined(SUPPORT_RGX)
-#define ION_HEAP_TC_ROGUE    (ION_HEAP_TYPE_CUSTOM+1)
+#define ION_HEAP_TC_ROGUE (ION_HEAP_TYPE_CUSTOM + 1)
 #endif
-#define ION_HEAP_TC_PDP      (ION_HEAP_TYPE_CUSTOM+2)
+#define ION_HEAP_TC_PDP (ION_HEAP_TYPE_CUSTOM + 2)
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
-#define ION_HEAP_TC_SECURE   (ION_HEAP_TYPE_CUSTOM+3)
+#define ION_HEAP_TC_SECURE (ION_HEAP_TYPE_CUSTOM + 3)
 #endif
 
 #endif /* defined(SUPPORT_ION) */
 
-#define TC_INTERRUPT_PDP     0
-#define TC_INTERRUPT_EXT     1
+#define TC_INTERRUPT_PDP 0
+#define TC_INTERRUPT_EXT 1
 #define TC_INTERRUPT_TC5_PDP 2
-#define TC_INTERRUPT_PDP2    3
-#define TC_INTERRUPT_CDMA    4
-#define TC_INTERRUPT_CDMA2   5
-#define TC_INTERRUPT_COUNT   6
+#define TC_INTERRUPT_PDP2 3
+#define TC_INTERRUPT_CDMA 4
+#define TC_INTERRUPT_CDMA2 5
+#define TC_INTERRUPT_COUNT 6
 
 int tc_enable(struct device *dev);
 void tc_disable(struct device *dev);
@@ -92,14 +92,16 @@ int tc_enable_interrupt(struct device *dev, int interrupt_id);
 int tc_disable_interrupt(struct device *dev, int interrupt_id);
 
 int tc_set_interrupt_handler(struct device *dev, int interrupt_id,
-	void (*handler_function)(void *), void *handler_data);
+			     void (*handler_function)(void *),
+			     void *handler_data);
 
 int tc_sys_info(struct device *dev, u32 *tmp, u32 *pll);
-int tc_sys_strings(struct device *dev,
-	char *str_fpga_rev, size_t size_fpga_rev, char *str_tcf_core_rev,
-	size_t size_tcf_core_rev, char *str_tcf_core_target_build_id,
-	size_t size_tcf_core_target_build_id, char *str_pci_ver,
-	size_t size_pci_ver, char *str_macro_ver, size_t size_macro_ver);
+int tc_sys_strings(struct device *dev, char *str_fpga_rev, size_t size_fpga_rev,
+		   char *str_tcf_core_rev, size_t size_tcf_core_rev,
+		   char *str_tcf_core_target_build_id,
+		   size_t size_tcf_core_target_build_id, char *str_pci_ver,
+		   size_t size_pci_ver, char *str_macro_ver,
+		   size_t size_macro_ver);
 int tc_core_clock_speed(struct device *dev);
 int tc_core_clock_multiplex(struct device *dev);
 
@@ -111,9 +113,9 @@ bool tc_pdp2_compatible(struct device *dev);
 void tc_dma_chan_free(struct device *dev, void *chandata);
 struct dma_chan *tc_dma_chan(struct device *dev, char *name);
 
-#define APOLLO_DEVICE_NAME_PDP   "apollo_pdp"
-#define ODN_DEVICE_NAME_PDP      "odin_pdp"
-#define ODN_DEVICE_NAME_CDMA     "odin-cdma"
+#define APOLLO_DEVICE_NAME_PDP "apollo_pdp"
+#define ODN_DEVICE_NAME_PDP "odin_pdp"
+#define ODN_DEVICE_NAME_CDMA "odin-cdma"
 
 /* The following structs are initialised and passed down by the parent tc
  * driver to the respective sub-drivers

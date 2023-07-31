@@ -68,9 +68,8 @@ static int netlink_gem_mmap_capsys(struct file *file,
 	int err;
 
 	drm_vma_offset_lock_lookup(dev->vma_offset_manager);
-	node = drm_vma_offset_exact_lookup_locked(dev->vma_offset_manager,
-						  vma->vm_pgoff,
-						  vma_pages(vma));
+	node = drm_vma_offset_exact_lookup_locked(
+		dev->vma_offset_manager, vma->vm_pgoff, vma_pages(vma));
 	if (node) {
 		obj = container_of(node, struct drm_gem_object, vma_node);
 
@@ -105,7 +104,7 @@ int netlink_gem_mmap(struct file *file, struct vm_area_struct *vma)
 
 	return err;
 }
-#else	/* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) */
+#else /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) */
 int netlink_gem_mmap(struct file *file, struct vm_area_struct *vma)
 {
 	struct drm_file *file_priv = file->private_data;
@@ -117,8 +116,7 @@ int netlink_gem_mmap(struct file *file, struct vm_area_struct *vma)
 	mutex_lock(&dev->struct_mutex);
 
 	node = drm_vma_offset_exact_lookup(dev->vma_offset_manager,
-					   vma->vm_pgoff,
-					   vma_pages(vma));
+					   vma->vm_pgoff, vma_pages(vma));
 	if (!node) {
 		err = -EINVAL;
 		goto exit_unlock;
@@ -140,4 +138,4 @@ exit_unlock:
 	mutex_unlock(&dev->struct_mutex);
 	return err;
 }
-#endif	/* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) */
+#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0)) */

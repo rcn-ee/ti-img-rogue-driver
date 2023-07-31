@@ -59,36 +59,38 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *   - compression tile dimension: 8x8, 16x4, 32x2
  *   - FBDC version: V0, V1, V2, V3, V7, V8, V10, V12
  */
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V0      fourcc_mod_code(PVR, 1)
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V0_FIX  fourcc_mod_code(PVR, 2) /* Fix for HW_BRN_37464 */
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V0 fourcc_mod_code(PVR, 1)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V0_FIX \
+	fourcc_mod_code(PVR, 2) /* Fix for HW_BRN_37464 */
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_V1 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V2      fourcc_mod_code(PVR, 4)
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V3      fourcc_mod_code(PVR, 5)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V2 fourcc_mod_code(PVR, 4)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V3 fourcc_mod_code(PVR, 5)
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_V7 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V8      fourcc_mod_code(PVR, 18)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V8 fourcc_mod_code(PVR, 18)
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_V10 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_V12 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_V13 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_LOSSY25_V13 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_LOSSY50_V13 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_8x8_LOSSY75_V13 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V0     fourcc_mod_code(PVR, 7)
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V0_FIX fourcc_mod_code(PVR, 8) /* Fix for HW_BRN_37464 */
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V0 fourcc_mod_code(PVR, 7)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V0_FIX \
+	fourcc_mod_code(PVR, 8) /* Fix for HW_BRN_37464 */
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_V1 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V2     fourcc_mod_code(PVR, 10)
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V3     fourcc_mod_code(PVR, 11)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V2 fourcc_mod_code(PVR, 10)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V3 fourcc_mod_code(PVR, 11)
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_V7 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V8     fourcc_mod_code(PVR, 19)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V8 fourcc_mod_code(PVR, 19)
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_V10 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_V12 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_V13 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_LOSSY25_V13 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_LOSSY50_V13 - moved to the public header */
 /* DRM_FORMAT_MOD_PVR_FBCDC_16x4_LOSSY75_V13 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V1     fourcc_mod_code(PVR, 13)
-#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V3     fourcc_mod_code(PVR, 14)
-#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V8     fourcc_mod_code(PVR, 20)
+#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V1 fourcc_mod_code(PVR, 13)
+#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V3 fourcc_mod_code(PVR, 14)
+#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V8 fourcc_mod_code(PVR, 20)
 /* DRM_FORMAT_MOD_PVR_FBCDC_32x2_V10 - moved to the public header */
-#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V12    fourcc_mod_code(PVR, 17)
+#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V12 fourcc_mod_code(PVR, 17)
 
 #endif /* IMG_DRM_FOURCC_INTERNAL_H */

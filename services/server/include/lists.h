@@ -48,15 +48,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* PRQA S 0881,3410 ++ */
 
 #if defined(__linux__)
- #include <linux/version.h>
+#include <linux/version.h>
 
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
-  #include <linux/stdarg.h>
- #else
-  #include <stdarg.h>
- #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+#include <linux/stdarg.h>
 #else
- #include <stdarg.h>
+#include <stdarg.h>
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#else
+#include <stdarg.h>
 #endif /* __linux__ */
 
 #include "img_types.h"
@@ -96,18 +96,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Input          psHead        The head of the list to be processed.
 @Input          pfnCallBack   The function to be applied to each element of the list.
 */ /**************************************************************************/
-#define DECLARE_LIST_FOR_EACH(TYPE) \
-void List_##TYPE##_ForEach(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode))
+#define DECLARE_LIST_FOR_EACH(TYPE)              \
+	void List_##TYPE##_ForEach(TYPE *psHead, \
+				   void (*pfnCallBack)(TYPE * psNode))
 
-#define IMPLEMENT_LIST_FOR_EACH(TYPE) \
-void List_##TYPE##_ForEach(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode))\
-{\
-	while (psHead)\
-	{\
-		pfnCallBack(psHead);\
-		psHead = psHead->psNext;\
-	}\
-}
+#define IMPLEMENT_LIST_FOR_EACH(TYPE)                                  \
+	void List_##TYPE##_ForEach(TYPE *psHead,                       \
+				   void (*pfnCallBack)(TYPE * psNode)) \
+	{                                                              \
+		while (psHead) {                                       \
+			pfnCallBack(psHead);                           \
+			psHead = psHead->psNext;                       \
+		}                                                      \
+	}
 
 /*************************************************************************/ /*!
 @Function       List_##TYPE##_ForEachSafe
@@ -117,39 +118,41 @@ void List_##TYPE##_ForEach(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode))\
 @Input          psHead        The head of the list to be processed.
 @Input          pfnCallBack   The function to be applied to each element of the list.
 */ /**************************************************************************/
-#define DECLARE_LIST_FOR_EACH_SAFE(TYPE) \
-void List_##TYPE##_ForEachSafe(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode))
+#define DECLARE_LIST_FOR_EACH_SAFE(TYPE)             \
+	void List_##TYPE##_ForEachSafe(TYPE *psHead, \
+				       void (*pfnCallBack)(TYPE * psNode))
 
-#define IMPLEMENT_LIST_FOR_EACH_SAFE(TYPE) \
-void List_##TYPE##_ForEachSafe(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode))\
-{\
-	TYPE *psNext;\
-\
-	while (psHead)\
-	{\
-		psNext = psHead->psNext; \
-		pfnCallBack(psHead);\
-		psHead = psNext;\
-	}\
-}
+#define IMPLEMENT_LIST_FOR_EACH_SAFE(TYPE)                                 \
+	void List_##TYPE##_ForEachSafe(TYPE *psHead,                       \
+				       void (*pfnCallBack)(TYPE * psNode)) \
+	{                                                                  \
+		TYPE *psNext;                                              \
+                                                                           \
+		while (psHead) {                                           \
+			psNext = psHead->psNext;                           \
+			pfnCallBack(psHead);                               \
+			psHead = psNext;                                   \
+		}                                                          \
+	}
 
+#define DECLARE_LIST_FOR_EACH_VA(TYPE)                                        \
+	void List_##TYPE##_ForEach_va(                                        \
+		TYPE *psHead, void (*pfnCallBack)(TYPE * psNode, va_list va), \
+		...)
 
-#define DECLARE_LIST_FOR_EACH_VA(TYPE) \
-void List_##TYPE##_ForEach_va(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode, va_list va), ...)
-
-#define IMPLEMENT_LIST_FOR_EACH_VA(TYPE) \
-void List_##TYPE##_ForEach_va(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode, va_list va), ...) \
-{\
-	va_list ap;\
-	while (psHead)\
-	{\
-		va_start(ap, pfnCallBack);\
-		pfnCallBack(psHead, ap);\
-		psHead = psHead->psNext;\
-		va_end(ap);\
-	}\
-}
-
+#define IMPLEMENT_LIST_FOR_EACH_VA(TYPE)                                      \
+	void List_##TYPE##_ForEach_va(                                        \
+		TYPE *psHead, void (*pfnCallBack)(TYPE * psNode, va_list va), \
+		...)                                                          \
+	{                                                                     \
+		va_list ap;                                                   \
+		while (psHead) {                                              \
+			va_start(ap, pfnCallBack);                            \
+			pfnCallBack(psHead, ap);                              \
+			psHead = psHead->psNext;                              \
+			va_end(ap);                                           \
+		}                                                             \
+	}
 
 /*************************************************************************/ /*!
 @Function       List_##TYPE##_Any
@@ -159,108 +162,111 @@ void List_##TYPE##_ForEach_va(TYPE *psHead, void(*pfnCallBack)(TYPE* psNode, va_
 @Input          pfnCallBack   The function to be applied to each element of the list.
 @Return         The first non null value returned by the callback function.
 */ /**************************************************************************/
-#define DECLARE_LIST_ANY(TYPE) \
-void* List_##TYPE##_Any(TYPE *psHead, void* (*pfnCallBack)(TYPE* psNode))
+#define DECLARE_LIST_ANY(TYPE)                \
+	void *List_##TYPE##_Any(TYPE *psHead, \
+				void *(*pfnCallBack)(TYPE * psNode))
 
-#define IMPLEMENT_LIST_ANY(TYPE) \
-void* List_##TYPE##_Any(TYPE *psHead, void* (*pfnCallBack)(TYPE* psNode))\
-{ \
-	void *pResult;\
-	TYPE *psNextNode;\
-	pResult = NULL;\
-	psNextNode = psHead;\
-	while (psHead && !pResult)\
-	{\
-		psNextNode = psNextNode->psNext;\
-		pResult = pfnCallBack(psHead);\
-		psHead = psNextNode;\
-	}\
-	return pResult;\
-}
-
+#define IMPLEMENT_LIST_ANY(TYPE)                                     \
+	void *List_##TYPE##_Any(TYPE *psHead,                        \
+				void *(*pfnCallBack)(TYPE * psNode)) \
+	{                                                            \
+		void *pResult;                                       \
+		TYPE *psNextNode;                                    \
+		pResult = NULL;                                      \
+		psNextNode = psHead;                                 \
+		while (psHead && !pResult) {                         \
+			psNextNode = psNextNode->psNext;             \
+			pResult = pfnCallBack(psHead);               \
+			psHead = psNextNode;                         \
+		}                                                    \
+		return pResult;                                      \
+	}
 
 /*with variable arguments, that will be passed as a va_list to the callback function*/
 
-#define DECLARE_LIST_ANY_VA(TYPE) \
-void* List_##TYPE##_Any_va(TYPE *psHead, void*(*pfnCallBack)(TYPE* psNode, va_list va), ...)
+#define DECLARE_LIST_ANY_VA(TYPE)                                              \
+	void *List_##TYPE##_Any_va(                                            \
+		TYPE *psHead, void *(*pfnCallBack)(TYPE * psNode, va_list va), \
+		...)
 
-#define IMPLEMENT_LIST_ANY_VA(TYPE) \
-void* List_##TYPE##_Any_va(TYPE *psHead, void*(*pfnCallBack)(TYPE* psNode, va_list va), ...)\
-{\
-	va_list ap;\
-	TYPE *psNextNode;\
-	void* pResult = NULL;\
-	while (psHead && !pResult)\
-	{\
-		psNextNode = psHead->psNext;\
-		va_start(ap, pfnCallBack);\
-		pResult = pfnCallBack(psHead, ap);\
-		va_end(ap);\
-		psHead = psNextNode;\
-	}\
-	return pResult;\
-}
+#define IMPLEMENT_LIST_ANY_VA(TYPE)                                            \
+	void *List_##TYPE##_Any_va(                                            \
+		TYPE *psHead, void *(*pfnCallBack)(TYPE * psNode, va_list va), \
+		...)                                                           \
+	{                                                                      \
+		va_list ap;                                                    \
+		TYPE *psNextNode;                                              \
+		void *pResult = NULL;                                          \
+		while (psHead && !pResult) {                                   \
+			psNextNode = psHead->psNext;                           \
+			va_start(ap, pfnCallBack);                             \
+			pResult = pfnCallBack(psHead, ap);                     \
+			va_end(ap);                                            \
+			psHead = psNextNode;                                   \
+		}                                                              \
+		return pResult;                                                \
+	}
 
 /*those ones are for extra type safety, so there's no need to use castings for the results*/
 
-#define DECLARE_LIST_ANY_2(TYPE, RTYPE, CONTINUE) \
-RTYPE List_##TYPE##_##RTYPE##_Any(TYPE *psHead, RTYPE (*pfnCallBack)(TYPE* psNode))
+#define DECLARE_LIST_ANY_2(TYPE, RTYPE, CONTINUE)       \
+	RTYPE List_##TYPE##_##RTYPE##_Any(TYPE *psHead, \
+					  RTYPE (*pfnCallBack)(TYPE * psNode))
 
-#define IMPLEMENT_LIST_ANY_2(TYPE, RTYPE, CONTINUE) \
-RTYPE List_##TYPE##_##RTYPE##_Any(TYPE *psHead, RTYPE (*pfnCallBack)(TYPE* psNode))\
-{ \
-	RTYPE result;\
-	TYPE *psNextNode;\
-	result = CONTINUE;\
-	psNextNode = psHead;\
-	while (psHead && result == CONTINUE)\
-	{\
-		psNextNode = psNextNode->psNext;\
-		result = pfnCallBack(psHead);\
-		psHead = psNextNode;\
-	}\
-	return result;\
-}
+#define IMPLEMENT_LIST_ANY_2(TYPE, RTYPE, CONTINUE)                            \
+	RTYPE List_##TYPE##_##RTYPE##_Any(TYPE *psHead,                        \
+					  RTYPE (*pfnCallBack)(TYPE * psNode)) \
+	{                                                                      \
+		RTYPE result;                                                  \
+		TYPE *psNextNode;                                              \
+		result = CONTINUE;                                             \
+		psNextNode = psHead;                                           \
+		while (psHead && result == CONTINUE) {                         \
+			psNextNode = psNextNode->psNext;                       \
+			result = pfnCallBack(psHead);                          \
+			psHead = psNextNode;                                   \
+		}                                                              \
+		return result;                                                 \
+	}
 
+#define DECLARE_LIST_ANY_VA_2(TYPE, RTYPE, CONTINUE)                           \
+	RTYPE List_##TYPE##_##RTYPE##_Any_va(                                  \
+		TYPE *psHead, RTYPE (*pfnCallBack)(TYPE * psNode, va_list va), \
+		...)
 
-#define DECLARE_LIST_ANY_VA_2(TYPE, RTYPE, CONTINUE) \
-RTYPE List_##TYPE##_##RTYPE##_Any_va(TYPE *psHead, RTYPE(*pfnCallBack)(TYPE* psNode, va_list va), ...)
-
-#define IMPLEMENT_LIST_ANY_VA_2(TYPE, RTYPE, CONTINUE) \
-RTYPE List_##TYPE##_##RTYPE##_Any_va(TYPE *psHead, RTYPE(*pfnCallBack)(TYPE* psNode, va_list va), ...)\
-{\
-	va_list ap;\
-	TYPE *psNextNode;\
-	RTYPE result = CONTINUE;\
-	while (psHead && result == CONTINUE)\
-	{\
-		psNextNode = psHead->psNext;\
-		va_start(ap, pfnCallBack);\
-		result = pfnCallBack(psHead, ap);\
-		va_end(ap);\
-		psHead = psNextNode;\
-	}\
-	return result;\
-}
-
+#define IMPLEMENT_LIST_ANY_VA_2(TYPE, RTYPE, CONTINUE)                         \
+	RTYPE List_##TYPE##_##RTYPE##_Any_va(                                  \
+		TYPE *psHead, RTYPE (*pfnCallBack)(TYPE * psNode, va_list va), \
+		...)                                                           \
+	{                                                                      \
+		va_list ap;                                                    \
+		TYPE *psNextNode;                                              \
+		RTYPE result = CONTINUE;                                       \
+		while (psHead && result == CONTINUE) {                         \
+			psNextNode = psHead->psNext;                           \
+			va_start(ap, pfnCallBack);                             \
+			result = pfnCallBack(psHead, ap);                      \
+			va_end(ap);                                            \
+			psHead = psNextNode;                                   \
+		}                                                              \
+		return result;                                                 \
+	}
 
 /*************************************************************************/ /*!
 @Function       List_##TYPE##_Remove
 @Description    Removes a given node from the list.
 @Input          psNode      The pointer to the node to be removed.
 */ /**************************************************************************/
-#define DECLARE_LIST_REMOVE(TYPE) \
-void List_##TYPE##_Remove(TYPE *psNode)
+#define DECLARE_LIST_REMOVE(TYPE) void List_##TYPE##_Remove(TYPE *psNode)
 
-#define IMPLEMENT_LIST_REMOVE(TYPE) \
-void List_##TYPE##_Remove(TYPE *psNode)\
-{\
-	(*psNode->ppsThis)=psNode->psNext;\
-	if (psNode->psNext)\
-	{\
-		psNode->psNext->ppsThis = psNode->ppsThis;\
-	}\
-}
+#define IMPLEMENT_LIST_REMOVE(TYPE)                                \
+	void List_##TYPE##_Remove(TYPE *psNode)                    \
+	{                                                          \
+		(*psNode->ppsThis) = psNode->psNext;               \
+		if (psNode->psNext) {                              \
+			psNode->psNext->ppsThis = psNode->ppsThis; \
+		}                                                  \
+	}
 
 /*************************************************************************/ /*!
 @Function       List_##TYPE##_Insert
@@ -269,19 +275,18 @@ void List_##TYPE##_Remove(TYPE *psNode)\
 @Input          psNode   The pointer to the node to be inserted.
 */ /**************************************************************************/
 #define DECLARE_LIST_INSERT(TYPE) \
-void List_##TYPE##_Insert(TYPE **ppsHead, TYPE *psNewNode)
+	void List_##TYPE##_Insert(TYPE **ppsHead, TYPE *psNewNode)
 
-#define IMPLEMENT_LIST_INSERT(TYPE) \
-void List_##TYPE##_Insert(TYPE **ppsHead, TYPE *psNewNode)\
-{\
-	psNewNode->ppsThis = ppsHead;\
-	psNewNode->psNext = *ppsHead;\
-	*ppsHead = psNewNode;\
-	if (psNewNode->psNext)\
-	{\
-		psNewNode->psNext->ppsThis = &(psNewNode->psNext);\
-	}\
-}
+#define IMPLEMENT_LIST_INSERT(TYPE)                                        \
+	void List_##TYPE##_Insert(TYPE **ppsHead, TYPE *psNewNode)         \
+	{                                                                  \
+		psNewNode->ppsThis = ppsHead;                              \
+		psNewNode->psNext = *ppsHead;                              \
+		*ppsHead = psNewNode;                                      \
+		if (psNewNode->psNext) {                                   \
+			psNewNode->psNext->ppsThis = &(psNewNode->psNext); \
+		}                                                          \
+	}
 
 /*************************************************************************/ /*!
 @Function       List_##TYPE##_InsertTail
@@ -290,58 +295,52 @@ void List_##TYPE##_Insert(TYPE **ppsHead, TYPE *psNewNode)\
 @Input          psNode   The pointer to the node to be inserted.
 */ /**************************************************************************/
 #define DECLARE_LIST_INSERT_TAIL(TYPE) \
-void List_##TYPE##_InsertTail(TYPE **ppsHead, TYPE *psNewNode)
+	void List_##TYPE##_InsertTail(TYPE **ppsHead, TYPE *psNewNode)
 
-#define IMPLEMENT_LIST_INSERT_TAIL(TYPE) \
-void List_##TYPE##_InsertTail(TYPE **ppsHead, TYPE *psNewNode)\
-{\
-	TYPE *psTempNode = *ppsHead;\
-	if (psTempNode != NULL)\
-	{\
-		while (psTempNode->psNext)\
-			psTempNode = psTempNode->psNext;\
-		ppsHead = &psTempNode->psNext;\
-	}\
-	psNewNode->ppsThis = ppsHead;\
-	psNewNode->psNext = NULL;\
-	*ppsHead = psNewNode;\
-}
+#define IMPLEMENT_LIST_INSERT_TAIL(TYPE)                               \
+	void List_##TYPE##_InsertTail(TYPE **ppsHead, TYPE *psNewNode) \
+	{                                                              \
+		TYPE *psTempNode = *ppsHead;                           \
+		if (psTempNode != NULL) {                              \
+			while (psTempNode->psNext)                     \
+				psTempNode = psTempNode->psNext;       \
+			ppsHead = &psTempNode->psNext;                 \
+		}                                                      \
+		psNewNode->ppsThis = ppsHead;                          \
+		psNewNode->psNext = NULL;                              \
+		*ppsHead = psNewNode;                                  \
+	}
 
 /*************************************************************************/ /*!
 @Function       List_##TYPE##_Reverse
 @Description    Reverse a list in place
 @Input          ppsHead    The pointer to the pointer to the head node.
 */ /**************************************************************************/
-#define DECLARE_LIST_REVERSE(TYPE) \
-void List_##TYPE##_Reverse(TYPE **ppsHead)
+#define DECLARE_LIST_REVERSE(TYPE) void List_##TYPE##_Reverse(TYPE **ppsHead)
 
-#define IMPLEMENT_LIST_REVERSE(TYPE) \
-void List_##TYPE##_Reverse(TYPE **ppsHead)\
-{\
-	TYPE *psTmpNode1; \
-	TYPE *psTmpNode2; \
-	TYPE *psCurNode; \
-	psTmpNode1 = NULL; \
-	psCurNode = *ppsHead; \
-	while (psCurNode) { \
-		psTmpNode2 = psCurNode->psNext; \
-		psCurNode->psNext = psTmpNode1; \
-		psTmpNode1 = psCurNode; \
-		psCurNode = psTmpNode2; \
-		if (psCurNode) \
-		{ \
-			psTmpNode1->ppsThis = &(psCurNode->psNext); \
-		} \
-		else \
-		{ \
-			psTmpNode1->ppsThis = ppsHead; \
-		} \
-	} \
-	*ppsHead = psTmpNode1; \
-}
+#define IMPLEMENT_LIST_REVERSE(TYPE)                                        \
+	void List_##TYPE##_Reverse(TYPE **ppsHead)                          \
+	{                                                                   \
+		TYPE *psTmpNode1;                                           \
+		TYPE *psTmpNode2;                                           \
+		TYPE *psCurNode;                                            \
+		psTmpNode1 = NULL;                                          \
+		psCurNode = *ppsHead;                                       \
+		while (psCurNode) {                                         \
+			psTmpNode2 = psCurNode->psNext;                     \
+			psCurNode->psNext = psTmpNode1;                     \
+			psTmpNode1 = psCurNode;                             \
+			psCurNode = psTmpNode2;                             \
+			if (psCurNode) {                                    \
+				psTmpNode1->ppsThis = &(psCurNode->psNext); \
+			} else {                                            \
+				psTmpNode1->ppsThis = ppsHead;              \
+			}                                                   \
+		}                                                           \
+		*ppsHead = psTmpNode1;                                      \
+	}
 
 #define IS_LAST_ELEMENT(x) ((x)->psNext == NULL)
-
 
 DECLARE_LIST_ANY(PVRSRV_DEVICE_NODE);
 DECLARE_LIST_ANY_2(PVRSRV_DEVICE_NODE, IMG_BOOL, IMG_FALSE);

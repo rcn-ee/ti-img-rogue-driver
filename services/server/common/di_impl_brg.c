@@ -72,36 +72,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define WRITER_THREAD_DESTROY_TIMEOUT 100000ull
 #define WRITER_THREAD_DESTROY_RETRIES 10u
 
-#define WRITE_RETRY_COUNT 10      /* retry a write to a TL buffer 10 times */
+#define WRITE_RETRY_COUNT 10 /* retry a write to a TL buffer 10 times */
 #define WRITE_RETRY_WAIT_TIME 100 /* wait 10ms between write retries */
 
-typedef enum THREAD_STATE
-{
+typedef enum THREAD_STATE {
 	THREAD_STATE_NULL,
 	THREAD_STATE_ALIVE,
 	THREAD_STATE_TERMINATED,
 } THREAD_STATE;
 
-static struct DIIB_IMPL
-{
-	HASH_TABLE *psEntriesTable;    /*!< Table of entries. */
-	POS_LOCK psEntriesLock;        /*!< Protects psEntriesTable. */
+static struct DIIB_IMPL {
+	HASH_TABLE *psEntriesTable; /*!< Table of entries. */
+	POS_LOCK psEntriesLock; /*!< Protects psEntriesTable. */
 	IMG_HANDLE hWriterThread;
 	IMG_HANDLE hWriterEventObject;
 	ATOMIC_T eThreadState;
 
 	DLLIST_NODE sWriterQueue;
-	POS_LOCK psWriterLock;         /*!< Protects sWriterQueue. */
+	POS_LOCK psWriterLock; /*!< Protects sWriterQueue. */
 } *_g_psImpl;
 
-struct DIIB_GROUP
-{
+struct DIIB_GROUP {
 	const IMG_CHAR *pszName;
 	struct DIIB_GROUP *psParentGroup;
 };
 
-struct DIIB_ENTRY
-{
+struct DIIB_ENTRY {
 	struct DIIB_GROUP *psParentGroup;
 	OSDI_IMPL_ENTRY sImplEntry;
 	DI_ITERATOR_CB sIterCb;
@@ -112,16 +108,14 @@ struct DIIB_ENTRY
 	POS_LOCK hLock; /*!< Protects access to entry's iterator. */
 };
 
-struct DI_CONTEXT_TAG
-{
+struct DI_CONTEXT_TAG {
 	IMG_HANDLE hStream;
 	ATOMIC_T iRefCnt;
 	IMG_BOOL bClientConnected; /*!< Indicated that the client is or is not
 	                                connected to the DI. */
 };
 
-struct DIIB_WORK_ITEM
-{
+struct DIIB_WORK_ITEM {
 	DI_CONTEXT *psContext;
 	DIIB_ENTRY *psEntry;
 	IMG_UINT64 ui64Size;
@@ -133,7 +127,7 @@ struct DIIB_WORK_ITEM
 /* Declaring function here to avoid dependencies that are introduced by
  * including osfunc.h. */
 IMG_INT32 OSStringNCompare(const IMG_CHAR *pStr1, const IMG_CHAR *pStr2,
-                           size_t uiSize);
+			   size_t uiSize);
 
 /* djb2 hash function is public domain */
 static IMG_UINT32 _Hash(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen)
@@ -144,9 +138,9 @@ static IMG_UINT32 _Hash(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen)
 	PVR_UNREFERENCED_PARAMETER(uKeySize);
 	PVR_UNREFERENCED_PARAMETER(uHashTabLen);
 
-	while ((ui32Char = *pszStr++) != '\0')
-	{
-		ui32Hash = ((ui32Hash << 5) + ui32Hash) + ui32Char; /* hash * 33 + c */
+	while ((ui32Char = *pszStr++) != '\0') {
+		ui32Hash = ((ui32Hash << 5) + ui32Hash) +
+			   ui32Char; /* hash * 33 + c */
 	}
 
 	return ui32Hash;
@@ -162,49 +156,47 @@ static IMG_BOOL _Compare(size_t uKeySize, void *pKey1, void *pKey2)
 /* ----- native callbacks interface ----------------------------------------- */
 
 static void _WriteWithRetires(void *pvNativeHandle, const IMG_CHAR *pszStr,
-                              IMG_UINT uiLen)
+			      IMG_UINT uiLen)
 {
 	PVRSRV_ERROR eError;
 	IMG_INT iRetry = 0;
 	IMG_UINT32 ui32Flags = TL_FLAG_NO_WRITE_FAILED;
 
-	do
-	{
+	do {
 		/* Try to write to the buffer but don't inject MOST_RECENT_WRITE_FAILED
 		 * packet in case of failure because we're going to retry. */
-		eError = TLStreamWriteRetFlags(pvNativeHandle, (IMG_UINT8 *) pszStr,
-		                               uiLen, &ui32Flags);
-		if (eError == PVRSRV_ERROR_STREAM_FULL)
-		{
+		eError = TLStreamWriteRetFlags(
+			pvNativeHandle, (IMG_UINT8 *)pszStr, uiLen, &ui32Flags);
+		if (eError == PVRSRV_ERROR_STREAM_FULL) {
 			// wait to give the client a change to read
 			OSSleepms(WRITE_RETRY_WAIT_TIME);
 		}
-	}
-	while (eError == PVRSRV_ERROR_STREAM_FULL && iRetry++ < WRITE_RETRY_COUNT);
+	} while (eError == PVRSRV_ERROR_STREAM_FULL &&
+		 iRetry++ < WRITE_RETRY_COUNT);
 
 	/* One last try to write to the buffer. In this case upon failure
 	 * a MOST_RECENT_WRITE_FAILED packet will be inject to the buffer to
 	 * indicate data loss. */
-	if (eError == PVRSRV_ERROR_STREAM_FULL)
-	{
-		eError = TLStreamWrite(pvNativeHandle, (IMG_UINT8 *) pszStr, uiLen);
+	if (eError == PVRSRV_ERROR_STREAM_FULL) {
+		eError = TLStreamWrite(pvNativeHandle, (IMG_UINT8 *)pszStr,
+				       uiLen);
 	}
 
 	PVR_LOG_IF_ERROR(eError, "TLStreamWrite");
 }
 
 static void _WriteData(void *pvNativeHandle, const void *pvData,
-                       IMG_UINT32 uiSize)
+		       IMG_UINT32 uiSize)
 {
 	_WriteWithRetires(pvNativeHandle, pvData, uiSize);
 }
 
-__printf(2, 0)
-static void _VPrintf(void *pvNativeHandle, const IMG_CHAR *pszFmt,
-                     va_list pArgs)
+__printf(2, 0) static void _VPrintf(void *pvNativeHandle,
+				    const IMG_CHAR *pszFmt, va_list pArgs)
 {
 	IMG_CHAR pcBuffer[STREAM_LINE_LENGTH];
-	IMG_UINT uiLen = OSVSNPrintf(pcBuffer, sizeof(pcBuffer) - 1, pszFmt, pArgs);
+	IMG_UINT uiLen =
+		OSVSNPrintf(pcBuffer, sizeof(pcBuffer) - 1, pszFmt, pArgs);
 	pcBuffer[uiLen] = '\0';
 
 	_WriteWithRetires(pvNativeHandle, pcBuffer, uiLen + 1);
@@ -232,8 +224,7 @@ static OSDI_IMPL_ENTRY_CB _g_sEntryCallbacks = {
 
 static PVRSRV_ERROR _ContextUnrefAndMaybeDestroy(DI_CONTEXT *psContext)
 {
-	if (OSAtomicDecrement(&psContext->iRefCnt) == 0)
-	{
+	if (OSAtomicDecrement(&psContext->iRefCnt) == 0) {
 		TLStreamClose(psContext->hStream);
 		OSFreeMem(psContext);
 	}
@@ -249,16 +240,13 @@ static IMG_INT64 _ReadGeneric(const DI_CONTEXT *psContext, DIIB_ENTRY *psEntry)
 	OSDI_IMPL_ENTRY *psImplEntry = &psEntry->sImplEntry;
 	PVRSRV_ERROR eError;
 
-	if (psIter->pfnStart != NULL)
-	{
+	if (psIter->pfnStart != NULL) {
 		/* this is a full sequence of the operation */
 		void *pvData = psIter->pfnStart(psImplEntry, &ui64Pos);
 
-		while (pvData != NULL && psContext->bClientConnected)
-		{
+		while (pvData != NULL && psContext->bClientConnected) {
 			iRet = psIter->pfnShow(psImplEntry, pvData);
-			if (iRet < 0)
-			{
+			if (iRet < 0) {
 				break;
 			}
 
@@ -266,9 +254,7 @@ static IMG_INT64 _ReadGeneric(const DI_CONTEXT *psContext, DIIB_ENTRY *psEntry)
 		}
 
 		psIter->pfnStop(psImplEntry, pvData);
-	}
-	else if (psIter->pfnShow != NULL)
-	{
+	} else if (psIter->pfnShow != NULL) {
 		/* this is a simplified sequence of the operation */
 		iRet = psIter->pfnShow(psImplEntry, NULL);
 	}
@@ -283,22 +269,21 @@ return_error_:
 }
 
 static IMG_INT64 _ReadRndAccess(DIIB_ENTRY *psEntry, IMG_UINT64 ui64Count,
-                                IMG_UINT64 *pui64Pos, void *pvData)
+				IMG_UINT64 *pui64Pos, void *pvData)
 {
 	PVRSRV_ERROR eError;
 	IMG_UINT8 *pui8Buffer;
 	IMG_HANDLE hStream = psEntry->sImplEntry.pvNative;
 
-	if (psEntry->sIterCb.pfnRead == NULL)
-	{
+	if (psEntry->sIterCb.pfnRead == NULL) {
 		return -1;
 	}
 
 	eError = TLStreamReserve(hStream, &pui8Buffer, ui64Count);
 	PVR_LOG_GOTO_IF_ERROR(eError, "TLStreamReserve", return_error_);
 
-	psEntry->sIterCb.pfnRead((IMG_CHAR *) pui8Buffer, ui64Count, pui64Pos,
-	                         pvData);
+	psEntry->sIterCb.pfnRead((IMG_CHAR *)pui8Buffer, ui64Count, pui64Pos,
+				 pvData);
 
 	eError = TLStreamCommit(hStream, ui64Count);
 	PVR_LOG_GOTO_IF_ERROR(eError, "TLStreamCommit", return_error_);
@@ -322,7 +307,8 @@ static void _WriterThread(void *pvArg)
 	PVR_LOG_RETURN_VOID_IF_ERROR(eError, "OSEventObjectOpen");
 
 #ifdef PVRSRV_FORCE_UNLOAD_IF_BAD_STATE
-	while (PVRSRVGetPVRSRVData()->eServicesState == PVRSRV_SERVICES_STATE_OK &&
+	while (PVRSRVGetPVRSRVData()->eServicesState ==
+		       PVRSRV_SERVICES_STATE_OK &&
 	       OSAtomicRead(&_g_psImpl->eThreadState) == THREAD_STATE_ALIVE)
 #else
 	while (OSAtomicRead(&_g_psImpl->eThreadState) == THREAD_STATE_ALIVE)
@@ -333,8 +319,8 @@ static void _WriterThread(void *pvArg)
 		OSLockAcquire(_g_psImpl->psWriterLock);
 		/* Get element from list tail so that we always get the oldest element
 		 * (elements are added to head). */
-		while ((psNode = dllist_get_prev_node(&_g_psImpl->sWriterQueue)) != NULL)
-		{
+		while ((psNode = dllist_get_prev_node(
+				&_g_psImpl->sWriterQueue)) != NULL) {
 			IMG_INT64 i64Ret;
 			DIIB_ENTRY *psEntry;
 			OSDI_IMPL_ENTRY *psImplEntry;
@@ -343,46 +329,50 @@ static void _WriterThread(void *pvArg)
 			OSLockRelease(_g_psImpl->psWriterLock);
 
 			psItem = IMG_CONTAINER_OF(psNode, struct DIIB_WORK_ITEM,
-			                          sQueueElement);
+						  sQueueElement);
 
 			psEntry = psItem->psEntry;
 			psImplEntry = &psItem->psEntry->sImplEntry;
 
 			/* if client has already disconnected we can just drop this item */
-			if (psItem->psContext->bClientConnected)
-			{
-
+			if (psItem->psContext->bClientConnected) {
 				PVR_ASSERT(psItem->psContext->hStream != NULL);
 
-				psImplEntry->pvNative = psItem->psContext->hStream;
+				psImplEntry->pvNative =
+					psItem->psContext->hStream;
 
-				if (psEntry->eType == DI_ENTRY_TYPE_GENERIC)
-				{
-					i64Ret = _ReadGeneric(psItem->psContext, psEntry);
-					PVR_LOG_IF_FALSE(i64Ret >= 0, "generic access read operation "
-					                 "failed");
-				}
-				else if (psEntry->eType == DI_ENTRY_TYPE_RANDOM_ACCESS)
-				{
+				if (psEntry->eType == DI_ENTRY_TYPE_GENERIC) {
+					i64Ret = _ReadGeneric(psItem->psContext,
+							      psEntry);
+					PVR_LOG_IF_FALSE(
+						i64Ret >= 0,
+						"generic access read operation "
+						"failed");
+				} else if (psEntry->eType ==
+					   DI_ENTRY_TYPE_RANDOM_ACCESS) {
 					IMG_UINT64 ui64Pos = psItem->ui64Offset;
 
-					i64Ret = _ReadRndAccess(psEntry, psItem->ui64Size, &ui64Pos,
-					                        psEntry->pvPrivData);
-					PVR_LOG_IF_FALSE(i64Ret >= 0, "random access read operation "
-					                 "failed");
-				}
-				else
-				{
-					PVR_ASSERT(psEntry->eType == DI_ENTRY_TYPE_GENERIC ||
-					           psEntry->eType == DI_ENTRY_TYPE_RANDOM_ACCESS);
+					i64Ret = _ReadRndAccess(
+						psEntry, psItem->ui64Size,
+						&ui64Pos, psEntry->pvPrivData);
+					PVR_LOG_IF_FALSE(
+						i64Ret >= 0,
+						"random access read operation "
+						"failed");
+				} else {
+					PVR_ASSERT(
+						psEntry->eType ==
+							DI_ENTRY_TYPE_GENERIC ||
+						psEntry->eType ==
+							DI_ENTRY_TYPE_RANDOM_ACCESS);
 				}
 
 				psImplEntry->pvNative = NULL;
-			}
-			else
-			{
-				PVR_DPF((PVR_DBG_MESSAGE, "client reading entry \"%s\" has "
-				        "disconnected", psEntry->pszFullPath));
+			} else {
+				PVR_DPF((PVR_DBG_MESSAGE,
+					 "client reading entry \"%s\" has "
+					 "disconnected",
+					 psEntry->pszFullPath));
 			}
 
 			_ContextUnrefAndMaybeDestroy(psItem->psContext);
@@ -392,20 +382,19 @@ static void _WriterThread(void *pvArg)
 		}
 		OSLockRelease(_g_psImpl->psWriterLock);
 
-		eError = OSEventObjectWaitKernel(hEvent, WRITER_THREAD_SLEEP_TIMEOUT);
-		if (eError != PVRSRV_OK && eError != PVRSRV_ERROR_TIMEOUT)
-		{
+		eError = OSEventObjectWaitKernel(hEvent,
+						 WRITER_THREAD_SLEEP_TIMEOUT);
+		if (eError != PVRSRV_OK && eError != PVRSRV_ERROR_TIMEOUT) {
 			PVR_LOG_ERROR(eError, "OSEventObjectWaitKernel");
 		}
 	}
 
 	OSLockAcquire(_g_psImpl->psWriterLock);
 	/* clear the queue if there are any items pending */
-	while ((psNode = dllist_get_prev_node(&_g_psImpl->sWriterQueue)) != NULL)
-	{
-		struct DIIB_WORK_ITEM *psItem = IMG_CONTAINER_OF(psNode,
-		                                                 struct DIIB_WORK_ITEM,
-		                                                 sQueueElement);
+	while ((psNode = dllist_get_prev_node(&_g_psImpl->sWriterQueue)) !=
+	       NULL) {
+		struct DIIB_WORK_ITEM *psItem = IMG_CONTAINER_OF(
+			psNode, struct DIIB_WORK_ITEM, sQueueElement);
 
 		dllist_remove_node(psNode);
 		_ContextUnrefAndMaybeDestroy(psItem->psContext);
@@ -426,8 +415,8 @@ DIIB_ENTRY *DIImplBrgFind(const IMG_CHAR *pszPath)
 	DIIB_ENTRY *psEntry;
 
 	OSLockAcquire(_g_psImpl->psEntriesLock);
-	psEntry = (void *) HASH_Retrieve_Extended(_g_psImpl->psEntriesTable,
-	                                          (IMG_CHAR *) pszPath);
+	psEntry = (void *)HASH_Retrieve_Extended(_g_psImpl->psEntriesTable,
+						 (IMG_CHAR *)pszPath);
 	OSLockRelease(_g_psImpl->psEntriesLock);
 
 	return psEntry;
@@ -444,9 +433,8 @@ static PVRSRV_ERROR _CreateStream(IMG_CHAR *pszStreamName, IMG_HANDLE *phStream)
 	/* for now only one stream can be created. Should we be able to create
 	 * per context stream? */
 	iRet = OSSNPrintf(pszStreamName, PRVSRVTL_MAX_STREAM_NAME_SIZE,
-	                  "di_stream_%x", OSGetCurrentClientProcessIDKM());
-	if (iRet >= PRVSRVTL_MAX_STREAM_NAME_SIZE)
-	{
+			  "di_stream_%x", OSGetCurrentClientProcessIDKM());
+	if (iRet >= PRVSRVTL_MAX_STREAM_NAME_SIZE) {
 		/* this check is superfluous because it can never happen but in case
 		 * someone changes the definition of PRVSRVTL_MAX_STREAM_NAME_SIZE
 		 * handle this case */
@@ -455,7 +443,7 @@ static PVRSRV_ERROR _CreateStream(IMG_CHAR *pszStreamName, IMG_HANDLE *phStream)
 	}
 
 	eError = TLStreamCreate(&hStream, pszStreamName, STREAM_BUFFER_SIZE,
-	                        TL_OPMODE_DROP_NEWER, NULL, NULL, NULL, NULL);
+				TL_OPMODE_DROP_NEWER, NULL, NULL, NULL, NULL);
 	PVR_RETURN_IF_ERROR(eError);
 
 	*phStream = hStream;
@@ -486,17 +474,17 @@ PVRSRV_ERROR DICreateContextKM(IMG_CHAR *pszStreamName, DI_CONTEXT **ppsContext)
 	OSAtomicWrite(&psContext->iRefCnt, 1);
 
 	eTState = OSAtomicCompareExchange(&_g_psImpl->eThreadState,
-	                                  THREAD_STATE_NULL,
-	                                  THREAD_STATE_ALIVE);
+					  THREAD_STATE_NULL,
+					  THREAD_STATE_ALIVE);
 
 	/* if the thread has not been started yet do it */
-	if (eTState == THREAD_STATE_NULL)
-	{
+	if (eTState == THREAD_STATE_NULL) {
 		PVR_ASSERT(_g_psImpl->hWriterThread == NULL);
 
 		eError = OSThreadCreate(&_g_psImpl->hWriterThread, "di_writer",
-		                        _WriterThread, NULL, IMG_FALSE, NULL);
-		PVR_LOG_GOTO_IF_ERROR(eError, "OSThreadCreate", free_close_stream_);
+					_WriterThread, NULL, IMG_FALSE, NULL);
+		PVR_LOG_GOTO_IF_ERROR(eError, "OSThreadCreate",
+				      free_close_stream_);
 	}
 
 	*ppsContext = psContext;
@@ -524,7 +512,7 @@ PVRSRV_ERROR DIDestroyContextKM(DI_CONTEXT *psContext)
 }
 
 PVRSRV_ERROR DIReadEntryKM(DI_CONTEXT *psContext, const IMG_CHAR *pszEntryPath,
-                           IMG_UINT64 ui64Offset, IMG_UINT64 ui64Size)
+			   IMG_UINT64 ui64Offset, IMG_UINT64 ui64Size)
 {
 	PVRSRV_ERROR eError;
 	struct DIIB_WORK_ITEM *psItem;
@@ -539,7 +527,7 @@ PVRSRV_ERROR DIReadEntryKM(DI_CONTEXT *psContext, const IMG_CHAR *pszEntryPath,
 	psItem->psContext = psContext;
 	psItem->psEntry = DIImplBrgFind(pszEntryPath);
 	PVR_LOG_GOTO_IF_FALSE_VA(psItem->psEntry != NULL, free_item_,
-	                         "entry %s does not exist", pszEntryPath);
+				 "entry %s does not exist", pszEntryPath);
 	psItem->ui64Size = ui64Size;
 	psItem->ui64Offset = ui64Offset;
 
@@ -564,7 +552,7 @@ return_:
 }
 
 PVRSRV_ERROR DIWriteEntryKM(DI_CONTEXT *psContext, const IMG_CHAR *pszEntryPath,
-                           IMG_UINT32 ui32ValueSize, const IMG_CHAR *pszValue)
+			    IMG_UINT32 ui32ValueSize, const IMG_CHAR *pszValue)
 {
 	DIIB_ENTRY *psEntry;
 	DI_PFN_WRITE pfnEntryPuts;
@@ -576,44 +564,43 @@ PVRSRV_ERROR DIWriteEntryKM(DI_CONTEXT *psContext, const IMG_CHAR *pszEntryPath,
 
 	psEntry = DIImplBrgFind(pszEntryPath);
 	PVR_LOG_RETURN_IF_FALSE_VA(psEntry != NULL, PVRSRV_ERROR_NOT_FOUND,
-	                         "entry %s does not exist", pszEntryPath);
+				   "entry %s does not exist", pszEntryPath);
 
 	pfnEntryPuts = psEntry->sIterCb.pfnWrite;
-	if (pfnEntryPuts != NULL)
-	{
-		i64Length = pfnEntryPuts(pszValue, ui32ValueSize, (IMG_UINT64*)&i64Length, psEntry->pvPrivData);
+	if (pfnEntryPuts != NULL) {
+		i64Length = pfnEntryPuts(pszValue, ui32ValueSize,
+					 (IMG_UINT64 *)&i64Length,
+					 psEntry->pvPrivData);
 
 		/* To deal with -EINVAL being returned */
 		PVR_LOG_RETURN_IF_INVALID_PARAM(i64Length >= 0, pszValue);
-	}
-	else
-	{
-		PVR_LOG_MSG(PVR_DBG_WARNING, "Unable to write to Entry. Write callback not enabled");
+	} else {
+		PVR_LOG_MSG(
+			PVR_DBG_WARNING,
+			"Unable to write to Entry. Write callback not enabled");
 		return PVRSRV_ERROR_INVALID_REQUEST;
 	}
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR _listName(uintptr_t k,
-                               uintptr_t v,
-                               void* hStream)
+static PVRSRV_ERROR _listName(uintptr_t k, uintptr_t v, void *hStream)
 {
 	PVRSRV_ERROR eError;
 	DIIB_ENTRY *psEntry;
 	IMG_UINT32 ui32Size;
 	IMG_CHAR aszName[DI_IMPL_BRG_PATH_LEN];
 
-	psEntry = (DIIB_ENTRY*) v;
+	psEntry = (DIIB_ENTRY *)v;
 	PVR_ASSERT(psEntry != NULL);
 	PVR_UNREFERENCED_PARAMETER(k);
 
-	ui32Size = OSSNPrintf(aszName, DI_IMPL_BRG_PATH_LEN, "%s\n", psEntry->pszFullPath);
+	ui32Size = OSSNPrintf(aszName, DI_IMPL_BRG_PATH_LEN, "%s\n",
+			      psEntry->pszFullPath);
 	PVR_LOG_IF_FALSE(ui32Size > 5, "ui32Size too small, Error suspected!");
-	eError = TLStreamWrite(hStream, (IMG_UINT8 *)aszName, ui32Size+1);
+	eError = TLStreamWrite(hStream, (IMG_UINT8 *)aszName, ui32Size + 1);
 
 	return eError;
 }
-
 
 PVRSRV_ERROR DIListAllEntriesKM(DI_CONTEXT *psContext)
 {
@@ -621,7 +608,8 @@ PVRSRV_ERROR DIListAllEntriesKM(DI_CONTEXT *psContext)
 
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psContext != NULL, "psContext");
 
-	eError = HASH_Iterate(_g_psImpl->psEntriesTable, _listName, psContext->hStream);
+	eError = HASH_Iterate(_g_psImpl->psEntriesTable, _listName,
+			      psContext->hStream);
 	PVR_LOG_IF_ERROR(eError, "HASH_Iterate_Extended");
 
 	eError = TLStreamMarkEOS(psContext->hStream, IMG_FALSE);
@@ -637,9 +625,8 @@ static PVRSRV_ERROR _Init(void)
 	_g_psImpl = OSAllocMem(sizeof(*_g_psImpl));
 	PVR_LOG_GOTO_IF_NOMEM(_g_psImpl, eError, return_);
 
-	_g_psImpl->psEntriesTable = HASH_Create_Extended(ENTRIES_TABLE_INIT_SIZE,
-	                                                 DI_IMPL_BRG_PATH_LEN,
-	                                                 _Hash, _Compare);
+	_g_psImpl->psEntriesTable = HASH_Create_Extended(
+		ENTRIES_TABLE_INIT_SIZE, DI_IMPL_BRG_PATH_LEN, _Hash, _Compare);
 	PVR_LOG_GOTO_IF_NOMEM(_g_psImpl->psEntriesTable, eError, free_impl_);
 
 	eError = OSLockCreate(&_g_psImpl->psEntriesLock);
@@ -649,7 +636,7 @@ static PVRSRV_ERROR _Init(void)
 	PVR_LOG_GOTO_IF_ERROR(eError, "OSCreateLock", free_entries_lock_);
 
 	eError = OSEventObjectCreate("DI_WRITER_EO",
-	                             &_g_psImpl->hWriterEventObject);
+				     &_g_psImpl->hWriterEventObject);
 	PVR_LOG_GOTO_IF_ERROR(eError, "OSEventObjectCreate", free_writer_lock_);
 
 	_g_psImpl->hWriterThread = NULL;
@@ -678,32 +665,31 @@ static void _DeInit(void)
 	THREAD_STATE eTState;
 
 	eTState = OSAtomicCompareExchange(&_g_psImpl->eThreadState,
-	                                  THREAD_STATE_ALIVE,
-	                                  THREAD_STATE_TERMINATED);
+					  THREAD_STATE_ALIVE,
+					  THREAD_STATE_TERMINATED);
 
-	if (eTState == THREAD_STATE_ALIVE)
-	{
-		if (_g_psImpl->hWriterEventObject != NULL)
-		{
-			eError = OSEventObjectSignal(_g_psImpl->hWriterEventObject);
+	if (eTState == THREAD_STATE_ALIVE) {
+		if (_g_psImpl->hWriterEventObject != NULL) {
+			eError = OSEventObjectSignal(
+				_g_psImpl->hWriterEventObject);
 			PVR_LOG_IF_ERROR(eError, "OSEventObjectSignal");
 		}
 
 		LOOP_UNTIL_TIMEOUT(WRITER_THREAD_DESTROY_TIMEOUT)
 		{
 			eError = OSThreadDestroy(_g_psImpl->hWriterThread);
-			if (eError == PVRSRV_OK)
-			{
+			if (eError == PVRSRV_OK) {
 				break;
 			}
-			OSWaitus(WRITER_THREAD_DESTROY_TIMEOUT/WRITER_THREAD_DESTROY_RETRIES);
-		} END_LOOP_UNTIL_TIMEOUT();
+			OSWaitus(WRITER_THREAD_DESTROY_TIMEOUT /
+				 WRITER_THREAD_DESTROY_RETRIES);
+		}
+		END_LOOP_UNTIL_TIMEOUT();
 
 		PVR_LOG_IF_ERROR(eError, "OSThreadDestroy");
 	}
 
-	if (_g_psImpl->hWriterEventObject != NULL)
-	{
+	if (_g_psImpl->hWriterEventObject != NULL) {
 		eError = OSEventObjectDestroy(_g_psImpl->hWriterEventObject);
 		PVR_LOG_IF_ERROR(eError, "OSEventObjectDestroy");
 	}
@@ -725,8 +711,7 @@ static IMG_INT _BuildGroupPath(IMG_CHAR *pszPath, const DIIB_GROUP *psGroup)
 {
 	IMG_INT iOff;
 
-	if (psGroup == NULL)
-	{
+	if (psGroup == NULL) {
 		return 0;
 	}
 
@@ -735,40 +720,38 @@ static IMG_INT _BuildGroupPath(IMG_CHAR *pszPath, const DIIB_GROUP *psGroup)
 	iOff = _BuildGroupPath(pszPath, psGroup->psParentGroup);
 	PVR_RETURN_IF_FALSE(iOff != -1, -1);
 
-	iOff += OSStringLCopy(pszPath + iOff, "/",
-	                      DI_IMPL_BRG_PATH_LEN - iOff);
+	iOff += OSStringLCopy(pszPath + iOff, "/", DI_IMPL_BRG_PATH_LEN - iOff);
 	PVR_RETURN_IF_FALSE(iOff < DI_IMPL_BRG_PATH_LEN, -1);
 
 	iOff += OSStringLCopy(pszPath + iOff, psGroup->pszName,
-	                      DI_IMPL_BRG_PATH_LEN - iOff);
+			      DI_IMPL_BRG_PATH_LEN - iOff);
 	PVR_RETURN_IF_FALSE(iOff < DI_IMPL_BRG_PATH_LEN, -1);
 
 	return iOff;
 }
 
 static PVRSRV_ERROR _BuildEntryPath(IMG_CHAR *pszPath, const IMG_CHAR *pszName,
-                                    const DIIB_GROUP *psGroup)
+				    const DIIB_GROUP *psGroup)
 {
 	IMG_INT iOff = _BuildGroupPath(pszPath, psGroup);
 	PVR_RETURN_IF_FALSE(iOff != -1, PVRSRV_ERROR_INVALID_OFFSET);
 
 	iOff += OSStringLCopy(pszPath + iOff, "/", DI_IMPL_BRG_PATH_LEN - iOff);
 	PVR_RETURN_IF_FALSE(iOff < DI_IMPL_BRG_PATH_LEN,
-	                    PVRSRV_ERROR_INVALID_OFFSET);
+			    PVRSRV_ERROR_INVALID_OFFSET);
 
-	iOff += OSStringLCopy(pszPath + iOff, pszName, DI_IMPL_BRG_PATH_LEN - iOff);
+	iOff += OSStringLCopy(pszPath + iOff, pszName,
+			      DI_IMPL_BRG_PATH_LEN - iOff);
 	PVR_RETURN_IF_FALSE(iOff < DI_IMPL_BRG_PATH_LEN,
-	                    PVRSRV_ERROR_INVALID_OFFSET);
+			    PVRSRV_ERROR_INVALID_OFFSET);
 
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR _CreateEntry(const IMG_CHAR *pszName,
-                                 DI_ENTRY_TYPE eType,
-                                 const DI_ITERATOR_CB *psIterCb,
-                                 void *pvPrivData,
-                                 void *pvParentGroup,
-                                 void **pvEntry)
+static PVRSRV_ERROR _CreateEntry(const IMG_CHAR *pszName, DI_ENTRY_TYPE eType,
+				 const DI_ITERATOR_CB *psIterCb,
+				 void *pvPrivData, void *pvParentGroup,
+				 void **pvEntry)
 {
 	DIIB_GROUP *psParentGroup = pvParentGroup;
 	DIIB_ENTRY *psEntry;
@@ -777,15 +760,15 @@ static PVRSRV_ERROR _CreateEntry(const IMG_CHAR *pszName,
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pvEntry != NULL, "pvEntry");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pvParentGroup != NULL, "pvParentGroup");
 
-	switch (eType)
-	{
-		case DI_ENTRY_TYPE_GENERIC:
-			break;
-		case DI_ENTRY_TYPE_RANDOM_ACCESS:
-			break;
-		default:
-			PVR_DPF((PVR_DBG_ERROR, "eType invalid in %s()", __func__));
-			PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_INVALID_PARAMS, return_);
+	switch (eType) {
+	case DI_ENTRY_TYPE_GENERIC:
+		break;
+	case DI_ENTRY_TYPE_RANDOM_ACCESS:
+		break;
+	default:
+		PVR_DPF((PVR_DBG_ERROR, "eType invalid in %s()", __func__));
+		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_INVALID_PARAMS,
+				    return_);
 	}
 
 	psEntry = OSAllocMem(sizeof(*psEntry));
@@ -805,21 +788,24 @@ static PVRSRV_ERROR _CreateEntry(const IMG_CHAR *pszName,
 	psEntry->sImplEntry.psCb = &_g_sEntryCallbacks;
 
 	eError = _BuildEntryPath(psEntry->pszFullPath, pszName,
-	                         psEntry->psParentGroup);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s() failed in _BuildEntryPath() for \"%s\" "
-		        "entry", __func__, pszName));
+				 psEntry->psParentGroup);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s() failed in _BuildEntryPath() for \"%s\" "
+			 "entry",
+			 __func__, pszName));
 		goto destroy_lock_;
 	}
 
 	OSLockAcquire(_g_psImpl->psEntriesLock);
 	eError = HASH_Insert_Extended(_g_psImpl->psEntriesTable,
-	                              psEntry->pszFullPath,
-	                              (uintptr_t) psEntry) ?
-	         PVRSRV_OK : PVRSRV_ERROR_UNABLE_TO_ADD_HANDLE;
+				      psEntry->pszFullPath,
+				      (uintptr_t)psEntry) ?
+			 PVRSRV_OK :
+			 PVRSRV_ERROR_UNABLE_TO_ADD_HANDLE;
 	OSLockRelease(_g_psImpl->psEntriesLock);
-	PVR_LOG_GOTO_IF_ERROR(eError, "HASH_Insert_Extended failed", destroy_lock_);
+	PVR_LOG_GOTO_IF_ERROR(eError, "HASH_Insert_Extended failed",
+			      destroy_lock_);
 
 	*pvEntry = psEntry;
 
@@ -846,9 +832,8 @@ static void _DestroyEntry(void *pvEntry)
 	OSFreeMem(psEntry);
 }
 
-static PVRSRV_ERROR _CreateGroup(const IMG_CHAR *pszName,
-                                 void *pvParentGroup,
-                                 void **ppvGroup)
+static PVRSRV_ERROR _CreateGroup(const IMG_CHAR *pszName, void *pvParentGroup,
+				 void **ppvGroup)
 {
 	DIIB_GROUP *psNewGroup;
 
@@ -876,14 +861,12 @@ static void _DestroyGroup(void *pvGroup)
 
 PVRSRV_ERROR PVRDIImplBrgRegister(void)
 {
-	OSDI_IMPL_CB sImplCb = {
-		.pfnInit = _Init,
-		.pfnDeInit = _DeInit,
-		.pfnCreateEntry = _CreateEntry,
-		.pfnDestroyEntry = _DestroyEntry,
-		.pfnCreateGroup = _CreateGroup,
-		.pfnDestroyGroup = _DestroyGroup
-	};
+	OSDI_IMPL_CB sImplCb = { .pfnInit = _Init,
+				 .pfnDeInit = _DeInit,
+				 .pfnCreateEntry = _CreateEntry,
+				 .pfnDestroyEntry = _DestroyEntry,
+				 .pfnCreateGroup = _CreateGroup,
+				 .pfnDestroyGroup = _DestroyGroup };
 
 	return DIRegisterImplementation("impl_brg", &sImplCb);
 }

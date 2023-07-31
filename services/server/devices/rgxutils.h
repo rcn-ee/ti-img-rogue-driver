@@ -64,8 +64,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 ******************************************************************************/
 PVRSRV_ERROR RGXQueryAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_UINT32 *pui32State);
+			      const void *pvPrivateData,
+			      IMG_UINT32 *pui32State);
 
 /*!
 ******************************************************************************
@@ -85,8 +85,7 @@ PVRSRV_ERROR RGXQueryAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXSetAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_UINT32 ui32State);
+			    const void *pvPrivateData, IMG_UINT32 ui32State);
 
 /*!
 ******************************************************************************
@@ -105,8 +104,8 @@ PVRSRV_ERROR RGXSetAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXQueryPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_BOOL *pbDisabled);
+				       const void *pvPrivateData,
+				       IMG_BOOL *pbDisabled);
 
 /*!
 ******************************************************************************
@@ -125,8 +124,8 @@ PVRSRV_ERROR RGXQueryPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXSetPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_BOOL bDisable);
+				     const void *pvPrivateData,
+				     IMG_BOOL bDisable);
 
 /*!
 ******************************************************************************
@@ -143,7 +142,7 @@ PVRSRV_ERROR RGXSetPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXGetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
-				IMG_UINT32 *pui32DeviceFlags);
+			       IMG_UINT32 *pui32DeviceFlags);
 
 /*!
 ******************************************************************************
@@ -162,8 +161,7 @@ PVRSRV_ERROR RGXGetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXSetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
-				IMG_UINT32 ui32Config,
-				IMG_BOOL bSetNotClear);
+			       IMG_UINT32 ui32Config, IMG_BOOL bSetNotClear);
 
 /*!
 ******************************************************************************
@@ -177,7 +175,7 @@ PVRSRV_ERROR RGXSetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
  @Return      Array containing the kick type DM name
 
 ******************************************************************************/
-const char* RGXStringifyKickTypeDM(RGX_KICK_TYPE_DM eKickTypeDM);
+const char *RGXStringifyKickTypeDM(RGX_KICK_TYPE_DM eKickTypeDM);
 
 /*************************************************************************/ /*!
 
@@ -193,7 +191,8 @@ const char* RGXStringifyKickTypeDM(RGX_KICK_TYPE_DM eKickTypeDM);
 */ /**************************************************************************/
 PHYS_HEAP_POLICY RGXPhysHeapGetLMAPolicy(PHYS_HEAP_USAGE_FLAGS ui32UsageFlags);
 
-#define RGX_STRINGIFY_KICK_TYPE_DM_IF_SET(bitmask, eKickTypeDM) bitmask & eKickTypeDM ? RGXStringifyKickTypeDM(eKickTypeDM) : ""
+#define RGX_STRINGIFY_KICK_TYPE_DM_IF_SET(bitmask, eKickTypeDM) \
+	bitmask &eKickTypeDM ? RGXStringifyKickTypeDM(eKickTypeDM) : ""
 
 /*************************************************************************/ /*!
 @Function       RGXIsErrorAndDeviceRecoverable
@@ -204,7 +203,8 @@ PHYS_HEAP_POLICY RGXPhysHeapGetLMAPolicy(PHYS_HEAP_USAGE_FLAGS ui32UsageFlags);
 @Input          peError      Pointer to error. Can be changed to retry type.
 @Return         IMG_BOOL   Return true if device is recoverable.
 */ /**************************************************************************/
-IMG_BOOL RGXIsErrorAndDeviceRecoverable(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_ERROR *peError);
+IMG_BOOL RGXIsErrorAndDeviceRecoverable(PVRSRV_DEVICE_NODE *psDeviceNode,
+					PVRSRV_ERROR *peError);
 
 /******************************************************************************
  End of file (rgxutils.h)

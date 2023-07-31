@@ -71,16 +71,13 @@ extern "C" {
  @Return        eError          Internal services call returned eError error
                                 number
 */ /**************************************************************************/
-IMG_INTERNAL PVRSRV_ERROR
-HTBControl(
-	IMG_HANDLE hSrvHandle,
-	IMG_UINT32 ui32NumFlagGroups,
-	IMG_UINT32 * aui32GroupEnable,
-	IMG_UINT32 ui32LogLevel,
-	IMG_UINT32 ui32EnablePID,
-	HTB_LOGMODE_CTRL eLogPidMode,
-	HTB_OPMODE_CTRL eOpMode);
-
+IMG_INTERNAL PVRSRV_ERROR HTBControl(IMG_HANDLE hSrvHandle,
+				     IMG_UINT32 ui32NumFlagGroups,
+				     IMG_UINT32 *aui32GroupEnable,
+				     IMG_UINT32 ui32LogLevel,
+				     IMG_UINT32 ui32EnablePID,
+				     HTB_LOGMODE_CTRL eLogPidMode,
+				     HTB_OPMODE_CTRL eOpMode);
 
 #if defined(__cplusplus)
 }

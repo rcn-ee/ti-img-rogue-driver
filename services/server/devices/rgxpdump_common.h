@@ -63,9 +63,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Return         PVRSRV_ERROR PVRSRV_OK on success or error code on failure.
 */ /**************************************************************************/
 PVRSRV_ERROR PDumpGetValidRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                 DEVMEM_MEMDESC *psMemDesc,
-                                 IMG_UINT32 uiSize,
-                                 DLLIST_NODE *psRegionList);
+				 DEVMEM_MEMDESC *psMemDesc, IMG_UINT32 uiSize,
+				 DLLIST_NODE *psRegionList);
 
 /*************************************************************************/ /*!
 @Function       PDumpSaveToFileVirtual
@@ -77,10 +76,10 @@ PVRSRV_ERROR PDumpGetValidRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
 @Input          uiPDumpFlags PDump flags.
 */ /**************************************************************************/
 void PDumpSaveToFileVirtual(PVRSRV_DEVICE_NODE *psDeviceNode,
-                            DEVMEM_MEMDESC *psMemDesc,
-                            DLLIST_NODE *psRegionList,
-                            const IMG_CHAR *pszFileName,
-                            IMG_UINT32 uiPDumpFlags);
+			    DEVMEM_MEMDESC *psMemDesc,
+			    DLLIST_NODE *psRegionList,
+			    const IMG_CHAR *pszFileName,
+			    IMG_UINT32 uiPDumpFlags);
 
 /*************************************************************************/ /*!
 @Function       PDumpSaveToFileVirtualNoValidate
@@ -94,12 +93,12 @@ void PDumpSaveToFileVirtual(PVRSRV_DEVICE_NODE *psDeviceNode,
 @Input          uiPDumpFlags PDump flags.
 */ /**************************************************************************/
 void PDumpSaveToFileVirtualNoValidate(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                      DEVMEM_MEMDESC *psMemDesc,
-                                      IMG_DEVMEM_OFFSET_T uiOffset,
-                                      IMG_UINT32 uiSize,
-                                      const IMG_CHAR *pszFileName,
-                                      IMG_UINT32 uiFileOffset,
-                                      IMG_UINT32 uiPDumpFlags);
+				      DEVMEM_MEMDESC *psMemDesc,
+				      IMG_DEVMEM_OFFSET_T uiOffset,
+				      IMG_UINT32 uiSize,
+				      const IMG_CHAR *pszFileName,
+				      IMG_UINT32 uiFileOffset,
+				      IMG_UINT32 uiPDumpFlags);
 
 #endif /* PDUMP */
 

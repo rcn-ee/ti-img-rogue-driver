@@ -46,14 +46,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*!< System specific poll/timeout details */
 #if defined(VIRTUAL_PLATFORM) || defined(FPGA)
-#define MAX_HW_TIME_US                           (240000000)
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (120000)
+#define MAX_HW_TIME_US (240000000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (120000)
 #else
-#define MAX_HW_TIME_US                           (500000)
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1500)//(10000)
+#define MAX_HW_TIME_US (500000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (1500) //(10000)
 #endif
 #define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
-#define WAIT_TRY_COUNT                           (10000)
+#define WAIT_TRY_COUNT (10000)
 
 #define SYS_RGX_DEV_NAME "tc_rogue"
 

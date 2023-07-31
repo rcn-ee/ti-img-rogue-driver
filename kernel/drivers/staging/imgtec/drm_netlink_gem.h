@@ -58,4 +58,4 @@ struct vm_area_struct;
 
 int netlink_gem_mmap(struct file *file, struct vm_area_struct *vma);
 
-#endif	/* !defined(__DRM_NETLINK_GEM_H__) */
+#endif /* !defined(__DRM_NETLINK_GEM_H__) */

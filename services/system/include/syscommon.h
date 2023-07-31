@@ -86,8 +86,8 @@ void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig);
 @Return         PVRSRV_OK on success, a failure code otherwise.
 */ /***************************************************************************/
 PVRSRV_ERROR SysDebugInfo(PVRSRV_DEVICE_CONFIG *psDevConfig,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile);
+			  DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			  void *pvDumpDebugFile);
 
 /**************************************************************************/ /*!
 @Function       SysInstallDeviceLISR
@@ -109,12 +109,9 @@ PVRSRV_ERROR SysDebugInfo(PVRSRV_DEVICE_CONFIG *psDevConfig,
                               subsequent uninstall)
 @Return         PVRSRV_OK on success, a failure code otherwise.
 */ /***************************************************************************/
-PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,
-								  IMG_UINT32 ui32IRQ,
-								  const IMG_CHAR *pszName,
-								  PFN_LISR pfnLISR,
-								  void *pvData,
-								  IMG_HANDLE *phLISRData);
+PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData, IMG_UINT32 ui32IRQ,
+				  const IMG_CHAR *pszName, PFN_LISR pfnLISR,
+				  void *pvData, IMG_HANDLE *phLISRData);
 
 /**************************************************************************/ /*!
 @Function       SysUninstallDeviceLISR
@@ -141,7 +138,7 @@ PVRSRV_ERROR SysUninstallDeviceLISR(IMG_HANDLE hLISRData);
 @Return         None.
 */ /***************************************************************************/
 void SysRGXErrorNotify(IMG_HANDLE hSysData,
-                       PVRSRV_ROBUSTNESS_NOTIFY_DATA *psErrorData);
+		       PVRSRV_ROBUSTNESS_NOTIFY_DATA *psErrorData);
 
 /**************************************************************************/ /*!
 @Function       SysRestrictGpuLocalPhysheap

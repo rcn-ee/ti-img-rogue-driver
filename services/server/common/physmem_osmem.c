@@ -56,14 +56,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "osfunc.h"
 #include "physmem_osmem.h"
 
-
 static IMG_UINT32 PhysHeapOSGetPageShift(void)
 {
 	return (IMG_UINT32)OSGetPageShift();
 }
 
-static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs =
-{
+static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs = {
 	.pfnDestroyData = NULL,
 	.pfnGetPMRFactoryMemStats = PhysmemGetOSRamMemStats,
 	.pfnCreatePMR = PhysmemNewOSRamBackedPMR,
@@ -75,17 +73,10 @@ static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs =
 	.pfnGetPageShift = &PhysHeapOSGetPageShift,
 };
 
-
 PVRSRV_ERROR
-PhysmemCreateHeapOSMEM(PVRSRV_DEVICE_NODE *psDevNode,
-                       PHYS_HEAP_POLICY uiPolicy,
-                       PHYS_HEAP_CONFIG *psConfig,
-                       PHYS_HEAP **ppsPhysHeap)
+PhysmemCreateHeapOSMEM(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		       PHYS_HEAP_CONFIG *psConfig, PHYS_HEAP **ppsPhysHeap)
 {
-	return PhysHeapCreate(psDevNode,
-	                      psConfig,
-	                      uiPolicy,
-	                      NULL,
-	                      &_sPHEAPImplFuncs,
-	                      ppsPhysHeap);
+	return PhysHeapCreate(psDevNode, psConfig, uiPolicy, NULL,
+			      &_sPHEAPImplFuncs, ppsPhysHeap);
 }

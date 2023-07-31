@@ -44,110 +44,152 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PROC_STATS_H
 
 /* X-Macro for Process stat keys */
-#define PVRSRV_PROCESS_STAT_KEY \
-	X(PVRSRV_PROCESS_STAT_TYPE_KMALLOC, "MemoryUsageKMalloc") \
-	X(PVRSRV_PROCESS_STAT_TYPE_KMALLOC_MAX, "MemoryUsageKMallocMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_VMALLOC, "MemoryUsageVMalloc") \
-	X(PVRSRV_PROCESS_STAT_TYPE_VMALLOC_MAX, "MemoryUsageVMallocMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_UMA, "MemoryUsageAllocPTMemoryUMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_UMA_MAX, "MemoryUsageAllocPTMemoryUMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_VMAP_PT_UMA, "MemoryUsageVMapPTUMA") \
+#define PVRSRV_PROCESS_STAT_KEY                                                \
+	X(PVRSRV_PROCESS_STAT_TYPE_KMALLOC, "MemoryUsageKMalloc")              \
+	X(PVRSRV_PROCESS_STAT_TYPE_KMALLOC_MAX, "MemoryUsageKMallocMax")       \
+	X(PVRSRV_PROCESS_STAT_TYPE_VMALLOC, "MemoryUsageVMalloc")              \
+	X(PVRSRV_PROCESS_STAT_TYPE_VMALLOC_MAX, "MemoryUsageVMallocMax")       \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_UMA,                         \
+	  "MemoryUsageAllocPTMemoryUMA")                                       \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_UMA_MAX,                     \
+	  "MemoryUsageAllocPTMemoryUMAMax")                                    \
+	X(PVRSRV_PROCESS_STAT_TYPE_VMAP_PT_UMA, "MemoryUsageVMapPTUMA")        \
 	X(PVRSRV_PROCESS_STAT_TYPE_VMAP_PT_UMA_MAX, "MemoryUsageVMapPTUMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_LMA, "MemoryUsageAllocPTMemoryLMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_LMA_MAX, "MemoryUsageAllocPTMemoryLMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_IOREMAP_PT_LMA, "MemoryUsageIORemapPTLMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_IOREMAP_PT_LMA_MAX, "MemoryUsageIORemapPTLMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_LMA_PAGES, "MemoryUsageAllocGPUMemLMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_LMA_PAGES_MAX, "MemoryUsageAllocGPUMemLMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_LMA_PAGES, "MemoryUsageZombieGPUMemLMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_LMA_PAGES_MAX, "MemoryUsageZombieGPUMemLMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_UMA_PAGES, "MemoryUsageAllocGPUMemUMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_UMA_PAGES_MAX, "MemoryUsageAllocGPUMemUMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_UMA_PAGES, "MemoryUsageZombieGPUMemUMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_UMA_PAGES_MAX, "MemoryUsageZombieGPUMemUMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_MAP_UMA_LMA_PAGES, "MemoryUsageMappedGPUMemUMA/LMA") \
-	X(PVRSRV_PROCESS_STAT_TYPE_MAP_UMA_LMA_PAGES_MAX, "MemoryUsageMappedGPUMemUMA/LMAMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_IMPORT, "MemoryUsageDmaBufImport") \
-	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_IMPORT_MAX, "MemoryUsageDmaBufImportMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_ZOMBIE, "MemoryUsageDmaBufZombie") \
-	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_ZOMBIE_MAX, "MemoryUsageDmaBufZombieMax") \
-	X(PVRSRV_PROCESS_STAT_TYPE_TOTAL, "MemoryUsageTotal") \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_LMA,                         \
+	  "MemoryUsageAllocPTMemoryLMA")                                       \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_PAGES_PT_LMA_MAX,                     \
+	  "MemoryUsageAllocPTMemoryLMAMax")                                    \
+	X(PVRSRV_PROCESS_STAT_TYPE_IOREMAP_PT_LMA, "MemoryUsageIORemapPTLMA")  \
+	X(PVRSRV_PROCESS_STAT_TYPE_IOREMAP_PT_LMA_MAX,                         \
+	  "MemoryUsageIORemapPTLMAMax")                                        \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_LMA_PAGES,                            \
+	  "MemoryUsageAllocGPUMemLMA")                                         \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_LMA_PAGES_MAX,                        \
+	  "MemoryUsageAllocGPUMemLMAMax")                                      \
+	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_LMA_PAGES,                           \
+	  "MemoryUsageZombieGPUMemLMA")                                        \
+	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_LMA_PAGES_MAX,                       \
+	  "MemoryUsageZombieGPUMemLMAMax")                                     \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_UMA_PAGES,                            \
+	  "MemoryUsageAllocGPUMemUMA")                                         \
+	X(PVRSRV_PROCESS_STAT_TYPE_ALLOC_UMA_PAGES_MAX,                        \
+	  "MemoryUsageAllocGPUMemUMAMax")                                      \
+	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_UMA_PAGES,                           \
+	  "MemoryUsageZombieGPUMemUMA")                                        \
+	X(PVRSRV_PROCESS_STAT_TYPE_ZOMBIE_UMA_PAGES_MAX,                       \
+	  "MemoryUsageZombieGPUMemUMAMax")                                     \
+	X(PVRSRV_PROCESS_STAT_TYPE_MAP_UMA_LMA_PAGES,                          \
+	  "MemoryUsageMappedGPUMemUMA/LMA")                                    \
+	X(PVRSRV_PROCESS_STAT_TYPE_MAP_UMA_LMA_PAGES_MAX,                      \
+	  "MemoryUsageMappedGPUMemUMA/LMAMax")                                 \
+	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_IMPORT, "MemoryUsageDmaBufImport")  \
+	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_IMPORT_MAX,                         \
+	  "MemoryUsageDmaBufImportMax")                                        \
+	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_ZOMBIE, "MemoryUsageDmaBufZombie")  \
+	X(PVRSRV_PROCESS_STAT_TYPE_DMA_BUF_ZOMBIE_MAX,                         \
+	  "MemoryUsageDmaBufZombieMax")                                        \
+	X(PVRSRV_PROCESS_STAT_TYPE_TOTAL, "MemoryUsageTotal")                  \
 	X(PVRSRV_PROCESS_STAT_TYPE_TOTAL_MAX, "MemoryUsageTotalMax")
 
 /* X-Macro for Device stat keys */
-#define PVRSRV_DEVICE_STAT_KEY \
-	X(PVRSRV_DEVICE_STAT_TYPE_CONNECTIONS, "Connections") \
-	X(PVRSRV_DEVICE_STAT_TYPE_MAX_CONNECTIONS, "ConnectionsMax") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_OOMS, "RenderContextOutOfMemoryEvents") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_PRS, "RenderContextPartialRenders") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_GROWS, "RenderContextGrows") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_PUSH_GROWS, "RenderContextPushGrows") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_TA_STORES, "RenderContextTAStores") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_3D_STORES, "RenderContext3DStores") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_CDM_STORES, "RenderContextCDMStores") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_TDM_STORES, "RenderContextTDMStores") \
-	X(PVRSRV_DEVICE_STAT_TYPE_RC_RAY_STORES, "RenderContextRayStores") \
-	X(PVRSRV_DEVICE_STAT_TYPE_ZSBUFFER_REQS_BY_APP, "ZSBufferRequestsByApp") \
-	X(PVRSRV_DEVICE_STAT_TYPE_ZSBUFFER_REQS_BY_FW, "ZSBufferRequestsByFirmware") \
-	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_GROW_REQS_BY_APP, "FreeListGrowRequestsByApp") \
-	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_GROW_REQS_BY_FW, "FreeListGrowRequestsByFirmware") \
+#define PVRSRV_DEVICE_STAT_KEY                                                 \
+	X(PVRSRV_DEVICE_STAT_TYPE_CONNECTIONS, "Connections")                  \
+	X(PVRSRV_DEVICE_STAT_TYPE_MAX_CONNECTIONS, "ConnectionsMax")           \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_OOMS, "RenderContextOutOfMemoryEvents")   \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_PRS, "RenderContextPartialRenders")       \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_GROWS, "RenderContextGrows")              \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_PUSH_GROWS, "RenderContextPushGrows")     \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_TA_STORES, "RenderContextTAStores")       \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_3D_STORES, "RenderContext3DStores")       \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_CDM_STORES, "RenderContextCDMStores")     \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_TDM_STORES, "RenderContextTDMStores")     \
+	X(PVRSRV_DEVICE_STAT_TYPE_RC_RAY_STORES, "RenderContextRayStores")     \
+	X(PVRSRV_DEVICE_STAT_TYPE_ZSBUFFER_REQS_BY_APP,                        \
+	  "ZSBufferRequestsByApp")                                             \
+	X(PVRSRV_DEVICE_STAT_TYPE_ZSBUFFER_REQS_BY_FW,                         \
+	  "ZSBufferRequestsByFirmware")                                        \
+	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_GROW_REQS_BY_APP,                   \
+	  "FreeListGrowRequestsByApp")                                         \
+	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_GROW_REQS_BY_FW,                    \
+	  "FreeListGrowRequestsByFirmware")                                    \
 	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_PAGES_INIT, "FreeListInitialPages") \
-	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_MAX_PAGES, "FreeListMaxPages") \
-	X(PVRSRV_DEVICE_STAT_TYPE_OOM_VIRTMEM_COUNT, "MemoryOOMCountDeviceVirtual") \
-	X(PVRSRV_DEVICE_STAT_TYPE_OOM_PHYSMEM_COUNT, "MemoryOOMCountPhysicalHeap") \
-	X(PVRSRV_DEVICE_STAT_TYPE_INVALID_VIRTMEM, "MemoryOOMCountDeviceVirtualAtAddr")
+	X(PVRSRV_DEVICE_STAT_TYPE_FREELIST_MAX_PAGES, "FreeListMaxPages")      \
+	X(PVRSRV_DEVICE_STAT_TYPE_OOM_VIRTMEM_COUNT,                           \
+	  "MemoryOOMCountDeviceVirtual")                                       \
+	X(PVRSRV_DEVICE_STAT_TYPE_OOM_PHYSMEM_COUNT,                           \
+	  "MemoryOOMCountPhysicalHeap")                                        \
+	X(PVRSRV_DEVICE_STAT_TYPE_INVALID_VIRTMEM,                             \
+	  "MemoryOOMCountDeviceVirtualAtAddr")
 
 /* X-Macro for Driver stat keys */
-#define PVRSRV_DRIVER_STAT_KEY \
-	X(PVRSRV_DRIVER_STAT_TYPE_KMALLOC, "MemoryUsageKMalloc") \
-	X(PVRSRV_DRIVER_STAT_TYPE_KMALLOC_MAX, "MemoryUsageKMallocMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_VMALLOC, "MemoryUsageVMalloc") \
-	X(PVRSRV_DRIVER_STAT_TYPE_VMALLOC_MAX, "MemoryUsageVMallocMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_UMA, "MemoryUsageAllocPTMemoryUMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_UMA_MAX, "MemoryUsageAllocPTMemoryUMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_VMAP_PT_UMA, "MemoryUsageVMapPTUMA") \
+#define PVRSRV_DRIVER_STAT_KEY                                                \
+	X(PVRSRV_DRIVER_STAT_TYPE_KMALLOC, "MemoryUsageKMalloc")              \
+	X(PVRSRV_DRIVER_STAT_TYPE_KMALLOC_MAX, "MemoryUsageKMallocMax")       \
+	X(PVRSRV_DRIVER_STAT_TYPE_VMALLOC, "MemoryUsageVMalloc")              \
+	X(PVRSRV_DRIVER_STAT_TYPE_VMALLOC_MAX, "MemoryUsageVMallocMax")       \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_UMA,                        \
+	  "MemoryUsageAllocPTMemoryUMA")                                      \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_UMA_MAX,                    \
+	  "MemoryUsageAllocPTMemoryUMAMax")                                   \
+	X(PVRSRV_DRIVER_STAT_TYPE_VMAP_PT_UMA, "MemoryUsageVMapPTUMA")        \
 	X(PVRSRV_DRIVER_STAT_TYPE_VMAP_PT_UMA_MAX, "MemoryUsageVMapPTUMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_LMA, "MemoryUsageAllocPTMemoryLMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_LMA_MAX, "MemoryUsageAllocPTMemoryLMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_IOREMAP_PT_LMA, "MemoryUsageIORemapPTLMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_IOREMAP_PT_LMA_MAX, "MemoryUsageIORemapPTLMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_LMA, "MemoryUsageAllocGPUMemLMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_LMA_MAX, "MemoryUsageAllocGPUMemLMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_LMA, "MemoryUsageZombieGPUMemLMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_LMA_MAX, "MemoryUsageZombieGPUMemLMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA, "MemoryUsageAllocGPUMemUMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA_MAX, "MemoryUsageAllocGPUMemUMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_UMA, "MemoryUsageZombieGPUMemUMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_UMA_MAX, "MemoryUsageZombieGPUMemUMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA_POOL, "MemoryUsageAllocGPUMemUMAPool") \
-	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA_POOL_MAX, "MemoryUsageAllocGPUMemUMAPoolMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_MAPPED_GPUMEM_UMA_LMA, "MemoryUsageMappedGPUMemUMA/LMA") \
-	X(PVRSRV_DRIVER_STAT_TYPE_MAPPED_GPUMEM_UMA_LMA_MAX, "MemoryUsageMappedGPUMemUMA/LMAMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_IMPORT, "MemoryUsageDmaBufImport") \
-	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_IMPORT_MAX, "MemoryUsageDmaBufImportMax") \
-	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_ZOMBIE, "MemoryUsageDmaBufZombie") \
-	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_ZOMBIE_MAX, "MemoryUsageDmaBufZombieMax")
-
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_LMA,                        \
+	  "MemoryUsageAllocPTMemoryLMA")                                      \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_PT_MEMORY_LMA_MAX,                    \
+	  "MemoryUsageAllocPTMemoryLMAMax")                                   \
+	X(PVRSRV_DRIVER_STAT_TYPE_IOREMAP_PT_LMA, "MemoryUsageIORemapPTLMA")  \
+	X(PVRSRV_DRIVER_STAT_TYPE_IOREMAP_PT_LMA_MAX,                         \
+	  "MemoryUsageIORemapPTLMAMax")                                       \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_LMA,                           \
+	  "MemoryUsageAllocGPUMemLMA")                                        \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_LMA_MAX,                       \
+	  "MemoryUsageAllocGPUMemLMAMax")                                     \
+	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_LMA,                          \
+	  "MemoryUsageZombieGPUMemLMA")                                       \
+	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_LMA_MAX,                      \
+	  "MemoryUsageZombieGPUMemLMAMax")                                    \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA,                           \
+	  "MemoryUsageAllocGPUMemUMA")                                        \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA_MAX,                       \
+	  "MemoryUsageAllocGPUMemUMAMax")                                     \
+	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_UMA,                          \
+	  "MemoryUsageZombieGPUMemUMA")                                       \
+	X(PVRSRV_DRIVER_STAT_TYPE_ZOMBIE_GPUMEM_UMA_MAX,                      \
+	  "MemoryUsageZombieGPUMemUMAMax")                                    \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA_POOL,                      \
+	  "MemoryUsageAllocGPUMemUMAPool")                                    \
+	X(PVRSRV_DRIVER_STAT_TYPE_ALLOC_GPUMEM_UMA_POOL_MAX,                  \
+	  "MemoryUsageAllocGPUMemUMAPoolMax")                                 \
+	X(PVRSRV_DRIVER_STAT_TYPE_MAPPED_GPUMEM_UMA_LMA,                      \
+	  "MemoryUsageMappedGPUMemUMA/LMA")                                   \
+	X(PVRSRV_DRIVER_STAT_TYPE_MAPPED_GPUMEM_UMA_LMA_MAX,                  \
+	  "MemoryUsageMappedGPUMemUMA/LMAMax")                                \
+	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_IMPORT, "MemoryUsageDmaBufImport")  \
+	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_IMPORT_MAX,                         \
+	  "MemoryUsageDmaBufImportMax")                                       \
+	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_ZOMBIE, "MemoryUsageDmaBufZombie")  \
+	X(PVRSRV_DRIVER_STAT_TYPE_DMA_BUF_ZOMBIE_MAX,                         \
+	  "MemoryUsageDmaBufZombieMax")
 
 typedef enum {
 #define X(stat_type, stat_str) stat_type,
 	PVRSRV_PROCESS_STAT_KEY
 #undef X
-	PVRSRV_PROCESS_STAT_TYPE_COUNT
-}PVRSRV_PROCESS_STAT_TYPE;
+		PVRSRV_PROCESS_STAT_TYPE_COUNT
+} PVRSRV_PROCESS_STAT_TYPE;
 
 typedef enum {
 #define X(stat_type, stat_str) stat_type,
 	PVRSRV_DEVICE_STAT_KEY
 #undef X
-	PVRSRV_DEVICE_STAT_TYPE_COUNT
-}PVRSRV_DEVICE_STAT_TYPE;
+		PVRSRV_DEVICE_STAT_TYPE_COUNT
+} PVRSRV_DEVICE_STAT_TYPE;
 
 typedef enum {
 #define X(stat_type, stat_str) stat_type,
 	PVRSRV_DRIVER_STAT_KEY
 #undef X
-	PVRSRV_DRIVER_STAT_TYPE_COUNT
-}PVRSRV_DRIVER_STAT_TYPE;
+		PVRSRV_DRIVER_STAT_TYPE_COUNT
+} PVRSRV_DRIVER_STAT_TYPE;
 
 #endif // PROC_STATS_H

@@ -99,11 +99,11 @@ static const char *pvr_sw_fence_get_timeline_name(struct dma_fence *fence)
 
 static void pvr_sw_fence_value_str(struct dma_fence *fence, char *str, int size)
 {
-	snprintf(str, size, "%llu", (u64) fence->seqno);
+	snprintf(str, size, "%llu", (u64)fence->seqno);
 }
 
-static void pvr_sw_fence_timeline_value_str(struct dma_fence *fence,
-					    char *str, int size)
+static void pvr_sw_fence_timeline_value_str(struct dma_fence *fence, char *str,
+					    int size)
 {
 	struct pvr_sw_fence *pvr_sw_fence = to_pvr_sw_fence(fence);
 
@@ -135,7 +135,7 @@ static void pvr_sw_fence_release(struct dma_fence *fence)
 
 	atomic_dec(&pvr_sw_fence->fence_context->fence_count);
 	kref_put(&pvr_sw_fence->fence_context->kref,
-		pvr_sw_fence_context_destroy_kref);
+		 pvr_sw_fence_context_destroy_kref);
 	kfree(pvr_sw_fence);
 }
 

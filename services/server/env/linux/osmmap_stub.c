@@ -59,24 +59,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pmr.h"
 
 PVRSRV_ERROR
-OSMMapPMR(IMG_HANDLE hBridge,
-          IMG_HANDLE hPMR,
-          IMG_DEVMEM_SIZE_T uiPMRSize,
-          PVRSRV_MEMALLOCFLAGS_T uiFlags,
-          IMG_HANDLE *phOSMMapPrivDataOut,
-          void **ppvMappingAddressOut,
-          size_t *puiMappingLengthOut)
+OSMMapPMR(IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_SIZE_T uiPMRSize,
+	  PVRSRV_MEMALLOCFLAGS_T uiFlags, IMG_HANDLE *phOSMMapPrivDataOut,
+	  void **ppvMappingAddressOut, size_t *puiMappingLengthOut)
 {
-    PVRSRV_ERROR eError;
-    PMR *psPMR;
-    void *pvKernelAddress;
-    size_t uiLength;
-    IMG_HANDLE hPriv;
+	PVRSRV_ERROR eError;
+	PMR *psPMR;
+	void *pvKernelAddress;
+	size_t uiLength;
+	IMG_HANDLE hPriv;
 
-    PVR_UNREFERENCED_PARAMETER(hBridge);
-    PVR_UNREFERENCED_PARAMETER(uiFlags);
+	PVR_UNREFERENCED_PARAMETER(hBridge);
+	PVR_UNREFERENCED_PARAMETER(uiFlags);
 
-    /*
+	/*
       Normally this function would mmap a PMR into the memory space of
       user process, but in this case we're taking a PMR and mapping it
       into kernel virtual space.  We keep the same function name for
@@ -84,63 +80,47 @@ OSMMapPMR(IMG_HANDLE hBridge,
       to not care whether they are user mode or kernel
     */
 
-    psPMR = hPMR;
+	psPMR = hPMR;
 
-    if (PMR_IsSparse(psPMR))
-    {
-        eError = PMRAcquireSparseKernelMappingData(psPMR,
-                                            0,
-                                            0,
-                                            &pvKernelAddress,
-                                            &uiLength,
-                                            &hPriv);
-    }
-    else
-    {
-        eError = PMRAcquireKernelMappingData(psPMR,
-                                            0,
-                                            0,
-                                            &pvKernelAddress,
-                                            &uiLength,
-                                            &hPriv);
-    }
-    if (eError != PVRSRV_OK)
-    {
-        goto e0;
-    }
+	if (PMR_IsSparse(psPMR)) {
+		eError = PMRAcquireSparseKernelMappingData(
+			psPMR, 0, 0, &pvKernelAddress, &uiLength, &hPriv);
+	} else {
+		eError = PMRAcquireKernelMappingData(
+			psPMR, 0, 0, &pvKernelAddress, &uiLength, &hPriv);
+	}
+	if (eError != PVRSRV_OK) {
+		goto e0;
+	}
 
-    *phOSMMapPrivDataOut = hPriv;
-    *ppvMappingAddressOut = pvKernelAddress;
-    *puiMappingLengthOut = uiLength;
+	*phOSMMapPrivDataOut = hPriv;
+	*ppvMappingAddressOut = pvKernelAddress;
+	*puiMappingLengthOut = uiLength;
 
-    /* MappingLength might be rounded up to page size */
-    PVR_ASSERT(*puiMappingLengthOut >= uiPMRSize);
+	/* MappingLength might be rounded up to page size */
+	PVR_ASSERT(*puiMappingLengthOut >= uiPMRSize);
 
-    return PVRSRV_OK;
+	return PVRSRV_OK;
 
-    /*
+	/*
       error exit paths follow
     */
 
 e0:
-    PVR_ASSERT(eError != PVRSRV_OK);
-    return eError;
+	PVR_ASSERT(eError != PVRSRV_OK);
+	return eError;
 }
 
-void
-OSMUnmapPMR(IMG_HANDLE hBridge,
-            IMG_HANDLE hPMR,
-            IMG_HANDLE hOSMMapPrivData,
-            void *pvMappingAddress,
-            size_t uiMappingLength)
+void OSMUnmapPMR(IMG_HANDLE hBridge, IMG_HANDLE hPMR,
+		 IMG_HANDLE hOSMMapPrivData, void *pvMappingAddress,
+		 size_t uiMappingLength)
 {
-    PMR *psPMR;
+	PMR *psPMR;
 
-    PVR_UNREFERENCED_PARAMETER(hBridge);
-    PVR_UNREFERENCED_PARAMETER(pvMappingAddress);
-    PVR_UNREFERENCED_PARAMETER(uiMappingLength);
+	PVR_UNREFERENCED_PARAMETER(hBridge);
+	PVR_UNREFERENCED_PARAMETER(pvMappingAddress);
+	PVR_UNREFERENCED_PARAMETER(uiMappingLength);
 
-    psPMR = hPMR;
-    PMRReleaseKernelMappingData(psPMR,
-                                hOSMMapPrivData);
+	psPMR = hPMR;
+	PMRReleaseKernelMappingData(psPMR, hOSMMapPrivData);
 }

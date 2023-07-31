@@ -50,13 +50,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "allocmem.h"
 #include "pvr_debug.h"
 
-
-
 static PVRSRV_ERROR RGXGetMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                        IMG_UINT32 ui32CapsSize,
-                                        IMG_UINT32 *pui32NumCores,
-                                        IMG_UINT64 *pui64Caps);
-
+					IMG_UINT32 ui32CapsSize,
+					IMG_UINT32 *pui32NumCores,
+					IMG_UINT64 *pui64Caps);
 
 /*
  * RGXInitMultiCoreInfo:
@@ -64,35 +61,32 @@ static PVRSRV_ERROR RGXGetMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode,
  * Return not supported on cores without multicore.
  */
 static PVRSRV_ERROR RGXGetMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                 IMG_UINT32 ui32CapsSize,
-                                 IMG_UINT32 *pui32NumCores,
-                                 IMG_UINT64 *pui64Caps)
+					IMG_UINT32 ui32CapsSize,
+					IMG_UINT32 *pui32NumCores,
+					IMG_UINT64 *pui64Caps)
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
-	if (psDevInfo->ui32MultiCoreNumCores == 0)
-	{
+	if (psDevInfo->ui32MultiCoreNumCores == 0) {
 		/* MULTICORE not supported on this device */
 		eError = PVRSRV_ERROR_NOT_SUPPORTED;
-	}
-	else
-	{
+	} else {
 		*pui32NumCores = psDevInfo->ui32MultiCoreNumCores;
-		if (ui32CapsSize > 0)
-		{
-			if (ui32CapsSize < psDevInfo->ui32MultiCoreNumCores)
-			{
-				PVR_DPF((PVR_DBG_ERROR, "Multicore caps buffer too small"));
+		if (ui32CapsSize > 0) {
+			if (ui32CapsSize < psDevInfo->ui32MultiCoreNumCores) {
+				PVR_DPF((PVR_DBG_ERROR,
+					 "Multicore caps buffer too small"));
 				eError = PVRSRV_ERROR_BRIDGE_BUFFER_TOO_SMALL;
-			}
-			else
-			{
+			} else {
 				IMG_UINT32 i;
 
-				for (i = 0; i < psDevInfo->ui32MultiCoreNumCores; ++i)
-				{
-					pui64Caps[i] = psDevInfo->pui64MultiCoreCapabilities[i];
+				for (i = 0;
+				     i < psDevInfo->ui32MultiCoreNumCores;
+				     ++i) {
+					pui64Caps[i] =
+						psDevInfo->pui64MultiCoreCapabilities
+							[i];
 				}
 			}
 		}
@@ -100,8 +94,6 @@ static PVRSRV_ERROR RGXGetMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode,
 
 	return eError;
 }
-
-
 
 /*
  * RGXInitMultiCoreInfo:
@@ -113,8 +105,7 @@ PVRSRV_ERROR RGXInitMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode)
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
-	if (psDeviceNode->pfnGetMultiCoreInfo != NULL)
-	{
+	if (psDeviceNode->pfnGetMultiCoreInfo != NULL) {
 		/* we only set this up once */
 		return PVRSRV_OK;
 	}
@@ -125,8 +116,7 @@ PVRSRV_ERROR RGXInitMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode)
 	psDevInfo->pui64MultiCoreCapabilities = NULL;
 	psDeviceNode->pfnGetMultiCoreInfo = NULL;
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, GPU_MULTICORE_SUPPORT))
-	{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, GPU_MULTICORE_SUPPORT)) {
 		IMG_BOOL bPowerWasDown;
 		IMG_UINT32 ui32MulticoreInfo;
 		IMG_UINT32 ui32PrimaryCoreIds;
@@ -135,99 +125,131 @@ PVRSRV_ERROR RGXInitMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode)
 		IMG_UINT32 ui32NumCores;
 		IMG_UINT32 id, i;
 
-#if defined(RGX_HOST_SECURE_REGBANK_OFFSET) && defined(XPU_MAX_REGBANKS_ADDR_WIDTH)
+#if defined(RGX_HOST_SECURE_REGBANK_OFFSET) && \
+	defined(XPU_MAX_REGBANKS_ADDR_WIDTH)
 		{
-			IMG_UINT32 ui32MulticoreRegBankOffset = (1 << RGX_GET_FEATURE_VALUE(psDevInfo, XPU_MAX_REGBANKS_ADDR_WIDTH));
+			IMG_UINT32 ui32MulticoreRegBankOffset =
+				(1 << RGX_GET_FEATURE_VALUE(
+					 psDevInfo,
+					 XPU_MAX_REGBANKS_ADDR_WIDTH));
 
 			/* Ensure the HOST_SECURITY reg bank definitions are correct */
-			if ((RGX_HOST_SECURE_REGBANK_OFFSET + RGX_HOST_SECURE_REGBANK_SIZE) != ui32MulticoreRegBankOffset)
-			{
-				PVR_DPF((PVR_DBG_ERROR, "%s: Register bank definitions for HOST_SECURITY don't match core's configuration.", __func__));
+			if ((RGX_HOST_SECURE_REGBANK_OFFSET +
+			     RGX_HOST_SECURE_REGBANK_SIZE) !=
+			    ui32MulticoreRegBankOffset) {
+				PVR_DPF((
+					PVR_DBG_ERROR,
+					"%s: Register bank definitions for HOST_SECURITY don't match core's configuration.",
+					__func__));
 				return PVRSRV_ERROR_OUT_OF_MEMORY;
 			}
 		}
 #endif
-		bPowerWasDown = (psDeviceNode->psDevConfig->pfnGpuDomainPower(psDeviceNode) == PVRSRV_SYS_POWER_STATE_OFF);
+		bPowerWasDown =
+			(psDeviceNode->psDevConfig->pfnGpuDomainPower(
+				 psDeviceNode) == PVRSRV_SYS_POWER_STATE_OFF);
 
 		/* Power-up the device as required to read the registers */
-		if (bPowerWasDown)
-		{
-			eError = PVRSRVSetSystemPowerState(psDeviceNode->psDevConfig, PVRSRV_SYS_POWER_STATE_ON);
-			PVR_LOG_RETURN_IF_ERROR(eError, "PVRSRVSetSystemPowerState ON");
+		if (bPowerWasDown) {
+			eError = PVRSRVSetSystemPowerState(
+				psDeviceNode->psDevConfig,
+				PVRSRV_SYS_POWER_STATE_ON);
+			PVR_LOG_RETURN_IF_ERROR(eError,
+						"PVRSRVSetSystemPowerState ON");
 		}
 
-		ui32NumCores = (OSReadHWReg32(psDevInfo->pvRegsBaseKM, RGX_CR_MULTICORE_DOMAIN)
-		                                            & ~RGX_CR_MULTICORE_DOMAIN_GPU_COUNT_CLRMSK)
-		                                            >> RGX_CR_MULTICORE_DOMAIN_GPU_COUNT_SHIFT;
+		ui32NumCores = (OSReadHWReg32(psDevInfo->pvRegsBaseKM,
+					      RGX_CR_MULTICORE_DOMAIN) &
+				~RGX_CR_MULTICORE_DOMAIN_GPU_COUNT_CLRMSK) >>
+			       RGX_CR_MULTICORE_DOMAIN_GPU_COUNT_SHIFT;
 
-		ui32TotalCores = (OSReadHWReg32(psDevInfo->pvRegsBaseKM, RGX_CR_MULTICORE_SYSTEM)
-		                                            & ~RGX_CR_MULTICORE_SYSTEM_GPU_COUNT_CLRMSK)
-		                                            >> RGX_CR_MULTICORE_SYSTEM_GPU_COUNT_SHIFT;
-		ui32MulticoreInfo = OSReadHWReg32(psDevInfo->pvRegsBaseKM, RGX_CR_MULTICORE);
+		ui32TotalCores = (OSReadHWReg32(psDevInfo->pvRegsBaseKM,
+						RGX_CR_MULTICORE_SYSTEM) &
+				  ~RGX_CR_MULTICORE_SYSTEM_GPU_COUNT_CLRMSK) >>
+				 RGX_CR_MULTICORE_SYSTEM_GPU_COUNT_SHIFT;
+		ui32MulticoreInfo = OSReadHWReg32(psDevInfo->pvRegsBaseKM,
+						  RGX_CR_MULTICORE);
 #if defined(NO_HARDWARE)
 		/* override to defaults if no hardware */
-		ui32NumCores = 8;//RGX_MULTICORE_MAX_NOHW_CORES;
+		ui32NumCores = 8; //RGX_MULTICORE_MAX_NOHW_CORES;
 		ui32TotalCores = RGX_MULTICORE_MAX_NOHW_CORES;
-		ui32MulticoreInfo = 0;  /* primary id 0 with 7 secondaries */
+		ui32MulticoreInfo = 0; /* primary id 0 with 7 secondaries */
 #endif
 		/* ID for this primary is in this register */
-		ui32PrimaryId = (ui32MulticoreInfo & ~RGX_CR_MULTICORE_ID_CLRMSK) >> RGX_CR_MULTICORE_ID_SHIFT;
+		ui32PrimaryId =
+			(ui32MulticoreInfo & ~RGX_CR_MULTICORE_ID_CLRMSK) >>
+			RGX_CR_MULTICORE_ID_SHIFT;
 
 		/* allocate storage for capabilities */
-		psDevInfo->pui64MultiCoreCapabilities = OSAllocMem(ui32NumCores * sizeof(psDevInfo->pui64MultiCoreCapabilities[0]));
-		if (psDevInfo->pui64MultiCoreCapabilities == NULL)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Failed to alloc memory for Multicore info", __func__));
+		psDevInfo->pui64MultiCoreCapabilities = OSAllocMem(
+			ui32NumCores *
+			sizeof(psDevInfo->pui64MultiCoreCapabilities[0]));
+		if (psDevInfo->pui64MultiCoreCapabilities == NULL) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Failed to alloc memory for Multicore info",
+				 __func__));
 			return PVRSRV_ERROR_OUT_OF_MEMORY;
 		}
 
-		ui32PrimaryCoreIds = (ui32MulticoreInfo & ~RGX_CR_MULTICORE_PRIMARY_CORE_ID_CLRMSK)
-		                                        >> RGX_CR_MULTICORE_PRIMARY_CORE_ID_SHIFT;
+		ui32PrimaryCoreIds =
+			(ui32MulticoreInfo &
+			 ~RGX_CR_MULTICORE_PRIMARY_CORE_ID_CLRMSK) >>
+			RGX_CR_MULTICORE_PRIMARY_CORE_ID_SHIFT;
 
 		psDevInfo->ui32MultiCorePrimaryId = ui32PrimaryId;
 		psDevInfo->ui32MultiCoreNumCores = ui32NumCores;
 
-		PVR_DPF((PVR_DBG_MESSAGE, "Multicore domain has %d cores with primary id %u\n", ui32NumCores, ui32PrimaryId));
-		PDUMPCOMMENT(psDeviceNode,
-		             "RGX Multicore domain has %d cores with primary id %u\n",
-		             ui32NumCores, ui32PrimaryId);
-		for (i = 0, id = 0; id < ui32TotalCores; ++id)
-		{
-			if ((ui32PrimaryCoreIds & 0x7) == ui32PrimaryId)
-			{
+		PVR_DPF((PVR_DBG_MESSAGE,
+			 "Multicore domain has %d cores with primary id %u\n",
+			 ui32NumCores, ui32PrimaryId));
+		PDUMPCOMMENT(
+			psDeviceNode,
+			"RGX Multicore domain has %d cores with primary id %u\n",
+			ui32NumCores, ui32PrimaryId);
+		for (i = 0, id = 0; id < ui32TotalCores; ++id) {
+			if ((ui32PrimaryCoreIds & 0x7) == ui32PrimaryId) {
 				/* currently all cores are identical so have the same capabilities */
-				psDevInfo->pui64MultiCoreCapabilities[i] = id
-				                    | ((id == ui32PrimaryId) ? RGX_MULTICORE_CAPABILITY_PRIMARY_EN : 0)
-				                    | RGX_MULTICORE_CAPABILITY_GEOMETRY_EN
-				                    | RGX_MULTICORE_CAPABILITY_COMPUTE_EN
-				                    | RGX_MULTICORE_CAPABILITY_FRAGMENT_EN;
-				PDUMPCOMMENT(psDeviceNode, "\tCore %u has caps 0x%08x", id,
-				             (IMG_UINT32)psDevInfo->pui64MultiCoreCapabilities[i]);
-				PVR_DPF((PVR_DBG_MESSAGE, "Core %u has caps 0x%08x", id, (IMG_UINT32)psDevInfo->pui64MultiCoreCapabilities[i]));
+				psDevInfo->pui64MultiCoreCapabilities[i] =
+					id |
+					((id == ui32PrimaryId) ?
+						 RGX_MULTICORE_CAPABILITY_PRIMARY_EN :
+						 0) |
+					RGX_MULTICORE_CAPABILITY_GEOMETRY_EN |
+					RGX_MULTICORE_CAPABILITY_COMPUTE_EN |
+					RGX_MULTICORE_CAPABILITY_FRAGMENT_EN;
+				PDUMPCOMMENT(
+					psDeviceNode,
+					"\tCore %u has caps 0x%08x", id,
+					(IMG_UINT32)psDevInfo
+						->pui64MultiCoreCapabilities[i]);
+				PVR_DPF((
+					PVR_DBG_MESSAGE,
+					"Core %u has caps 0x%08x", id,
+					(IMG_UINT32)psDevInfo
+						->pui64MultiCoreCapabilities[i]));
 				++i;
 			}
 			ui32PrimaryCoreIds >>= 3;
 		}
 
-        /* revert power state to what it was on entry to this function */
-		if (bPowerWasDown)
-		{
-			eError = PVRSRVSetSystemPowerState(psDeviceNode->psDevConfig, PVRSRV_SYS_POWER_STATE_OFF);
-			PVR_LOG_RETURN_IF_ERROR(eError, "PVRSRVSetSystemPowerState OFF");
+		/* revert power state to what it was on entry to this function */
+		if (bPowerWasDown) {
+			eError = PVRSRVSetSystemPowerState(
+				psDeviceNode->psDevConfig,
+				PVRSRV_SYS_POWER_STATE_OFF);
+			PVR_LOG_RETURN_IF_ERROR(
+				eError, "PVRSRVSetSystemPowerState OFF");
 		}
 
 		/* Register callback to return info about multicore setup to client bridge */
 		psDeviceNode->pfnGetMultiCoreInfo = RGXGetMultiCoreInfo;
-	}
-	else
-	{
+	} else {
 		/* MULTICORE not supported on this device */
 		eError = PVRSRV_ERROR_NOT_SUPPORTED;
 	}
 
 	return eError;
 }
-
 
 /*
  * RGXDeinitMultiCoreInfo:
@@ -237,8 +259,7 @@ void RGXDeInitMultiCoreInfo(PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 
-	if (psDevInfo->pui64MultiCoreCapabilities != NULL)
-	{
+	if (psDevInfo->pui64MultiCoreCapabilities != NULL) {
 		OSFreeMem(psDevInfo->pui64MultiCoreCapabilities);
 		psDevInfo->pui64MultiCoreCapabilities = NULL;
 		psDevInfo->ui32MultiCoreNumCores = 0;

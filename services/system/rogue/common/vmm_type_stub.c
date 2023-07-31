@@ -49,8 +49,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "vmm_impl.h"
 #include "vmm_pvz_server.h"
 
-static PVRSRV_ERROR
-StubVMMMapDevPhysHeap(IMG_UINT64 ui64Size,
+static PVRSRV_ERROR StubVMMMapDevPhysHeap(IMG_UINT64 ui64Size,
 					  IMG_UINT64 ui64Addr)
 {
 	PVR_UNREFERENCED_PARAMETER(ui64Size);
@@ -58,8 +57,7 @@ StubVMMMapDevPhysHeap(IMG_UINT64 ui64Size,
 	return PVRSRV_ERROR_NOT_IMPLEMENTED;
 }
 
-static PVRSRV_ERROR
-StubVMMUnmapDevPhysHeap(void)
+static PVRSRV_ERROR StubVMMUnmapDevPhysHeap(void)
 {
 	return PVRSRV_ERROR_NOT_IMPLEMENTED;
 }
@@ -96,9 +94,12 @@ static VMM_PVZ_CONNECTION gsStubVmmPvz =
 
 PVRSRV_ERROR VMMCreatePvzConnection(VMM_PVZ_CONNECTION **psPvzConnection)
 {
-	PVR_LOG_RETURN_IF_FALSE((NULL != psPvzConnection), "VMMCreatePvzConnection", PVRSRV_ERROR_INVALID_PARAMS);
+	PVR_LOG_RETURN_IF_FALSE((NULL != psPvzConnection),
+				"VMMCreatePvzConnection",
+				PVRSRV_ERROR_INVALID_PARAMS);
 	*psPvzConnection = &gsStubVmmPvz;
-	PVR_DPF((PVR_DBG_ERROR, "Using a stub VM manager type, no runtime VZ support"));
+	PVR_DPF((PVR_DBG_ERROR,
+		 "Using a stub VM manager type, no runtime VZ support"));
 	return PVRSRV_OK;
 }
 

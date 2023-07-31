@@ -53,18 +53,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem_osmem.h"
 
 static void HostMemCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-                                      IMG_UINT32 ui32NumOfAddr,
-                                      IMG_DEV_PHYADDR *psDevPAddr,
-                                      IMG_CPU_PHYADDR *psCpuPAddr);
+				      IMG_UINT32 ui32NumOfAddr,
+				      IMG_DEV_PHYADDR *psDevPAddr,
+				      IMG_CPU_PHYADDR *psCpuPAddr);
 
 static void HostMemDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-                                      IMG_UINT32 ui32NumOfAddr,
-                                      IMG_CPU_PHYADDR *psCpuPAddr,
-                                      IMG_DEV_PHYADDR *psDevPAddr);
+				      IMG_UINT32 ui32NumOfAddr,
+				      IMG_CPU_PHYADDR *psCpuPAddr,
+				      IMG_DEV_PHYADDR *psDevPAddr);
 
 /* heap callbacks for host driver's device's heap */
-static PHYS_HEAP_FUNCTIONS gsHostMemDevPhysHeapFuncs =
-{
+static PHYS_HEAP_FUNCTIONS gsHostMemDevPhysHeapFuncs = {
 	/* pfnCpuPAddrToDevPAddr */
 	HostMemCpuPAddrToDevPAddr,
 	/* pfnDevPAddrToCpuPAddr */
@@ -74,64 +73,57 @@ static PHYS_HEAP_FUNCTIONS gsHostMemDevPhysHeapFuncs =
 static PVRSRV_DEVICE_CONFIG gsHostMemDevConfig[];
 
 /* heap configuration for host driver's device */
-static PHYS_HEAP_CONFIG gsPhysHeapConfigHostMemDevice[] =
-{
-	{
-		PHYS_HEAP_TYPE_UMA,
-		"SYSMEM",
-		&gsHostMemDevPhysHeapFuncs,
-		{0},
-		{0},
-		0,
-		"uma_cpu_local",
-		(IMG_HANDLE)&gsHostMemDevConfig[0],
-		PHYS_HEAP_USAGE_CPU_LOCAL,
-	}
-};
+static PHYS_HEAP_CONFIG gsPhysHeapConfigHostMemDevice[] = { {
+	PHYS_HEAP_TYPE_UMA,
+	"SYSMEM",
+	&gsHostMemDevPhysHeapFuncs,
+	{ 0 },
+	{ 0 },
+	0,
+	"uma_cpu_local",
+	(IMG_HANDLE)&gsHostMemDevConfig[0],
+	PHYS_HEAP_USAGE_CPU_LOCAL,
+} };
 
 /* device configuration for host driver's device */
-static PVRSRV_DEVICE_CONFIG gsHostMemDevConfig[] =
-{
-	{
-		.pszName = "HostMemDevice",
-		.eCacheSnoopingMode = PVRSRV_DEVICE_SNOOP_NONE,
-		.pasPhysHeaps = &gsPhysHeapConfigHostMemDevice[0],
-		.ui32PhysHeapCount = ARRAY_SIZE(gsPhysHeapConfigHostMemDevice),
-	}
-};
+static PVRSRV_DEVICE_CONFIG gsHostMemDevConfig[] = { {
+	.pszName = "HostMemDevice",
+	.eCacheSnoopingMode = PVRSRV_DEVICE_SNOOP_NONE,
+	.pasPhysHeaps = &gsPhysHeapConfigHostMemDevice[0],
+	.ui32PhysHeapCount = ARRAY_SIZE(gsPhysHeapConfigHostMemDevice),
+} };
 
 static void HostMemCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-                                      IMG_UINT32 ui32NumOfAddr,
-                                      IMG_DEV_PHYADDR *psDevPAddr,
-                                      IMG_CPU_PHYADDR *psCpuPAddr)
+				      IMG_UINT32 ui32NumOfAddr,
+				      IMG_DEV_PHYADDR *psDevPAddr,
+				      IMG_CPU_PHYADDR *psCpuPAddr)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	/* Optimise common case */
 	psDevPAddr[0].uiAddr = psCpuPAddr[0].uiAddr;
-	if (ui32NumOfAddr > 1)
-	{
+	if (ui32NumOfAddr > 1) {
 		IMG_UINT32 ui32Idx;
-		for (ui32Idx = 1; ui32Idx < ui32NumOfAddr; ++ui32Idx)
-		{
+		for (ui32Idx = 1; ui32Idx < ui32NumOfAddr; ++ui32Idx) {
 			psDevPAddr[ui32Idx].uiAddr = psCpuPAddr[ui32Idx].uiAddr;
 		}
 	}
 }
 
 static void HostMemDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-                                      IMG_UINT32 ui32NumOfAddr,
-                                      IMG_CPU_PHYADDR *psCpuPAddr,
-                                      IMG_DEV_PHYADDR *psDevPAddr)
+				      IMG_UINT32 ui32NumOfAddr,
+				      IMG_CPU_PHYADDR *psCpuPAddr,
+				      IMG_DEV_PHYADDR *psDevPAddr)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	/* Optimise common case */
-	psCpuPAddr[0].uiAddr = IMG_CAST_TO_CPUPHYADDR_UINT(psDevPAddr[0].uiAddr);
-	if (ui32NumOfAddr > 1)
-	{
+	psCpuPAddr[0].uiAddr =
+		IMG_CAST_TO_CPUPHYADDR_UINT(psDevPAddr[0].uiAddr);
+	if (ui32NumOfAddr > 1) {
 		IMG_UINT32 ui32Idx;
-		for (ui32Idx = 1; ui32Idx < ui32NumOfAddr; ++ui32Idx)
-		{
-			psCpuPAddr[ui32Idx].uiAddr = IMG_CAST_TO_CPUPHYADDR_UINT(psDevPAddr[ui32Idx].uiAddr);
+		for (ui32Idx = 1; ui32Idx < ui32NumOfAddr; ++ui32Idx) {
+			psCpuPAddr[ui32Idx].uiAddr =
+				IMG_CAST_TO_CPUPHYADDR_UINT(
+					psDevPAddr[ui32Idx].uiAddr);
 		}
 	}
 }
@@ -148,7 +140,7 @@ PVRSRV_ERROR HostMemDeviceCreate(PVRSRV_DEVICE_NODE **ppsDeviceNode)
 
 	/* for now, we only know a single heap (UMA) config for host device */
 	PVR_ASSERT(psDevConfig->ui32PhysHeapCount == 1 &&
-				psDevConfig->pasPhysHeaps[0].eType == PHYS_HEAP_TYPE_UMA);
+		   psDevConfig->pasPhysHeaps[0].eType == PHYS_HEAP_TYPE_UMA);
 
 	/* N.B.- In case of any failures in this function, we just return error to
 	   the caller, as clean-up is taken care by _HostMemDeviceDestroy function */
@@ -166,15 +158,14 @@ PVRSRV_ERROR HostMemDeviceCreate(PVRSRV_DEVICE_NODE **ppsDeviceNode)
 	eError = OSLockCreate(&psDeviceNode->hPhysHeapLock);
 	PVR_LOG_RETURN_IF_ERROR(eError, "OSLockCreate");
 
-	eError = PhysHeapCreateHeapFromConfig(psDeviceNode,
-										  &psDevConfig->pasPhysHeaps[0],
-										  NULL);
+	eError = PhysHeapCreateHeapFromConfig(
+		psDeviceNode, &psDevConfig->pasPhysHeaps[0], NULL);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysHeapCreateHeapFromConfig");
 
 	/* Only CPU local heap is valid on host-mem DevNode, so enable minimal callbacks */
-	eError = PhysHeapAcquireByID(PVRSRV_PHYS_HEAP_CPU_LOCAL,
-								 psDeviceNode,
-								 &psDeviceNode->apsPhysHeap[PVRSRV_PHYS_HEAP_CPU_LOCAL]);
+	eError = PhysHeapAcquireByID(
+		PVRSRV_PHYS_HEAP_CPU_LOCAL, psDeviceNode,
+		&psDeviceNode->apsPhysHeap[PVRSRV_PHYS_HEAP_CPU_LOCAL]);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysHeapAcquire");
 
 	dllist_init(&psDeviceNode->sCleanupThreadWorkList);
@@ -184,15 +175,12 @@ PVRSRV_ERROR HostMemDeviceCreate(PVRSRV_DEVICE_NODE **ppsDeviceNode)
 
 void HostMemDeviceDestroy(PVRSRV_DEVICE_NODE *psDeviceNode)
 {
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return;
-	}
-	else
-	{
-		if (psDeviceNode->apsPhysHeap[PVRSRV_PHYS_HEAP_CPU_LOCAL])
-		{
-			PhysHeapRelease(psDeviceNode->apsPhysHeap[PVRSRV_PHYS_HEAP_CPU_LOCAL]);
+	} else {
+		if (psDeviceNode->apsPhysHeap[PVRSRV_PHYS_HEAP_CPU_LOCAL]) {
+			PhysHeapRelease(psDeviceNode->apsPhysHeap
+						[PVRSRV_PHYS_HEAP_CPU_LOCAL]);
 		}
 
 		PhysHeapDestroyDeviceHeaps(psDeviceNode);

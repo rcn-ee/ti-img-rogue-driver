@@ -55,14 +55,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pmr_impl.h"
 
 /* Valid values for TC_MEMORY_CONFIG configuration option */
-#define TC_MEMORY_LOCAL			(1)
-#define TC_MEMORY_HOST			(2)
-#define TC_MEMORY_HYBRID		(3)
+#define TC_MEMORY_LOCAL (1)
+#define TC_MEMORY_HOST (2)
+#define TC_MEMORY_HYBRID (3)
 
 /* Valid values for the PLATO_MEMORY_CONFIG configuration option */
-#define PLATO_MEMORY_LOCAL		(1)
-#define PLATO_MEMORY_HOST		(2)
-#define PLATO_MEMORY_HYBRID		(3)
+#define PLATO_MEMORY_LOCAL (1)
+#define PLATO_MEMORY_HOST (2)
+#define PLATO_MEMORY_HYBRID (3)
 
 /*************************************************************************/ /*!
 @Function       DevPhysMemAlloc
@@ -84,19 +84,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Return         PVRSRV_OK if the allocation is successful
 */ /**************************************************************************/
 PVRSRV_ERROR
-DevPhysMemAlloc(PVRSRV_DEVICE_NODE *psDevNode,
-                IMG_UINT32 ui32MemSize,
-                IMG_UINT32 ui32Log2Align,
-                const IMG_UINT8 u8Value,
-                IMG_BOOL bInitPage,
+DevPhysMemAlloc(PVRSRV_DEVICE_NODE *psDevNode, IMG_UINT32 ui32MemSize,
+		IMG_UINT32 ui32Log2Align, const IMG_UINT8 u8Value,
+		IMG_BOOL bInitPage,
 #if defined(PDUMP)
-                const IMG_CHAR *pszDevSpace,
-                const IMG_CHAR *pszSymbolicAddress,
-                IMG_HANDLE *phHandlePtr,
+		const IMG_CHAR *pszDevSpace, const IMG_CHAR *pszSymbolicAddress,
+		IMG_HANDLE *phHandlePtr,
 #endif
-                IMG_PID uiPid,
-                IMG_HANDLE hMemHandle,
-                IMG_DEV_PHYADDR *psDevPhysAddr);
+		IMG_PID uiPid, IMG_HANDLE hMemHandle,
+		IMG_DEV_PHYADDR *psDevPhysAddr);
 
 /*************************************************************************/ /*!
 @Function       DevPhysMemFree
@@ -106,12 +102,11 @@ DevPhysMemAlloc(PVRSRV_DEVICE_NODE *psDevNode,
 @Input          hMemHandle            Devmem handle to allocated memory
 @Return         None
 */ /**************************************************************************/
-void
-DevPhysMemFree(PVRSRV_DEVICE_NODE *psDevNode,
+void DevPhysMemFree(PVRSRV_DEVICE_NODE *psDevNode,
 #if defined(PDUMP)
-               IMG_HANDLE hPDUMPMemHandle,
+		    IMG_HANDLE hPDUMPMemHandle,
 #endif
-               IMG_HANDLE hMemHandle);
+		    IMG_HANDLE hMemHandle);
 
 /*
  * PhysmemNewRamBackedPMR
@@ -150,36 +145,26 @@ DevPhysMemFree(PVRSRV_DEVICE_NODE *psDevNode,
  * that the allocation is made on behalf of.
  */
 PVRSRV_ERROR
-PhysmemNewRamBackedPMR(CONNECTION_DATA * psConnection,
-                       PVRSRV_DEVICE_NODE *psDevNode,
-                       IMG_DEVMEM_SIZE_T uiSize,
-                       IMG_UINT32 ui32NumPhysChunks,
-                       IMG_UINT32 ui32NumVirtChunks,
-                       IMG_UINT32 *pui32MappingTable,
-                       IMG_UINT32 uiLog2PageSize,
-                       PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                       IMG_UINT32 uiAnnotationLength,
-                       const IMG_CHAR *pszAnnotation,
-                       IMG_PID uiPid,
-                       PMR **ppsPMROut,
-                       IMG_UINT32 ui32PDumpFlags,
-                       PVRSRV_MEMALLOCFLAGS_T *puiPMRFlags);
+PhysmemNewRamBackedPMR(CONNECTION_DATA *psConnection,
+		       PVRSRV_DEVICE_NODE *psDevNode, IMG_DEVMEM_SIZE_T uiSize,
+		       IMG_UINT32 ui32NumPhysChunks,
+		       IMG_UINT32 ui32NumVirtChunks,
+		       IMG_UINT32 *pui32MappingTable, IMG_UINT32 uiLog2PageSize,
+		       PVRSRV_MEMALLOCFLAGS_T uiFlags,
+		       IMG_UINT32 uiAnnotationLength,
+		       const IMG_CHAR *pszAnnotation, IMG_PID uiPid,
+		       PMR **ppsPMROut, IMG_UINT32 ui32PDumpFlags,
+		       PVRSRV_MEMALLOCFLAGS_T *puiPMRFlags);
 
 PVRSRV_ERROR
-PhysmemNewRamBackedPMR_direct(CONNECTION_DATA * psConnection,
-							  PVRSRV_DEVICE_NODE *psDevNode,
-							  IMG_DEVMEM_SIZE_T uiSize,
-							  IMG_UINT32 ui32NumPhysChunks,
-							  IMG_UINT32 ui32NumVirtChunks,
-							  IMG_UINT32 *pui32MappingTable,
-							  IMG_UINT32 uiLog2PageSize,
-							  PVRSRV_MEMALLOCFLAGS_T uiFlags,
-							  IMG_UINT32 uiAnnotationLength,
-							  const IMG_CHAR *pszAnnotation,
-							  IMG_PID uiPid,
-							  PMR **ppsPMROut,
-							  IMG_UINT32 ui32PDumpFlags,
-							  PVRSRV_MEMALLOCFLAGS_T *puiPMRFlags);
+PhysmemNewRamBackedPMR_direct(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 uiLog2PageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	IMG_UINT32 uiAnnotationLength, const IMG_CHAR *pszAnnotation,
+	IMG_PID uiPid, PMR **ppsPMROut, IMG_UINT32 ui32PDumpFlags,
+	PVRSRV_MEMALLOCFLAGS_T *puiPMRFlags);
 
 /*************************************************************************/ /*!
 @Function       PhysmemImportPMR
@@ -198,13 +183,9 @@ PhysmemNewRamBackedPMR_direct(CONNECTION_DATA * psConnection,
                 PVRSRV_OK if successful
 */ /**************************************************************************/
 PVRSRV_ERROR
-PhysmemImportPMR(CONNECTION_DATA *psConnection,
-                 PVRSRV_DEVICE_NODE *psDevNode,
-                 PMR_EXPORT *psPMRExport,
-                 PMR_PASSWORD_T uiPassword,
-                 PMR_SIZE_T uiSize,
-                 PMR_LOG2ALIGN_T uiLog2Contig,
-                 PMR **ppsPMR);
+PhysmemImportPMR(CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+		 PMR_EXPORT *psPMRExport, PMR_PASSWORD_T uiPassword,
+		 PMR_SIZE_T uiSize, PMR_LOG2ALIGN_T uiLog2Contig, PMR **ppsPMR);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVGetDefaultPhysicalHeapKM
@@ -216,8 +197,8 @@ PhysmemImportPMR(CONNECTION_DATA *psConnection,
 */ /**************************************************************************/
 PVRSRV_ERROR
 PVRSRVGetDefaultPhysicalHeapKM(CONNECTION_DATA *psConnection,
-                               PVRSRV_DEVICE_NODE *psDevNode,
-                               PVRSRV_PHYS_HEAP *peHeap);
+			       PVRSRV_DEVICE_NODE *psDevNode,
+			       PVRSRV_PHYS_HEAP *peHeap);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVPhysHeapGetMemInfoKM
@@ -229,9 +210,9 @@ PVRSRVGetDefaultPhysicalHeapKM(CONNECTION_DATA *psConnection,
 */ /**************************************************************************/
 PVRSRV_ERROR
 PVRSRVPhysHeapGetMemInfoKM(CONNECTION_DATA *psConnection,
-                           PVRSRV_DEVICE_NODE *psDevNode,
-                           IMG_UINT32 ui32PhysHeapCount,
-                           PVRSRV_PHYS_HEAP *paePhysHeapID,
-                           PHYS_HEAP_MEM_STATS *paPhysHeapMemStats);
+			   PVRSRV_DEVICE_NODE *psDevNode,
+			   IMG_UINT32 ui32PhysHeapCount,
+			   PVRSRV_PHYS_HEAP *paePhysHeapID,
+			   PHYS_HEAP_MEM_STATS *paPhysHeapMemStats);
 
 #endif /* SRVSRV_PHYSMEM_H */

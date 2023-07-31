@@ -46,15 +46,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "img_types.h"
 
-#if defined(RGX_FIRMWARE)               /* Services firmware */
-# include "rgxfw_utils.h"
-# define PVR_COMPAT_ASSERT RGXFW_ASSERT
-#elif !defined(RGX_BUILD_BINARY)        /* Services host driver code */
-# include "pvr_debug.h"
-# define PVR_COMPAT_ASSERT PVR_ASSERT
-#else                                   /* FW user-mode tools */
-# include <assert.h>
-# define PVR_COMPAT_ASSERT assert
+#if defined(RGX_FIRMWARE) /* Services firmware */
+#include "rgxfw_utils.h"
+#define PVR_COMPAT_ASSERT RGXFW_ASSERT
+#elif !defined(RGX_BUILD_BINARY) /* Services host driver code */
+#include "pvr_debug.h"
+#define PVR_COMPAT_ASSERT PVR_ASSERT
+#else /* FW user-mode tools */
+#include <assert.h>
+#define PVR_COMPAT_ASSERT assert
 #endif
 
 /* 64bit endian conversion macros */
@@ -64,22 +64,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_INT32_TO_BE(N) (N)
 #define RGX_INT32_FROM_BE(N) (N)
 #else
-#define RGX_INT64_TO_BE(N)        \
-	((((N) >> 56)   & 0xff)       \
-	 | (((N) >> 40) & 0xff00)     \
-	 | (((N) >> 24) & 0xff0000)   \
-	 | (((N) >> 8)  & 0xff000000U) \
-	 | ((N)                << 56) \
-	 | (((N) & 0xff00)     << 40) \
-	 | (((N) & 0xff0000)   << 24) \
-	 | (((N) & 0xff000000U) << 8))
+#define RGX_INT64_TO_BE(N)                                                     \
+	((((N) >> 56) & 0xff) | (((N) >> 40) & 0xff00) |                       \
+	 (((N) >> 24) & 0xff0000) | (((N) >> 8) & 0xff000000U) | ((N) << 56) | \
+	 (((N)&0xff00) << 40) | (((N)&0xff0000) << 24) |                       \
+	 (((N)&0xff000000U) << 8))
 #define RGX_INT64_FROM_BE(N) RGX_INT64_TO_BE(N)
 
-#define RGX_INT32_TO_BE(N)   \
-	((((N) >> 24)  & 0xff)   \
-	 | (((N) >> 8) & 0xff00) \
-	 | ((N)           << 24) \
-	 | ((((N) & 0xff00) << 8)))
+#define RGX_INT32_TO_BE(N)                                            \
+	((((N) >> 24) & 0xff) | (((N) >> 8) & 0xff00) | ((N) << 24) | \
+	 ((((N)&0xff00) << 8)))
 #define RGX_INT32_FROM_BE(N) RGX_INT32_TO_BE(N)
 #endif
 
@@ -97,41 +91,48 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_BVNC_PACK_MASK_N (IMG_UINT64_C(0x00000000FFFF0000))
 #define RGX_BVNC_PACK_MASK_C (IMG_UINT64_C(0x000000000000FFFF))
 
-#define RGX_BVNC_PACKED_EXTR_B(BVNC) ((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_B) >> RGX_BVNC_PACK_SHIFT_B))
-#define RGX_BVNC_PACKED_EXTR_V(BVNC) ((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_V) >> RGX_BVNC_PACK_SHIFT_V))
-#define RGX_BVNC_PACKED_EXTR_N(BVNC) ((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_N) >> RGX_BVNC_PACK_SHIFT_N))
-#define RGX_BVNC_PACKED_EXTR_C(BVNC) ((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_C) >> RGX_BVNC_PACK_SHIFT_C))
+#define RGX_BVNC_PACKED_EXTR_B(BVNC) \
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_B) >> RGX_BVNC_PACK_SHIFT_B))
+#define RGX_BVNC_PACKED_EXTR_V(BVNC) \
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_V) >> RGX_BVNC_PACK_SHIFT_V))
+#define RGX_BVNC_PACKED_EXTR_N(BVNC) \
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_N) >> RGX_BVNC_PACK_SHIFT_N))
+#define RGX_BVNC_PACKED_EXTR_C(BVNC) \
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_C) >> RGX_BVNC_PACK_SHIFT_C))
 
-#define RGX_BVNC_EQUAL(L,R,all,version,bvnc) do {															\
-										(bvnc) = IMG_FALSE;													\
-										(version) = ((L).ui32LayoutVersion == (R).ui32LayoutVersion);		\
-										if (version)														\
-										{																	\
-											(bvnc) = ((L).ui64BVNC == (R).ui64BVNC);						\
-										}																	\
-										(all) = (version) && (bvnc);										\
-									} while (false)
+#define RGX_BVNC_EQUAL(L, R, all, version, bvnc)                              \
+	do {                                                                  \
+		(bvnc) = IMG_FALSE;                                           \
+		(version) = ((L).ui32LayoutVersion == (R).ui32LayoutVersion); \
+		if (version) {                                                \
+			(bvnc) = ((L).ui64BVNC == (R).ui64BVNC);              \
+		}                                                             \
+		(all) = (version) && (bvnc);                                  \
+	} while (false)
 
-
-/**************************************************************************//**
+/**************************************************************************/ /**
  * Utility function for packing BVNC
  *****************************************************************************/
-static inline IMG_UINT64 rgx_bvnc_pack(IMG_UINT32 ui32B, IMG_UINT32 ui32V, IMG_UINT32 ui32N, IMG_UINT32 ui32C)
+static inline IMG_UINT64 rgx_bvnc_pack(IMG_UINT32 ui32B, IMG_UINT32 ui32V,
+				       IMG_UINT32 ui32N, IMG_UINT32 ui32C)
 {
 	/*
 	 * Test for input B, V, N and C exceeding max bit width.
 	 */
-	PVR_COMPAT_ASSERT((ui32B & (~(RGX_BVNC_PACK_MASK_B >> RGX_BVNC_PACK_SHIFT_B))) == 0U);
-	PVR_COMPAT_ASSERT((ui32V & (~(RGX_BVNC_PACK_MASK_V >> RGX_BVNC_PACK_SHIFT_V))) == 0U);
-	PVR_COMPAT_ASSERT((ui32N & (~(RGX_BVNC_PACK_MASK_N >> RGX_BVNC_PACK_SHIFT_N))) == 0U);
-	PVR_COMPAT_ASSERT((ui32C & (~(RGX_BVNC_PACK_MASK_C >> RGX_BVNC_PACK_SHIFT_C))) == 0U);
+	PVR_COMPAT_ASSERT((ui32B & (~(RGX_BVNC_PACK_MASK_B >>
+				      RGX_BVNC_PACK_SHIFT_B))) == 0U);
+	PVR_COMPAT_ASSERT((ui32V & (~(RGX_BVNC_PACK_MASK_V >>
+				      RGX_BVNC_PACK_SHIFT_V))) == 0U);
+	PVR_COMPAT_ASSERT((ui32N & (~(RGX_BVNC_PACK_MASK_N >>
+				      RGX_BVNC_PACK_SHIFT_N))) == 0U);
+	PVR_COMPAT_ASSERT((ui32C & (~(RGX_BVNC_PACK_MASK_C >>
+				      RGX_BVNC_PACK_SHIFT_C))) == 0U);
 
 	return (((IMG_UINT64)ui32B << RGX_BVNC_PACK_SHIFT_B) |
-			((IMG_UINT64)ui32V << RGX_BVNC_PACK_SHIFT_V) |
-			((IMG_UINT64)ui32N << RGX_BVNC_PACK_SHIFT_N) |
-			((IMG_UINT64)ui32C << RGX_BVNC_PACK_SHIFT_C));
+		((IMG_UINT64)ui32V << RGX_BVNC_PACK_SHIFT_V) |
+		((IMG_UINT64)ui32N << RGX_BVNC_PACK_SHIFT_N) |
+		((IMG_UINT64)ui32C << RGX_BVNC_PACK_SHIFT_C));
 }
-
 
 #endif /* RGX_COMPAT_BVNC_H */
 

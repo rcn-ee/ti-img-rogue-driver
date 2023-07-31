@@ -65,11 +65,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Return         PVRSRV_ERROR PVRSRV_OK or error code
 */ /**************************************************************************/
 PVRSRV_ERROR
-PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode,
-                     PHYS_HEAP_POLICY uiPolicy,
-                     PHYS_HEAP_CONFIG *psConfig,
-                     IMG_CHAR *pszLabel,
-                     PHYS_HEAP **ppsPhysHeap);
+PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		     PHYS_HEAP_CONFIG *psConfig, IMG_CHAR *pszLabel,
+		     PHYS_HEAP **ppsPhysHeap);
 
 /*
  * PhysmemNewLocalRamBackedPMR
@@ -78,17 +76,12 @@ PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode,
  * agnostic.
  */
 PVRSRV_ERROR
-PhysmemNewLocalRamBackedPMR(PHYS_HEAP *psPhysHeap,
-							CONNECTION_DATA *psConnection,
-                            IMG_DEVMEM_SIZE_T uiSize,
-                            IMG_UINT32 ui32NumPhysChunks,
-                            IMG_UINT32 ui32NumVirtChunks,
-                            IMG_UINT32 *pui32MappingTable,
-                            IMG_UINT32 uiLog2PageSize,
-                            PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                            const IMG_CHAR *pszAnnotation,
-                            IMG_PID uiPid,
-                            PMR **ppsPMRPtr,
-                            IMG_UINT32 ui32PDumpFlags);
+PhysmemNewLocalRamBackedPMR(
+	PHYS_HEAP *psPhysHeap, CONNECTION_DATA *psConnection,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 uiLog2PageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	const IMG_CHAR *pszAnnotation, IMG_PID uiPid, PMR **ppsPMRPtr,
+	IMG_UINT32 ui32PDumpFlags);
 
 #endif /* #ifndef SRVSRV_PHYSMEM_LMA_H */

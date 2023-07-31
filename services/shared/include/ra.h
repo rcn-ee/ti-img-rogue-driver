@@ -51,7 +51,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /** Resource arena.
  *  struct _RA_ARENA_ deliberately opaque
  */
-typedef struct _RA_ARENA_ RA_ARENA;			//PRQA S 3313
+typedef struct _RA_ARENA_ RA_ARENA; //PRQA S 3313
 
 /** Resource arena's iterator.
  *  struct _RA_ARENA_ITERATOR_ deliberately opaque
@@ -68,9 +68,9 @@ typedef struct _RA_ITERATOR_DATA_ {
  *  struct _RA_USAGE_STATS
  */
 typedef struct _RA_USAGE_STATS {
-	IMG_UINT64	ui64TotalArenaSize;
-	IMG_UINT64	ui64FreeArenaSize;
-}RA_USAGE_STATS, *PRA_USAGE_STATS;
+	IMG_UINT64 ui64TotalArenaSize;
+	IMG_UINT64 ui64FreeArenaSize;
+} RA_USAGE_STATS, *PRA_USAGE_STATS;
 
 /*
  * Per-Arena handle - this is private data for the caller of the RA.
@@ -96,7 +96,6 @@ typedef IMG_UINT32 RA_POLICY_T;
 typedef struct _RA_BASE_MULTI_ RA_BASE_MULTI_T;
 
 typedef IMG_UINT32 RA_BASE_ARRAY_SIZE_T;
-
 
 /*
  * RA_BASE_ARRAY can represent a number of bases of which are packed,
@@ -138,10 +137,13 @@ typedef RA_BASE_T RA_BASE_ARRAY_T[RA_FLEX_ARRAY_ONE_OR_MORE_ELEMENTS];
 #define RA_BASE_CHUNK_LOG2_MAX 64
 #define RA_BASE_GHOST_BIT (1ULL << 0)
 #define RA_BASE_STRIP_GHOST_BIT(uiBase) ((uiBase) & ~(RA_BASE_GHOST_BIT))
-#define RA_BASE_SET_GHOST_BIT(uiBase)   ((uiBase) |= RA_BASE_GHOST_BIT)
-#define RA_BASE_IS_GHOST(uiBase) (BITMASK_HAS((uiBase), RA_BASE_GHOST_BIT) && (uiBase) != INVALID_BASE_ADDR)
+#define RA_BASE_SET_GHOST_BIT(uiBase) ((uiBase) |= RA_BASE_GHOST_BIT)
+#define RA_BASE_IS_GHOST(uiBase)                     \
+	(BITMASK_HAS((uiBase), RA_BASE_GHOST_BIT) && \
+	 (uiBase) != INVALID_BASE_ADDR)
 #define RA_BASE_IS_REAL(uiBase) (!BITMASK_HAS((uiBase), RA_BASE_GHOST_BIT))
-#define RA_BASE_IS_SPARSE_PREP(uiBase) ((uiBase) == RA_BASE_SPARSE_PREP_ALLOC_ADDR)
+#define RA_BASE_IS_SPARSE_PREP(uiBase) \
+	((uiBase) == RA_BASE_SPARSE_PREP_ALLOC_ADDR)
 #define RA_BASE_IS_INVALID(uiBase) ((uiBase) == INVALID_BASE_ADDR)
 
 typedef struct _RA_MULTIBASE_ITERATOR_ RA_MULTIBASE_ITERATOR;
@@ -167,7 +169,7 @@ typedef struct _RA_MULTIBASE_ITERATOR_ RA_MULTIBASE_ITERATOR;
  * that satisfies the request.
  * It is the default policy for all arenas.
  *  */
-#define RA_POLICY_ALLOC_FAST			(0U)
+#define RA_POLICY_ALLOC_FAST (0U)
 /*
  * Optimal allocation policy allows to pick the lowest size node
  * that satisfies the request. This picking policy helps in reducing the fragmentation.
@@ -175,8 +177,8 @@ typedef struct _RA_MULTIBASE_ITERATOR_ RA_MULTIBASE_ITERATOR;
  * ones are picked.
  * As a result any future higher size allocation requests are likely to succeed
  */
-#define RA_POLICY_ALLOC_OPTIMAL		(1U)
-#define RA_POLICY_ALLOC_NODE_SELECT_MASK			(3U)
+#define RA_POLICY_ALLOC_OPTIMAL (1U)
+#define RA_POLICY_ALLOC_NODE_SELECT_MASK (3U)
 
 /*
  * Bucket selection policies
@@ -185,7 +187,7 @@ typedef struct _RA_MULTIBASE_ITERATOR_ RA_MULTIBASE_ITERATOR;
  * to satisfy the given request. Generally Nodes picked up from such a
  * bucket need to be further split. However picking node that belongs to this
  * bucket is likely to succeed and thus promises better response times */
-#define RA_POLICY_BUCKET_ASSURED_FIT		(0U)
+#define RA_POLICY_BUCKET_ASSURED_FIT (0U)
 /*
  * Best fit bucket policy selects a bucket with free nodes that are likely
  * to satisfy the request and nodes that are close to the requested size.
@@ -197,14 +199,14 @@ typedef struct _RA_MULTIBASE_ITERATOR_ RA_MULTIBASE_ITERATOR;
  * Hence response times may vary depending on availability of free nodes
  * that satisfy the request.
  * */
-#define RA_POLICY_BUCKET_BEST_FIT		(4U)
-#define RA_POLICY_BUCKET_MASK			(4U)
+#define RA_POLICY_BUCKET_BEST_FIT (4U)
+#define RA_POLICY_BUCKET_MASK (4U)
 
 /* This flag ensures the imports will not be split up and Allocations will always get
  * their own import
  */
-#define RA_POLICY_NO_SPLIT			(8U)
-#define RA_POLICY_NO_SPLIT_MASK		(8U)
+#define RA_POLICY_NO_SPLIT (8U)
+#define RA_POLICY_NO_SPLIT_MASK (8U)
 
 /* This flag is used in physmem_lma only. it is used to decide if we should
  * activate the non-contiguous allocation feature of RA MultiAlloc.
@@ -212,13 +214,13 @@ typedef struct _RA_MULTIBASE_ITERATOR_ RA_MULTIBASE_ITERATOR;
  * OSMapPageArrayToKernelVA function in osfunc which allows for mapping
  * physically sparse pages as a virtually contiguous range.
  * */
-#define RA_POLICY_ALLOC_ALLOW_NONCONTIG      (16U)
+#define RA_POLICY_ALLOC_ALLOW_NONCONTIG (16U)
 #define RA_POLICY_ALLOC_ALLOW_NONCONTIG_MASK (16U)
 
 /*
  * Default Arena Policy
  * */
-#define RA_POLICY_DEFAULT			(RA_POLICY_ALLOC_FAST | RA_POLICY_BUCKET_ASSURED_FIT)
+#define RA_POLICY_DEFAULT (RA_POLICY_ALLOC_FAST | RA_POLICY_BUCKET_ASSURED_FIT)
 
 /*
  * Flags in an "import" must match the flags for an allocation
@@ -238,14 +240,10 @@ typedef IMG_UINT64 RA_FLAGS_T;
 @Input          RA_PERISPAN_HANDLE Per import private data
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-typedef PVRSRV_ERROR (*PFN_RA_ALLOC)(RA_PERARENA_HANDLE,
-									 RA_LENGTH_T,
-									 RA_FLAGS_T,
-									 RA_LENGTH_T,
-									 const IMG_CHAR*,
-									 RA_BASE_T*,
-									 RA_LENGTH_T*,
-									 RA_PERISPAN_HANDLE*);
+typedef PVRSRV_ERROR (*PFN_RA_ALLOC)(RA_PERARENA_HANDLE, RA_LENGTH_T,
+				     RA_FLAGS_T, RA_LENGTH_T, const IMG_CHAR *,
+				     RA_BASE_T *, RA_LENGTH_T *,
+				     RA_PERISPAN_HANDLE *);
 
 /*************************************************************************/ /*!
 @Function       Callback function PFN_RA_FREE
@@ -254,9 +252,7 @@ typedef PVRSRV_ERROR (*PFN_RA_ALLOC)(RA_PERARENA_HANDLE,
 @Input          RA_BASE_T            Allocation base
 @Output         RA_PERISPAN_HANDLE   Per import private data
 */ /**************************************************************************/
-typedef void (*PFN_RA_FREE)(RA_PERARENA_HANDLE,
-							RA_BASE_T,
-							RA_PERISPAN_HANDLE);
+typedef void (*PFN_RA_FREE)(RA_PERARENA_HANDLE, RA_BASE_T, RA_PERISPAN_HANDLE);
 
 /**
  *  @Function   RA_Create
@@ -272,15 +268,12 @@ typedef void (*PFN_RA_FREE)(RA_PERARENA_HANDLE,
  *  @Input ui32PolicyFlags - Policies that govern the arena.
  *  @Return pointer to arena, or NULL.
  */
-RA_ARENA *
-RA_Create(IMG_CHAR *name,
-          /* subsequent imports: */
-          RA_LOG2QUANTUM_T uLog2Quantum,
-          IMG_UINT32 ui32LockClass,
-          PFN_RA_ALLOC imp_alloc,
-          PFN_RA_FREE imp_free,
-          RA_PERARENA_HANDLE per_arena_handle,
-          RA_POLICY_T ui32PolicyFlags);
+RA_ARENA *RA_Create(IMG_CHAR *name,
+		    /* subsequent imports: */
+		    RA_LOG2QUANTUM_T uLog2Quantum, IMG_UINT32 ui32LockClass,
+		    PFN_RA_ALLOC imp_alloc, PFN_RA_FREE imp_free,
+		    RA_PERARENA_HANDLE per_arena_handle,
+		    RA_POLICY_T ui32PolicyFlags);
 
 /**
  *  @Function   RA_Create_With_Span
@@ -297,13 +290,11 @@ RA_Create(IMG_CHAR *name,
  *  @Input ui32PolicyFlags - Policies that govern the arena.
  *  @Return pointer to arena, or NULL.
 */
-RA_ARENA *
-RA_Create_With_Span(IMG_CHAR *name,
-                    RA_LOG2QUANTUM_T uLog2Quantum,
-                    IMG_UINT64 ui64CpuBase,
-                    IMG_UINT64 ui64SpanDevBase,
-                    IMG_UINT64 ui64SpanSize,
-                    RA_POLICY_T ui32PolicyFlags);
+RA_ARENA *RA_Create_With_Span(IMG_CHAR *name, RA_LOG2QUANTUM_T uLog2Quantum,
+			      IMG_UINT64 ui64CpuBase,
+			      IMG_UINT64 ui64SpanDevBase,
+			      IMG_UINT64 ui64SpanSize,
+			      RA_POLICY_T ui32PolicyFlags);
 
 /**
  *  @Function   RA_Delete
@@ -316,8 +307,7 @@ RA_Create_With_Span(IMG_CHAR *name,
  *  @Input  pArena - the arena to delete.
  *  @Return None
  */
-void
-RA_Delete(RA_ARENA *pArena);
+void RA_Delete(RA_ARENA *pArena);
 
 /**
  *  @Function   RA_Add
@@ -334,10 +324,7 @@ RA_Delete(RA_ARENA *pArena);
  *  @Return IMG_TRUE - success, IMG_FALSE - failure
  */
 IMG_BOOL
-RA_Add(RA_ARENA *pArena,
-       RA_BASE_T base,
-       RA_LENGTH_T uSize,
-       RA_FLAGS_T uFlags,
+RA_Add(RA_ARENA *pArena, RA_BASE_T base, RA_LENGTH_T uSize, RA_FLAGS_T uFlags,
        RA_PERISPAN_HANDLE hPriv);
 
 /**
@@ -362,15 +349,10 @@ RA_Add(RA_ARENA *pArena,
  *  @Return PVRSRV_OK - success
  */
 PVRSRV_ERROR
-RA_Alloc(RA_ARENA *pArena,
-         RA_LENGTH_T uRequestSize,
-         IMG_UINT8 uImportMultiplier,
-         RA_FLAGS_T uImportFlags,
-         RA_LENGTH_T uAlignment,
-         const IMG_CHAR *pszAnnotation,
-         RA_BASE_T *base,
-         RA_LENGTH_T *pActualSize,
-         RA_PERISPAN_HANDLE *phPriv);
+RA_Alloc(RA_ARENA *pArena, RA_LENGTH_T uRequestSize,
+	 IMG_UINT8 uImportMultiplier, RA_FLAGS_T uImportFlags,
+	 RA_LENGTH_T uAlignment, const IMG_CHAR *pszAnnotation, RA_BASE_T *base,
+	 RA_LENGTH_T *pActualSize, RA_PERISPAN_HANDLE *phPriv);
 
 /*************************************************************************/ /*!
 @Function       RA_AllocMulti
@@ -429,15 +411,11 @@ RA_Alloc(RA_ARENA *pArena,
 @Return         PVRSRV_OK - success
 */ /**************************************************************************/
 PVRSRV_ERROR
-RA_AllocMulti(RA_ARENA *pArena,
-               RA_LENGTH_T uRequestSize,
-               IMG_UINT32 uiLog2ChunkSize,
-               IMG_UINT8 uImportMultiplier,
-               RA_FLAGS_T uImportFlags,
-               const IMG_CHAR *pszAnnotation,
-               RA_BASE_ARRAY_T aBaseArray,
-               RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
-               IMG_BOOL *bPhysContig);
+RA_AllocMulti(RA_ARENA *pArena, RA_LENGTH_T uRequestSize,
+	      IMG_UINT32 uiLog2ChunkSize, IMG_UINT8 uImportMultiplier,
+	      RA_FLAGS_T uImportFlags, const IMG_CHAR *pszAnnotation,
+	      RA_BASE_ARRAY_T aBaseArray, RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
+	      IMG_BOOL *bPhysContig);
 
 /**
  * @Function   RA_AllocMultiSparse
@@ -468,15 +446,11 @@ RA_AllocMulti(RA_ARENA *pArena,
  *  @Return PVRSRV_OK - success
  */
 PVRSRV_ERROR
-RA_AllocMultiSparse(RA_ARENA *pArena,
-                     IMG_UINT32 uiLog2ChunkSize,
-                     IMG_UINT8 uImportMultiplier,
-                     RA_FLAGS_T uImportFlags,
-                     const IMG_CHAR *pszAnnotation,
-                     RA_BASE_ARRAY_T aBaseArray,
-                     RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
-                     IMG_UINT32 *puiAllocIndices,
-                     IMG_UINT32 uiAllocCount);
+RA_AllocMultiSparse(RA_ARENA *pArena, IMG_UINT32 uiLog2ChunkSize,
+		    IMG_UINT8 uImportMultiplier, RA_FLAGS_T uImportFlags,
+		    const IMG_CHAR *pszAnnotation, RA_BASE_ARRAY_T aBaseArray,
+		    RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
+		    IMG_UINT32 *puiAllocIndices, IMG_UINT32 uiAllocCount);
 /**
  *  @Function   RA_FreeMulti
  *
@@ -490,9 +464,8 @@ RA_AllocMultiSparse(RA_ARENA *pArena,
  *  @Return PVRSRV_OK - success
  */
 PVRSRV_ERROR
-RA_FreeMulti(RA_ARENA *pArena,
-              RA_BASE_ARRAY_T aBaseArray,
-              RA_BASE_ARRAY_SIZE_T uiBaseArraySize);
+RA_FreeMulti(RA_ARENA *pArena, RA_BASE_ARRAY_T aBaseArray,
+	     RA_BASE_ARRAY_SIZE_T uiBaseArraySize);
 
 /**
  *  @Function   RA_FreeMultiSparse
@@ -514,12 +487,10 @@ RA_FreeMulti(RA_ARENA *pArena,
  *  @Return PVRSRV_OK - success
  */
 PVRSRV_ERROR
-RA_FreeMultiSparse(RA_ARENA *pArena,
-                    RA_BASE_ARRAY_T aBaseArray,
-                    RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
-                    IMG_UINT32 uiLog2ChunkSize,
-                    IMG_UINT32 *puiFreeIndices,
-                    IMG_UINT32 *puiFreeCount);
+RA_FreeMultiSparse(RA_ARENA *pArena, RA_BASE_ARRAY_T aBaseArray,
+		   RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
+		   IMG_UINT32 uiLog2ChunkSize, IMG_UINT32 *puiFreeIndices,
+		   IMG_UINT32 *puiFreeCount);
 
 /**
  *  @Function   RA_Alloc_Range
@@ -539,12 +510,9 @@ RA_FreeMultiSparse(RA_ARENA *pArena,
  *  @Return PVRSRV_OK - success
  */
 PVRSRV_ERROR
-RA_Alloc_Range(RA_ARENA *pArena,
-		  RA_LENGTH_T uRequestSize,
-		  RA_FLAGS_T uImportFlags,
-		  RA_LENGTH_T uAlignment,
-		  RA_BASE_T base,
-		  RA_LENGTH_T *pActualSize);
+RA_Alloc_Range(RA_ARENA *pArena, RA_LENGTH_T uRequestSize,
+	       RA_FLAGS_T uImportFlags, RA_LENGTH_T uAlignment, RA_BASE_T base,
+	       RA_LENGTH_T *pActualSize);
 
 /**
  *  @Function   RA_Free
@@ -556,8 +524,7 @@ RA_Alloc_Range(RA_ARENA *pArena,
  *
  *  @Return None
  */
-void
-RA_Free(RA_ARENA *pArena, RA_BASE_T base);
+void RA_Free(RA_ARENA *pArena, RA_BASE_T base);
 
 /**
  *  @Function   RA_SwapSparseMem
@@ -581,13 +548,10 @@ RA_Free(RA_ARENA *pArena, RA_BASE_T base);
  *  @Return PVRSRV_OK - success
  */
 PVRSRV_ERROR
-RA_SwapSparseMem(RA_ARENA *pArena,
-                  RA_BASE_ARRAY_T aBaseArray,
-                  RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
-                  IMG_UINT32 uiLog2ChunkSize,
-                  IMG_UINT32 *puiXIndices,
-                  IMG_UINT32 *puiYIndices,
-                  IMG_UINT32 uiSwapCount);
+RA_SwapSparseMem(RA_ARENA *pArena, RA_BASE_ARRAY_T aBaseArray,
+		 RA_BASE_ARRAY_SIZE_T uiBaseArraySize,
+		 IMG_UINT32 uiLog2ChunkSize, IMG_UINT32 *puiXIndices,
+		 IMG_UINT32 *puiYIndices, IMG_UINT32 uiSwapCount);
 
 /**
  *  @Function   RA_Get_Usage_Stats
@@ -599,8 +563,8 @@ RA_SwapSparseMem(RA_ARENA *pArena,
  *
  *  @Return None
  */
-IMG_INTERNAL void
-RA_Get_Usage_Stats(RA_ARENA *pArena, PRA_USAGE_STATS psRAStats);
+IMG_INTERNAL void RA_Get_Usage_Stats(RA_ARENA *pArena,
+				     PRA_USAGE_STATS psRAStats);
 
 /**
  *  @Function   RA_GetArenaName
@@ -611,20 +575,17 @@ RA_Get_Usage_Stats(RA_ARENA *pArena, PRA_USAGE_STATS psRAStats);
  *
  *  @Return IMG_CHAR* Arena name.
  */
-IMG_INTERNAL IMG_CHAR *
-RA_GetArenaName(RA_ARENA *pArena);
+IMG_INTERNAL IMG_CHAR *RA_GetArenaName(RA_ARENA *pArena);
 
 IMG_INTERNAL RA_ARENA_ITERATOR *
 RA_IteratorAcquire(RA_ARENA *pArena, IMG_BOOL bIncludeFreeSegments);
 
-IMG_INTERNAL void
-RA_IteratorReset(RA_ARENA_ITERATOR *pIter);
+IMG_INTERNAL void RA_IteratorReset(RA_ARENA_ITERATOR *pIter);
 
-IMG_INTERNAL void
-RA_IteratorRelease(RA_ARENA_ITERATOR *pIter);
+IMG_INTERNAL void RA_IteratorRelease(RA_ARENA_ITERATOR *pIter);
 
-IMG_INTERNAL IMG_BOOL
-RA_IteratorNext(RA_ARENA_ITERATOR *pIter, RA_ITERATOR_DATA *pData);
+IMG_INTERNAL IMG_BOOL RA_IteratorNext(RA_ARENA_ITERATOR *pIter,
+				      RA_ITERATOR_DATA *pData);
 
 /*************************************************************************/ /*!
 @Function       RA_BlockDump
@@ -638,7 +599,7 @@ RA_IteratorNext(RA_ARENA_ITERATOR *pIter, RA_ITERATOR_DATA *pData);
 */ /**************************************************************************/
 IMG_INTERNAL PVRSRV_ERROR
 RA_BlockDump(RA_ARENA *pArena,
-             __printf(2, 3) void (*pfnLogDump)(void*, IMG_CHAR*, ...),
-             void *pPrivData);
+	     __printf(2, 3) void (*pfnLogDump)(void *, IMG_CHAR *, ...),
+	     void *pPrivData);
 
 #endif

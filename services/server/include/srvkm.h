@@ -79,7 +79,7 @@ void PVRSRVCommonDriverDeInit(void);
 */ /**************************************************************************/
 PVRSRV_ERROR
 PVRSRVCommonDeviceCreate(void *pvOSDevice, IMG_INT32 i32KernelDeviceID,
-				   struct _PVRSRV_DEVICE_NODE_ **ppsDeviceNode);
+			 struct _PVRSRV_DEVICE_NODE_ **ppsDeviceNode);
 
 /*************************************************************************/ /*!
 @Function     PVRSRVCommonDeviceInitialise
@@ -90,15 +90,15 @@ PVRSRVCommonDeviceCreate(void *pvOSDevice, IMG_INT32 i32KernelDeviceID,
 @Input        psDeviceNode  Device node of the device to be initialised
 @Return       PVRSRV_ERROR  PVRSRV_OK on success and an error otherwise
 */ /**************************************************************************/
-PVRSRV_ERROR PVRSRVCommonDeviceInitialise(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode);
+PVRSRV_ERROR
+PVRSRVCommonDeviceInitialise(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode);
 
 /*************************************************************************/ /*!
 @Function     PVRSRVCommonDeviceDestroy
 @Description  Destroys a PVR Services device node.
 @Input        psDeviceNode  Device node to destroy
 */ /**************************************************************************/
-void
-PVRSRVCommonDeviceDestroy(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode);
+void PVRSRVCommonDeviceDestroy(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode);
 
 /******************
 HIGHER LEVEL MACROS
@@ -128,17 +128,20 @@ LOOP_UNTIL_TIMEOUT(MAX_HW_TIME_US)
  * necessary when preemption is enabled.
  */
 /* PRQA S 3411,3431 12 */ /* critical format, leave alone */
-#define LOOP_UNTIL_TIMEOUT(TIMEOUT) \
-{\
-	IMG_UINT32 uiOffset, uiStart, uiCurrent; \
-	IMG_INT32 iNotLastLoop;					 \
-	for (uiOffset = 0, uiStart = OSClockus(), uiCurrent = uiStart + 1, iNotLastLoop = 1;\
-		((uiCurrent - uiStart + uiOffset) < (TIMEOUT)) || iNotLastLoop--;				\
-		uiCurrent = OSClockus(),													\
-		uiOffset = uiCurrent < uiStart ? IMG_UINT32_MAX - uiStart : uiOffset,		\
-		uiStart = uiCurrent < uiStart ? 0 : uiStart)
+#define LOOP_UNTIL_TIMEOUT(TIMEOUT)                                    \
+	{                                                              \
+		IMG_UINT32 uiOffset, uiStart, uiCurrent;               \
+		IMG_INT32 iNotLastLoop;                                \
+		for (uiOffset = 0, uiStart = OSClockus(),              \
+		    uiCurrent = uiStart + 1, iNotLastLoop = 1;         \
+		     ((uiCurrent - uiStart + uiOffset) < (TIMEOUT)) || \
+		     iNotLastLoop--;                                   \
+		     uiCurrent = OSClockus(),                          \
+		    uiOffset = uiCurrent < uiStart ?                   \
+				       IMG_UINT32_MAX - uiStart :      \
+				       uiOffset,                       \
+		    uiStart = uiCurrent < uiStart ? 0 : uiStart)
 
-#define END_LOOP_UNTIL_TIMEOUT() \
-}
+#define END_LOOP_UNTIL_TIMEOUT() }
 
 #endif /* SRVKM_H */

@@ -50,104 +50,89 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "device.h"
 #include "pvrsrv_sync_km.h"
 
-
 PVRSRV_ERROR ServerTestIoctlKM(CONNECTION_DATA *psConnection,
-				PVRSRV_DEVICE_NODE *psDeviceNode,
-				IMG_UINT32  uiCmd,
-				IMG_PBYTE   uiIn1,
-				IMG_UINT32  uiIn2,
-				IMG_UINT32*	puiOut1,
-				IMG_UINT32* puiOut2);
+			       PVRSRV_DEVICE_NODE *psDeviceNode,
+			       IMG_UINT32 uiCmd, IMG_PBYTE uiIn1,
+			       IMG_UINT32 uiIn2, IMG_UINT32 *puiOut1,
+			       IMG_UINT32 *puiOut2);
 
-PVRSRV_ERROR PowMonTestIoctlKM(IMG_UINT32  uiCmd,
-				  IMG_UINT32  uiIn1,
-				  IMG_UINT32  uiIn2,
-				  IMG_UINT32  *puiOut1,
-				  IMG_UINT32  *puiOut2);
+PVRSRV_ERROR PowMonTestIoctlKM(IMG_UINT32 uiCmd, IMG_UINT32 uiIn1,
+			       IMG_UINT32 uiIn2, IMG_UINT32 *puiOut1,
+			       IMG_UINT32 *puiOut2);
 
 PVRSRV_ERROR SyncCheckpointTestIoctlKM(CONNECTION_DATA *psConnection,
-				  PVRSRV_DEVICE_NODE *psDeviceNode,
-				  IMG_UINT32  uiCmd,
-				  IMG_UINT32  uiIn1,
-				  IMG_UINT32  uiIn2,
-				  const IMG_CHAR *pszInName,
-				  IMG_UINT32  *puiOut1,
-				  IMG_UINT32  *puiOut2,
-				  IMG_UINT8   *puiOut3);
+				       PVRSRV_DEVICE_NODE *psDeviceNode,
+				       IMG_UINT32 uiCmd, IMG_UINT32 uiIn1,
+				       IMG_UINT32 uiIn2,
+				       const IMG_CHAR *pszInName,
+				       IMG_UINT32 *puiOut1, IMG_UINT32 *puiOut2,
+				       IMG_UINT8 *puiOut3);
 
 IMG_EXPORT
 PVRSRV_ERROR DevmemIntAllocHostMemKM(IMG_DEVMEM_SIZE_T ui32Size,
-                                     PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                                     IMG_UINT32 ui32LabelLength,
-                                     const IMG_CHAR *pszAllocLabel,
-                                     PMR **ppsPMR);
+				     PVRSRV_MEMALLOCFLAGS_T uiFlags,
+				     IMG_UINT32 ui32LabelLength,
+				     const IMG_CHAR *pszAllocLabel,
+				     PMR **ppsPMR);
 
 PVRSRV_ERROR DevmemIntFreeHostMemKM(PMR *psPMR);
 
 IMG_EXPORT
 PVRSRV_ERROR PowerTestIoctlKM(CONNECTION_DATA *psConnection,
-							  PVRSRV_DEVICE_NODE *psDeviceNode,
-							  IMG_UINT32  uiCmd,
-							  IMG_UINT32  uiIn1,
-							  IMG_UINT32  uiIn2,
-							  IMG_UINT32  *puiOut1,
-							  IMG_UINT32  *puiOut2);
+			      PVRSRV_DEVICE_NODE *psDeviceNode,
+			      IMG_UINT32 uiCmd, IMG_UINT32 uiIn1,
+			      IMG_UINT32 uiIn2, IMG_UINT32 *puiOut1,
+			      IMG_UINT32 *puiOut2);
 
-PVRSRV_ERROR TestIOCTLSyncFbFenceSignalPVR(CONNECTION_DATA * psConnection,
-                                           PVRSRV_DEVICE_NODE *psDevNode,
-                                           void *psFence);
+PVRSRV_ERROR TestIOCTLSyncFbFenceSignalPVR(CONNECTION_DATA *psConnection,
+					   PVRSRV_DEVICE_NODE *psDevNode,
+					   void *psFence);
 
-PVRSRV_ERROR TestIOCTLSyncFbFenceCreatePVR(CONNECTION_DATA * psConnection,
-                                            PVRSRV_DEVICE_NODE *psDevNode,
-                                            IMG_UINT32 uiNameLength,
-                                            const IMG_CHAR *pszName,
-                                            PVRSRV_TIMELINE iTL,
-                                            PVRSRV_FENCE *piOutFence);
+PVRSRV_ERROR TestIOCTLSyncFbFenceCreatePVR(CONNECTION_DATA *psConnection,
+					   PVRSRV_DEVICE_NODE *psDevNode,
+					   IMG_UINT32 uiNameLength,
+					   const IMG_CHAR *pszName,
+					   PVRSRV_TIMELINE iTL,
+					   PVRSRV_FENCE *piOutFence);
 
-PVRSRV_ERROR TestIOCTLSyncFbFenceResolvePVR(CONNECTION_DATA * psConnection,
-                                            PVRSRV_DEVICE_NODE *psDevNode,
-                                            PVRSRV_FENCE iFence);
-PVRSRV_ERROR TestIOCTLSyncFbSWTimelineAdvance(CONNECTION_DATA * psConnection,
-                                              PVRSRV_DEVICE_NODE *psDevNode,
-                                              PVRSRV_TIMELINE iSWTl);
+PVRSRV_ERROR TestIOCTLSyncFbFenceResolvePVR(CONNECTION_DATA *psConnection,
+					    PVRSRV_DEVICE_NODE *psDevNode,
+					    PVRSRV_FENCE iFence);
+PVRSRV_ERROR TestIOCTLSyncFbSWTimelineAdvance(CONNECTION_DATA *psConnection,
+					      PVRSRV_DEVICE_NODE *psDevNode,
+					      PVRSRV_TIMELINE iSWTl);
 
-PVRSRV_ERROR TestIOCTLSyncFbSWFenceCreate(CONNECTION_DATA * psConnection,
-                                          PVRSRV_DEVICE_NODE *psDevNode,
-                                          PVRSRV_TIMELINE iTl,
-                                          IMG_UINT32 uiFenceNameLength,
-                                          const IMG_CHAR *pszFenceName,
-                                          PVRSRV_FENCE *piFence);
+PVRSRV_ERROR TestIOCTLSyncFbSWFenceCreate(CONNECTION_DATA *psConnection,
+					  PVRSRV_DEVICE_NODE *psDevNode,
+					  PVRSRV_TIMELINE iTl,
+					  IMG_UINT32 uiFenceNameLength,
+					  const IMG_CHAR *pszFenceName,
+					  PVRSRV_FENCE *piFence);
 
+PVRSRV_ERROR TestIOCTLSyncSWTimelineFenceCreateKM(CONNECTION_DATA *psConnection,
+						  PVRSRV_DEVICE_NODE *psDevNode,
+						  PVRSRV_TIMELINE sTimeline,
+						  IMG_UINT32 uiNameLength,
+						  const IMG_CHAR *pszFenceName,
+						  PVRSRV_FENCE *psOutFence);
 
-
-PVRSRV_ERROR TestIOCTLSyncSWTimelineFenceCreateKM(CONNECTION_DATA * psConnection,
-                                                  PVRSRV_DEVICE_NODE *psDevNode,
-                                                  PVRSRV_TIMELINE sTimeline,
-                                                  IMG_UINT32 uiNameLength,
-                                                  const IMG_CHAR *pszFenceName,
-                                                  PVRSRV_FENCE *psOutFence);
-
-PVRSRV_ERROR TestIOCTLSyncSWTimelineAdvanceKM(CONNECTION_DATA * psConnection,
-                                              PVRSRV_DEVICE_NODE *psDevNode,
-                                              PVRSRV_TIMELINE sTimeline);
+PVRSRV_ERROR TestIOCTLSyncSWTimelineAdvanceKM(CONNECTION_DATA *psConnection,
+					      PVRSRV_DEVICE_NODE *psDevNode,
+					      PVRSRV_TIMELINE sTimeline);
 
 PVRSRV_ERROR TestIOCTLIsTimelineValidKM(PVRSRV_TIMELINE sTimeline,
-                                        IMG_BOOL *bResult);
+					IMG_BOOL *bResult);
 
-PVRSRV_ERROR TestIOCTLIsFenceValidKM(PVRSRV_FENCE sFence,
-                                     IMG_BOOL *bResult);
+PVRSRV_ERROR TestIOCTLIsFenceValidKM(PVRSRV_FENCE sFence, IMG_BOOL *bResult);
 
-PVRSRV_ERROR TestIOCTLSyncCheckpointResolveFenceKM(CONNECTION_DATA * psConnection,
-                                                   PVRSRV_DEVICE_NODE *psDevNode,
-                                                   PVRSRV_FENCE hFence,
-                                                   IMG_UINT32 *pui32NumSyncCheckpoints);
+PVRSRV_ERROR TestIOCTLSyncCheckpointResolveFenceKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+	PVRSRV_FENCE hFence, IMG_UINT32 *pui32NumSyncCheckpoints);
 
-PVRSRV_ERROR TestIOCTLSyncCheckpointCreateFenceKM(CONNECTION_DATA *psConnection,
-                                                  PVRSRV_DEVICE_NODE *psDevNode,
-                                                  IMG_CHAR *pszFenceName,
-                                                  PVRSRV_TIMELINE hTimeline,
-                                                  PVRSRV_FENCE *phOutFence,
-                                                  IMG_UINT64 *puiUpdateFenceUID);
+PVRSRV_ERROR TestIOCTLSyncCheckpointCreateFenceKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+	IMG_CHAR *pszFenceName, PVRSRV_TIMELINE hTimeline,
+	PVRSRV_FENCE *phOutFence, IMG_UINT64 *puiUpdateFenceUID);
 
 PVRSRV_ERROR TestIOCTLWriteByteKM(IMG_BYTE ui8WriteData);
 
@@ -159,25 +144,23 @@ PVRSRV_ERROR TestIOCTLHandleArray10CreateKM(DI_CONTEXT **ppsTestResources);
 PVRSRV_ERROR TestIOCTLHandleCleanupDestroy(DI_CONTEXT *psTestResource);
 PVRSRV_ERROR TestIOCTLHandleArray2CreateCPKM(DI_CONTEXT **ppsTestResources);
 PVRSRV_ERROR TestIOCTLHandleCleanupDestroyCP(DI_CONTEXT *psTestResource);
-PVRSRV_ERROR TestIOCTLHandleArray2CreatePPKM(CONNECTION_DATA    *psConnection,
-                                             PVRSRV_DEVICE_NODE *psDeviceNode,
-                                             DI_CONTEXT **ppsTestResources);
+PVRSRV_ERROR TestIOCTLHandleArray2CreatePPKM(CONNECTION_DATA *psConnection,
+					     PVRSRV_DEVICE_NODE *psDeviceNode,
+					     DI_CONTEXT **ppsTestResources);
 PVRSRV_ERROR TestIOCTLHandleArray2CreateLUKM(DI_CONTEXT *psLookedup,
-                                             DI_CONTEXT **ppsTestResources);
+					     DI_CONTEXT **ppsTestResources);
 PVRSRV_ERROR TestIOCTLHandleArrayNCreate(IMG_UINT32 ui32NumResourcesRequested,
-                                         IMG_UINT32 *pui32NumResourcesCreated,
-                                         DI_CONTEXT **ppsTestResources);
+					 IMG_UINT32 *pui32NumResourcesCreated,
+					 DI_CONTEXT **ppsTestResources);
 PVRSRV_ERROR TestIOCTLHandleArrayNCreateCP(IMG_UINT32 ui32NumResourcesRequested,
-                                           IMG_UINT32 *pui32NumResourcesCreated,
-                                           DI_CONTEXT **ppsTestResources);
+					   IMG_UINT32 *pui32NumResourcesCreated,
+					   DI_CONTEXT **ppsTestResources);
 PVRSRV_ERROR TestPMRSetIPAInfo(CONNECTION_DATA *psConnection,
-                               PVRSRV_DEVICE_NODE *psDeviceNode,
-                               IMG_UINT32 ui32IPAPolicy,
-                               IMG_UINT32 ui32IPAShift,
-                               IMG_UINT32 ui32IPAMask);
-PVRSRV_ERROR TestPMRGetIPAPAddr(PMR *psPMR,
-                                IMG_UINT32 ui32Log2PageSize,
-                                IMG_UINT64 *pui64IPAPAddr);
+			       PVRSRV_DEVICE_NODE *psDeviceNode,
+			       IMG_UINT32 ui32IPAPolicy,
+			       IMG_UINT32 ui32IPAShift, IMG_UINT32 ui32IPAMask);
+PVRSRV_ERROR TestPMRGetIPAPAddr(PMR *psPMR, IMG_UINT32 ui32Log2PageSize,
+				IMG_UINT64 *pui64IPAPAddr);
 #if defined(PVRSRV_INTERNAL_IPA_FEATURE_TESTING)
 /*
  * TUTILS specific mirror structure definition for the _PHYS_HEAP_ structure.
@@ -185,25 +168,25 @@ PVRSRV_ERROR TestPMRGetIPAPAddr(PMR *psPMR,
  * IPAPolicy, Shift and Mask values.
  */
 typedef struct {
-	PHYS_HEAP_TYPE	      eType;
-	PHYS_HEAP_POLICY      uiPolicy;
+	PHYS_HEAP_TYPE eType;
+	PHYS_HEAP_POLICY uiPolicy;
 	PHYS_HEAP_USAGE_FLAGS ui32UsageFlags;
 #if !defined(PVRSRV_PHYSHEAP_DISABLE_OOM_DEMOTION)
-	ATOMIC_T              sOOMDetected;
+	ATOMIC_T sOOMDetected;
 #endif
-	PPVRSRV_DEVICE_NODE   psDevNode;
-	IMG_CHAR              *pszPDumpMemspaceName;
-	IMG_CHAR              aszName[PHYS_HEAP_NAME_SIZE];
-	IMG_HANDLE            hPrivData;
-	PHYS_HEAP_FUNCTIONS   *psMemFuncs;
-	IMG_UINT32            ui32RefCount;
-	void                  *pvImplData;
-	void                  *psImplFuncs;
-	void                  *psNext;
+	PPVRSRV_DEVICE_NODE psDevNode;
+	IMG_CHAR *pszPDumpMemspaceName;
+	IMG_CHAR aszName[PHYS_HEAP_NAME_SIZE];
+	IMG_HANDLE hPrivData;
+	PHYS_HEAP_FUNCTIONS *psMemFuncs;
+	IMG_UINT32 ui32RefCount;
+	void *pvImplData;
+	void *psImplFuncs;
+	void *psNext;
 #if defined(PVRSRV_SUPPORT_IPA_FEATURE)
-	IMG_UINT32            ui32IPAPolicyValue;
-	IMG_UINT32            ui32IPAClearMask;
-	IMG_UINT32            ui32IPAShift;
+	IMG_UINT32 ui32IPAPolicyValue;
+	IMG_UINT32 ui32IPAClearMask;
+	IMG_UINT32 ui32IPAShift;
 #endif
 } TUTILS_PHYS_HEAP;
 
@@ -222,15 +205,12 @@ typedef struct {
 @Return         PVRSRV_ERROR
 */ /**************************************************************************/
 PVRSRV_ERROR
-TestPMRQueryIPAInfo(PMR *psPMR,
-                    IMG_UINT32 *pui32IPAPolicy,
-                    IMG_UINT32 *pui32IPAShift,
-                    IMG_UINT32 *pui32IPAMask,
-                    IMG_UINT32 *pui32IPAFlagsValue);
+TestPMRQueryIPAInfo(PMR *psPMR, IMG_UINT32 *pui32IPAPolicy,
+		    IMG_UINT32 *pui32IPAShift, IMG_UINT32 *pui32IPAMask,
+		    IMG_UINT32 *pui32IPAFlagsValue);
 
-IMG_INTERNAL PVRSRV_ERROR
-TestPMRModifyIPAAllocFlags(PMR *psPMR,
-                           IMG_UINT8 uiNewPolicy);
+IMG_INTERNAL PVRSRV_ERROR TestPMRModifyIPAAllocFlags(PMR *psPMR,
+						     IMG_UINT8 uiNewPolicy);
 #endif
 
-#endif	/* TUTILS_KM_H */
+#endif /* TUTILS_KM_H */

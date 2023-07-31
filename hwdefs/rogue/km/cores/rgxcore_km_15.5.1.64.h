@@ -59,13 +59,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define FIX_HW_BRN_64502
 
-
-
 /******************************************************************************
  * Enhancements
  *****************************************************************************/
 #define HW_ERN_42606
-
-
 
 #endif /* RGXCORE_KM_15_5_1_64_H */

@@ -84,7 +84,9 @@ int video_init(struct hdmi_device *hdmi);
  * and phy for the given mode.
  */
 void hdmi_enable_pclock(struct hdmi_device *hdmi, u32 pixel_clock);
-int video_configure_mode(struct hdmi_device *hdmi, struct drm_display_mode *mode);
-int video_configure_infoframes(struct hdmi_device *hdmi, struct drm_display_mode *mode);
+int video_configure_mode(struct hdmi_device *hdmi,
+			 struct drm_display_mode *mode);
+int video_configure_infoframes(struct hdmi_device *hdmi,
+			       struct drm_display_mode *mode);
 
 #endif

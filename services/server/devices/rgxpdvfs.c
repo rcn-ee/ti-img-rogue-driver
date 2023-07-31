@@ -55,24 +55,23 @@ static inline IMG_BOOL _PDVFSEnabled(void)
 
 	if (psSRVData->sDriverInfo.sKMBuildInfo.ui32BuildOptions &
 	    psSRVData->sDriverInfo.sUMBuildInfo.ui32BuildOptions &
-	    OPTIONS_PDVFS_EN)
-	{
+	    OPTIONS_PDVFS_EN) {
 		return IMG_TRUE;
 	}
 
 	return IMG_FALSE;
 }
 
-PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32MaxOPPPoint)
+PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo,
+				    IMG_UINT32 ui32MaxOPPPoint)
 {
-	RGXFWIF_KCCB_CMD		sGPCCBCmd;
-	PVRSRV_ERROR			eError;
-	IMG_UINT32				ui32CmdKCCBSlot;
+	RGXFWIF_KCCB_CMD sGPCCBCmd;
+	PVRSRV_ERROR eError;
+	IMG_UINT32 ui32CmdKCCBSlot;
 
 	PVRSRV_VZ_RET_IF_MODE(GUEST, PVRSRV_ERROR_NOT_SUPPORTED);
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return PVRSRV_OK;
 	}
@@ -84,30 +83,29 @@ PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui
 	/* Submit command to the firmware.  */
 	LOOP_UNTIL_TIMEOUT(MAX_HW_TIME_US)
 	{
-		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo,
-		                                      &sGPCCBCmd,
-		                                      PDUMP_FLAGS_CONTINUOUS,
-		                                      &ui32CmdKCCBSlot);
-		if (eError != PVRSRV_ERROR_RETRY)
-		{
+		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo, &sGPCCBCmd,
+						      PDUMP_FLAGS_CONTINUOUS,
+						      &ui32CmdKCCBSlot);
+		if (eError != PVRSRV_ERROR_RETRY) {
 			break;
 		}
-		OSWaitus(MAX_HW_TIME_US/WAIT_TRY_COUNT);
-	} END_LOOP_UNTIL_TIMEOUT();
+		OSWaitus(MAX_HW_TIME_US / WAIT_TRY_COUNT);
+	}
+	END_LOOP_UNTIL_TIMEOUT();
 
 	return eError;
 }
 
-PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32MinOPPPoint)
+PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo,
+				    IMG_UINT32 ui32MinOPPPoint)
 {
-	RGXFWIF_KCCB_CMD		sGPCCBCmd;
-	PVRSRV_ERROR			eError;
-	IMG_UINT32				ui32CmdKCCBSlot;
+	RGXFWIF_KCCB_CMD sGPCCBCmd;
+	PVRSRV_ERROR eError;
+	IMG_UINT32 ui32CmdKCCBSlot;
 
 	PVRSRV_VZ_RET_IF_MODE(GUEST, PVRSRV_ERROR_NOT_SUPPORTED);
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return PVRSRV_OK;
 	}
@@ -119,20 +117,18 @@ PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui
 	/* Submit command to the firmware.  */
 	LOOP_UNTIL_TIMEOUT(MAX_HW_TIME_US)
 	{
-		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo,
-		                                      &sGPCCBCmd,
-		                                      PDUMP_FLAGS_CONTINUOUS,
-		                                      &ui32CmdKCCBSlot);
-		if (eError != PVRSRV_ERROR_RETRY)
-		{
+		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo, &sGPCCBCmd,
+						      PDUMP_FLAGS_CONTINUOUS,
+						      &ui32CmdKCCBSlot);
+		if (eError != PVRSRV_ERROR_RETRY) {
 			break;
 		}
-		OSWaitus(MAX_HW_TIME_US/WAIT_TRY_COUNT);
-	} END_LOOP_UNTIL_TIMEOUT();
+		OSWaitus(MAX_HW_TIME_US / WAIT_TRY_COUNT);
+	}
+	END_LOOP_UNTIL_TIMEOUT();
 
 	return eError;
 }
-
 
 #if (PDVFS_COM == PDVFS_COM_HOST)
 /*************************************************************************/ /*!
@@ -142,18 +138,22 @@ PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui
 @Input          ui32CoreClockRate    New core clock rate.
 @Return         PVRSRV_ERROR.
 */ /**************************************************************************/
-PVRSRV_ERROR PDVFSProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CoreClockRate)
+PVRSRV_ERROR PDVFSProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo,
+					      IMG_UINT32 ui32CoreClockRate)
 {
-	PVRSRV_DEVICE_CONFIG *psDevConfig = psDevInfo->psDeviceNode->psDevConfig;
-	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg = &psDevConfig->sDVFS.sDVFSDeviceCfg;
-	RGX_TIMING_INFORMATION *psRGXTimingInfo = ((RGX_DATA*)(psDevConfig->hDevData))->psRGXTimingInfo;
-	IMG_UINT32 ui32CoreClockRateCurrent = psRGXTimingInfo->ui32CoreClockSpeed;
+	PVRSRV_DEVICE_CONFIG *psDevConfig =
+		psDevInfo->psDeviceNode->psDevConfig;
+	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg =
+		&psDevConfig->sDVFS.sDVFSDeviceCfg;
+	RGX_TIMING_INFORMATION *psRGXTimingInfo =
+		((RGX_DATA *)(psDevConfig->hDevData))->psRGXTimingInfo;
+	IMG_UINT32 ui32CoreClockRateCurrent =
+		psRGXTimingInfo->ui32CoreClockSpeed;
 	const IMG_OPP *psOpp = NULL;
 	IMG_UINT32 ui32Index;
 	PVRSRV_ERROR eError;
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return PVRSRV_OK;
 	}
@@ -161,45 +161,49 @@ PVRSRV_ERROR PDVFSProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo, IMG
 	PVR_DPF((PVR_DBG_MESSAGE, "Core clock rate = %u", ui32CoreClockRate));
 
 	/* Find the matching OPP (Exact). */
-	for (ui32Index = 0; ui32Index < psDVFSDeviceCfg->ui32OPPTableSize; ui32Index++)
-	{
-		if (ui32CoreClockRate == psDVFSDeviceCfg->pasOPPTable[ui32Index].ui32Freq)
-		{
+	for (ui32Index = 0; ui32Index < psDVFSDeviceCfg->ui32OPPTableSize;
+	     ui32Index++) {
+		if (ui32CoreClockRate ==
+		    psDVFSDeviceCfg->pasOPPTable[ui32Index].ui32Freq) {
 			psOpp = &psDVFSDeviceCfg->pasOPPTable[ui32Index];
 			break;
 		}
 	}
 
-	if (! psOpp)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Frequency not present in OPP table - %u", ui32CoreClockRate));
+	if (!psOpp) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Frequency not present in OPP table - %u",
+			 ui32CoreClockRate));
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	eError = PVRSRVDevicePreClockSpeedChange(psDevInfo->psDeviceNode, psDVFSDeviceCfg->bIdleReq, NULL);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "PVRSRVDevicePreClockSpeedChange failed"));
+	eError = PVRSRVDevicePreClockSpeedChange(
+		psDevInfo->psDeviceNode, psDVFSDeviceCfg->bIdleReq, NULL);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "PVRSRVDevicePreClockSpeedChange failed"));
 		return eError;
 	}
 
 	psRGXTimingInfo->ui32CoreClockSpeed = ui32CoreClockRate;
 
 	/* Increasing frequency, change voltage first */
-	if (ui32CoreClockRate > ui32CoreClockRateCurrent)
-	{
-		psDVFSDeviceCfg->pfnSetVoltage(psDevConfig->hSysData, psOpp->ui32Volt);
+	if (ui32CoreClockRate > ui32CoreClockRateCurrent) {
+		psDVFSDeviceCfg->pfnSetVoltage(psDevConfig->hSysData,
+					       psOpp->ui32Volt);
 	}
 
-	psDVFSDeviceCfg->pfnSetFrequency(psDevConfig->hSysData, ui32CoreClockRate);
+	psDVFSDeviceCfg->pfnSetFrequency(psDevConfig->hSysData,
+					 ui32CoreClockRate);
 
 	/* Decreasing frequency, change frequency first */
-	if (ui32CoreClockRate < ui32CoreClockRateCurrent)
-	{
-		psDVFSDeviceCfg->pfnSetVoltage(psDevConfig->hSysData, psOpp->ui32Volt);
+	if (ui32CoreClockRate < ui32CoreClockRateCurrent) {
+		psDVFSDeviceCfg->pfnSetVoltage(psDevConfig->hSysData,
+					       psOpp->ui32Volt);
 	}
 
-	PVRSRVDevicePostClockSpeedChange(psDevInfo->psDeviceNode, psDVFSDeviceCfg->bIdleReq, NULL);
+	PVRSRVDevicePostClockSpeedChange(psDevInfo->psDeviceNode,
+					 psDVFSDeviceCfg->bIdleReq, NULL);
 
 	return PVRSRV_OK;
 }
@@ -211,45 +215,48 @@ PVRSRV_ERROR PDVFSProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo, IMG
 @Input          ui32CoreClockRate    New core clock rate.
 @Return         PVRSRV_ERROR.
 */ /**************************************************************************/
-PVRSRV_ERROR PDVFSProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CoreClockRate)
+PVRSRV_ERROR
+PDVFSProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo,
+				      IMG_UINT32 ui32CoreClockRate)
 {
-	PVRSRV_DEVICE_CONFIG *psDevConfig = psDevInfo->psDeviceNode->psDevConfig;
-	RGX_TIMING_INFORMATION *psRGXTimingInfo = ((RGX_DATA*)(psDevConfig->hDevData))->psRGXTimingInfo;
+	PVRSRV_DEVICE_CONFIG *psDevConfig =
+		psDevInfo->psDeviceNode->psDevConfig;
+	RGX_TIMING_INFORMATION *psRGXTimingInfo =
+		((RGX_DATA *)(psDevConfig->hDevData))->psRGXTimingInfo;
 	PVRSRV_DEV_POWER_STATE ePowerState;
 	PVRSRV_ERROR eError;
 
 	eError = PVRSRVPowerLock(psDevInfo->psDeviceNode);
 
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: failed to acquire lock (%s)",
-				 __func__, PVRSRVGetErrorString(eError)));
+			 __func__, PVRSRVGetErrorString(eError)));
 		return eError;
 	}
 
-	eError = PVRSRVGetDevicePowerState(psDevInfo->psDeviceNode, &ePowerState);
+	eError = PVRSRVGetDevicePowerState(psDevInfo->psDeviceNode,
+					   &ePowerState);
 
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: failed to acquire power state (%s)",
-				 __func__, PVRSRVGetErrorString(eError)));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: failed to acquire power state (%s)", __func__,
+			 PVRSRVGetErrorString(eError)));
 		PVRSRVPowerUnlock(psDevInfo->psDeviceNode);
 		return eError;
 	}
 
 	/* Guest drivers do not initialize psRGXFWIfFwSysData */
 	RGXFwSharedMemCacheOpValue(psDevInfo->psRGXFWIfFwSysData->ePowState,
-	                           INVALIDATE);
-	if ((ePowerState != PVRSRV_DEV_POWER_STATE_OFF)
-	    && ((psDevInfo->psRGXFWIfFwSysData == NULL) || (psDevInfo->psRGXFWIfFwSysData->ePowState != RGXFWIF_POW_OFF)))
-	{
+				   INVALIDATE);
+	if ((ePowerState != PVRSRV_DEV_POWER_STATE_OFF) &&
+	    ((psDevInfo->psRGXFWIfFwSysData == NULL) ||
+	     (psDevInfo->psRGXFWIfFwSysData->ePowState != RGXFWIF_POW_OFF))) {
 		/* Update GPU frequency and timer correlation related data */
 		RGXTimeCorrEnd(psDevInfo->psDeviceNode, RGXTIMECORR_EVENT_DVFS);
 		psRGXTimingInfo->ui32CoreClockSpeed = ui32CoreClockRate;
-		RGXTimeCorrBegin(psDevInfo->psDeviceNode, RGXTIMECORR_EVENT_DVFS);
-	}
-	else
-	{
+		RGXTimeCorrBegin(psDevInfo->psDeviceNode,
+				 RGXTIMECORR_EVENT_DVFS);
+	} else {
 		psRGXTimingInfo->ui32CoreClockSpeed = ui32CoreClockRate;
 	}
 
@@ -258,7 +265,6 @@ PVRSRV_ERROR PDVFSProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo
 	return PVRSRV_OK;
 }
 #endif
-
 
 #if defined(RGXFW_META_SUPPORT_2ND_THREAD)
 /*************************************************************************/ /*!
@@ -271,14 +277,13 @@ void RGXPDVFSCheckCoreClkRateChange(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	IMG_UINT32 ui32CoreClkRate = *psDevInfo->pui32RGXFWIFCoreClkRate;
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return;
 	}
 
-	if (ui32CoreClkRate != 0 && psDevInfo->ui32CoreClkRateSnapshot != ui32CoreClkRate)
-	{
+	if (ui32CoreClkRate != 0 &&
+	    psDevInfo->ui32CoreClkRateSnapshot != ui32CoreClkRate) {
 		psDevInfo->ui32CoreClkRateSnapshot = ui32CoreClkRate;
 		PDVFS_PROCESS_CORE_CLK_RATE_CHANGE(psDevInfo, ui32CoreClkRate);
 	}

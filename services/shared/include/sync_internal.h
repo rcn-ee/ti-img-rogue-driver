@@ -65,48 +65,45 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
 	Private structure's
 */
-#define SYNC_PRIM_NAME_SIZE		50
-typedef struct SYNC_PRIM_CONTEXT_TAG
-{
-	SHARED_DEV_CONNECTION       hDevConnection;
-	IMG_CHAR					azName[SYNC_PRIM_NAME_SIZE];	/*!< Name of the RA */
-	RA_ARENA					*psSubAllocRA;					/*!< RA context */
-	IMG_CHAR					azSpanName[SYNC_PRIM_NAME_SIZE];/*!< Name of the span RA */
-	RA_ARENA					*psSpanRA;						/*!< RA used for span management of SubAllocRA */
-	ATOMIC_T				hRefCount;	/*!< Ref count for this context */
+#define SYNC_PRIM_NAME_SIZE 50
+typedef struct SYNC_PRIM_CONTEXT_TAG {
+	SHARED_DEV_CONNECTION hDevConnection;
+	IMG_CHAR azName[SYNC_PRIM_NAME_SIZE]; /*!< Name of the RA */
+	RA_ARENA *psSubAllocRA; /*!< RA context */
+	IMG_CHAR azSpanName[SYNC_PRIM_NAME_SIZE]; /*!< Name of the span RA */
+	RA_ARENA *psSpanRA; /*!< RA used for span management of SubAllocRA */
+	ATOMIC_T hRefCount; /*!< Ref count for this context */
 #if defined(LOCAL_SYNC_BLOCK_RETAIN_FIRST)
-	IMG_HANDLE					hFirstSyncPrim; /*!< Handle to the first allocated sync prim */
+	IMG_HANDLE hFirstSyncPrim; /*!< Handle to the first allocated sync prim */
 #endif
 } SYNC_PRIM_CONTEXT;
 
-typedef struct SYNC_PRIM_BLOCK_TAG
-{
-	SYNC_PRIM_CONTEXT	*psContext;				/*!< Our copy of the services connection */
-	IMG_HANDLE			hServerSyncPrimBlock;	/*!< Server handle for this block */
-	IMG_UINT32			ui32SyncBlockSize;		/*!< Size of the sync prim block */
-	IMG_UINT32			ui32FirmwareAddr;		/*!< Firmware address */
-	DEVMEM_MEMDESC		*hMemDesc;				/*!< Host mapping handle */
-	IMG_UINT32 __iomem	*pui32LinAddr;			/*!< User CPU mapping */
-	IMG_UINT64			uiSpanBase;				/*!< Base of this import in the span RA */
-	DLLIST_NODE			sListNode;				/*!< List node for the sync block list */
+typedef struct SYNC_PRIM_BLOCK_TAG {
+	SYNC_PRIM_CONTEXT *psContext; /*!< Our copy of the services connection */
+	IMG_HANDLE hServerSyncPrimBlock; /*!< Server handle for this block */
+	IMG_UINT32 ui32SyncBlockSize; /*!< Size of the sync prim block */
+	IMG_UINT32 ui32FirmwareAddr; /*!< Firmware address */
+	DEVMEM_MEMDESC *hMemDesc; /*!< Host mapping handle */
+	IMG_UINT32 __iomem *pui32LinAddr; /*!< User CPU mapping */
+	IMG_UINT64 uiSpanBase; /*!< Base of this import in the span RA */
+	DLLIST_NODE sListNode; /*!< List node for the sync block list */
 } SYNC_PRIM_BLOCK;
 
-typedef struct SYNC_PRIM_TAG
-{
-	PVRSRV_CLIENT_SYNC_PRIM	sCommon;		/*!< Client visible part of the sync prim */
-	ATOMIC_T				hRefCount;		/*!< Ref count for this sync */
-	SYNC_PRIM_BLOCK			*psSyncBlock;	/*!< Synchronisation block this primitive is allocated on */
-	IMG_UINT64				uiSpanAddr;		/*!< Span address of the sync */
-	IMG_HANDLE				hRecord;		/*!< Sync record handle */
+typedef struct SYNC_PRIM_TAG {
+	PVRSRV_CLIENT_SYNC_PRIM
+	sCommon; /*!< Client visible part of the sync prim */
+	ATOMIC_T hRefCount; /*!< Ref count for this sync */
+	SYNC_PRIM_BLOCK *
+		psSyncBlock; /*!< Synchronisation block this primitive is allocated on */
+	IMG_UINT64 uiSpanAddr; /*!< Span address of the sync */
+	IMG_HANDLE hRecord; /*!< Sync record handle */
 } SYNC_PRIM;
 
+IMG_INTERNAL PVRSRV_ERROR SyncPrimGetFirmwareAddr(
+	PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 *pui32FwAddr);
 
 IMG_INTERNAL PVRSRV_ERROR
-SyncPrimGetFirmwareAddr(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 *pui32FwAddr);
+SyncPrimLocalGetHandleAndOffset(PVRSRV_CLIENT_SYNC_PRIM *psSync,
+				IMG_HANDLE *phBlock, IMG_UINT32 *pui32Offset);
 
-IMG_INTERNAL PVRSRV_ERROR SyncPrimLocalGetHandleAndOffset(PVRSRV_CLIENT_SYNC_PRIM *psSync,
-							IMG_HANDLE *phBlock,
-							IMG_UINT32 *pui32Offset);
-
-
-#endif	/* SYNC_INTERNAL */
+#endif /* SYNC_INTERNAL */

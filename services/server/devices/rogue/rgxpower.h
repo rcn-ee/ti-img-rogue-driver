@@ -49,7 +49,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "servicesext.h"
 #include "rgxdevice.h"
 
-
 /*!
 ******************************************************************************
 
@@ -66,10 +65,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPrePowerState(IMG_HANDLE				hDevHandle,
-							  PVRSRV_DEV_POWER_STATE	eNewPowerState,
-							  PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-							  PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXPrePowerState(IMG_HANDLE hDevHandle,
+			      PVRSRV_DEV_POWER_STATE eNewPowerState,
+			      PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+			      PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -87,10 +86,10 @@ PVRSRV_ERROR RGXPrePowerState(IMG_HANDLE				hDevHandle,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPostPowerState(IMG_HANDLE				hDevHandle,
-							   PVRSRV_DEV_POWER_STATE	eNewPowerState,
-							   PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-							   PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXPostPowerState(IMG_HANDLE hDevHandle,
+			       PVRSRV_DEV_POWER_STATE eNewPowerState,
+			       PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+			       PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -108,10 +107,10 @@ PVRSRV_ERROR RGXPostPowerState(IMG_HANDLE				hDevHandle,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXVzPrePowerState(IMG_HANDLE				hDevHandle,
-								PVRSRV_DEV_POWER_STATE	eNewPowerState,
-								PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-								PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXVzPrePowerState(IMG_HANDLE hDevHandle,
+				PVRSRV_DEV_POWER_STATE eNewPowerState,
+				PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+				PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -129,10 +128,10 @@ PVRSRV_ERROR RGXVzPrePowerState(IMG_HANDLE				hDevHandle,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXVzPostPowerState(IMG_HANDLE				hDevHandle,
-								 PVRSRV_DEV_POWER_STATE	eNewPowerState,
-								 PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-								 PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXVzPostPowerState(IMG_HANDLE hDevHandle,
+				 PVRSRV_DEV_POWER_STATE eNewPowerState,
+				 PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+				 PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -149,8 +148,8 @@ PVRSRV_ERROR RGXVzPostPowerState(IMG_HANDLE				hDevHandle,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPreClockSpeedChange(IMG_HANDLE				hDevHandle,
-									PVRSRV_DEV_POWER_STATE	eCurrentPowerState);
+PVRSRV_ERROR RGXPreClockSpeedChange(IMG_HANDLE hDevHandle,
+				    PVRSRV_DEV_POWER_STATE eCurrentPowerState);
 
 /*!
 ******************************************************************************
@@ -167,9 +166,8 @@ PVRSRV_ERROR RGXPreClockSpeedChange(IMG_HANDLE				hDevHandle,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPostClockSpeedChange(IMG_HANDLE				hDevHandle,
-									 PVRSRV_DEV_POWER_STATE	eCurrentPowerState);
-
+PVRSRV_ERROR RGXPostClockSpeedChange(IMG_HANDLE hDevHandle,
+				     PVRSRV_DEV_POWER_STATE eCurrentPowerState);
 
 /*!
 ******************************************************************************
@@ -185,7 +183,7 @@ PVRSRV_ERROR RGXPostClockSpeedChange(IMG_HANDLE				hDevHandle,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXDustCountChange(IMG_HANDLE hDevHandle,
-								IMG_UINT32 ui32NumberOfDusts);
+				IMG_UINT32 ui32NumberOfDusts);
 
 /*!
 ******************************************************************************
@@ -207,9 +205,9 @@ PVRSRV_ERROR RGXDustCountChange(IMG_HANDLE hDevHandle,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXAPMLatencyChange(IMG_HANDLE				hDevHandle,
-				IMG_UINT32				ui32ActivePMLatencyms,
-				IMG_BOOL				bActivePMLatencyPersistant);
+PVRSRV_ERROR RGXAPMLatencyChange(IMG_HANDLE hDevHandle,
+				 IMG_UINT32 ui32ActivePMLatencyms,
+				 IMG_BOOL bActivePMLatencyPersistant);
 
 /*!
 ******************************************************************************
@@ -240,7 +238,8 @@ PVRSRV_ERROR RGXActivePowerRequest(IMG_HANDLE hDevHandle);
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXForcedIdleRequest(IMG_HANDLE hDevHandle, IMG_BOOL bDeviceOffPermitted);
+PVRSRV_ERROR RGXForcedIdleRequest(IMG_HANDLE hDevHandle,
+				  IMG_BOOL bDeviceOffPermitted);
 
 /*!
 ******************************************************************************
@@ -281,6 +280,7 @@ PVRSRV_ERROR RGXCancelForcedIdleRequest(IMG_HANDLE hDevHandle);
  @Return	PVRSRV_ERROR
 
 ******************************************************************************/
-IMG_UINT32 RGXGetNextDustCount(RGX_DUST_STATE *psDustState, IMG_UINT32 ui32DustCount);
+IMG_UINT32 RGXGetNextDustCount(RGX_DUST_STATE *psDustState,
+			       IMG_UINT32 ui32DustCount);
 
 #endif /* RGXPOWER_H */

@@ -68,11 +68,11 @@ struct odin_orion_reg {
 	const char *orion_name;
 };
 
-#define COMMON_REG_ENTRY(REG) \
-	[REG] = {				  \
-		.odin_offset = ODN_##REG,	  \
-		.orion_offset = SRS_##REG,	  \
-		.odin_name = ODIN_REGNAME(REG),	  \
+#define COMMON_REG_ENTRY(REG)                     \
+	[REG] = {                                 \
+		.odin_offset = ODN_##REG,         \
+		.orion_offset = SRS_##REG,        \
+		.odin_name = ODIN_REGNAME(REG),   \
 		.orion_name = ORION_REGNAME(REG), \
 	}
 
@@ -102,4 +102,4 @@ static inline const char *common_reg_name(struct tc_device *tc, u32 reg)
 		return common_regs[reg].orion_name;
 }
 
-#endif	/* __TC_ODIN_COMMON_REGS_H__ */
+#endif /* __TC_ODIN_COMMON_REGS_H__ */

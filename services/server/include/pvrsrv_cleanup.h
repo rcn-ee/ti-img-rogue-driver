@@ -70,7 +70,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 typedef PVRSRV_ERROR (*CLEANUP_THREAD_FN)(void *pvParam);
 
-
 /* Typical number of times a caller should want the work to be retried in case
  * of the callback function (pfnFree) returning an error.
  * Callers to PVRSRVCleanupThreadAddWork should provide this value as the retry
@@ -88,11 +87,11 @@ typedef PVRSRV_ERROR (*CLEANUP_THREAD_FN)(void *pvParam);
  * _item - pointer to the PVRSRV_CLEANUP_THREAD_WORK
  * _count - retry count
  */
-#define CLEANUP_THREAD_SET_RETRY_COUNT(_item,_count) \
-	do { \
-		(_item)->ui32RetryCount = (_count); \
-		(_item)->ui32TimeStart = 0; \
-		(_item)->ui32TimeEnd = 0; \
+#define CLEANUP_THREAD_SET_RETRY_COUNT(_item, _count) \
+	do {                                          \
+		(_item)->ui32RetryCount = (_count);   \
+		(_item)->ui32TimeStart = 0;           \
+		(_item)->ui32TimeEnd = 0;             \
 	} while (0)
 
 /* Use to set timeout deadline on a cleanup item.
@@ -100,20 +99,23 @@ typedef PVRSRV_ERROR (*CLEANUP_THREAD_FN)(void *pvParam);
  * _timeout - timeout in milliseconds, if 0
  *            CLEANUP_THREAD_RETRY_TIMEOUT_MS_DEFAULT is used
  */
-#define CLEANUP_THREAD_SET_RETRY_TIMEOUT(_item,_timeout) \
-	do { \
-		(_item)->ui32RetryCount = 0; \
-		(_item)->ui32TimeStart = OSClockms(); \
-		(_item)->ui32TimeEnd = (_item)->ui32TimeStart + ((_timeout) > 0 ? \
-				(_timeout) : CLEANUP_THREAD_RETRY_TIMEOUT_MS_DEFAULT); \
+#define CLEANUP_THREAD_SET_RETRY_TIMEOUT(_item, _timeout)                  \
+	do {                                                               \
+		(_item)->ui32RetryCount = 0;                               \
+		(_item)->ui32TimeStart = OSClockms();                      \
+		(_item)->ui32TimeEnd =                                     \
+			(_item)->ui32TimeStart +                           \
+			((_timeout) > 0 ?                                  \
+				 (_timeout) :                              \
+				 CLEANUP_THREAD_RETRY_TIMEOUT_MS_DEFAULT); \
 	} while (0)
 
 /* Indicates if the timeout on a given item has been reached.
  * _item - pointer to the PVRSRV_CLEANUP_THREAD_WORK
  */
-#define CLEANUP_THREAD_RETRY_TIMEOUT_NOT_REACHED(_item) \
+#define CLEANUP_THREAD_RETRY_TIMEOUT_NOT_REACHED(_item)   \
 	((_item)->ui32TimeEnd - (_item)->ui32TimeStart >= \
-			OSClockms() - (_item)->ui32TimeStart)
+	 OSClockms() - (_item)->ui32TimeStart)
 
 /* Indicates if the current item is waiting on timeout or retry count.
  * _item - pointer to the PVRSRV_CLEANUP_THREAD_WORK
@@ -121,21 +123,21 @@ typedef PVRSRV_ERROR (*CLEANUP_THREAD_FN)(void *pvParam);
 #define CLEANUP_THREAD_IS_RETRY_TIMEOUT(_item) \
 	((_item)->ui32TimeStart != (_item->ui32TimeEnd))
 
-#define CLEANUP_TYPE_LIST \
-	X(UNDEF)      /**/ \
-	X(CONNECTION)     /**/ \
-	X(MMU)     /**/ \
-	X(OSMEM)   /**/ \
-	X(PMR)       /**/ \
-	X(LAST)      /**/ \
+#define CLEANUP_TYPE_LIST  \
+	X(UNDEF) /**/      \
+	X(CONNECTION) /**/ \
+	X(MMU) /**/        \
+	X(OSMEM) /**/      \
+	X(PMR) /**/        \
+	X(LAST) /**/
 
-#define CLEANUP_TYPE_ITEM_LABEL_MAX_SIZE 11     /* CONNECTION\0 */
+#define CLEANUP_TYPE_ITEM_LABEL_MAX_SIZE 11 /* CONNECTION\0 */
 #define CLEANUP_TYPE_ITEM_DPF " %1.11s : %1.5d"
-#define CLEANUP_TYPE_ITEM_DPF_MAX_SIZE CLEANUP_TYPE_ITEM_LABEL_MAX_SIZE+sizeof(" : ")+5+1
+#define CLEANUP_TYPE_ITEM_DPF_MAX_SIZE \
+	CLEANUP_TYPE_ITEM_LABEL_MAX_SIZE + sizeof(" : ") + 5 + 1
 
-typedef enum _PVRSRV_CLEANUP_TYPE_
-{
-#define X(_name) PVRSRV_CLEANUP_TYPE_ ## _name,
+typedef enum _PVRSRV_CLEANUP_TYPE_ {
+#define X(_name) PVRSRV_CLEANUP_TYPE_##_name,
 	CLEANUP_TYPE_LIST
 #undef X
 
@@ -157,14 +159,15 @@ static const char *const _pszCleanupStrings[] = {
 
 @Return         const IMG_CHAR pointer.
 */ /**************************************************************************/
-static inline const IMG_CHAR *PVRSRVGetCleanupName(PVRSRV_CLEANUP_TYPE eCleanupType)
+static inline const IMG_CHAR *
+PVRSRVGetCleanupName(PVRSRV_CLEANUP_TYPE eCleanupType)
 {
-	if (eCleanupType < 0 || eCleanupType > PVRSRV_CLEANUP_TYPE_LAST)
-	{
+	if (eCleanupType < 0 || eCleanupType > PVRSRV_CLEANUP_TYPE_LAST) {
 		return "Undefined";
 	}
 
-	PVR_ASSERT(sizeof(_pszCleanupStrings[eCleanupType]) < CLEANUP_TYPE_ITEM_LABEL_MAX_SIZE);
+	PVR_ASSERT(sizeof(_pszCleanupStrings[eCleanupType]) <
+		   CLEANUP_TYPE_ITEM_LABEL_MAX_SIZE);
 
 	return _pszCleanupStrings[eCleanupType];
 }
@@ -174,33 +177,31 @@ static inline const IMG_CHAR *PVRSRVGetCleanupName(PVRSRV_CLEANUP_TYPE eCleanupT
 /* Clean up work item specifics so that the task can be managed by the
 * pvr_defer_free cleanup thread in the Server.
 */
-typedef struct _PVRSRV_CLEANUP_THREAD_WORK_
-{
-	DLLIST_NODE sNode;               /*!< List node used internally by the cleanup
+typedef struct _PVRSRV_CLEANUP_THREAD_WORK_ {
+	DLLIST_NODE sNode; /*!< List node used internally by the cleanup
 	                                    thread */
-	CLEANUP_THREAD_FN pfnFree;       /*!< Pointer to the function to be called to
+	CLEANUP_THREAD_FN pfnFree; /*!< Pointer to the function to be called to
 	                                    carry out the deferred cleanup */
-	void *pvData;                    /*!< private data for pfnFree, usually a way back
+	void *pvData; /*!< private data for pfnFree, usually a way back
 	                                    to the original PVRSRV_CLEANUP_THREAD_WORK*
 	                                    pointer supplied in the call to
 	                                    PVRSRVCleanupThreadAddWork(). */
-	IMG_UINT32 ui32TimeStart;        /*!< Timestamp in ms of the moment when
+	IMG_UINT32 ui32TimeStart; /*!< Timestamp in ms of the moment when
 	                                    cleanup item has been created. */
-	IMG_UINT32 ui32TimeEnd;          /*!< Time in ms after which no further retry
+	IMG_UINT32 ui32TimeEnd; /*!< Time in ms after which no further retry
 	                                    attempts will be made, item discard and
 	                                    error logged when this is reached. */
-	IMG_UINT32 ui32RetryCount;       /*!< Number of times the callback should be
+	IMG_UINT32 ui32RetryCount; /*!< Number of times the callback should be
 	                                    re-tried when it returns error. */
-	IMG_BOOL bDependsOnHW;           /*!< Don't drop the cleanup task if retry limit
+	IMG_BOOL bDependsOnHW; /*!< Don't drop the cleanup task if retry limit
 	                                      is reached, we could depend on event from
 	                                      device to continue. */
-	PVRSRV_CLEANUP_TYPE eCleanupType;/*!< Type of work item added to queue */
+	PVRSRV_CLEANUP_TYPE eCleanupType; /*!< Type of work item added to queue */
 #if defined(DEBUG)
 	const char *pszFun;
 	unsigned int ui32LineNum;
 #endif
 } PVRSRV_CLEANUP_THREAD_WORK;
-
 
 /**************************************************************************/ /*!
 @Function       PVRSRVCleanupThreadAddWork
@@ -214,14 +215,16 @@ typedef struct _PVRSRV_CLEANUP_THREAD_WORK_
 @Return         None
 */ /***************************************************************************/
 #if defined(DEBUG)
-#define PVRSRVCleanupThreadAddWork(DEV, DATA)		PVRSRVCleanupThreadAddWork_Debug(DEV, DATA, __FILE__, __LINE__)
+#define PVRSRVCleanupThreadAddWork(DEV, DATA) \
+	PVRSRVCleanupThreadAddWork_Debug(DEV, DATA, __FILE__, __LINE__)
 void PVRSRVCleanupThreadAddWork_Debug(PVRSRV_DEVICE_NODE *psDevNode,
-                                      PVRSRV_CLEANUP_THREAD_WORK *psData,
-                                      const char *pszFun, const unsigned int ui32LineNum);
+				      PVRSRV_CLEANUP_THREAD_WORK *psData,
+				      const char *pszFun,
+				      const unsigned int ui32LineNum);
 #else
-#define PVRSRVCleanupThreadAddWork					PVRSRVCleanupThreadAddWork_Int
+#define PVRSRVCleanupThreadAddWork PVRSRVCleanupThreadAddWork_Int
 void PVRSRVCleanupThreadAddWork_Int(PVRSRV_DEVICE_NODE *psDevNode,
-                                    PVRSRV_CLEANUP_THREAD_WORK *psData);
+				    PVRSRV_CLEANUP_THREAD_WORK *psData);
 #endif
 
 /**************************************************************************/ /*!

@@ -63,8 +63,7 @@ bool pvr_sync_set_private_data(void *connection_data,
 struct pvr_sync_file_data *
 pvr_sync_connection_private_data(void *connection_data);
 
-struct pvr_sync_file_data *
-pvr_sync_get_private_data(struct file *file);
+struct pvr_sync_file_data *pvr_sync_get_private_data(struct file *file);
 
 bool pvr_sync_is_timeline(struct file *file);
 

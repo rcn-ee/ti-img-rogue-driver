@@ -121,9 +121,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_FEATURE_SLC_BANKS (6U)
 #define RGX_FEATURE_SLC_CACHE_LINE_SIZE_BITS (1024U)
 #define RGX_FEATURE_SLC_SIZE_ADJUSTMENT /* Specifies the SLC is */
-                                        /* customer-configurable. True SLC */
-                                        /* size must be sourced from */
-                                        /* register. */
+/* customer-configurable. True SLC */
+/* size must be sourced from */
+/* register. */
 #define RGX_FEATURE_SLC_SIZE_IN_KILOBYTES (1536U)
 #define RGX_FEATURE_SLC_VIVT
 #define RGX_FEATURE_SOC_TIMER

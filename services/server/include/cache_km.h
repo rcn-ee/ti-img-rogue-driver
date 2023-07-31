@@ -56,10 +56,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "device.h"
 #include "pmr.h"
 
-typedef IMG_UINT32 PVRSRV_CACHE_OP_ADDR_TYPE;	/*!< Represents CPU address type required for CPU d-cache maintenance */
-#define PVRSRV_CACHE_OP_ADDR_TYPE_VIRTUAL	0x1	/*!< Operation requires CPU virtual address only */
-#define PVRSRV_CACHE_OP_ADDR_TYPE_PHYSICAL	0x2	/*!< Operation requires CPU physical address only */
-#define PVRSRV_CACHE_OP_ADDR_TYPE_BOTH		0x3	/*!< Operation requires both CPU virtual & physical addresses */
+typedef IMG_UINT32
+	PVRSRV_CACHE_OP_ADDR_TYPE; /*!< Represents CPU address type required for CPU d-cache maintenance */
+#define PVRSRV_CACHE_OP_ADDR_TYPE_VIRTUAL \
+	0x1 /*!< Operation requires CPU virtual address only */
+#define PVRSRV_CACHE_OP_ADDR_TYPE_PHYSICAL \
+	0x2 /*!< Operation requires CPU physical address only */
+#define PVRSRV_CACHE_OP_ADDR_TYPE_BOTH \
+	0x3 /*!< Operation requires both CPU virtual & physical addresses */
 
 #include "connection_server.h"
 
@@ -89,12 +93,10 @@ void CacheOpDeInit2(void);
  * pre-validated for performance reasons else the d-cache maintenance
  * operation might cause the underlying OS kernel to fault.
  */
-PVRSRV_ERROR CacheOpExec(PPVRSRV_DEVICE_NODE psDevNode,
-						void *pvVirtStart,
-						void *pvVirtEnd,
-						IMG_CPU_PHYADDR sCPUPhysStart,
-						IMG_CPU_PHYADDR sCPUPhysEnd,
-						PVRSRV_CACHE_OP uiCacheOp);
+PVRSRV_ERROR CacheOpExec(PPVRSRV_DEVICE_NODE psDevNode, void *pvVirtStart,
+			 void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			 IMG_CPU_PHYADDR sCPUPhysEnd,
+			 PVRSRV_CACHE_OP uiCacheOp);
 
 /*
  * CacheOpValExec()
@@ -107,11 +109,10 @@ PVRSRV_ERROR CacheOpExec(PPVRSRV_DEVICE_NODE psDevNode,
  * as the services client bridge call handler for synchronous user-mode
  * cache maintenance requests.
  */
-PVRSRV_ERROR CacheOpValExec(PMR *psPMR,
-							IMG_UINT64 uiAddress,
-							IMG_DEVMEM_OFFSET_T uiOffset,
-							IMG_DEVMEM_SIZE_T uiSize,
-							PVRSRV_CACHE_OP uiCacheOp);
+PVRSRV_ERROR CacheOpValExec(PMR *psPMR, IMG_UINT64 uiAddress,
+			    IMG_DEVMEM_OFFSET_T uiOffset,
+			    IMG_DEVMEM_SIZE_T uiSize,
+			    PVRSRV_CACHE_OP uiCacheOp);
 
 /*
  * CacheOpQueue()
@@ -124,15 +125,11 @@ PVRSRV_ERROR CacheOpValExec(PMR *psPMR,
  * server queueing protocol so making use of this interface outside
  * of services client is not recommended and should not be done.
  */
-PVRSRV_ERROR CacheOpQueue(CONNECTION_DATA *psConnection,
-						PPVRSRV_DEVICE_NODE psDevNode,
-						IMG_UINT32 ui32OpCount,
-						PMR **ppsPMR,
-						IMG_UINT64 *puiAddress,
-						IMG_DEVMEM_OFFSET_T *puiOffset,
-						IMG_DEVMEM_SIZE_T *puiSize,
-						PVRSRV_CACHE_OP *puiCacheOp,
-						IMG_UINT32 ui32OpTimeline);
+PVRSRV_ERROR
+CacheOpQueue(CONNECTION_DATA *psConnection, PPVRSRV_DEVICE_NODE psDevNode,
+	     IMG_UINT32 ui32OpCount, PMR **ppsPMR, IMG_UINT64 *puiAddress,
+	     IMG_DEVMEM_OFFSET_T *puiOffset, IMG_DEVMEM_SIZE_T *puiSize,
+	     PVRSRV_CACHE_OP *puiCacheOp, IMG_UINT32 ui32OpTimeline);
 
 /*
  * CacheOpLog()
@@ -140,12 +137,9 @@ PVRSRV_ERROR CacheOpQueue(CONNECTION_DATA *psConnection,
  * This is used for logging client cache maintenance operations that
  * was executed in user-space.
  */
-PVRSRV_ERROR CacheOpLog(PMR *psPMR,
-						IMG_UINT64 uiAddress,
-						IMG_DEVMEM_OFFSET_T uiOffset,
-						IMG_DEVMEM_SIZE_T uiSize,
-						IMG_UINT64 ui64StartTime,
-						IMG_UINT64 ui64EndTime,
-						PVRSRV_CACHE_OP uiCacheOp);
+PVRSRV_ERROR CacheOpLog(PMR *psPMR, IMG_UINT64 uiAddress,
+			IMG_DEVMEM_OFFSET_T uiOffset, IMG_DEVMEM_SIZE_T uiSize,
+			IMG_UINT64 ui64StartTime, IMG_UINT64 ui64EndTime,
+			PVRSRV_CACHE_OP uiCacheOp);
 
-#endif	/* CACHE_KM_H */
+#endif /* CACHE_KM_H */

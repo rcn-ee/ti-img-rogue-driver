@@ -64,7 +64,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Return        PVRSRV_ERROR
 ******************************************************************************/
 PVRSRV_ERROR LinuxBridgeBlockClientsAccess(struct pvr_drm_private *psDevPriv,
-                                           IMG_BOOL bShutdown);
+					   IMG_BOOL bShutdown);
 
 /*!
 ******************************************************************************

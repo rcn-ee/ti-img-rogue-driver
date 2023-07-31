@@ -58,32 +58,32 @@
  * It is only used for a warning if the ext heap is smaller, and does
  * not affect the functional logic in any way
  */
-#define TC_EXT_MINIMUM_MEM_SIZE (10*1024*1024)
+#define TC_EXT_MINIMUM_MEM_SIZE (10 * 1024 * 1024)
 
 #if defined(SUPPORT_DMA_HEAP)
- #if defined(SUPPORT_FAKE_SECURE_DMA_HEAP)
-  #define TC_DMA_HEAP_COUNT 3
- #else
-  #define TC_DMA_HEAP_COUNT 2
- #endif
+#if defined(SUPPORT_FAKE_SECURE_DMA_HEAP)
+#define TC_DMA_HEAP_COUNT 3
+#else
+#define TC_DMA_HEAP_COUNT 2
+#endif
 #elif defined(SUPPORT_ION)
- #if defined(SUPPORT_RGX) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
-  #define TC_ION_HEAP_BASE_COUNT 3
- #else
-  #define TC_ION_HEAP_BASE_COUNT 2
- #endif
+#if defined(SUPPORT_RGX) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
+#define TC_ION_HEAP_BASE_COUNT 3
+#else
+#define TC_ION_HEAP_BASE_COUNT 2
+#endif
 
- #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
-  #define TC_ION_HEAP_COUNT (TC_ION_HEAP_BASE_COUNT + 1)
- #else
-  #define TC_ION_HEAP_COUNT TC_ION_HEAP_BASE_COUNT
- #endif
+#if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
+#define TC_ION_HEAP_COUNT (TC_ION_HEAP_BASE_COUNT + 1)
+#else
+#define TC_ION_HEAP_COUNT TC_ION_HEAP_BASE_COUNT
+#endif
 #endif /* defined(SUPPORT_ION) */
 
 /* Convert a byte offset to a 32 bit dword offset */
-#define DWORD_OFFSET(byte_offset)  ((byte_offset)>>2)
+#define DWORD_OFFSET(byte_offset) ((byte_offset) >> 2)
 
-#define HEX2DEC(v)                 ((((v) >> 4) * 10) + ((v) & 0x0F))
+#define HEX2DEC(v) ((((v) >> 4) * 10) + ((v)&0x0F))
 
 enum tc_version_t {
 	TC_INVALID_VERSION,
@@ -154,8 +154,7 @@ struct tc_device {
 	spinlock_t interrupt_handler_lock;
 	spinlock_t interrupt_enable_lock;
 
-	struct tc_interrupt_handler
-		interrupt_handlers[TC_INTERRUPT_COUNT];
+	struct tc_interrupt_handler interrupt_handlers[TC_INTERRUPT_COUNT];
 
 #if defined(TC_FAKE_INTERRUPTS)
 	struct timer_list timer;
@@ -184,14 +183,13 @@ int tc_is_interface_aligned(u32 eyes, u32 clk_taps, u32 train_ack);
 
 int tc_iopol32_nonzero(u32 mask, void __iomem *addr);
 
-int request_pci_io_addr(struct pci_dev *pdev, u32 index,
-	resource_size_t offset, resource_size_t length);
-void release_pci_io_addr(struct pci_dev *pdev, u32 index,
-	resource_size_t start, resource_size_t length);
+int request_pci_io_addr(struct pci_dev *pdev, u32 index, resource_size_t offset,
+			resource_size_t length);
+void release_pci_io_addr(struct pci_dev *pdev, u32 index, resource_size_t start,
+			 resource_size_t length);
 
-int setup_io_region(struct pci_dev *pdev,
-	struct tc_io_region *region, u32 index,
-	resource_size_t offset,	resource_size_t size);
+int setup_io_region(struct pci_dev *pdev, struct tc_io_region *region,
+		    u32 index, resource_size_t offset, resource_size_t size);
 
 #if defined(TC_FAKE_INTERRUPTS)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 14, 0))

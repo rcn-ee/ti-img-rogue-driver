@@ -49,19 +49,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*! Default trigger type for the interrupt line. */
 #define SYS_IRQ_FLAG_TRIGGER_DEFAULT (0x0 << 0)
 /*! Interrupt triggered when interrupt line is low. */
-#define SYS_IRQ_FLAG_TRIGGER_LOW     (0x1 << 0)
+#define SYS_IRQ_FLAG_TRIGGER_LOW (0x1 << 0)
 /*! Interrupt triggered when interrupt line is high. */
-#define SYS_IRQ_FLAG_TRIGGER_HIGH    (0x2 << 0)
+#define SYS_IRQ_FLAG_TRIGGER_HIGH (0x2 << 0)
 /*! Interrupt trigger mask. */
-#define SYS_IRQ_FLAG_TRIGGER_MASK    (SYS_IRQ_FLAG_TRIGGER_DEFAULT | \
-                                      SYS_IRQ_FLAG_TRIGGER_LOW | \
-                                      SYS_IRQ_FLAG_TRIGGER_HIGH)
+#define SYS_IRQ_FLAG_TRIGGER_MASK                                  \
+	(SYS_IRQ_FLAG_TRIGGER_DEFAULT | SYS_IRQ_FLAG_TRIGGER_LOW | \
+	 SYS_IRQ_FLAG_TRIGGER_HIGH)
 /*! The irq is allowed to be shared among several devices. */
-#define SYS_IRQ_FLAG_SHARED          (0x1 << 8)
+#define SYS_IRQ_FLAG_SHARED (0x1 << 8)
 
 /*! Interrupt flags mask. */
-#define SYS_IRQ_FLAG_MASK            (SYS_IRQ_FLAG_TRIGGER_MASK | \
-                                      SYS_IRQ_FLAG_SHARED)
+#define SYS_IRQ_FLAG_MASK (SYS_IRQ_FLAG_TRIGGER_MASK | SYS_IRQ_FLAG_SHARED)
 
 /*************************************************************************/ /*!
 @Description    Pointer to a system Low-level Interrupt Service Routine (LISR).
@@ -86,11 +85,9 @@ typedef IMG_BOOL (*PFN_SYS_LISR)(void *pvData);
 @Input          ui32Flags               Interrupt flags
 @Return         PVRSRV_OK on success, a failure code otherwise
 */ /**************************************************************************/
-PVRSRV_ERROR OSInstallSystemLISR(IMG_HANDLE *phLISR,
-				 IMG_UINT32 ui32IRQ,
+PVRSRV_ERROR OSInstallSystemLISR(IMG_HANDLE *phLISR, IMG_UINT32 ui32IRQ,
 				 const IMG_CHAR *pszDevName,
-				 PFN_SYS_LISR pfnLISR,
-				 void *pvData,
+				 PFN_SYS_LISR pfnLISR, void *pvData,
 				 IMG_UINT32 ui32Flags);
 
 /*************************************************************************/ /*!

@@ -114,16 +114,14 @@ typedef struct _RGX_PMR_NODE_ RGX_PMR_NODE;
  *                                                                           *
  *****************************************************************************/
 
-typedef struct _RGX_HWRTDATA_COMMON_COOKIE_
-{
-	DEVMEM_MEMDESC			*psHWRTDataCommonFwMemDesc;
-	RGXFWIF_DEV_VIRTADDR	sHWRTDataCommonFwAddr;
-	IMG_UINT32				ui32RefCount;
+typedef struct _RGX_HWRTDATA_COMMON_COOKIE_ {
+	DEVMEM_MEMDESC *psHWRTDataCommonFwMemDesc;
+	RGXFWIF_DEV_VIRTADDR sHWRTDataCommonFwAddr;
+	IMG_UINT32 ui32RefCount;
 
 } RGX_HWRTDATA_COMMON_COOKIE;
 
-typedef struct _RGX_KM_HW_RT_DATASET_
-{
+typedef struct _RGX_KM_HW_RT_DATASET_ {
 	RGX_HWRTDATA_COMMON_COOKIE *psHWRTDataCommonCookie;
 
 	PVRSRV_DEVICE_NODE *psDeviceNode;
@@ -135,123 +133,118 @@ typedef struct _RGX_KM_HW_RT_DATASET_
 
 	RGX_FREELIST *apsFreeLists[RGXFW_MAX_FREELISTS];
 #if !defined(SUPPORT_SHADOW_FREELISTS)
-	DLLIST_NODE			sNodeHWRTData;
+	DLLIST_NODE sNodeHWRTData;
 #endif
 
 } RGX_KM_HW_RT_DATASET;
 
 struct _RGX_FREELIST_ {
-	PVRSRV_RGXDEV_INFO		*psDevInfo;
-	CONNECTION_DATA			*psConnection;
+	PVRSRV_RGXDEV_INFO *psDevInfo;
+	CONNECTION_DATA *psConnection;
 
 	/* Free list PMR */
-	PMR						*psFreeListPMR;
-	IMG_DEVMEM_OFFSET_T		uiFreeListPMROffset;
+	PMR *psFreeListPMR;
+	IMG_DEVMEM_OFFSET_T uiFreeListPMROffset;
 
 	/* Freelist config */
-	IMG_UINT32				ui32MaxFLPages;
-	IMG_UINT32				ui32InitFLPages;
-	IMG_UINT32				ui32CurrentFLPages;
-	IMG_UINT32				ui32GrowFLPages;
-	IMG_UINT32				ui32ReadyFLPages;
-	IMG_UINT32				ui32GrowThreshold;		/* Percentage of FL memory used that should trigger a new grow request */
-	IMG_UINT32				ui32FreelistID;
-	IMG_UINT32				ui32FreelistGlobalID;	/* related global freelist for this freelist */
-	IMG_UINT64				ui64FreelistChecksum;	/* checksum over freelist content */
-	IMG_BOOL				bCheckFreelist;			/* freelist check enabled */
-	IMG_UINT32				ui32RefCount;			/* freelist reference counting */
+	IMG_UINT32 ui32MaxFLPages;
+	IMG_UINT32 ui32InitFLPages;
+	IMG_UINT32 ui32CurrentFLPages;
+	IMG_UINT32 ui32GrowFLPages;
+	IMG_UINT32 ui32ReadyFLPages;
+	IMG_UINT32
+	ui32GrowThreshold; /* Percentage of FL memory used that should trigger a new grow request */
+	IMG_UINT32 ui32FreelistID;
+	IMG_UINT32
+	ui32FreelistGlobalID; /* related global freelist for this freelist */
+	IMG_UINT64 ui64FreelistChecksum; /* checksum over freelist content */
+	IMG_BOOL bCheckFreelist; /* freelist check enabled */
+	IMG_UINT32 ui32RefCount; /* freelist reference counting */
 
-	IMG_UINT32				ui32NumGrowReqByApp;	/* Total number of grow requests by Application */
-	IMG_UINT32				ui32NumGrowReqByFW;		/* Total Number of grow requests by Firmware */
-	IMG_UINT32				ui32NumHighPages;		/* High Mark of pages in the freelist */
+	IMG_UINT32
+	ui32NumGrowReqByApp; /* Total number of grow requests by Application */
+	IMG_UINT32
+	ui32NumGrowReqByFW; /* Total Number of grow requests by Firmware */
+	IMG_UINT32 ui32NumHighPages; /* High Mark of pages in the freelist */
 
-	IMG_PID					ownerPid;				/* Pid of the owner of the list */
+	IMG_PID ownerPid; /* Pid of the owner of the list */
 
 	/* Memory Blocks */
-	DLLIST_NODE				sMemoryBlockHead;
-	DLLIST_NODE				sMemoryBlockInitHead;
-	DLLIST_NODE				sNode;
+	DLLIST_NODE sMemoryBlockHead;
+	DLLIST_NODE sMemoryBlockInitHead;
+	DLLIST_NODE sNode;
 #if !defined(SUPPORT_SHADOW_FREELISTS)
 	/* HWRTData nodes linked to local freelist */
-	DLLIST_NODE				sNodeHWRTDataHead;
+	DLLIST_NODE sNodeHWRTDataHead;
 #endif
 
 	/* FW data structures */
-	DEVMEM_MEMDESC			*psFWFreelistMemDesc;
-	RGXFWIF_DEV_VIRTADDR	sFreeListFWDevVAddr;
+	DEVMEM_MEMDESC *psFWFreelistMemDesc;
+	RGXFWIF_DEV_VIRTADDR sFreeListFWDevVAddr;
 };
 
 struct _RGX_PMR_NODE_ {
-	RGX_FREELIST			*psFreeList;
-	PMR						*psPMR;
-	PMR_PAGELIST			*psPageList;
-	DLLIST_NODE				sMemoryBlock;
-	IMG_UINT32				ui32NumPages;
-	IMG_BOOL				bFirstPageMissing;
+	RGX_FREELIST *psFreeList;
+	PMR *psPMR;
+	PMR_PAGELIST *psPageList;
+	DLLIST_NODE sMemoryBlock;
+	IMG_UINT32 ui32NumPages;
+	IMG_BOOL bFirstPageMissing;
 #if defined(PVRSRV_ENABLE_GPU_MEMORY_INFO)
-	RI_HANDLE				hRIHandle;
+	RI_HANDLE hRIHandle;
 #endif
 };
 
 typedef struct {
-	PVRSRV_RGXDEV_INFO		*psDevInfo;
-	DEVMEM_MEMDESC			*psFWZSBufferMemDesc;
-	RGXFWIF_DEV_VIRTADDR	sZSBufferFWDevVAddr;
+	PVRSRV_RGXDEV_INFO *psDevInfo;
+	DEVMEM_MEMDESC *psFWZSBufferMemDesc;
+	RGXFWIF_DEV_VIRTADDR sZSBufferFWDevVAddr;
 
-	DEVMEMINT_RESERVATION	*psReservation;
-	PMR						*psPMR;
-	DEVMEMINT_MAPPING		*psMapping;
-	PVRSRV_MEMALLOCFLAGS_T	uiMapFlags;
-	IMG_UINT32				ui32ZSBufferID;
-	IMG_UINT32				ui32RefCount;
-	IMG_BOOL				bOnDemand;
+	DEVMEMINT_RESERVATION *psReservation;
+	PMR *psPMR;
+	DEVMEMINT_MAPPING *psMapping;
+	PVRSRV_MEMALLOCFLAGS_T uiMapFlags;
+	IMG_UINT32 ui32ZSBufferID;
+	IMG_UINT32 ui32RefCount;
+	IMG_BOOL bOnDemand;
 
-	IMG_UINT32				ui32NumReqByApp;		/* Number of Backing Requests from Application */
-	IMG_UINT32				ui32NumReqByFW;			/* Number of Backing Requests from Firmware */
+	IMG_UINT32
+	ui32NumReqByApp; /* Number of Backing Requests from Application */
+	IMG_UINT32 ui32NumReqByFW; /* Number of Backing Requests from Firmware */
 
-	IMG_PID					owner;
+	IMG_PID owner;
 
-	DLLIST_NODE	sNode;
-}RGX_ZSBUFFER_DATA;
+	DLLIST_NODE sNode;
+} RGX_ZSBUFFER_DATA;
 
 typedef struct {
-	RGX_ZSBUFFER_DATA		*psZSBuffer;
+	RGX_ZSBUFFER_DATA *psZSBuffer;
 } RGX_POPULATION;
 
 /* Dump the physical pages of a freelist */
 IMG_BOOL RGXDumpFreeListPageList(RGX_FREELIST *psFreeList);
 
-
 /* Create set of HWRTData(s) */
-PVRSRV_ERROR RGXCreateHWRTDataSet(CONNECTION_DATA          *psConnection,
-                                  PVRSRV_DEVICE_NODE       *psDeviceNode,
-                                  IMG_DEV_VIRTADDR          asVHeapTableDevVAddr[RGXMKIF_NUM_GEOMDATAS],
-                                  IMG_DEV_VIRTADDR          psPMMListDevVAddr[RGXMKIF_NUM_RTDATAS],
-                                  RGX_FREELIST	           *apsFreeLists[RGXMKIF_NUM_RTDATA_FREELISTS],
-                                  IMG_UINT32                ui32ScreenPixelMax,
-                                  IMG_UINT64                ui64MultiSampleCtl,
-                                  IMG_UINT64                ui64FlippedMultiSampleCtl,
-                                  IMG_UINT32                ui32TPCStride,
-                                  IMG_DEV_VIRTADDR          asTailPtrsDevVAddr[RGXMKIF_NUM_GEOMDATAS],
-                                  IMG_UINT32                ui32TPCSize,
-                                  IMG_UINT32                ui32TEScreen,
-                                  IMG_UINT32                ui32TEAA,
-                                  IMG_UINT32                ui32TEMTILE1,
-                                  IMG_UINT32                ui32TEMTILE2,
-                                  IMG_UINT32                ui32MTileStride,
-                                  IMG_UINT32                ui32ISPMergeLowerX,
-                                  IMG_UINT32                ui32ISPMergeLowerY,
-                                  IMG_UINT32                ui32ISPMergeUpperX,
-                                  IMG_UINT32                ui32ISPMergeUpperY,
-                                  IMG_UINT32                ui32ISPMergeScaleX,
-                                  IMG_UINT32                ui32ISPMergeScaleY,
-                                  IMG_DEV_VIRTADDR          sMacrotileArrayDevVAddr[RGXMKIF_NUM_RTDATAS],
-                                  IMG_DEV_VIRTADDR          sRgnHeaderDevVAddr[RGXMKIF_NUM_RTDATAS],
-                                  IMG_DEV_VIRTADDR          asRTCDevVAddr[RGXMKIF_NUM_GEOMDATAS],
-                                  IMG_UINT32                uiRgnHeaderSize,
-                                  IMG_UINT32                ui32ISPMtileSize,
-                                  IMG_UINT16                ui16MaxRTs,
-                                  RGX_KM_HW_RT_DATASET     *pasKMHWRTDataSet[RGXMKIF_NUM_RTDATAS]);
+PVRSRV_ERROR RGXCreateHWRTDataSet(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_DEV_VIRTADDR asVHeapTableDevVAddr[RGXMKIF_NUM_GEOMDATAS],
+	IMG_DEV_VIRTADDR psPMMListDevVAddr[RGXMKIF_NUM_RTDATAS],
+	RGX_FREELIST *apsFreeLists[RGXMKIF_NUM_RTDATA_FREELISTS],
+	IMG_UINT32 ui32ScreenPixelMax, IMG_UINT64 ui64MultiSampleCtl,
+	IMG_UINT64 ui64FlippedMultiSampleCtl, IMG_UINT32 ui32TPCStride,
+	IMG_DEV_VIRTADDR asTailPtrsDevVAddr[RGXMKIF_NUM_GEOMDATAS],
+	IMG_UINT32 ui32TPCSize, IMG_UINT32 ui32TEScreen, IMG_UINT32 ui32TEAA,
+	IMG_UINT32 ui32TEMTILE1, IMG_UINT32 ui32TEMTILE2,
+	IMG_UINT32 ui32MTileStride, IMG_UINT32 ui32ISPMergeLowerX,
+	IMG_UINT32 ui32ISPMergeLowerY, IMG_UINT32 ui32ISPMergeUpperX,
+	IMG_UINT32 ui32ISPMergeUpperY, IMG_UINT32 ui32ISPMergeScaleX,
+	IMG_UINT32 ui32ISPMergeScaleY,
+	IMG_DEV_VIRTADDR sMacrotileArrayDevVAddr[RGXMKIF_NUM_RTDATAS],
+	IMG_DEV_VIRTADDR sRgnHeaderDevVAddr[RGXMKIF_NUM_RTDATAS],
+	IMG_DEV_VIRTADDR asRTCDevVAddr[RGXMKIF_NUM_GEOMDATAS],
+	IMG_UINT32 uiRgnHeaderSize, IMG_UINT32 ui32ISPMtileSize,
+	IMG_UINT16 ui16MaxRTs,
+	RGX_KM_HW_RT_DATASET *pasKMHWRTDataSet[RGXMKIF_NUM_RTDATAS]);
 
 /* Destroy HWRTDataSet */
 PVRSRV_ERROR RGXDestroyHWRTDataSet(RGX_KM_HW_RT_DATASET *psKMHWRTDataSet);
@@ -259,18 +252,16 @@ PVRSRV_ERROR RGXDestroyHWRTDataSet(RGX_KM_HW_RT_DATASET *psKMHWRTDataSet);
 /*
 	RGXCreateZSBufferKM
 */
-PVRSRV_ERROR RGXCreateZSBufferKM(CONNECTION_DATA			*psConnection,
-                                 PVRSRV_DEVICE_NODE			*psDeviceNode,
-                                 DEVMEMINT_RESERVATION		*psReservation,
-                                 PMR						*psPMR,
-                                 PVRSRV_MEMALLOCFLAGS_T		uiMapFlags,
-                                 RGX_ZSBUFFER_DATA			**ppsZSBuffer);
+PVRSRV_ERROR RGXCreateZSBufferKM(CONNECTION_DATA *psConnection,
+				 PVRSRV_DEVICE_NODE *psDeviceNode,
+				 DEVMEMINT_RESERVATION *psReservation,
+				 PMR *psPMR, PVRSRV_MEMALLOCFLAGS_T uiMapFlags,
+				 RGX_ZSBUFFER_DATA **ppsZSBuffer);
 
 /*
 	RGXDestroyZSBufferKM
 */
 PVRSRV_ERROR RGXDestroyZSBufferKM(RGX_ZSBUFFER_DATA *psZSBuffer);
-
 
 /*
  * RGXBackingZSBuffer()
@@ -286,7 +277,7 @@ RGXBackingZSBuffer(RGX_ZSBUFFER_DATA *psZSBuffer);
  * Backs ZS-Buffer with physical pages (called by Bridge calls)
  */
 PVRSRV_ERROR RGXPopulateZSBufferKM(RGX_ZSBUFFER_DATA *psZSBuffer,
-								   RGX_POPULATION **ppsPopulation);
+				   RGX_POPULATION **ppsPopulation);
 
 /*
  * RGXUnbackingZSBuffer()
@@ -306,35 +297,30 @@ PVRSRV_ERROR RGXUnpopulateZSBufferKM(RGX_POPULATION *psPopulation);
 	RGXProcessRequestZSBufferBacking
 */
 void RGXProcessRequestZSBufferBacking(PVRSRV_RGXDEV_INFO *psDevInfo,
-									  IMG_UINT32 ui32ZSBufferID);
+				      IMG_UINT32 ui32ZSBufferID);
 
 /*
 	RGXProcessRequestZSBufferUnbacking
 */
 void RGXProcessRequestZSBufferUnbacking(PVRSRV_RGXDEV_INFO *psDevInfo,
-										IMG_UINT32 ui32ZSBufferID);
+					IMG_UINT32 ui32ZSBufferID);
 
 /*
 	RGXGrowFreeList
 */
-PVRSRV_ERROR RGXGrowFreeList(RGX_FREELIST *psFreeList,
-                             IMG_UINT32 ui32NumPages,
-                             PDLLIST_NODE pListHeader);
+PVRSRV_ERROR RGXGrowFreeList(RGX_FREELIST *psFreeList, IMG_UINT32 ui32NumPages,
+			     PDLLIST_NODE pListHeader);
 
 /* Create free list */
-PVRSRV_ERROR RGXCreateFreeList(CONNECTION_DATA      *psConnection,
-                               PVRSRV_DEVICE_NODE	*psDeviceNode,
-                               IMG_HANDLE			hMemCtxPrivData,
-                               IMG_UINT32			ui32MaxFLPages,
-                               IMG_UINT32			ui32InitFLPages,
-                               IMG_UINT32			ui32GrowFLPages,
-                               IMG_UINT32           ui32GrowParamThreshold,
-                               RGX_FREELIST			*psGlobalFreeList,
-                               IMG_BOOL				bCheckFreelist,
-                               IMG_DEV_VIRTADDR		sFreeListDevVAddr,
-                               PMR					*psFreeListPMR,
-                               IMG_DEVMEM_OFFSET_T	uiFreeListPMROffset,
-                               RGX_FREELIST			**ppsFreeList);
+PVRSRV_ERROR
+RGXCreateFreeList(CONNECTION_DATA *psConnection,
+		  PVRSRV_DEVICE_NODE *psDeviceNode, IMG_HANDLE hMemCtxPrivData,
+		  IMG_UINT32 ui32MaxFLPages, IMG_UINT32 ui32InitFLPages,
+		  IMG_UINT32 ui32GrowFLPages, IMG_UINT32 ui32GrowParamThreshold,
+		  RGX_FREELIST *psGlobalFreeList, IMG_BOOL bCheckFreelist,
+		  IMG_DEV_VIRTADDR sFreeListDevVAddr, PMR *psFreeListPMR,
+		  IMG_DEVMEM_OFFSET_T uiFreeListPMROffset,
+		  RGX_FREELIST **ppsFreeList);
 
 /* Destroy free list */
 PVRSRV_ERROR RGXDestroyFreeList(RGX_FREELIST *psFreeList);
@@ -343,13 +329,12 @@ PVRSRV_ERROR RGXDestroyFreeList(RGX_FREELIST *psFreeList);
 	RGXProcessRequestGrow
 */
 void RGXProcessRequestGrow(PVRSRV_RGXDEV_INFO *psDevInfo,
-						   IMG_UINT32 ui32FreelistID);
-
+			   IMG_UINT32 ui32FreelistID);
 
 /* Reconstruct free list after Hardware Recovery */
 void RGXProcessRequestFreelistsReconstruction(PVRSRV_RGXDEV_INFO *psDevInfo,
-											  IMG_UINT32 ui32FreelistsCount,
-											  const IMG_UINT32 *paui32Freelists);
+					      IMG_UINT32 ui32FreelistsCount,
+					      const IMG_UINT32 *paui32Freelists);
 
 /*!
 *******************************************************************************
@@ -380,23 +365,16 @@ void RGXProcessRequestFreelistsReconstruction(PVRSRV_RGXDEV_INFO *psDevInfo,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXCreateRenderContextKM(CONNECTION_DATA				*psConnection,
-											PVRSRV_DEVICE_NODE			*psDeviceNode,
-											IMG_INT32					i32Priority,
-											IMG_DEV_VIRTADDR			sVDMCallStackAddr,
-											IMG_UINT32					ui32CallStackDepth,
-											IMG_UINT32					ui32FrameworkCommandSize,
-											IMG_PBYTE					pabyFrameworkCommand,
-											IMG_HANDLE					hMemCtxPrivData,
-											IMG_UINT32					ui32StaticRenderContextStateSize,
-											IMG_PBYTE					pStaticRenderContextState,
-											IMG_UINT32					ui32PackedCCBSizeU8888,
-											IMG_UINT32					ui32ContextFlags,
-											IMG_UINT64					ui64RobustnessAddress,
-											IMG_UINT32					ui32MaxTADeadlineMS,
-											IMG_UINT32					ui32Max3DDeadlineMS,
-											RGX_SERVER_RENDER_CONTEXT	**ppsRenderContext);
-
+PVRSRV_ERROR PVRSRVRGXCreateRenderContextKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_INT32 i32Priority, IMG_DEV_VIRTADDR sVDMCallStackAddr,
+	IMG_UINT32 ui32CallStackDepth, IMG_UINT32 ui32FrameworkCommandSize,
+	IMG_PBYTE pabyFrameworkCommand, IMG_HANDLE hMemCtxPrivData,
+	IMG_UINT32 ui32StaticRenderContextStateSize,
+	IMG_PBYTE pStaticRenderContextState, IMG_UINT32 ui32PackedCCBSizeU8888,
+	IMG_UINT32 ui32ContextFlags, IMG_UINT64 ui64RobustnessAddress,
+	IMG_UINT32 ui32MaxTADeadlineMS, IMG_UINT32 ui32Max3DDeadlineMS,
+	RGX_SERVER_RENDER_CONTEXT **ppsRenderContext);
 
 /*!
 *******************************************************************************
@@ -411,8 +389,8 @@ PVRSRV_ERROR PVRSRVRGXCreateRenderContextKM(CONNECTION_DATA				*psConnection,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXDestroyRenderContextKM(RGX_SERVER_RENDER_CONTEXT *psRenderContext);
-
+PVRSRV_ERROR
+PVRSRVRGXDestroyRenderContextKM(RGX_SERVER_RENDER_CONTEXT *psRenderContext);
 
 /*!
 *******************************************************************************
@@ -429,82 +407,64 @@ PVRSRV_ERROR PVRSRVRGXDestroyRenderContextKM(RGX_SERVER_RENDER_CONTEXT *psRender
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXKickTA3DKM(RGX_SERVER_RENDER_CONTEXT	*psRenderContext,
-								 IMG_UINT32					ui32ClientTAFenceCount,
-								 SYNC_PRIMITIVE_BLOCK		**apsClientTAFenceSyncPrimBlock,
-								 IMG_UINT32					*paui32ClientTAFenceSyncOffset,
-								 IMG_UINT32					*paui32ClientTAFenceValue,
-								 IMG_UINT32					ui32ClientTAUpdateCount,
-								 SYNC_PRIMITIVE_BLOCK		**apsClientUpdateSyncPrimBlock,
-								 IMG_UINT32					*paui32ClientUpdateSyncOffset,
-								 IMG_UINT32					*paui32ClientTAUpdateValue,
-								 IMG_UINT32					ui32Client3DUpdateCount,
-								 SYNC_PRIMITIVE_BLOCK		**apsClient3DUpdateSyncPrimBlock,
-								 IMG_UINT32					*paui32Client3DUpdateSyncOffset,
-								 IMG_UINT32					*paui32Client3DUpdateValue,
-								 SYNC_PRIMITIVE_BLOCK		*psPRSyncPrimBlock,
-								 IMG_UINT32					ui32PRSyncOffset,
-								 IMG_UINT32					ui32PRFenceValue,
-								 PVRSRV_FENCE				iCheckFence,
-								 PVRSRV_TIMELINE			iUpdateTimeline,
-								 PVRSRV_FENCE				*piUpdateFence,
-								 IMG_CHAR					szFenceName[PVRSRV_SYNC_NAME_LENGTH],
-								 PVRSRV_FENCE				iCheckFence3D,
-								 PVRSRV_TIMELINE			iUpdateTimeline3D,
-								 PVRSRV_FENCE				*piUpdateFence3D,
-								 IMG_CHAR					szFenceName3D[PVRSRV_SYNC_NAME_LENGTH],
-								 IMG_UINT32					ui32TACmdSize,
-								 IMG_PBYTE					pui8TADMCmd,
-								 IMG_UINT32					ui323DPRCmdSize,
-								 IMG_PBYTE					pui83DPRDMCmd,
-								 IMG_UINT32					ui323DCmdSize,
-								 IMG_PBYTE					pui83DDMCmd,
-								 IMG_UINT32					ui32ExtJobRef,
-								 IMG_BOOL					bKickTA,
-								 IMG_BOOL					bKickPR,
-								 IMG_BOOL					bKick3D,
-								 IMG_BOOL					bAbort,
-								 IMG_UINT32					ui32PDumpFlags,
-								 RGX_KM_HW_RT_DATASET		*psKMHWRTDataSet,
-								 RGX_ZSBUFFER_DATA			*psZSBuffer,
-								 RGX_ZSBUFFER_DATA			*psMSAAScratchBuffer,
-								 IMG_UINT32					ui32SyncPMRCount,
-								 IMG_UINT32					*paui32SyncPMRFlags,
-								 PMR						**ppsSyncPMRs,
-								 IMG_UINT32					ui32RenderTargetSize,
-								 IMG_UINT32					ui32NumberOfDrawCalls,
-								 IMG_UINT32					ui32NumberOfIndices,
-								 IMG_UINT32					ui32NumberOfMRTs,
-								 IMG_UINT64					ui64DeadlineInus);
+PVRSRV_ERROR PVRSRVRGXKickTA3DKM(
+	RGX_SERVER_RENDER_CONTEXT *psRenderContext,
+	IMG_UINT32 ui32ClientTAFenceCount,
+	SYNC_PRIMITIVE_BLOCK **apsClientTAFenceSyncPrimBlock,
+	IMG_UINT32 *paui32ClientTAFenceSyncOffset,
+	IMG_UINT32 *paui32ClientTAFenceValue,
+	IMG_UINT32 ui32ClientTAUpdateCount,
+	SYNC_PRIMITIVE_BLOCK **apsClientUpdateSyncPrimBlock,
+	IMG_UINT32 *paui32ClientUpdateSyncOffset,
+	IMG_UINT32 *paui32ClientTAUpdateValue,
+	IMG_UINT32 ui32Client3DUpdateCount,
+	SYNC_PRIMITIVE_BLOCK **apsClient3DUpdateSyncPrimBlock,
+	IMG_UINT32 *paui32Client3DUpdateSyncOffset,
+	IMG_UINT32 *paui32Client3DUpdateValue,
+	SYNC_PRIMITIVE_BLOCK *psPRSyncPrimBlock, IMG_UINT32 ui32PRSyncOffset,
+	IMG_UINT32 ui32PRFenceValue, PVRSRV_FENCE iCheckFence,
+	PVRSRV_TIMELINE iUpdateTimeline, PVRSRV_FENCE *piUpdateFence,
+	IMG_CHAR szFenceName[PVRSRV_SYNC_NAME_LENGTH],
+	PVRSRV_FENCE iCheckFence3D, PVRSRV_TIMELINE iUpdateTimeline3D,
+	PVRSRV_FENCE *piUpdateFence3D,
+	IMG_CHAR szFenceName3D[PVRSRV_SYNC_NAME_LENGTH],
+	IMG_UINT32 ui32TACmdSize, IMG_PBYTE pui8TADMCmd,
+	IMG_UINT32 ui323DPRCmdSize, IMG_PBYTE pui83DPRDMCmd,
+	IMG_UINT32 ui323DCmdSize, IMG_PBYTE pui83DDMCmd,
+	IMG_UINT32 ui32ExtJobRef, IMG_BOOL bKickTA, IMG_BOOL bKickPR,
+	IMG_BOOL bKick3D, IMG_BOOL bAbort, IMG_UINT32 ui32PDumpFlags,
+	RGX_KM_HW_RT_DATASET *psKMHWRTDataSet, RGX_ZSBUFFER_DATA *psZSBuffer,
+	RGX_ZSBUFFER_DATA *psMSAAScratchBuffer, IMG_UINT32 ui32SyncPMRCount,
+	IMG_UINT32 *paui32SyncPMRFlags, PMR **ppsSyncPMRs,
+	IMG_UINT32 ui32RenderTargetSize, IMG_UINT32 ui32NumberOfDrawCalls,
+	IMG_UINT32 ui32NumberOfIndices, IMG_UINT32 ui32NumberOfMRTs,
+	IMG_UINT64 ui64DeadlineInus);
 
+PVRSRV_ERROR PVRSRVRGXSendZSStoreDisableKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	RGX_SERVER_RENDER_CONTEXT *psRenderContext, IMG_BOOL bDisableDepthStore,
+	IMG_BOOL bDisableStencilStore,
+	IMG_UINT32 ui32ExtJobRefToDisableZSStore);
 
-PVRSRV_ERROR PVRSRVRGXSendZSStoreDisableKM(CONNECTION_DATA *psConnection,
-									PVRSRV_DEVICE_NODE * psDeviceNode,
-									RGX_SERVER_RENDER_CONTEXT *psRenderContext,
-									IMG_BOOL    bDisableDepthStore,
-									IMG_BOOL    bDisableStencilStore,
-									IMG_UINT32  ui32ExtJobRefToDisableZSStore);
+PVRSRV_ERROR PVRSRVRGXSetRenderContextPriorityKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+	RGX_SERVER_RENDER_CONTEXT *psRenderContext, IMG_INT32 i32Priority);
 
-
-PVRSRV_ERROR PVRSRVRGXSetRenderContextPriorityKM(CONNECTION_DATA *psConnection,
-                                                 PVRSRV_DEVICE_NODE * psDevNode,
-                                                 RGX_SERVER_RENDER_CONTEXT *psRenderContext,
-                                                 IMG_INT32 i32Priority);
-
-PVRSRV_ERROR PVRSRVRGXSetRenderContextPropertyKM(RGX_SERVER_RENDER_CONTEXT *psRenderContext,
-												 RGX_CONTEXT_PROPERTY eContextProperty,
-												 IMG_UINT64 ui64Input,
-												 IMG_UINT64 *pui64Output);
+PVRSRV_ERROR
+PVRSRVRGXSetRenderContextPropertyKM(RGX_SERVER_RENDER_CONTEXT *psRenderContext,
+				    RGX_CONTEXT_PROPERTY eContextProperty,
+				    IMG_UINT64 ui64Input,
+				    IMG_UINT64 *pui64Output);
 
 /* Debug - Dump debug info of render contexts on this device */
 void DumpRenderCtxtsInfo(PVRSRV_RGXDEV_INFO *psDevInfo,
-                         DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                         void *pvDumpDebugFile,
-                         IMG_UINT32 ui32VerbLevel);
+			 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			 void *pvDumpDebugFile, IMG_UINT32 ui32VerbLevel);
 
 /* Debug/Watchdog - check if client contexts are stalled */
 IMG_UINT32 CheckForStalledClientRenderCtxt(PVRSRV_RGXDEV_INFO *psDevInfo);
 
-PVRSRV_ERROR RGXRenderContextStalledKM(RGX_SERVER_RENDER_CONTEXT *psRenderContext);
+PVRSRV_ERROR
+RGXRenderContextStalledKM(RGX_SERVER_RENDER_CONTEXT *psRenderContext);
 
 #endif /* RGXTA3D_H */

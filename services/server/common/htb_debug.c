@@ -59,20 +59,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // Global data handles for buffer manipulation and processing
 
 typedef struct {
-	IMG_PBYTE	pBuf;		/* Raw data buffer from TL stream */
-	IMG_UINT32	uiBufLen;	/* Amount of data to process from 'pBuf' */
-	IMG_UINT32	uiTotal;	/* Total bytes processed */
-	IMG_UINT32	uiMsgLen;	/* Length of HTB message to be processed */
-	IMG_PBYTE	pCurr;		/* pointer to current message to be decoded */
-	IMG_CHAR	szBuffer[PVR_MAX_DEBUG_MESSAGE_LEN];	/* Output string */
+	IMG_PBYTE pBuf; /* Raw data buffer from TL stream */
+	IMG_UINT32 uiBufLen; /* Amount of data to process from 'pBuf' */
+	IMG_UINT32 uiTotal; /* Total bytes processed */
+	IMG_UINT32 uiMsgLen; /* Length of HTB message to be processed */
+	IMG_PBYTE pCurr; /* pointer to current message to be decoded */
+	IMG_CHAR szBuffer[PVR_MAX_DEBUG_MESSAGE_LEN]; /* Output string */
 } HTB_Sentinel_t;
 
-typedef struct
-{
-	DI_ENTRY *psDumpHostDiEntry;  /* debug info entry */
-	HTB_Sentinel_t sSentinel;     /* private control structure for HTB DI
+typedef struct {
+	DI_ENTRY *psDumpHostDiEntry; /* debug info entry */
+	HTB_Sentinel_t sSentinel; /* private control structure for HTB DI
 	                                 operations */
-	IMG_HANDLE hStream;           /* stream handle for debugFS use */
+	IMG_HANDLE hStream; /* stream handle for debugFS use */
 } HTB_DBG_INFO;
 
 static HTB_DBG_INFO g_sHTBData;
@@ -81,7 +80,7 @@ static HTB_DBG_INFO g_sHTBData;
 // #define HTB_CHATTY_PRINT(x) PVR_DPF(x)
 #define HTB_CHATTY_PRINT(x)
 
-typedef void (DI_PRINTF)(const OSDI_IMPL_ENTRY *, const IMG_CHAR *, ...);
+typedef void(DI_PRINTF)(const OSDI_IMPL_ENTRY *, const IMG_CHAR *, ...);
 
 /******************************************************************************
  * debugFS display routines
@@ -90,13 +89,12 @@ static int HTBDumpBuffer(DI_PRINTF, OSDI_IMPL_ENTRY *, void *);
 
 static int _DebugHBTraceDIShow(OSDI_IMPL_ENTRY *psEntry, void *pvData)
 {
-	int	retVal;
+	int retVal;
 
 	PVR_ASSERT(psEntry != NULL);
 
 	/* psEntry should never be NULL */
-	if (psEntry == NULL)
-	{
+	if (psEntry == NULL) {
 		return -1;
 	}
 
@@ -104,19 +102,19 @@ static int _DebugHBTraceDIShow(OSDI_IMPL_ENTRY *psEntry, void *pvData)
 	 * return a failure code to terminate the DI read call. pvData is either
 	 * DI_START_TOKEN (for the initial call) or an HTB buffer address for
 	 * subsequent calls [returned from the NEXT function]. */
-	if (pvData == NULL)
-	{
+	if (pvData == NULL) {
 		return -1;
 	}
 
 	retVal = HTBDumpBuffer(DIPrintf, psEntry, pvData);
 
-	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Returning %d", __func__, retVal));
+	HTB_CHATTY_PRINT(
+		(PVR_DBG_WARNING, "%s: Returning %d", __func__, retVal));
 
 	return retVal;
 }
 
-static IMG_UINT32 idToLogIdx(IMG_UINT32);	/* Forward declaration */
+static IMG_UINT32 idToLogIdx(IMG_UINT32); /* Forward declaration */
 
 /*
  * HTB_GetNextMessage
@@ -140,14 +138,14 @@ static IMG_UINT32 idToLogIdx(IMG_UINT32);	/* Forward declaration */
  */
 static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 {
-	void	*pNext, *pLast, *pStart, *pData = NULL;
-	void	*pCurrent;		/* Current processing point within buffer */
-	PVRSRVTL_PPACKETHDR	ppHdr;	/* Current packet header */
-	IMG_UINT32	uiHdrType;		/* Packet header type */
-	IMG_UINT32	uiMsgSize;		/* Message size of current packet (bytes) */
-	IMG_BOOL	bUnrecognizedErrorPrinted = IMG_FALSE;
-	IMG_UINT32	ui32Data;
-	IMG_UINT32	ui32LogIdx;
+	void *pNext, *pLast, *pStart, *pData = NULL;
+	void *pCurrent; /* Current processing point within buffer */
+	PVRSRVTL_PPACKETHDR ppHdr; /* Current packet header */
+	IMG_UINT32 uiHdrType; /* Packet header type */
+	IMG_UINT32 uiMsgSize; /* Message size of current packet (bytes) */
+	IMG_BOOL bUnrecognizedErrorPrinted = IMG_FALSE;
+	IMG_UINT32 ui32Data;
+	IMG_UINT32 ui32LogIdx;
 	PVRSRV_ERROR eError;
 
 	PVR_ASSERT(pSentinel != NULL);
@@ -157,27 +155,28 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 	pStart = pSentinel->pBuf;
 
 	pNext = pStart;
-	pSentinel->uiMsgLen = 0;	// Reset count for this message
-	uiMsgSize = 0;				// nothing processed so far
-	ui32LogIdx = HTB_SF_LAST;	// Loop terminator condition
+	pSentinel->uiMsgLen = 0; // Reset count for this message
+	uiMsgSize = 0; // nothing processed so far
+	ui32LogIdx = HTB_SF_LAST; // Loop terminator condition
 
-	do
-	{
+	do {
 		/*
 		 * If we've drained the buffer we must RELEASE and ACQUIRE some more.
 		 */
-		if (pNext >= pLast)
-		{
-			eError = TLClientReleaseData(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream);
+		if (pNext >= pLast) {
+			eError = TLClientReleaseData(DIRECT_BRIDGE_HANDLE,
+						     g_sHTBData.hStream);
 			PVR_ASSERT(eError == PVRSRV_OK);
 
 			eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
-				g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+						     g_sHTBData.hStream,
+						     &pSentinel->pBuf,
+						     &pSentinel->uiBufLen);
 
-			if (PVRSRV_OK != eError)
-			{
-				PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'", __func__,
-					"TLClientAcquireData", PVRSRVGETERRORSTRING(eError)));
+			if (PVRSRV_OK != eError) {
+				PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'",
+					 __func__, "TLClientAcquireData",
+					 PVRSRVGETERRORSTRING(eError)));
 				return NULL;
 			}
 
@@ -186,8 +185,7 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 			pStart = pSentinel->pBuf;
 			pNext = pStart;
 
-			if (pStart == NULL || pLast == NULL)
-			{
+			if (pStart == NULL || pLast == NULL) {
 				return NULL;
 			}
 		}
@@ -199,13 +197,13 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 		pCurrent = pNext;
 		ppHdr = GET_PACKET_HDR(pCurrent);
 
-		if (ppHdr == NULL)
-		{
-			PVR_DPF((PVR_DBG_ERROR,
-			         "%s: Unexpected NULL packet in Host Trace buffer",
-			         __func__));
+		if (ppHdr == NULL) {
+			PVR_DPF((
+				PVR_DBG_ERROR,
+				"%s: Unexpected NULL packet in Host Trace buffer",
+				__func__));
 			pSentinel->uiMsgLen += uiMsgSize;
-			return NULL;		// This should never happen
+			return NULL; // This should never happen
 		}
 
 		/*
@@ -217,11 +215,10 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 		uiHdrType = GET_PACKET_TYPE(ppHdr);
 
 		PVR_ASSERT(uiHdrType < PVRSRVTL_PACKETTYPE_LAST &&
-			uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF);
+			   uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF);
 
 		if (uiHdrType < PVRSRVTL_PACKETTYPE_LAST &&
-			uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF)
-		{
+		    uiHdrType > PVRSRVTL_PACKETTYPE_UNDEF) {
 			/*
 			 * We have a (potentially) valid data header. We should see if
 			 * the associated packet header matches one of our expected
@@ -242,33 +239,42 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 			 * may have data associated and other types. We simply discard
 			 * these as they have no decodable information within them.
 			 */
-			if (uiHdrType != PVRSRVTL_PACKETTYPE_DATA)
-			{
+			if (uiHdrType != PVRSRVTL_PACKETTYPE_DATA) {
 				/*
 				 * Now release the current non-data packet and proceed to the
 				 * next entry (if any).
 				 */
-				eError = TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE,
-				    g_sHTBData.hStream, uiMsgSize);
+				eError = TLClientReleaseDataLess(
+					DIRECT_BRIDGE_HANDLE,
+					g_sHTBData.hStream, uiMsgSize);
 
-				HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Packet Type %x "
-				                 "Length %u", __func__, uiHdrType, uiMsgSize));
+				HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+						  "%s: Packet Type %x "
+						  "Length %u",
+						  __func__, uiHdrType,
+						  uiMsgSize));
 
-				if (eError != PVRSRV_OK)
-				{
-					PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED - '%s' message"
-						" size %u", __func__, "TLClientReleaseDataLess",
-						PVRSRVGETERRORSTRING(eError), uiMsgSize));
+				if (eError != PVRSRV_OK) {
+					PVR_DPF((PVR_DBG_WARNING,
+						 "%s: %s FAILED - '%s' message"
+						 " size %u",
+						 __func__,
+						 "TLClientReleaseDataLess",
+						 PVRSRVGETERRORSTRING(eError),
+						 uiMsgSize));
 				}
 
-				eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
-					g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+				eError = TLClientAcquireData(
+					DIRECT_BRIDGE_HANDLE,
+					g_sHTBData.hStream, &pSentinel->pBuf,
+					&pSentinel->uiBufLen);
 
-				if (PVRSRV_OK != eError)
-				{
-					PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED - %s Giving up",
-						__func__, "TLClientAcquireData",
-						PVRSRVGETERRORSTRING(eError)));
+				if (PVRSRV_OK != eError) {
+					PVR_DPF((PVR_DBG_WARNING,
+						 "%s: %s FAILED - %s Giving up",
+						 __func__,
+						 "TLClientAcquireData",
+						 PVRSRVGETERRORSTRING(eError)));
 
 					return NULL;
 				}
@@ -278,23 +284,20 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 				pStart = pSentinel->pBuf;
 				pNext = pStart;
 
-				if (pStart == NULL || pLast == NULL)
-				{
+				if (pStart == NULL || pLast == NULL) {
 					return NULL;
 				}
 				continue;
 			}
-			if (pData == NULL || pData >= pLast)
-			{
+			if (pData == NULL || pData >= pLast) {
 				continue;
 			}
 			ui32Data = *(IMG_UINT32 *)pData;
 			ui32LogIdx = idToLogIdx(ui32Data);
-		}
-		else
-		{
-			PVR_DPF((PVR_DBG_WARNING, "Unexpected Header @%p value %x",
-				ppHdr, uiHdrType));
+		} else {
+			PVR_DPF((PVR_DBG_WARNING,
+				 "Unexpected Header @%p value %x", ppHdr,
+				 uiHdrType));
 
 			return NULL;
 		}
@@ -303,20 +306,22 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
 		 * Check if the unrecognized ID is valid and therefore, tracebuf
 		 * needs updating.
 		 */
-		if (HTB_SF_LAST == ui32LogIdx && HTB_LOG_VALIDID(ui32Data)
-			&& IMG_FALSE == bUnrecognizedErrorPrinted)
-		{
-			PVR_DPF((PVR_DBG_WARNING,
-			    "%s: Unrecognised LOG value '%x' GID %x Params %d ID %x @ '%p'",
-			    __func__, ui32Data, HTB_SF_GID(ui32Data),
-			    HTB_SF_PARAMNUM(ui32Data), ui32Data & 0xfff, pData));
+		if (HTB_SF_LAST == ui32LogIdx && HTB_LOG_VALIDID(ui32Data) &&
+		    IMG_FALSE == bUnrecognizedErrorPrinted) {
+			PVR_DPF((
+				PVR_DBG_WARNING,
+				"%s: Unrecognised LOG value '%x' GID %x Params %d ID %x @ '%p'",
+				__func__, ui32Data, HTB_SF_GID(ui32Data),
+				HTB_SF_PARAMNUM(ui32Data), ui32Data & 0xfff,
+				pData));
 			bUnrecognizedErrorPrinted = IMG_TRUE;
 		}
 
 	} while (HTB_SF_LAST == ui32LogIdx);
 
-	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Returning data @ %p Log value '%x'",
-	                 __func__, pCurrent, ui32Data));
+	HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+			  "%s: Returning data @ %p Log value '%x'", __func__,
+			  pCurrent, ui32Data));
 
 	return pCurrent;
 }
@@ -344,40 +349,40 @@ static IMG_PBYTE HTB_GetNextMessage(HTB_Sentinel_t *pSentinel)
  */
 static void HTB_GetFirstMessage(HTB_Sentinel_t *pSentinel, IMG_UINT64 *pui64Pos)
 {
-	PVRSRV_ERROR	eError;
+	PVRSRV_ERROR eError;
 
 	PVR_UNREFERENCED_PARAMETER(pui64Pos);
 
 	if (pSentinel == NULL)
 		return;
 
-	if (pSentinel->pBuf == NULL)
-	{
+	if (pSentinel->pBuf == NULL) {
 		/* Acquire data */
 		pSentinel->uiMsgLen = 0;
 
 		eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
-		    g_sHTBData.hStream, &pSentinel->pBuf, &pSentinel->uiBufLen);
+					     g_sHTBData.hStream,
+					     &pSentinel->pBuf,
+					     &pSentinel->uiBufLen);
 
-		if (PVRSRV_OK != eError)
-		{
+		if (PVRSRV_OK != eError) {
 			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'",
-			    __func__, "TLClientAcquireData", PVRSRVGETERRORSTRING(eError)));
+				 __func__, "TLClientAcquireData",
+				 PVRSRVGETERRORSTRING(eError)));
 
 			pSentinel->pBuf = NULL;
 			pSentinel->pCurr = NULL;
-		}
-		else
-		{
+		} else {
 			/*
 			 * If there is no data available we set pSentinel->pCurr to NULL
 			 * and return. This is expected behaviour if we've drained the
 			 * data and nothing else has yet been produced.
 			 */
-			if (pSentinel->uiBufLen == 0 || pSentinel->pBuf == NULL)
-			{
-				HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Empty Buffer @ %p",
-				                 __func__, pSentinel->pBuf));
+			if (pSentinel->uiBufLen == 0 ||
+			    pSentinel->pBuf == NULL) {
+				HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+						  "%s: Empty Buffer @ %p",
+						  __func__, pSentinel->pBuf));
 
 				pSentinel->pCurr = NULL;
 				return;
@@ -402,27 +407,25 @@ static void HTB_GetFirstMessage(HTB_Sentinel_t *pSentinel, IMG_UINT64 *pui64Pos)
  * a NULL value which will stop the DI traversal.
  */
 static void *_DebugHBTraceDIStart(OSDI_IMPL_ENTRY *psEntry,
-                                  IMG_UINT64 *pui64Pos)
+				  IMG_UINT64 *pui64Pos)
 {
-	HTB_Sentinel_t	*pSentinel = DIGetPrivData(psEntry);
-	PVRSRV_ERROR	eError;
-	IMG_UINT32		uiTLMode;
-	void			*retVal;
-	IMG_HANDLE		hStream;
+	HTB_Sentinel_t *pSentinel = DIGetPrivData(psEntry);
+	PVRSRV_ERROR eError;
+	IMG_UINT32 uiTLMode;
+	void *retVal;
+	IMG_HANDLE hStream;
 
 	/* The sentinel object should have been allocated during the creation
 	 * of the DI entry. If it's not there it means that something went
 	 * wrong. Return NULL in such case. */
-	if (pSentinel == NULL)
-	{
+	if (pSentinel == NULL) {
 		return NULL;
 	}
 
 	/* Check to see if the HTB stream has been configured yet. If not, there is
 	 * nothing to display so we just return NULL to stop the stream access.
 	 */
-	if (!HTBIsConfigured())
-	{
+	if (!HTBIsConfigured()) {
 		return NULL;
 	}
 
@@ -431,29 +434,28 @@ static void *_DebugHBTraceDIStart(OSDI_IMPL_ENTRY *psEntry,
 	 * the open callback so that we do not generate spurious trace data when
 	 * accessing the stream.
 	 */
-	uiTLMode = PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING|
-			   PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK|
-			   PVRSRV_STREAM_FLAG_IGNORE_OPEN_CALLBACK;
+	uiTLMode = PVRSRV_STREAM_FLAG_ACQUIRE_NONBLOCKING |
+		   PVRSRV_STREAM_FLAG_DISABLE_PRODUCER_CALLBACK |
+		   PVRSRV_STREAM_FLAG_IGNORE_OPEN_CALLBACK;
 
 	/* If two or more processes try to read from this file at the same time
 	 * the TLClientOpenStream() function will handle this by allowing only
 	 * one of them to actually open the stream. The other process will get
 	 * an error stating that the stream is already open. The open function
 	 * is threads safe. */
-	eError = TLClientOpenStream(DIRECT_BRIDGE_HANDLE, HTB_STREAM_NAME, uiTLMode,
-	                            &hStream);
+	eError = TLClientOpenStream(DIRECT_BRIDGE_HANDLE, HTB_STREAM_NAME,
+				    uiTLMode, &hStream);
 
-	if (eError == PVRSRV_ERROR_ALREADY_OPEN)
-	{
+	if (eError == PVRSRV_ERROR_ALREADY_OPEN) {
 		/* Stream allows only one reader so return error if it's already
 		 * opened. */
-		HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Stream handle %p already "
-		                 "exists for %s", __func__, g_sHTBData.hStream,
-		                 HTB_STREAM_NAME));
+		HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+				  "%s: Stream handle %p already "
+				  "exists for %s",
+				  __func__, g_sHTBData.hStream,
+				  HTB_STREAM_NAME));
 		return NULL;
-	}
-	else if (eError != PVRSRV_OK)
-	{
+	} else if (eError != PVRSRV_OK) {
 		/*
 		 * No stream available so nothing to report
 		 */
@@ -484,7 +486,8 @@ static void *_DebugHBTraceDIStart(OSDI_IMPL_ENTRY *psEntry,
 	retVal = *pui64Pos == 0 ? DI_START_TOKEN : pSentinel->pCurr;
 
 	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Returning %p, Stream %s @ %p",
-	                 __func__, retVal, HTB_STREAM_NAME, g_sHTBData.hStream));
+			  __func__, retVal, HTB_STREAM_NAME,
+			  g_sHTBData.hStream));
 
 	return retVal;
 }
@@ -501,45 +504,41 @@ static void _DebugHBTraceDIStop(OSDI_IMPL_ENTRY *psEntry, void *pvData)
 	IMG_UINT32 uiMsgLen;
 	PVRSRV_ERROR eError;
 
-	if (pSentinel == NULL)
-	{
+	if (pSentinel == NULL) {
 		return;
 	}
 
 	uiMsgLen = pSentinel->uiMsgLen;
 
-	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: MsgLen = %d", __func__, uiMsgLen));
+	HTB_CHATTY_PRINT(
+		(PVR_DBG_WARNING, "%s: MsgLen = %d", __func__, uiMsgLen));
 
 	/* If we get here the handle should never be NULL because
 	 * _DebugHBTraceDIStart() shouldn't allow that. */
-	if (g_sHTBData.hStream == NULL)
-	{
+	if (g_sHTBData.hStream == NULL) {
 		return;
 	}
 
-	if (uiMsgLen != 0)
-	{
+	if (uiMsgLen != 0) {
 		eError = TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE,
-		                                 g_sHTBData.hStream, uiMsgLen);
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED - %s, nBytes %u",
-			        __func__, "TLClientReleaseDataLess",
-			        PVRSRVGETERRORSTRING(eError), uiMsgLen));
+						 g_sHTBData.hStream, uiMsgLen);
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((PVR_DBG_WARNING,
+				 "%s: %s FAILED - %s, nBytes %u", __func__,
+				 "TLClientReleaseDataLess",
+				 PVRSRVGETERRORSTRING(eError), uiMsgLen));
 		}
 	}
 
 	eError = TLClientCloseStream(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_WARNING, "%s() failed (%s) in %s()",
-		        "TLClientCloseStream", PVRSRVGETERRORSTRING(eError),
-		        __func__));
+			 "TLClientCloseStream", PVRSRVGETERRORSTRING(eError),
+			 __func__));
 	}
 
 	g_sHTBData.hStream = NULL;
 }
-
 
 /*
  * _DebugHBTraceDINext:
@@ -551,7 +550,7 @@ static void _DebugHBTraceDIStop(OSDI_IMPL_ENTRY *psEntry, void *pvData)
  * valid HTB message (if any)
  */
 static void *_DebugHBTraceDINext(OSDI_IMPL_ENTRY *psEntry, void *pvPriv,
-                                 IMG_UINT64 *pui64Pos)
+				 IMG_UINT64 *pui64Pos)
 {
 	HTB_Sentinel_t *pSentinel = DIGetPrivData(psEntry);
 	IMG_UINT64 ui64CurPos;
@@ -559,8 +558,7 @@ static void *_DebugHBTraceDINext(OSDI_IMPL_ENTRY *psEntry, void *pvPriv,
 
 	PVR_UNREFERENCED_PARAMETER(pvPriv);
 
-	if (pui64Pos)
-	{
+	if (pui64Pos) {
 		ui64CurPos = *pui64Pos;
 		*pui64Pos = ui64CurPos + 1;
 	}
@@ -571,53 +569,52 @@ static void *_DebugHBTraceDINext(OSDI_IMPL_ENTRY *psEntry, void *pvPriv,
 	 * If we have not overflowed we simply get the next HTB message and use that
 	 * for our display purposes. */
 
-	if (DIHasOverflowed(psEntry))
-	{
-		(void) TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE, g_sHTBData.hStream,
-		                               0);
+	if (DIHasOverflowed(psEntry)) {
+		(void)TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE,
+					      g_sHTBData.hStream, 0);
 
-		HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: OVERFLOW - returning NULL",
-		                 __func__));
+		HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+				  "%s: OVERFLOW - returning NULL", __func__));
 
 		return NULL;
-	}
-	else
-	{
+	} else {
 		eError = TLClientReleaseDataLess(DIRECT_BRIDGE_HANDLE,
-		                                 g_sHTBData.hStream,
-		                                 pSentinel->uiMsgLen);
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s' @ %p Length %d",
-			        __func__, "TLClientReleaseDataLess",
-			        PVRSRVGETERRORSTRING(eError), pSentinel->pCurr,
-			        pSentinel->uiMsgLen));
-			PVR_DPF((PVR_DBG_WARNING, "%s: Buffer @ %p..%p", __func__,
-			        pSentinel->pBuf,
-			        (IMG_PBYTE) (pSentinel->pBuf + pSentinel->uiBufLen)));
-
+						 g_sHTBData.hStream,
+						 pSentinel->uiMsgLen);
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((PVR_DBG_WARNING,
+				 "%s: %s FAILED '%s' @ %p Length %d", __func__,
+				 "TLClientReleaseDataLess",
+				 PVRSRVGETERRORSTRING(eError), pSentinel->pCurr,
+				 pSentinel->uiMsgLen));
+			PVR_DPF((PVR_DBG_WARNING, "%s: Buffer @ %p..%p",
+				 __func__, pSentinel->pBuf,
+				 (IMG_PBYTE)(pSentinel->pBuf +
+					     pSentinel->uiBufLen)));
 		}
 
 		eError = TLClientAcquireData(DIRECT_BRIDGE_HANDLE,
-		                             g_sHTBData.hStream, &pSentinel->pBuf,
-		                             &pSentinel->uiBufLen);
+					     g_sHTBData.hStream,
+					     &pSentinel->pBuf,
+					     &pSentinel->uiBufLen);
 
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s: %s FAILED '%s'\nPrev message len %d",
-			        __func__, "TLClientAcquireData",
-			        PVRSRVGETERRORSTRING(eError), pSentinel->uiMsgLen));
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((PVR_DBG_WARNING,
+				 "%s: %s FAILED '%s'\nPrev message len %d",
+				 __func__, "TLClientAcquireData",
+				 PVRSRVGETERRORSTRING(eError),
+				 pSentinel->uiMsgLen));
 			pSentinel->pBuf = NULL;
 		}
 
-		pSentinel->uiMsgLen = 0; /* We don't (yet) know the message size */
+		pSentinel->uiMsgLen =
+			0; /* We don't (yet) know the message size */
 	}
 
-	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Returning %p Msglen %d", __func__,
-	                 pSentinel->pBuf, pSentinel->uiMsgLen));
+	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Returning %p Msglen %d",
+			  __func__, pSentinel->pBuf, pSentinel->uiMsgLen));
 
-	if (pSentinel->pBuf == NULL || pSentinel->uiBufLen == 0)
-	{
+	if (pSentinel->pBuf == NULL || pSentinel->uiBufLen == 0) {
 		return NULL;
 	}
 
@@ -632,8 +629,7 @@ static void *_DebugHBTraceDINext(OSDI_IMPL_ENTRY *psEntry, void *pvPriv,
 #define IS_VALID_FMT_STRING(FMT) (strchr(FMT, '%') != NULL)
 #define MAX_STRING_SIZE (128)
 
-typedef enum
-{
+typedef enum {
 	TRACEBUF_ARG_TYPE_INT,
 	TRACEBUF_ARG_TYPE_ERR,
 	TRACEBUF_ARG_TYPE_NONE
@@ -644,19 +640,19 @@ typedef enum
  */
 typedef struct _HTB_TRACEBUF_LOG_ {
 	HTB_LOG_SFids eSFId;
-	IMG_CHAR      *pszName;
-	IMG_CHAR      *pszFmt;
-	IMG_UINT32    ui32ArgNum;
+	IMG_CHAR *pszName;
+	IMG_CHAR *pszFmt;
+	IMG_UINT32 ui32ArgNum;
 } HTB_TRACEBUF_LOG;
 
 static const HTB_TRACEBUF_LOG aLogs[] = {
-#define X(a, b, c, d, e) {HTB_LOG_CREATESFID(a,b,e), #c, d, e},
+#define X(a, b, c, d, e) { HTB_LOG_CREATESFID(a, b, e), #c, d, e },
 	HTB_LOG_SFIDLIST
 #undef X
 };
 
 static const IMG_CHAR *aGroups[] = {
-#define X(A,B) #B,
+#define X(A, B) #B,
 	HTB_LOG_SFGROUPLIST
 #undef X
 };
@@ -684,14 +680,13 @@ static TRACEBUF_ARG_TYPE ExtractOneArgFmt(IMG_CHAR **, IMG_CHAR *);
  *	*ppszFmt is updated to reference the next part of the format string
  *	to be scanned
  */
-static TRACEBUF_ARG_TYPE ExtractOneArgFmt(
-	IMG_CHAR **ppszFmt,
-	IMG_CHAR *pszOneArgFmt)
+static TRACEBUF_ARG_TYPE ExtractOneArgFmt(IMG_CHAR **ppszFmt,
+					  IMG_CHAR *pszOneArgFmt)
 {
-	IMG_CHAR          *pszFmt;
-	IMG_CHAR          *psT;
-	IMG_UINT32        ui32Count = MAX_STRING_SIZE;
-	IMG_UINT32        ui32OneArgSize;
+	IMG_CHAR *pszFmt;
+	IMG_CHAR *psT;
+	IMG_UINT32 ui32Count = MAX_STRING_SIZE;
+	IMG_UINT32 ui32OneArgSize;
 	TRACEBUF_ARG_TYPE eRet = TRACEBUF_ARG_TYPE_ERR;
 
 	if (NULL == ppszFmt)
@@ -708,35 +703,31 @@ static TRACEBUF_ARG_TYPE ExtractOneArgFmt(
 	 * TRACEBUF_ARG_TYPE_NONE and the string contents will be the full pszFmt
 	 */
 	psT = strchr(pszFmt, '%');
-	if (psT == NULL)
-	{
+	if (psT == NULL) {
 		return TRACEBUF_ARG_TYPE_NONE;
 	}
 
 	/* Find next conversion identifier after the initial '%' */
-	while ((*psT++) && (ui32Count-- > 0))
-	{
-		switch (*psT)
-		{
-			case 'd':
-			case 'i':
-			case 'o':
-			case 'u':
-			case 'x':
-			case 'X':
-			{
-				eRet = TRACEBUF_ARG_TYPE_INT;
-				goto _found_arg;
-			}
-			case 's':
-			{
-				eRet = TRACEBUF_ARG_TYPE_ERR;
-				goto _found_arg;
-			}
+	while ((*psT++) && (ui32Count-- > 0)) {
+		switch (*psT) {
+		case 'd':
+		case 'i':
+		case 'o':
+		case 'u':
+		case 'x':
+		case 'X': {
+			eRet = TRACEBUF_ARG_TYPE_INT;
+			goto _found_arg;
+		}
+		case 's': {
+			eRet = TRACEBUF_ARG_TYPE_ERR;
+			goto _found_arg;
+		}
 		}
 	}
 
-	if ((psT == NULL) || (ui32Count == 0)) return TRACEBUF_ARG_TYPE_ERR;
+	if ((psT == NULL) || (ui32Count == 0))
+		return TRACEBUF_ARG_TYPE_ERR;
 
 _found_arg:
 	ui32OneArgSize = psT - pszFmt + 1;
@@ -750,10 +741,9 @@ _found_arg:
 
 static IMG_UINT32 idToLogIdx(IMG_UINT32 ui32CheckData)
 {
-	IMG_UINT32	i = 0;
-	for (i = 0; aLogs[i].eSFId != HTB_SF_LAST; i++)
-	{
-		if ( ui32CheckData == aLogs[i].eSFId )
+	IMG_UINT32 i = 0;
+	for (i = 0; aLogs[i].eSFId != HTB_SF_LAST; i++) {
+		if (ui32CheckData == aLogs[i].eSFId)
 			return i;
 	}
 	/* Nothing found, return max value */
@@ -788,40 +778,40 @@ static IMG_UINT32 idToLogIdx(IMG_UINT32 ui32CheckData)
  *		0				successful decode
  *		-1				unsuccessful decode
  */
-static int
-DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
-          DI_PRINTF pfnDumpDebugPrintf)
+static int DecodeHTB(HTB_Sentinel_t *pSentinel,
+		     OSDI_IMPL_ENTRY *pvDumpDebugFile,
+		     DI_PRINTF pfnDumpDebugPrintf)
 {
-	IMG_UINT32	ui32Data, ui32LogIdx, ui32ArgsCur;
-	IMG_CHAR	*pszFmt = NULL;
-	IMG_CHAR	aszOneArgFmt[MAX_STRING_SIZE];
-	IMG_BOOL	bUnrecognizedErrorPrinted = IMG_FALSE;
+	IMG_UINT32 ui32Data, ui32LogIdx, ui32ArgsCur;
+	IMG_CHAR *pszFmt = NULL;
+	IMG_CHAR aszOneArgFmt[MAX_STRING_SIZE];
+	IMG_BOOL bUnrecognizedErrorPrinted = IMG_FALSE;
 
-	size_t	nPrinted;
+	size_t nPrinted;
 
-	void	*pNext, *pLast, *pStart, *pData = NULL;
-	PVRSRVTL_PPACKETHDR	ppHdr;	/* Current packet header */
-	IMG_UINT32	uiHdrType;		/* Packet header type */
-	IMG_UINT32	uiMsgSize;		/* Message size of current packet (bytes) */
-	IMG_BOOL	bPacketsDropped;
+	void *pNext, *pLast, *pStart, *pData = NULL;
+	PVRSRVTL_PPACKETHDR ppHdr; /* Current packet header */
+	IMG_UINT32 uiHdrType; /* Packet header type */
+	IMG_UINT32 uiMsgSize; /* Message size of current packet (bytes) */
+	IMG_BOOL bPacketsDropped;
 
 	pLast = pSentinel->pBuf + pSentinel->uiBufLen;
 	pStart = pSentinel->pCurr;
 
-	pSentinel->uiMsgLen = 0;	// Reset count for this message
+	pSentinel->uiMsgLen = 0; // Reset count for this message
 
 	HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: Buf @ %p..%p, Length = %d",
-	                 __func__, pStart, pLast, pSentinel->uiBufLen));
+			  __func__, pStart, pLast, pSentinel->uiBufLen));
 
 	/*
 	 * We should have a DATA header with the necessary information following
 	 */
 	ppHdr = GET_PACKET_HDR(pStart);
 
-	if (ppHdr == NULL)
-	{
+	if (ppHdr == NULL) {
 		PVR_DPF((PVR_DBG_ERROR,
-			"%s: Unexpected NULL packet in Host Trace buffer", __func__));
+			 "%s: Unexpected NULL packet in Host Trace buffer",
+			 __func__));
 		return -1;
 	}
 
@@ -838,10 +828,11 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 
 	pData = GET_PACKET_DATA_PTR(ppHdr);
 
-	if (pData == NULL || pData >= pLast)
-	{
-		HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: pData = %p, pLast = %p "
-		                 "Returning 0", __func__, pData, pLast));
+	if (pData == NULL || pData >= pLast) {
+		HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+				  "%s: pData = %p, pLast = %p "
+				  "Returning 0",
+				  __func__, pData, pLast));
 		return 0;
 	}
 
@@ -852,16 +843,16 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 	 * Check if the unrecognised ID is valid and therefore, tracebuf
 	 * needs updating.
 	 */
-	if (ui32LogIdx == HTB_SF_LAST)
-	{
-		if (HTB_LOG_VALIDID(ui32Data))
-		{
-			if (!bUnrecognizedErrorPrinted)
-			{
-				PVR_DPF((PVR_DBG_WARNING,
-				    "%s: Unrecognised LOG value '%x' GID %x Params %d ID %x @ '%p'",
-				    __func__, ui32Data, HTB_SF_GID(ui32Data),
-				    HTB_SF_PARAMNUM(ui32Data), ui32Data & 0xfff, pData));
+	if (ui32LogIdx == HTB_SF_LAST) {
+		if (HTB_LOG_VALIDID(ui32Data)) {
+			if (!bUnrecognizedErrorPrinted) {
+				PVR_DPF((
+					PVR_DBG_WARNING,
+					"%s: Unrecognised LOG value '%x' GID %x Params %d ID %x @ '%p'",
+					__func__, ui32Data,
+					HTB_SF_GID(ui32Data),
+					HTB_SF_PARAMNUM(ui32Data),
+					ui32Data & 0xfff, pData));
 				bUnrecognizedErrorPrinted = IMG_TRUE;
 			}
 
@@ -869,8 +860,8 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 		}
 
 		PVR_DPF((PVR_DBG_ERROR,
-		    "%s: Unrecognised and invalid LOG value detected '%x'",
-		    __func__, ui32Data));
+			 "%s: Unrecognised and invalid LOG value detected '%x'",
+			 __func__, ui32Data));
 
 		return -1;
 	}
@@ -891,21 +882,22 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 	/* Determine if we've over-filled the buffer and had to drop packets */
 	bPacketsDropped = CHECK_PACKETS_DROPPED(ppHdr);
 	if (bPacketsDropped ||
-		(uiHdrType == PVRSRVTL_PACKETTYPE_MOST_RECENT_WRITE_FAILED))
-	{
+	    (uiHdrType == PVRSRVTL_PACKETTYPE_MOST_RECENT_WRITE_FAILED)) {
 		/* Flag this as it is useful to know ... */
 
-		PVR_DUMPDEBUG_LOG("\n<========================== *** PACKETS DROPPED *** ======================>\n");
+		PVR_DUMPDEBUG_LOG(
+			"\n<========================== *** PACKETS DROPPED *** ======================>\n");
 	}
 
 	{
 		IMG_UINT32 ui32Timestampns, ui32PID, ui32TID;
 		IMG_UINT64 ui64Timestamp, ui64TimestampSec;
-		IMG_CHAR	*szBuffer = pSentinel->szBuffer;	// Buffer start
-		IMG_CHAR	*pszBuffer = pSentinel->szBuffer;	// Current place in buf
-		size_t		uBufBytesAvailable = sizeof(pSentinel->szBuffer);
-		IMG_UINT32	*pui32Data = (IMG_UINT32 *)pData;
-		IMG_UINT32	ui_aGroupIdx;
+		IMG_CHAR *szBuffer = pSentinel->szBuffer; // Buffer start
+		IMG_CHAR *pszBuffer =
+			pSentinel->szBuffer; // Current place in buf
+		size_t uBufBytesAvailable = sizeof(pSentinel->szBuffer);
+		IMG_UINT32 *pui32Data = (IMG_UINT32 *)pData;
+		IMG_UINT32 ui_aGroupIdx;
 
 		// Get PID field from data stream
 		pui32Data++;
@@ -915,10 +907,10 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 		ui32TID = *pui32Data;
 		// Get Timestamp part 1 from data stream
 		pui32Data++;
-		ui64Timestamp = (IMG_UINT64) *pui32Data << 32;
+		ui64Timestamp = (IMG_UINT64)*pui32Data << 32;
 		// Get Timestamp part 2 from data stream
 		pui32Data++;
-		ui64Timestamp |= (IMG_UINT64) *pui32Data;
+		ui64Timestamp |= (IMG_UINT64)*pui32Data;
 		// Move to start of message contents data
 		pui32Data++;
 
@@ -929,17 +921,22 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 		ui_aGroupIdx = MIN(HTB_SF_GID(ui32Data), uiMax_aGroups);
 
 		/* Divide by 1B to get seconds & mod using output var (nanosecond resolution)*/
-		ui64TimestampSec = OSDivide64r64(ui64Timestamp, 1000000000, &ui32Timestampns);
+		ui64TimestampSec = OSDivide64r64(ui64Timestamp, 1000000000,
+						 &ui32Timestampns);
 
-		nPrinted = OSSNPrintf(szBuffer, uBufBytesAvailable, "%010"IMG_UINT64_FMTSPEC".%09u:%-5u-%-5u-%s> ",
-			ui64TimestampSec, ui32Timestampns, ui32PID, ui32TID, aGroups[ui_aGroupIdx]);
-		if (nPrinted >= uBufBytesAvailable)
-		{
-			PVR_DUMPDEBUG_LOG("Buffer overrun - "IMG_SIZE_FMTSPEC" printed,"
-				" max space "IMG_SIZE_FMTSPEC"\n", nPrinted,
-				uBufBytesAvailable);
+		nPrinted = OSSNPrintf(szBuffer, uBufBytesAvailable,
+				      "%010" IMG_UINT64_FMTSPEC
+				      ".%09u:%-5u-%-5u-%s> ",
+				      ui64TimestampSec, ui32Timestampns,
+				      ui32PID, ui32TID, aGroups[ui_aGroupIdx]);
+		if (nPrinted >= uBufBytesAvailable) {
+			PVR_DUMPDEBUG_LOG("Buffer overrun - " IMG_SIZE_FMTSPEC
+					  " printed,"
+					  " max space " IMG_SIZE_FMTSPEC "\n",
+					  nPrinted, uBufBytesAvailable);
 
-			nPrinted = uBufBytesAvailable;	/* Ensure we don't overflow buffer */
+			nPrinted =
+				uBufBytesAvailable; /* Ensure we don't overflow buffer */
 		}
 
 		PVR_DUMPDEBUG_LOG("%s", pszBuffer);
@@ -953,17 +950,19 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 		 * This is the case for simple format strings such as
 		 * HTB_SF_MAIN_KICK_UNCOUNTED.
 		 */
-		if (ui32ArgsCur == 0)
-		{
-			if (pszFmt)
-			{
-				nPrinted = OSStringLCopy(pszBuffer, pszFmt, uBufBytesAvailable);
-				if (nPrinted >= uBufBytesAvailable)
-				{
-					PVR_DUMPDEBUG_LOG("Buffer overrun - "IMG_SIZE_FMTSPEC" printed,"
-						" max space "IMG_SIZE_FMTSPEC"\n", nPrinted,
-						uBufBytesAvailable);
-					nPrinted = uBufBytesAvailable;	/* Ensure we don't overflow buffer */
+		if (ui32ArgsCur == 0) {
+			if (pszFmt) {
+				nPrinted = OSStringLCopy(pszBuffer, pszFmt,
+							 uBufBytesAvailable);
+				if (nPrinted >= uBufBytesAvailable) {
+					PVR_DUMPDEBUG_LOG(
+						"Buffer overrun - " IMG_SIZE_FMTSPEC
+						" printed,"
+						" max space " IMG_SIZE_FMTSPEC
+						"\n",
+						nPrinted, uBufBytesAvailable);
+					nPrinted =
+						uBufBytesAvailable; /* Ensure we don't overflow buffer */
 				}
 				PVR_DUMPDEBUG_LOG("%s", pszBuffer);
 				pszBuffer += nPrinted;
@@ -972,103 +971,125 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
 				 * data we have decoded.
 				 */
 			}
-		}
-		else
-		{
-			if (HTB_SF_GID(ui32Data) == HTB_GID_CTRL && HTB_SF_ID(ui32Data) == HTB_ID_MARK_SCALE)
-			{
+		} else {
+			if (HTB_SF_GID(ui32Data) == HTB_GID_CTRL &&
+			    HTB_SF_ID(ui32Data) == HTB_ID_MARK_SCALE) {
 				IMG_UINT32 i;
-				IMG_UINT32 ui32ArgArray[HTB_MARK_SCALE_ARG_ARRAY_SIZE];
+				IMG_UINT32 ui32ArgArray
+					[HTB_MARK_SCALE_ARG_ARRAY_SIZE];
 				IMG_UINT64 ui64OSTS = 0;
 				IMG_UINT32 ui32OSTSRem = 0;
 				IMG_UINT64 ui64CRTS = 0;
 
 				/* Retrieve 6 args to an array */
-				for (i = 0; i < ARRAY_SIZE(ui32ArgArray); i++)
-				{
+				for (i = 0; i < ARRAY_SIZE(ui32ArgArray); i++) {
 					ui32ArgArray[i] = *pui32Data;
 					pui32Data++;
 					--ui32ArgsCur;
 				}
 
-				ui64OSTS = (IMG_UINT64) ui32ArgArray[HTB_ARG_OSTS_PT1] << 32 | ui32ArgArray[HTB_ARG_OSTS_PT2];
-				ui64CRTS = (IMG_UINT64) ui32ArgArray[HTB_ARG_CRTS_PT1] << 32 | ui32ArgArray[HTB_ARG_CRTS_PT2];
+				ui64OSTS =
+					(IMG_UINT64)ui32ArgArray[HTB_ARG_OSTS_PT1]
+						<< 32 |
+					ui32ArgArray[HTB_ARG_OSTS_PT2];
+				ui64CRTS =
+					(IMG_UINT64)ui32ArgArray[HTB_ARG_CRTS_PT1]
+						<< 32 |
+					ui32ArgArray[HTB_ARG_CRTS_PT2];
 
 				/* Divide by 1B to get seconds, remainder in nano seconds*/
-				ui64OSTS = OSDivide64r64(ui64OSTS, 1000000000, &ui32OSTSRem);
+				ui64OSTS = OSDivide64r64(ui64OSTS, 1000000000,
+							 &ui32OSTSRem);
 
-				nPrinted = OSSNPrintf(pszBuffer,
-						              uBufBytesAvailable,
-						              "HTBFWMkSync Mark=%u OSTS=%010" IMG_UINT64_FMTSPEC ".%09u CRTS=%" IMG_UINT64_FMTSPEC " CalcClkSpd=%u\n",
-						              ui32ArgArray[HTB_ARG_SYNCMARK],
-						              ui64OSTS,
-						              ui32OSTSRem,
-						              ui64CRTS,
-						              ui32ArgArray[HTB_ARG_CLKSPD]);
+				nPrinted = OSSNPrintf(
+					pszBuffer, uBufBytesAvailable,
+					"HTBFWMkSync Mark=%u OSTS=%010" IMG_UINT64_FMTSPEC
+					".%09u CRTS=%" IMG_UINT64_FMTSPEC
+					" CalcClkSpd=%u\n",
+					ui32ArgArray[HTB_ARG_SYNCMARK],
+					ui64OSTS, ui32OSTSRem, ui64CRTS,
+					ui32ArgArray[HTB_ARG_CLKSPD]);
 
-				if (nPrinted >= uBufBytesAvailable)
-				{
-					PVR_DUMPDEBUG_LOG("Buffer overrun - "IMG_SIZE_FMTSPEC" printed,"
-						" max space "IMG_SIZE_FMTSPEC"\n", nPrinted,
-						uBufBytesAvailable);
-					nPrinted = uBufBytesAvailable;	/* Ensure we don't overflow buffer */
+				if (nPrinted >= uBufBytesAvailable) {
+					PVR_DUMPDEBUG_LOG(
+						"Buffer overrun - " IMG_SIZE_FMTSPEC
+						" printed,"
+						" max space " IMG_SIZE_FMTSPEC
+						"\n",
+						nPrinted, uBufBytesAvailable);
+					nPrinted =
+						uBufBytesAvailable; /* Ensure we don't overflow buffer */
 				}
 
 				PVR_DUMPDEBUG_LOG("%s", pszBuffer);
 				pszBuffer += nPrinted;
 				uBufBytesAvailable -= nPrinted;
-			}
-			else
-			{
-				while (IS_VALID_FMT_STRING(pszFmt) && (uBufBytesAvailable > 0))
-				{
+			} else {
+				while (IS_VALID_FMT_STRING(pszFmt) &&
+				       (uBufBytesAvailable > 0)) {
 					IMG_UINT32 ui32TmpArg = *pui32Data;
 					TRACEBUF_ARG_TYPE eArgType;
 
-					eArgType = ExtractOneArgFmt(&pszFmt, aszOneArgFmt);
+					eArgType = ExtractOneArgFmt(
+						&pszFmt, aszOneArgFmt);
 
 					pui32Data++;
 					ui32ArgsCur--;
 
-					switch (eArgType)
-					{
-						case TRACEBUF_ARG_TYPE_INT:
-							nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable,
-								aszOneArgFmt, ui32TmpArg);
-							break;
+					switch (eArgType) {
+					case TRACEBUF_ARG_TYPE_INT:
+						nPrinted = OSSNPrintf(
+							pszBuffer,
+							uBufBytesAvailable,
+							aszOneArgFmt,
+							ui32TmpArg);
+						break;
 
-						case TRACEBUF_ARG_TYPE_NONE:
-							nPrinted = OSStringLCopy(pszBuffer, pszFmt,
-								uBufBytesAvailable);
-							break;
-
-						default:
-							nPrinted = OSSNPrintf(pszBuffer, uBufBytesAvailable,
-								"Error processing arguments, type not "
-								"recognized (fmt: %s)", aszOneArgFmt);
-							break;
-					}
-					if (nPrinted >= uBufBytesAvailable)
-					{
-						PVR_DUMPDEBUG_LOG("Buffer overrun - "IMG_SIZE_FMTSPEC" printed,"
-							" max space "IMG_SIZE_FMTSPEC"\n", nPrinted,
+					case TRACEBUF_ARG_TYPE_NONE:
+						nPrinted = OSStringLCopy(
+							pszBuffer, pszFmt,
 							uBufBytesAvailable);
-						nPrinted = uBufBytesAvailable;	/* Ensure we don't overflow buffer */
+						break;
+
+					default:
+						nPrinted = OSSNPrintf(
+							pszBuffer,
+							uBufBytesAvailable,
+							"Error processing arguments, type not "
+							"recognized (fmt: %s)",
+							aszOneArgFmt);
+						break;
+					}
+					if (nPrinted >= uBufBytesAvailable) {
+						PVR_DUMPDEBUG_LOG(
+							"Buffer overrun - " IMG_SIZE_FMTSPEC
+							" printed,"
+							" max space " IMG_SIZE_FMTSPEC
+							"\n",
+							nPrinted,
+							uBufBytesAvailable);
+						nPrinted =
+							uBufBytesAvailable; /* Ensure we don't overflow buffer */
 					}
 					PVR_DUMPDEBUG_LOG("%s", pszBuffer);
 					pszBuffer += nPrinted;
 					uBufBytesAvailable -= nPrinted;
 				}
 				/* Display any remaining text in pszFmt string */
-				if (pszFmt)
-				{
-					nPrinted = OSStringLCopy(pszBuffer, pszFmt, uBufBytesAvailable);
-					if (nPrinted >= uBufBytesAvailable)
-					{
-						PVR_DUMPDEBUG_LOG("Buffer overrun - "IMG_SIZE_FMTSPEC" printed,"
-							" max space "IMG_SIZE_FMTSPEC"\n", nPrinted,
+				if (pszFmt) {
+					nPrinted = OSStringLCopy(
+						pszBuffer, pszFmt,
+						uBufBytesAvailable);
+					if (nPrinted >= uBufBytesAvailable) {
+						PVR_DUMPDEBUG_LOG(
+							"Buffer overrun - " IMG_SIZE_FMTSPEC
+							" printed,"
+							" max space " IMG_SIZE_FMTSPEC
+							"\n",
+							nPrinted,
 							uBufBytesAvailable);
-						nPrinted = uBufBytesAvailable;	/* Ensure we don't overflow buffer */
+						nPrinted =
+							uBufBytesAvailable; /* Ensure we don't overflow buffer */
 					}
 					PVR_DUMPDEBUG_LOG("%s", pszBuffer);
 					pszBuffer += nPrinted;
@@ -1107,37 +1128,33 @@ DecodeHTB(HTB_Sentinel_t *pSentinel, OSDI_IMPL_ENTRY *pvDumpDebugFile,
  *                      (set by Start() / Next())
  */
 static int HTBDumpBuffer(DI_PRINTF pfnPrintf, OSDI_IMPL_ENTRY *psEntry,
-                         void *pvData)
+			 void *pvData)
 {
 	HTB_Sentinel_t *pSentinel = DIGetPrivData(psEntry);
 
 	PVR_ASSERT(pvData != NULL);
 
-	if (pvData == DI_START_TOKEN)
-	{
-		if (pSentinel->pCurr == NULL)
-		{
-			HTB_CHATTY_PRINT((PVR_DBG_WARNING, "%s: DI_START_TOKEN, "
-			                 "Empty buffer", __func__));
+	if (pvData == DI_START_TOKEN) {
+		if (pSentinel->pCurr == NULL) {
+			HTB_CHATTY_PRINT((PVR_DBG_WARNING,
+					  "%s: DI_START_TOKEN, "
+					  "Empty buffer",
+					  __func__));
 			return 0;
 		}
 		PVR_ASSERT(pSentinel->pCurr != NULL);
 
 		/* Display a Header as we have data to process */
-		pfnPrintf(psEntry, "%-20s:%-5s-%-5s-%s  %s\n", "Timestamp", "PID", "TID", "Group>",
-		         "Log Entry");
-	}
-	else
-	{
-		if (pvData != NULL)
-		{
+		pfnPrintf(psEntry, "%-20s:%-5s-%-5s-%s  %s\n", "Timestamp",
+			  "PID", "TID", "Group>", "Log Entry");
+	} else {
+		if (pvData != NULL) {
 			PVR_ASSERT(pSentinel->pCurr == pvData);
 		}
 	}
 
 	return DecodeHTB(pSentinel, psEntry, pfnPrintf);
 }
-
 
 /******************************************************************************
  * External Entry Point routines ...
@@ -1156,20 +1173,18 @@ PVRSRV_ERROR HTB_CreateDIEntry_Impl(void)
 
 	DI_ITERATOR_CB sIterator = {
 		.pfnStart = _DebugHBTraceDIStart,
-		.pfnStop  = _DebugHBTraceDIStop,
-		.pfnNext  = _DebugHBTraceDINext,
-		.pfnShow  = _DebugHBTraceDIShow,
+		.pfnStop = _DebugHBTraceDIStop,
+		.pfnNext = _DebugHBTraceDINext,
+		.pfnShow = _DebugHBTraceDIShow,
 	};
 
 	eError = DICreateEntry("host_trace", NULL, &sIterator,
-	                       &g_sHTBData.sSentinel,
-	                       DI_ENTRY_TYPE_GENERIC,
-	                       &g_sHTBData.psDumpHostDiEntry);
+			       &g_sHTBData.sSentinel, DI_ENTRY_TYPE_GENERIC,
+			       &g_sHTBData.psDumpHostDiEntry);
 	PVR_LOG_RETURN_IF_ERROR(eError, "DICreateEntry");
 
 	return PVRSRV_OK;
 }
-
 
 /*************************************************************************/ /*!
  @Function     HTB_DestroyDIEntry
@@ -1179,8 +1194,7 @@ PVRSRV_ERROR HTB_CreateDIEntry_Impl(void)
 */ /**************************************************************************/
 void HTB_DestroyDIEntry_Impl(void)
 {
-	if (g_sHTBData.psDumpHostDiEntry != NULL)
-	{
+	if (g_sHTBData.psDumpHostDiEntry != NULL) {
 		DIDestroyEntry(g_sHTBData.psDumpHostDiEntry);
 		g_sHTBData.psDumpHostDiEntry = NULL;
 	}

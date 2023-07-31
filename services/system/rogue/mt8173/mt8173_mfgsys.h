@@ -18,14 +18,16 @@
 #include <linux/device.h>
 
 /* unit ms, timeout interval for DVFS detection */
-#define MTK_DVFS_SWITCH_INTERVAL  300
+#define MTK_DVFS_SWITCH_INTERVAL 300
 
 #define ENABLE_MTK_MFG_DEBUG 0
 
 #if ENABLE_MTK_MFG_DEBUG
 #define mtk_mfg_debug(fmt, args...) pr_info("[MFG]" fmt, ##args)
 #else
-#define mtk_mfg_debug(fmt, args...) do { } while (0)
+#define mtk_mfg_debug(fmt, args...) \
+	do {                        \
+	} while (0)
 #endif
 
 struct mtk_mfg {
@@ -48,7 +50,8 @@ struct mtk_mfg {
 	struct clk *top_mmpll;
 	struct clk *clk26m;
 
-#if (defined(CHROMIUMOS_KERNEL) && (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))) || \
+#if (defined(CHROMIUMOS_KERNEL) &&                        \
+     (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 18, 0))) || \
 	(LINUX_VERSION_CODE >= KERNEL_VERSION(4, 4, 0))
 	struct thermal_zone_device *tz;
 #endif

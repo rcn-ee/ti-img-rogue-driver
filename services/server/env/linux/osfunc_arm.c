@@ -42,12 +42,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 #include <linux/version.h>
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
- #include <linux/dma-map-ops.h>
+#include <linux/dma-map-ops.h>
 #else
- #include <linux/dma-mapping.h>
+#include <linux/dma-mapping.h>
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(3,15,0))
- #include <asm/system.h>
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(3, 15, 0))
+#include <asm/system.h>
 #endif
 #include <asm/cacheflush.h>
 
@@ -57,32 +57,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "osfunc.h"
 #include "pvr_debug.h"
 
-
 static inline size_t pvr_dmac_range_len(const void *pvStart, const void *pvEnd)
 {
 	return (size_t)((char *)pvEnd - (char *)pvStart);
 }
 
-void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-                            void *pvVirtStart,
-                            void *pvVirtEnd,
-                            IMG_CPU_PHYADDR sCPUPhysStart,
-                            IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	struct device *dev = psDevNode->psDevConfig->pvOSDevice;
-	if (dev)
-	{
+	if (dev) {
 		dma_sync_single_for_device(dev, sCPUPhysStart.uiAddr,
-		                           sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr,
-		                           DMA_TO_DEVICE);
+					   sCPUPhysEnd.uiAddr -
+						   sCPUPhysStart.uiAddr,
+					   DMA_TO_DEVICE);
 		dma_sync_single_for_cpu(dev, sCPUPhysStart.uiAddr,
-		                        sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr,
-		                        DMA_FROM_DEVICE);
+					sCPUPhysEnd.uiAddr -
+						sCPUPhysStart.uiAddr,
+					DMA_FROM_DEVICE);
 	}
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0))
-	arm_dma_ops.sync_single_for_device(psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr, sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_TO_DEVICE);
-	arm_dma_ops.sync_single_for_cpu(psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr, sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_FROM_DEVICE);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0))
+	arm_dma_ops.sync_single_for_device(
+		psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr,
+		sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_TO_DEVICE);
+	arm_dma_ops.sync_single_for_cpu(
+		psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr,
+		sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_FROM_DEVICE);
 #else
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	/* Inner cache */
@@ -93,27 +95,28 @@ void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
 #endif
 }
 
-void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-                            void *pvVirtStart,
-                            void *pvVirtEnd,
-                            IMG_CPU_PHYADDR sCPUPhysStart,
-                            IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	struct device *dev = psDevNode->psDevConfig->pvOSDevice;
-	if (dev)
-	{
+	if (dev) {
 		dma_sync_single_for_device(dev, sCPUPhysStart.uiAddr,
-		                           sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr,
-		                           DMA_TO_DEVICE);
+					   sCPUPhysEnd.uiAddr -
+						   sCPUPhysStart.uiAddr,
+					   DMA_TO_DEVICE);
 	}
 
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0))
-	arm_dma_ops.sync_single_for_device(psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr, sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_TO_DEVICE);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0))
+	arm_dma_ops.sync_single_for_device(
+		psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr,
+		sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_TO_DEVICE);
 #else
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	/* Inner cache */
-	dmac_map_area(pvVirtStart, pvr_dmac_range_len(pvVirtStart, pvVirtEnd), DMA_TO_DEVICE);
+	dmac_map_area(pvVirtStart, pvr_dmac_range_len(pvVirtStart, pvVirtEnd),
+		      DMA_TO_DEVICE);
 
 	/* Outer cache */
 	outer_clean_range(sCPUPhysStart.uiAddr, sCPUPhysEnd.uiAddr);
@@ -121,25 +124,27 @@ void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
 }
 
 void OSCPUCacheInvalidateRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-                                 void *pvVirtStart,
-                                 void *pvVirtEnd,
-                                 IMG_CPU_PHYADDR sCPUPhysStart,
-                                 IMG_CPU_PHYADDR sCPUPhysEnd)
+				 void *pvVirtStart, void *pvVirtEnd,
+				 IMG_CPU_PHYADDR sCPUPhysStart,
+				 IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 0, 0))
 	struct device *dev = psDevNode->psDevConfig->pvOSDevice;
-	if (dev)
-	{
+	if (dev) {
 		dma_sync_single_for_cpu(dev, sCPUPhysStart.uiAddr,
-		                        sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr,
-		                        DMA_FROM_DEVICE);
+					sCPUPhysEnd.uiAddr -
+						sCPUPhysStart.uiAddr,
+					DMA_FROM_DEVICE);
 	}
-#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0))
-	arm_dma_ops.sync_single_for_cpu(psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr, sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_FROM_DEVICE);
+#elif (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0))
+	arm_dma_ops.sync_single_for_cpu(
+		psDevNode->psDevConfig->pvOSDevice, sCPUPhysStart.uiAddr,
+		sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr, DMA_FROM_DEVICE);
 #else
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	/* Inner cache */
-	dmac_map_area(pvVirtStart, pvr_dmac_range_len(pvVirtStart, pvVirtEnd), DMA_FROM_DEVICE);
+	dmac_map_area(pvVirtStart, pvr_dmac_range_len(pvVirtStart, pvVirtEnd),
+		      DMA_FROM_DEVICE);
 
 	/* Outer cache */
 	outer_inv_range(sCPUPhysStart.uiAddr, sCPUPhysEnd.uiAddr);
@@ -149,7 +154,7 @@ void OSCPUCacheInvalidateRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
 OS_CACHE_OP_ADDR_TYPE OSCPUCacheOpAddressType(PVRSRV_DEVICE_NODE *psDevNode)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3,7,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(3, 7, 0))
 	return OS_CACHE_OP_ADDR_TYPE_PHYSICAL;
 #else
 	return OS_CACHE_OP_ADDR_TYPE_BOTH;
@@ -157,13 +162,13 @@ OS_CACHE_OP_ADDR_TYPE OSCPUCacheOpAddressType(PVRSRV_DEVICE_NODE *psDevNode)
 }
 
 /* User Enable Register */
-#define PMUSERENR_EN      0x00000001 /* enable user access to the counters */
+#define PMUSERENR_EN 0x00000001 /* enable user access to the counters */
 
 static void per_cpu_perf_counter_user_access_en(void *data)
 {
 	PVR_UNREFERENCED_PARAMETER(data);
 	/* Enable user-mode access to counters. */
-	asm volatile("mcr p15, 0, %0, c9, c14, 0" :: "r"(PMUSERENR_EN));
+	asm volatile("mcr p15, 0, %0, c9, c14, 0" ::"r"(PMUSERENR_EN));
 }
 
 void OSUserModeAccessToPerfCountersEn(void)

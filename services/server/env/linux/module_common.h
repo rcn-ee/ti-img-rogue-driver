@@ -58,8 +58,7 @@ struct drm_device;
  * on whether the connection is to Sync or Services).
  */
 typedef void (*PFN_PVRSRV_DEV_RELEASE)(void *pvData);
-typedef struct
-{
+typedef struct {
 	/* pvConnectionData is used to hold Services connection data
 	 * for all PVRSRV_DEVICE_INIT_MODE options.
 	 */
@@ -100,10 +99,10 @@ int PVRSRVDeviceSuspend(struct drm_device *psDev);
 int PVRSRVDeviceResume(struct drm_device *psDev);
 
 int PVRSRVDeviceServicesOpen(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-                             struct drm_file *psDRMFile);
+			     struct drm_file *psDRMFile);
 void PVRSRVDeviceRelease(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-                         struct drm_file *psDRMFile);
-int drm_pvr_srvkm_init(struct drm_device *dev,
-                       void *arg, struct drm_file *psDRMFile);
+			 struct drm_file *psDRMFile);
+int drm_pvr_srvkm_init(struct drm_device *dev, void *arg,
+		       struct drm_file *psDRMFile);
 
 #endif /* MODULE_COMMON_H */

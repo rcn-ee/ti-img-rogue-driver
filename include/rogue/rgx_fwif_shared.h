@@ -53,15 +53,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* Indicates the number of RTDATAs per RTDATASET */
 #if defined(SUPPORT_AGP)
-#define RGXMKIF_NUM_RTDATAS           4U
-#define RGXMKIF_NUM_GEOMDATAS         4U
-#define RGXMKIF_NUM_RTDATA_FREELISTS  12U /* RGXMKIF_NUM_RTDATAS * RGXFW_MAX_FREELISTS */
-#define RGX_NUM_GEOM_CORES           (2U)
+#define RGXMKIF_NUM_RTDATAS 4U
+#define RGXMKIF_NUM_GEOMDATAS 4U
+#define RGXMKIF_NUM_RTDATA_FREELISTS \
+	12U /* RGXMKIF_NUM_RTDATAS * RGXFW_MAX_FREELISTS */
+#define RGX_NUM_GEOM_CORES (2U)
 #else
-#define RGXMKIF_NUM_RTDATAS           2U
-#define RGXMKIF_NUM_GEOMDATAS         1U
-#define RGXMKIF_NUM_RTDATA_FREELISTS  2U  /* RGXMKIF_NUM_RTDATAS * RGXFW_MAX_FREELISTS */
-#define RGX_NUM_GEOM_CORES           (1U)
+#define RGXMKIF_NUM_RTDATAS 2U
+#define RGXMKIF_NUM_GEOMDATAS 1U
+#define RGXMKIF_NUM_RTDATA_FREELISTS \
+	2U /* RGXMKIF_NUM_RTDATAS * RGXFW_MAX_FREELISTS */
+#define RGX_NUM_GEOM_CORES (1U)
 #endif
 
 /* Maximum number of UFOs in a CCB command.
@@ -72,7 +74,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * supporting a fence is not visible to the client driver and has to
  * allow for the number of different timelines involved in fence merges.
  */
-#define RGXFWIF_CCB_CMD_MAX_UFOS			(32U+32U)
+#define RGXFWIF_CCB_CMD_MAX_UFOS (32U + 32U)
 
 /*
  * This is a generic limit imposed on any DM (TA,3D,CDM,TDM,2D,TRANSFER)
@@ -82,71 +84,66 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * In case the incoming command size is larger than the specified limit,
  * the bridge call is retired with error.
  */
-#define RGXFWIF_DM_INDEPENDENT_KICK_CMD_SIZE	(1024U)
+#define RGXFWIF_DM_INDEPENDENT_KICK_CMD_SIZE (1024U)
 
-typedef struct RGXFWIF_DEV_VIRTADDR_
-{
-	IMG_UINT32	ui32Addr;
+typedef struct RGXFWIF_DEV_VIRTADDR_ {
+	IMG_UINT32 ui32Addr;
 } RGXFWIF_DEV_VIRTADDR;
 
-typedef struct
-{
-	IMG_DEV_VIRTADDR        RGXFW_ALIGN psDevVirtAddr;
-	RGXFWIF_DEV_VIRTADDR    pbyFWAddr;
+typedef struct {
+	IMG_DEV_VIRTADDR RGXFW_ALIGN psDevVirtAddr;
+	RGXFWIF_DEV_VIRTADDR pbyFWAddr;
 } UNCACHED_ALIGN RGXFWIF_DMA_ADDR;
 
-typedef IMG_UINT8	RGXFWIF_CCCB;
+typedef IMG_UINT8 RGXFWIF_CCCB;
 
-typedef RGXFWIF_DEV_VIRTADDR  PRGXFWIF_UFO_ADDR;
-typedef RGXFWIF_DEV_VIRTADDR  PRGXFWIF_CLEANUP_CTL;
-
+typedef RGXFWIF_DEV_VIRTADDR PRGXFWIF_UFO_ADDR;
+typedef RGXFWIF_DEV_VIRTADDR PRGXFWIF_CLEANUP_CTL;
 
 /*!
  * @InGroup ClientCCBTypes
  * @Brief Command data for fence & update types Client CCB commands.
  */
-typedef struct
-{
-	PRGXFWIF_UFO_ADDR	puiAddrUFO; /*!< Address to be checked/updated */
-	IMG_UINT32			ui32Value;  /*!< Value to check-against/update-to */
+typedef struct {
+	PRGXFWIF_UFO_ADDR puiAddrUFO; /*!< Address to be checked/updated */
+	IMG_UINT32 ui32Value; /*!< Value to check-against/update-to */
 } RGXFWIF_UFO;
 
 /*!
  * @InGroup RenderTarget
  * @Brief Track pending and executed workloads of HWRTDATA and ZSBUFFER
  */
-typedef struct
-{
-	IMG_UINT32			ui32SubmittedCommands;	/*!< Number of commands received by the FW */
-	IMG_UINT32			ui32ExecutedCommands;	/*!< Number of commands executed by the FW */
+typedef struct {
+	IMG_UINT32
+	ui32SubmittedCommands; /*!< Number of commands received by the FW */
+	IMG_UINT32
+	ui32ExecutedCommands; /*!< Number of commands executed by the FW */
 } UNCACHED_ALIGN RGXFWIF_CLEANUP_CTL;
 
-#define	RGXFWIF_PRBUFFER_START        IMG_UINT32_C(0)
-#define	RGXFWIF_PRBUFFER_ZSBUFFER     IMG_UINT32_C(0)
-#define	RGXFWIF_PRBUFFER_MSAABUFFER   IMG_UINT32_C(1)
-#define	RGXFWIF_PRBUFFER_MAXSUPPORTED IMG_UINT32_C(2)
+#define RGXFWIF_PRBUFFER_START IMG_UINT32_C(0)
+#define RGXFWIF_PRBUFFER_ZSBUFFER IMG_UINT32_C(0)
+#define RGXFWIF_PRBUFFER_MSAABUFFER IMG_UINT32_C(1)
+#define RGXFWIF_PRBUFFER_MAXSUPPORTED IMG_UINT32_C(2)
 
 typedef IMG_UINT32 RGXFWIF_PRBUFFER_TYPE;
 
-typedef enum
-{
+typedef enum {
 	RGXFWIF_PRBUFFER_UNBACKED = 0,
 	RGXFWIF_PRBUFFER_BACKED,
 	RGXFWIF_PRBUFFER_BACKING_PENDING,
 	RGXFWIF_PRBUFFER_UNBACKING_PENDING,
-}RGXFWIF_PRBUFFER_STATE;
+} RGXFWIF_PRBUFFER_STATE;
 
 /*!
  * @InGroup RenderTarget
  * @Brief OnDemand Z/S/MSAA Buffers
  */
-typedef struct
-{
-	IMG_UINT32		ui32BufferID;		/*!< Buffer ID*/
-	IMG_BOOL		bOnDemand;		/*!< Needs On-demand Z/S/MSAA Buffer allocation */
-	RGXFWIF_PRBUFFER_STATE	eState;			/*!< Z/S/MSAA -Buffer state */
-	RGXFWIF_CLEANUP_CTL	sCleanupState;		/*!< Cleanup state */
-	IMG_UINT32		ui32PRBufferFlags;	/*!< Compatibility and other flags */
+typedef struct {
+	IMG_UINT32 ui32BufferID; /*!< Buffer ID*/
+	IMG_BOOL bOnDemand; /*!< Needs On-demand Z/S/MSAA Buffer allocation */
+	RGXFWIF_PRBUFFER_STATE eState; /*!< Z/S/MSAA -Buffer state */
+	RGXFWIF_CLEANUP_CTL sCleanupState; /*!< Cleanup state */
+	IMG_UINT32 ui32PRBufferFlags; /*!< Compatibility and other flags */
 } UNCACHED_ALIGN RGXFWIF_PRBUFFER;
 
 /*
@@ -156,8 +153,7 @@ typedef struct
  *
  * May be used to house Kick flags in the future.
  */
-typedef struct
-{
+typedef struct {
 	IMG_UINT32 ui32FrameNum; /*!< associated frame number */
 } CMD_COMMON;
 
@@ -171,14 +167,14 @@ typedef struct
  * TA|3D CMD type definitions directly. Therefore we have a SHARED block that
  * is shared between UM-KM-FW across all BVNC configurations.
  */
-typedef struct
-{
-	CMD_COMMON           sCmn;      /*!< Common command attributes */
+typedef struct {
+	CMD_COMMON sCmn; /*!< Common command attributes */
 	RGXFWIF_DEV_VIRTADDR sHWRTData; /* RTData associated with this command,
 									   this is used for context selection and for storing out HW-context,
 									   when TA is switched out for continuing later */
 
-	RGXFWIF_DEV_VIRTADDR asPRBuffer[RGXFWIF_PRBUFFER_MAXSUPPORTED];	/* Supported PR Buffers like Z/S/MSAA Scratch */
+	RGXFWIF_DEV_VIRTADDR asPRBuffer
+		[RGXFWIF_PRBUFFER_MAXSUPPORTED]; /* Supported PR Buffers like Z/S/MSAA Scratch */
 
 } CMDTA3D_SHARED;
 
@@ -196,47 +192,50 @@ typedef struct
  * Cmd 2,3,4: Fence dependencies met, commands runnable.
  * Cmd 5... : Fence dependency not met yet.
  */
-typedef struct
-{
-	IMG_UINT32  ui32WriteOffset;    /*!< Host write offset into CCB. This
+typedef struct {
+	IMG_UINT32 ui32WriteOffset; /*!< Host write offset into CCB. This
 	                                 *    must be aligned to 16 bytes. */
-	IMG_UINT32  ui32ReadOffset;     /*!< Firmware read offset into CCB.
+	IMG_UINT32 ui32ReadOffset; /*!< Firmware read offset into CCB.
 	                                      Points to the command that is
 	                                 *    runnable on GPU, if R!=W */
-	IMG_UINT32  ui32DepOffset;      /*!< Firmware fence dependency offset.
+	IMG_UINT32 ui32DepOffset; /*!< Firmware fence dependency offset.
 	                                 *    Points to commands not ready, i.e.
 	                                 *    fence dependencies are not met. */
-	IMG_UINT32  ui32WrapMask;       /*!< Offset wrapping mask, total capacity
+	IMG_UINT32 ui32WrapMask; /*!< Offset wrapping mask, total capacity
 	                                      in bytes of the CCB-1 */
 
-	IMG_UINT32  ui32ReadOffset2;     /*!< Firmware 2nd read offset into CCB for AGP.
+	IMG_UINT32
+	ui32ReadOffset2; /*!< Firmware 2nd read offset into CCB for AGP.
 	                                      Points to the command that is
 	                                      runnable on GPU, if R2!=W */
-	IMG_UINT32  ui32ReadOffset3;     /*!< Firmware 3rd read offset into CCB for AGP.
+	IMG_UINT32
+	ui32ReadOffset3; /*!< Firmware 3rd read offset into CCB for AGP.
 	                                      Points to the command that is
 	                                      runnable on GPU, if R3!=W */
-	IMG_UINT32  ui32ReadOffset4;     /*!< Firmware 4th read offset into CCB for AGP.
+	IMG_UINT32
+	ui32ReadOffset4; /*!< Firmware 4th read offset into CCB for AGP.
 	                                      Points to the command that is
 	                                      runnable on GPU, if R4!=W */
 
 } UNCACHED_ALIGN RGXFWIF_CCCB_CTL;
 
 #if defined(SUPPORT_OPEN_SOURCE_DRIVER)
-static_assert(sizeof(RGXFWIF_CCCB_CTL) == 32,
-				"RGXFWIF_CCCB_CTL is incorrect size for SUPPORT_OPEN_SOURCE_DRIVER");
+static_assert(
+	sizeof(RGXFWIF_CCCB_CTL) == 32,
+	"RGXFWIF_CCCB_CTL is incorrect size for SUPPORT_OPEN_SOURCE_DRIVER");
 #endif
 
 typedef IMG_UINT32 RGXFW_FREELIST_TYPE;
 
-#define RGXFW_LOCAL_FREELIST     IMG_UINT32_C(0)
-#define RGXFW_GLOBAL_FREELIST    IMG_UINT32_C(1)
+#define RGXFW_LOCAL_FREELIST IMG_UINT32_C(0)
+#define RGXFW_GLOBAL_FREELIST IMG_UINT32_C(1)
 #if defined(SUPPORT_AGP)
-#define RGXFW_GLOBAL2_FREELIST   IMG_UINT32_C(2)
-#define RGXFW_MAX_FREELISTS      (RGXFW_GLOBAL2_FREELIST + 1U)
+#define RGXFW_GLOBAL2_FREELIST IMG_UINT32_C(2)
+#define RGXFW_MAX_FREELISTS (RGXFW_GLOBAL2_FREELIST + 1U)
 #else
-#define RGXFW_MAX_FREELISTS      (RGXFW_GLOBAL_FREELIST + 1U)
+#define RGXFW_MAX_FREELISTS (RGXFW_GLOBAL_FREELIST + 1U)
 #endif
-#define RGXFW_MAX_HWFREELISTS    (2U)
+#define RGXFW_MAX_HWFREELISTS (2U)
 
 /*!
  * @Defgroup ContextSwitching Context switching data interface
@@ -247,28 +246,34 @@ typedef IMG_UINT32 RGXFW_FREELIST_TYPE;
 /*!
  * @Brief GEOM DM or TA register controls for context switch
  */
-typedef struct
-{
-	IMG_UINT64	uTAReg_VDM_CONTEXT_STATE_BASE_ADDR; /*!< The base address of the VDM's context state buffer */
-	IMG_UINT64	uTAReg_VDM_CONTEXT_STATE_RESUME_ADDR;
-	IMG_UINT64	uTAReg_TA_CONTEXT_STATE_BASE_ADDR; /*!< The base address of the TA's context state buffer */
+typedef struct {
+	IMG_UINT64
+	uTAReg_VDM_CONTEXT_STATE_BASE_ADDR; /*!< The base address of the VDM's context state buffer */
+	IMG_UINT64 uTAReg_VDM_CONTEXT_STATE_RESUME_ADDR;
+	IMG_UINT64
+	uTAReg_TA_CONTEXT_STATE_BASE_ADDR; /*!< The base address of the TA's context state buffer */
 
-	struct
-	{
-		IMG_UINT64	uTAReg_VDM_CONTEXT_STORE_TASK0; /*!< VDM context store task 0 */
-		IMG_UINT64	uTAReg_VDM_CONTEXT_STORE_TASK1; /*!< VDM context store task 1 */
-		IMG_UINT64	uTAReg_VDM_CONTEXT_STORE_TASK2; /*!< VDM context store task 2 */
+	struct {
+		IMG_UINT64
+		uTAReg_VDM_CONTEXT_STORE_TASK0; /*!< VDM context store task 0 */
+		IMG_UINT64
+		uTAReg_VDM_CONTEXT_STORE_TASK1; /*!< VDM context store task 1 */
+		IMG_UINT64
+		uTAReg_VDM_CONTEXT_STORE_TASK2; /*!< VDM context store task 2 */
 
 		/* VDM resume state update controls */
-		IMG_UINT64	uTAReg_VDM_CONTEXT_RESUME_TASK0; /*!< VDM context resume task 0 */
-		IMG_UINT64	uTAReg_VDM_CONTEXT_RESUME_TASK1; /*!< VDM context resume task 1 */
-		IMG_UINT64	uTAReg_VDM_CONTEXT_RESUME_TASK2; /*!< VDM context resume task 2 */
+		IMG_UINT64
+		uTAReg_VDM_CONTEXT_RESUME_TASK0; /*!< VDM context resume task 0 */
+		IMG_UINT64
+		uTAReg_VDM_CONTEXT_RESUME_TASK1; /*!< VDM context resume task 1 */
+		IMG_UINT64
+		uTAReg_VDM_CONTEXT_RESUME_TASK2; /*!< VDM context resume task 2 */
 
-		IMG_UINT64	uTAReg_VDM_CONTEXT_STORE_TASK3;
-		IMG_UINT64	uTAReg_VDM_CONTEXT_STORE_TASK4;
+		IMG_UINT64 uTAReg_VDM_CONTEXT_STORE_TASK3;
+		IMG_UINT64 uTAReg_VDM_CONTEXT_STORE_TASK4;
 
-		IMG_UINT64	uTAReg_VDM_CONTEXT_RESUME_TASK3;
-		IMG_UINT64	uTAReg_VDM_CONTEXT_RESUME_TASK4;
+		IMG_UINT64 uTAReg_VDM_CONTEXT_RESUME_TASK3;
+		IMG_UINT64 uTAReg_VDM_CONTEXT_RESUME_TASK4;
 	} asTAState[2];
 
 } RGXFWIF_TAREGISTERS_CSWITCH;
@@ -276,17 +281,16 @@ typedef struct
 
 #define RGXFWIF_TAREGISTERS_CSWITCH_SIZE sizeof(RGXFWIF_TAREGISTERS_CSWITCH)
 
-typedef struct
-{
-	IMG_UINT64	uCDMReg_CDM_CONTEXT_PDS0;
-	IMG_UINT64	uCDMReg_CDM_CONTEXT_PDS1;
-	IMG_UINT64	uCDMReg_CDM_TERMINATE_PDS;
-	IMG_UINT64	uCDMReg_CDM_TERMINATE_PDS1;
+typedef struct {
+	IMG_UINT64 uCDMReg_CDM_CONTEXT_PDS0;
+	IMG_UINT64 uCDMReg_CDM_CONTEXT_PDS1;
+	IMG_UINT64 uCDMReg_CDM_TERMINATE_PDS;
+	IMG_UINT64 uCDMReg_CDM_TERMINATE_PDS1;
 
 	/* CDM resume controls */
-	IMG_UINT64	uCDMReg_CDM_RESUME_PDS0;
-	IMG_UINT64	uCDMReg_CDM_CONTEXT_PDS0_B;
-	IMG_UINT64	uCDMReg_CDM_RESUME_PDS0_B;
+	IMG_UINT64 uCDMReg_CDM_RESUME_PDS0;
+	IMG_UINT64 uCDMReg_CDM_CONTEXT_PDS0_B;
+	IMG_UINT64 uCDMReg_CDM_RESUME_PDS0_B;
 
 } RGXFWIF_CDM_REGISTERS_CSWITCH;
 
@@ -294,65 +298,82 @@ typedef struct
  * @InGroup ContextSwitching
  * @Brief Render context static register controls for context switch
  */
-typedef struct
-{
-	RGXFWIF_TAREGISTERS_CSWITCH	RGXFW_ALIGN asCtxSwitch_GeomRegs[RGX_NUM_GEOM_CORES];	/*!< Geom registers for ctx switch */
+typedef struct {
+	RGXFWIF_TAREGISTERS_CSWITCH RGXFW_ALIGN asCtxSwitch_GeomRegs
+		[RGX_NUM_GEOM_CORES]; /*!< Geom registers for ctx switch */
 } RGXFWIF_STATIC_RENDERCONTEXT_STATE;
 
-#define RGXFWIF_STATIC_RENDERCONTEXT_SIZE sizeof(RGXFWIF_STATIC_RENDERCONTEXT_STATE)
+#define RGXFWIF_STATIC_RENDERCONTEXT_SIZE \
+	sizeof(RGXFWIF_STATIC_RENDERCONTEXT_STATE)
 
-typedef struct
-{
-	RGXFWIF_CDM_REGISTERS_CSWITCH	RGXFW_ALIGN sCtxSwitch_Regs;	/*!< CDM registers for ctx switch */
+typedef struct {
+	RGXFWIF_CDM_REGISTERS_CSWITCH RGXFW_ALIGN
+		sCtxSwitch_Regs; /*!< CDM registers for ctx switch */
 } RGXFWIF_STATIC_COMPUTECONTEXT_STATE;
 
-#define RGXFWIF_STATIC_COMPUTECONTEXT_SIZE sizeof(RGXFWIF_STATIC_COMPUTECONTEXT_STATE)
+#define RGXFWIF_STATIC_COMPUTECONTEXT_SIZE \
+	sizeof(RGXFWIF_STATIC_COMPUTECONTEXT_STATE)
 
 /*!
 	@Brief Context reset reason. Last reset reason for a reset context.
 */
-typedef enum
-{
-	RGX_CONTEXT_RESET_REASON_NONE                = 0,	/*!< No reset reason recorded */
-	RGX_CONTEXT_RESET_REASON_GUILTY_LOCKUP       = 1,	/*!< Caused a reset due to locking up */
-	RGX_CONTEXT_RESET_REASON_INNOCENT_LOCKUP     = 2,	/*!< Affected by another context locking up */
-	RGX_CONTEXT_RESET_REASON_GUILTY_OVERRUNING   = 3,	/*!< Overran the global deadline */
-	RGX_CONTEXT_RESET_REASON_INNOCENT_OVERRUNING = 4,	/*!< Affected by another context overrunning */
-	RGX_CONTEXT_RESET_REASON_HARD_CONTEXT_SWITCH = 5,	/*!< Forced reset to ensure scheduling requirements */
-	RGX_CONTEXT_RESET_REASON_WGP_CHECKSUM        = 6,	/*!< CDM Mission/safety checksum mismatch */
-	RGX_CONTEXT_RESET_REASON_TRP_CHECKSUM        = 7,	/*!< TRP checksum mismatch */
-	RGX_CONTEXT_RESET_REASON_GPU_ECC_OK          = 8,	/*!< GPU ECC error (corrected, OK) */
-	RGX_CONTEXT_RESET_REASON_GPU_ECC_HWR         = 9,	/*!< GPU ECC error (uncorrected, HWR) */
-	RGX_CONTEXT_RESET_REASON_FW_ECC_OK           = 10,	/*!< FW ECC error (corrected, OK) */
-	RGX_CONTEXT_RESET_REASON_FW_ECC_ERR          = 11,	/*!< FW ECC error (uncorrected, ERR) */
-	RGX_CONTEXT_RESET_REASON_FW_WATCHDOG         = 12,	/*!< FW Safety watchdog triggered */
-	RGX_CONTEXT_RESET_REASON_FW_PAGEFAULT        = 13,	/*!< FW page fault (no HWR) */
-	RGX_CONTEXT_RESET_REASON_FW_EXEC_ERR         = 14,	/*!< FW execution error (GPU reset requested) */
-	RGX_CONTEXT_RESET_REASON_HOST_WDG_FW_ERR     = 15,	/*!< Host watchdog detected FW error */
-	RGX_CONTEXT_GEOM_OOM_DISABLED                = 16,	/*!< Geometry DM OOM event is not allowed */
-	RGX_CONTEXT_PVRIC_SIGNATURE_MISMATCH         = 17,	/*!< PVRIC Signature mismatch */
+typedef enum {
+	RGX_CONTEXT_RESET_REASON_NONE = 0, /*!< No reset reason recorded */
+	RGX_CONTEXT_RESET_REASON_GUILTY_LOCKUP =
+		1, /*!< Caused a reset due to locking up */
+	RGX_CONTEXT_RESET_REASON_INNOCENT_LOCKUP =
+		2, /*!< Affected by another context locking up */
+	RGX_CONTEXT_RESET_REASON_GUILTY_OVERRUNING =
+		3, /*!< Overran the global deadline */
+	RGX_CONTEXT_RESET_REASON_INNOCENT_OVERRUNING =
+		4, /*!< Affected by another context overrunning */
+	RGX_CONTEXT_RESET_REASON_HARD_CONTEXT_SWITCH =
+		5, /*!< Forced reset to ensure scheduling requirements */
+	RGX_CONTEXT_RESET_REASON_WGP_CHECKSUM =
+		6, /*!< CDM Mission/safety checksum mismatch */
+	RGX_CONTEXT_RESET_REASON_TRP_CHECKSUM = 7, /*!< TRP checksum mismatch */
+	RGX_CONTEXT_RESET_REASON_GPU_ECC_OK =
+		8, /*!< GPU ECC error (corrected, OK) */
+	RGX_CONTEXT_RESET_REASON_GPU_ECC_HWR =
+		9, /*!< GPU ECC error (uncorrected, HWR) */
+	RGX_CONTEXT_RESET_REASON_FW_ECC_OK =
+		10, /*!< FW ECC error (corrected, OK) */
+	RGX_CONTEXT_RESET_REASON_FW_ECC_ERR =
+		11, /*!< FW ECC error (uncorrected, ERR) */
+	RGX_CONTEXT_RESET_REASON_FW_WATCHDOG =
+		12, /*!< FW Safety watchdog triggered */
+	RGX_CONTEXT_RESET_REASON_FW_PAGEFAULT =
+		13, /*!< FW page fault (no HWR) */
+	RGX_CONTEXT_RESET_REASON_FW_EXEC_ERR =
+		14, /*!< FW execution error (GPU reset requested) */
+	RGX_CONTEXT_RESET_REASON_HOST_WDG_FW_ERR =
+		15, /*!< Host watchdog detected FW error */
+	RGX_CONTEXT_GEOM_OOM_DISABLED =
+		16, /*!< Geometry DM OOM event is not allowed */
+	RGX_CONTEXT_PVRIC_SIGNATURE_MISMATCH =
+		17, /*!< PVRIC Signature mismatch */
 } RGX_CONTEXT_RESET_REASON;
 
 /*!
 	@Brief Context reset data shared with the host
 */
-typedef struct
-{
+typedef struct {
 	RGX_CONTEXT_RESET_REASON eResetReason; /*!< Reset reason */
-	IMG_UINT32 ui32ResetExtJobRef;  /*!< External Job ID */
+	IMG_UINT32 ui32ResetExtJobRef; /*!< External Job ID */
 } RGX_CONTEXT_RESET_REASON_DATA;
 
-#define RGX_HEAP_UM_PDS_RESERVED_SIZE               DEVMEM_HEAP_RESERVED_SIZE_GRANULARITY
-#define RGX_HEAP_UM_PDS_RESERVED_REGION_OFFSET      0
-#define RGX_HEAP_PDS_RESERVED_TOTAL_SIZE            RGX_HEAP_UM_PDS_RESERVED_SIZE
+#define RGX_HEAP_UM_PDS_RESERVED_SIZE DEVMEM_HEAP_RESERVED_SIZE_GRANULARITY
+#define RGX_HEAP_UM_PDS_RESERVED_REGION_OFFSET 0
+#define RGX_HEAP_PDS_RESERVED_TOTAL_SIZE RGX_HEAP_UM_PDS_RESERVED_SIZE
 
-#define RGX_HEAP_UM_USC_RESERVED_SIZE               DEVMEM_HEAP_RESERVED_SIZE_GRANULARITY
-#define RGX_HEAP_UM_USC_RESERVED_REGION_OFFSET      0
-#define RGX_HEAP_USC_RESERVED_TOTAL_SIZE            RGX_HEAP_UM_USC_RESERVED_SIZE
+#define RGX_HEAP_UM_USC_RESERVED_SIZE DEVMEM_HEAP_RESERVED_SIZE_GRANULARITY
+#define RGX_HEAP_UM_USC_RESERVED_REGION_OFFSET 0
+#define RGX_HEAP_USC_RESERVED_TOTAL_SIZE RGX_HEAP_UM_USC_RESERVED_SIZE
 
-#define RGX_HEAP_UM_GENERAL_RESERVED_SIZE           DEVMEM_HEAP_RESERVED_SIZE_GRANULARITY
-#define RGX_HEAP_UM_GENERAL_RESERVED_REGION_OFFSET  0
-#define RGX_HEAP_KM_GENERAL_RESERVED_REGION_OFFSET  RGX_HEAP_UM_GENERAL_RESERVED_SIZE
+#define RGX_HEAP_UM_GENERAL_RESERVED_SIZE DEVMEM_HEAP_RESERVED_SIZE_GRANULARITY
+#define RGX_HEAP_UM_GENERAL_RESERVED_REGION_OFFSET 0
+#define RGX_HEAP_KM_GENERAL_RESERVED_REGION_OFFSET \
+	RGX_HEAP_UM_GENERAL_RESERVED_SIZE
 
 #endif /*  RGX_FWIF_SHARED_H */
 

@@ -62,32 +62,33 @@ extern "C" {
  * firmware code), we can include the standard headers.
  */
 #if defined(_MSC_VER)
-	#include <stdbool.h>		/* bool */
-	#include "msvc_types.h"
+#include <stdbool.h> /* bool */
+#include "msvc_types.h"
 #elif defined(__linux__) && defined(__KERNEL__)
-	#include <linux/version.h>
-	#include <linux/types.h>
-	#include "kernel_types.h"
-#elif defined(__linux__) || defined(__METAG) || defined(__MINGW32__) || \
-	defined(__QNXNTO__) || defined(INTEGRITY_OS) || defined(__riscv) || defined(__APPLE__)
-	#include <stddef.h>			/* NULL */
-	#include <stdint.h>
+#include <linux/version.h>
+#include <linux/types.h>
+#include "kernel_types.h"
+#elif defined(__linux__) || defined(__METAG) || defined(__MINGW32__) ||     \
+	defined(__QNXNTO__) || defined(INTEGRITY_OS) || defined(__riscv) || \
+	defined(__APPLE__)
+#include <stddef.h> /* NULL */
+#include <stdint.h>
 #if defined(__riscv)
 #pragma GCC diagnostic push
 #pragma GCC diagnostic ignored "-Wundef"
 #endif
-	#include <inttypes.h>		/* intX_t/uintX_t, format specifiers */
-	#include <limits.h>			/* INT_MIN, etc */
+#include <inttypes.h> /* intX_t/uintX_t, format specifiers */
+#include <limits.h> /* INT_MIN, etc */
 #if defined(__riscv)
 #pragma GCC diagnostic pop
 #endif
-	#include <stdbool.h>		/* bool */
+#include <stdbool.h> /* bool */
 #elif defined(__mips)
-	#include <stddef.h>			/* NULL */
-	#include <inttypes.h>		/* intX_t/uintX_t, format specifiers */
-	#include <stdbool.h>		/* bool */
+#include <stddef.h> /* NULL */
+#include <inttypes.h> /* intX_t/uintX_t, format specifiers */
+#include <stdbool.h> /* bool */
 #else
-	#error C99 support not set up for this build
+#error C99 support not set up for this build
 #endif
 
 /*
@@ -100,92 +101,91 @@ extern "C" {
 #if defined(__KLOCWORK__) && !defined(__cplusplus)
 #undef true
 #undef false
-#define true ((bool) 1)
-#define false ((bool) 0)
+#define true ((bool)1)
+#define false ((bool)0)
 #endif
 
-typedef unsigned int	IMG_UINT;
-typedef int				IMG_INT;
+typedef unsigned int IMG_UINT;
+typedef int IMG_INT;
 
-typedef uint8_t			IMG_UINT8,	*IMG_PUINT8;
-typedef uint8_t			IMG_BYTE,	*IMG_PBYTE;
-typedef int8_t			IMG_INT8;
-typedef char			IMG_CHAR,	*IMG_PCHAR;
+typedef uint8_t IMG_UINT8, *IMG_PUINT8;
+typedef uint8_t IMG_BYTE, *IMG_PBYTE;
+typedef int8_t IMG_INT8;
+typedef char IMG_CHAR, *IMG_PCHAR;
 
-typedef uint16_t		IMG_UINT16,	*IMG_PUINT16;
-typedef int16_t			IMG_INT16;
-typedef uint32_t		IMG_UINT32,	*IMG_PUINT32;
-typedef int32_t			IMG_INT32,	*IMG_PINT32;
+typedef uint16_t IMG_UINT16, *IMG_PUINT16;
+typedef int16_t IMG_INT16;
+typedef uint32_t IMG_UINT32, *IMG_PUINT32;
+typedef int32_t IMG_INT32, *IMG_PINT32;
 #if defined(INTEGRITY_OS)
 #if __INT_BIT >= 32U
-#define IMG_UINT32_C(n) ((IMG_UINT32)(n ## U))
+#define IMG_UINT32_C(n) ((IMG_UINT32)(n##U))
 #elif __LONG_BIT >= 32U
-#define IMG_UINT32_C(n) ((IMG_UINT32)(n ## UL))
+#define IMG_UINT32_C(n) ((IMG_UINT32)(n##UL))
 #elif defined(__LLONG_BIT) && __LLONG_BIT >= 32U
-#define IMG_UINT32_C(n) ((IMG_UINT32)(n ## ULL))
+#define IMG_UINT32_C(n) ((IMG_UINT32)(n##ULL))
 #endif
 #else /* defined(INTEGRITY_OS) */
 #define IMG_UINT32_C(c) ((IMG_UINT32)UINT32_C(c))
 #endif /* defined(INTEGRITY_OS) */
 
-typedef uint64_t		IMG_UINT64,	*IMG_PUINT64;
-typedef int64_t			IMG_INT64;
-#define IMG_INT64_C(c)	INT64_C(c)
+typedef uint64_t IMG_UINT64, *IMG_PUINT64;
+typedef int64_t IMG_INT64;
+#define IMG_INT64_C(c) INT64_C(c)
 #if defined(INTEGRITY_OS)
 #if __INT_BIT >= 64U
-#define IMG_UINT64_C(n)	(n ## U)
+#define IMG_UINT64_C(n) (n##U)
 #elif defined(__LONG_BIT) && __LONG_BIT >= 64U
-#define IMG_UINT64_C(n)	(n ## UL)
+#define IMG_UINT64_C(n) (n##UL)
 #elif defined(__LLONG_BIT) && __LLONG_BIT >= 64U
-#define IMG_UINT64_C(n)	(n ## ULL)
+#define IMG_UINT64_C(n) (n##ULL)
 #endif
 #else /* defined(INTEGRITY_OS) */
-#define IMG_UINT64_C(c)	UINT64_C(c)
+#define IMG_UINT64_C(c) UINT64_C(c)
 #endif /* defined(INTEGRITY_OS) */
-#define IMG_UINT16_C(c)	UINT16_C(c)
+#define IMG_UINT16_C(c) UINT16_C(c)
 #define IMG_UINT64_FMTSPEC PRIu64
 #define IMG_UINT64_FMTSPECX PRIX64
 #define IMG_UINT64_FMTSPECx PRIx64
 #define IMG_UINT64_FMTSPECo PRIo64
 #define IMG_INT64_FMTSPECd PRId64
 
-#define IMG_UINT8_MAX	UINT8_MAX
-#define IMG_UINT16_MAX	UINT16_MAX
-#define IMG_UINT32_MAX	UINT32_MAX
-#define IMG_UINT64_MAX	UINT64_MAX
+#define IMG_UINT8_MAX UINT8_MAX
+#define IMG_UINT16_MAX UINT16_MAX
+#define IMG_UINT32_MAX UINT32_MAX
+#define IMG_UINT64_MAX UINT64_MAX
 
-#define IMG_INT8_MAX	INT8_MAX
-#define IMG_INT16_MAX	INT16_MAX
-#define IMG_INT32_MAX	INT32_MAX
-#define IMG_INT64_MAX	INT64_MAX
+#define IMG_INT8_MAX INT8_MAX
+#define IMG_INT16_MAX INT16_MAX
+#define IMG_INT32_MAX INT32_MAX
+#define IMG_INT64_MAX INT64_MAX
 
 /* Linux kernel mode does not use floating point */
-typedef float			IMG_FLOAT,	*IMG_PFLOAT;
-typedef double			IMG_DOUBLE;
+typedef float IMG_FLOAT, *IMG_PFLOAT;
+typedef double IMG_DOUBLE;
 
-typedef union
-{
+typedef union {
 	IMG_UINT32 ui32;
 	IMG_FLOAT f;
 } IMG_UINT32_FLOAT;
 
-typedef int				IMG_SECURE_TYPE;
+typedef int IMG_SECURE_TYPE;
 
-typedef bool      IMG_BOOL;
-typedef bool*     IMG_PBOOL;
-#define IMG_FALSE ((bool) 0)
-#define IMG_TRUE  ((bool) 1)
+typedef bool IMG_BOOL;
+typedef bool *IMG_PBOOL;
+#define IMG_FALSE ((bool)0)
+#define IMG_TRUE ((bool)1)
 
 #if defined(UNDER_WDDM) || defined(WINDOWS_WDF)
-typedef IMG_CHAR const* IMG_PCCHAR;
+typedef IMG_CHAR const *IMG_PCCHAR;
 #endif
 
 /* Format specifiers for 'size_t' type */
 #if defined(_MSC_VER)
-#define IMG_SIZE_FMTSPEC  "%Iu"
+#define IMG_SIZE_FMTSPEC "%Iu"
 #define IMG_SIZE_FMTSPECX "%Ix"
 #else
-#define IMG_SIZE_FMTSPEC  "%zu"
+#define IMG_SIZE_FMTSPEC "%zu"
 #define IMG_SIZE_FMTSPECX "%zx"
 #endif
 
@@ -200,14 +200,13 @@ typedef IMG_CHAR const* IMG_PCCHAR;
 #define IMG_PFN_FMTSPEC "%p"
 #endif
 
-typedef void           *IMG_HANDLE;
+typedef void *IMG_HANDLE;
 
 /* Process IDs */
-typedef IMG_UINT32      IMG_PID;
+typedef IMG_UINT32 IMG_PID;
 
 /* OS connection type */
-typedef int             IMG_OS_CONNECTION;
-
+typedef int IMG_OS_CONNECTION;
 
 /*
  * Address types.
@@ -222,7 +221,6 @@ typedef int             IMG_OS_CONNECTION;
  * Different devices could have offset views of the physical address space.
  *
  */
-
 
 /*
  *
@@ -257,68 +255,62 @@ typedef int             IMG_OS_CONNECTION;
 #define IMG_DEVMEM_OFFSET_FMTSPEC "0x%010" IMG_UINT64_FMTSPECX
 
 /* cpu physical address */
-typedef struct
-{
+typedef struct {
 #if defined(UNDER_WDDM) || defined(WINDOWS_WDF)
 	uintptr_t uiAddr;
-#define IMG_CAST_TO_CPUPHYADDR_UINT(var)	(uintptr_t)(var)
-#define CPUPHYADDR_FMTARG(var)				(IMG_UINT64)(var)
+#define IMG_CAST_TO_CPUPHYADDR_UINT(var) (uintptr_t)(var)
+#define CPUPHYADDR_FMTARG(var) (IMG_UINT64)(var)
 #define CPUPHYADDR_UINT_FMTSPEC "0x%016" IMG_UINT64_FMTSPECx
 #elif defined(__linux__) && defined(__KERNEL__)
 	phys_addr_t uiAddr;
-#define IMG_CAST_TO_CPUPHYADDR_UINT(var)	(phys_addr_t)(var)
-#define CPUPHYADDR_FMTARG(var)				(&var)
+#define IMG_CAST_TO_CPUPHYADDR_UINT(var) (phys_addr_t)(var)
+#define CPUPHYADDR_FMTARG(var) (&var)
 #define CPUPHYADDR_UINT_FMTSPEC "%pa"
 #else
 	IMG_UINT64 uiAddr;
-#define IMG_CAST_TO_CPUPHYADDR_UINT(var)	(IMG_UINT64)(var)
-#define CPUPHYADDR_FMTARG(var)				(var)
+#define IMG_CAST_TO_CPUPHYADDR_UINT(var) (IMG_UINT64)(var)
+#define CPUPHYADDR_FMTARG(var) (var)
 #define CPUPHYADDR_UINT_FMTSPEC "0x%016" IMG_UINT64_FMTSPECx
 #endif
 } IMG_CPU_PHYADDR;
 
 /* device physical address */
-typedef struct
-{
+typedef struct {
 	IMG_UINT64 uiAddr;
 } IMG_DEV_PHYADDR;
 
 /* dma address */
-typedef struct
-{
+typedef struct {
 	IMG_UINT64 uiAddr;
 } IMG_DMA_ADDR;
 
 /*
 	rectangle structure
 */
-typedef struct
-{
-	IMG_INT32	x0;
-	IMG_INT32	y0;
-	IMG_INT32	x1;
-	IMG_INT32	y1;
+typedef struct {
+	IMG_INT32 x0;
+	IMG_INT32 y0;
+	IMG_INT32 x1;
+	IMG_INT32 y1;
 } IMG_RECT;
 
-typedef struct
-{
-	IMG_INT16	x0;
-	IMG_INT16	y0;
-	IMG_INT16	x1;
-	IMG_INT16	y1;
+typedef struct {
+	IMG_INT16 x0;
+	IMG_INT16 y0;
+	IMG_INT16 x1;
+	IMG_INT16 y1;
 } IMG_RECT_16;
 
 /*
  * box structure
  */
-typedef struct
-{
-	IMG_INT32	x0;
-	IMG_INT32	y0;
-	IMG_INT32	z0;
-	IMG_INT32	x1;
-	IMG_INT32	y1;
-	IMG_INT32	z1;
+typedef struct {
+	IMG_INT32 x0;
+	IMG_INT32 y0;
+	IMG_INT32 z0;
+	IMG_INT32 x1;
+	IMG_INT32 y1;
+	IMG_INT32 z1;
 } IMG_BOX;
 
 #if defined(__cplusplus)

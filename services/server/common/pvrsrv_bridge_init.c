@@ -233,7 +233,7 @@ ServerBridgeInit(void)
 	eError = InitRGXTA3DBridge();
 	PVR_LOG_IF_ERROR(eError, "InitRGXTA3DBridge");
 
-	#if defined(SUPPORT_USC_BREAKPOINT)
+#if defined(SUPPORT_USC_BREAKPOINT)
 	eError = InitRGXBREAKPOINTBridge();
 	PVR_LOG_IF_ERROR(eError, "InitRGXBREAKPOINTBridge");
 #endif

@@ -51,21 +51,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
 PVRSRV_ERROR PVRSRVRGXConfigureHWPerfBlocksKM(
-	CONNECTION_DATA       * psConnection,
-	PVRSRV_DEVICE_NODE    * psDeviceNode,
-	IMG_UINT32            ui32CtrlWord,
-	IMG_UINT32            ui32ArrayLen,
-	RGX_HWPERF_CONFIG_CNTBLK * psBlockConfigs);
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_UINT32 ui32CtrlWord, IMG_UINT32 ui32ArrayLen,
+	RGX_HWPERF_CONFIG_CNTBLK *psBlockConfigs);
 
-PVRSRV_ERROR PVRSRVRGXGetConfiguredHWPerfCounters(PVRSRV_DEVICE_NODE *psDevNode,
-                                                  RGXFWIF_HWPERF_CTL *psHWPerfCtl,
-                                                  IMG_UINT32 ui32BlockID,
-                                                  RGX_HWPERF_CONFIG_CNTBLK *psConfiguredCounters);
+PVRSRV_ERROR PVRSRVRGXGetConfiguredHWPerfCounters(
+	PVRSRV_DEVICE_NODE *psDevNode, RGXFWIF_HWPERF_CTL *psHWPerfCtl,
+	IMG_UINT32 ui32BlockID, RGX_HWPERF_CONFIG_CNTBLK *psConfiguredCounters);
 
 PVRSRV_ERROR PVRSRVRGXGetEnabledHWPerfBlocks(PVRSRV_DEVICE_NODE *psDevNode,
-                                             RGXFWIF_HWPERF_CTL *psHWPerfCtl,
-                                             IMG_UINT32 ui32ArrayLength,
-                                             IMG_UINT32 *pui32BlockCount,
-                                             IMG_UINT32 *pui32EnabledBlockIDs);
+					     RGXFWIF_HWPERF_CTL *psHWPerfCtl,
+					     IMG_UINT32 ui32ArrayLength,
+					     IMG_UINT32 *pui32BlockCount,
+					     IMG_UINT32 *pui32EnabledBlockIDs);
 
 #endif /* RGXHWPERF_H_ */

@@ -84,14 +84,15 @@ typedef const struct PVRSRV_DEV_CONNECTION_TAG *SHARED_DEV_CONNECTION;
 
 /* Flag to be passed over the bridge during connection stating whether CPU cache coherent is available*/
 #define PVRSRV_CACHE_COHERENT_SHIFT (0)
-#define	PVRSRV_CACHE_COHERENT_DEVICE_FLAG (1U << PVRSRV_CACHE_COHERENT_SHIFT)
-#define	PVRSRV_CACHE_COHERENT_CPU_FLAG (2U << PVRSRV_CACHE_COHERENT_SHIFT)
-#define	PVRSRV_CACHE_COHERENT_EMULATE_FLAG (4U << PVRSRV_CACHE_COHERENT_SHIFT)
+#define PVRSRV_CACHE_COHERENT_DEVICE_FLAG (1U << PVRSRV_CACHE_COHERENT_SHIFT)
+#define PVRSRV_CACHE_COHERENT_CPU_FLAG (2U << PVRSRV_CACHE_COHERENT_SHIFT)
+#define PVRSRV_CACHE_COHERENT_EMULATE_FLAG (4U << PVRSRV_CACHE_COHERENT_SHIFT)
 #define PVRSRV_CACHE_COHERENT_MASK (7U << PVRSRV_CACHE_COHERENT_SHIFT)
 
 /* Flag to be passed over the bridge during connection stating whether CPU non-mappable memory is present */
 #define PVRSRV_NONMAPPABLE_MEMORY_PRESENT_SHIFT (7)
-#define PVRSRV_NONMAPPABLE_MEMORY_PRESENT_FLAG (1U << PVRSRV_NONMAPPABLE_MEMORY_PRESENT_SHIFT)
+#define PVRSRV_NONMAPPABLE_MEMORY_PRESENT_FLAG \
+	(1U << PVRSRV_NONMAPPABLE_MEMORY_PRESENT_SHIFT)
 
 /* Flag to be passed over the bridge to indicate PDump activity */
 #define PVRSRV_PDUMP_IS_RECORDING_SHIFT (4)
@@ -99,7 +100,8 @@ typedef const struct PVRSRV_DEV_CONNECTION_TAG *SHARED_DEV_CONNECTION;
 
 /* Flag to be passed over the bridge during connection stating SVM allocation availability */
 #define PVRSRV_DEVMEM_SVM_ALLOC_SHIFT (8)
-#define PVRSRV_DEVMEM_SVM_ALLOC_UNSUPPORTED (1U << PVRSRV_DEVMEM_SVM_ALLOC_SHIFT)
+#define PVRSRV_DEVMEM_SVM_ALLOC_UNSUPPORTED \
+	(1U << PVRSRV_DEVMEM_SVM_ALLOC_SHIFT)
 #define PVRSRV_DEVMEM_SVM_ALLOC_SUPPORTED (2U << PVRSRV_DEVMEM_SVM_ALLOC_SHIFT)
 #define PVRSRV_DEVMEM_SVM_ALLOC_CANFAIL (4U << PVRSRV_DEVMEM_SVM_ALLOC_SHIFT)
 
@@ -120,11 +122,10 @@ typedef const struct PVRSRV_DEV_CONNECTION_TAG *SHARED_DEV_CONNECTION;
 static INLINE IMG_HANDLE GetBridgeHandle(SHARED_DEV_CONNECTION hDevConnection)
 {
 #if defined(__KERNEL__)
-    return hDevConnection;
+	return hDevConnection;
 #else
-    return hDevConnection->hServices;
+	return hDevConnection->hServices;
 #endif
 }
-
 
 #endif /* !defined(DEVICE_CONNECTION_H) */

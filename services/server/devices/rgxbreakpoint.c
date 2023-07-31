@@ -51,27 +51,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pdump_km.h"
 #include "pvrsrv.h"
 
-PVRSRV_ERROR PVRSRVRGXSetBreakpointKM(CONNECTION_DATA    * psConnection,
-                                      PVRSRV_DEVICE_NODE * psDeviceNode,
-                                      IMG_HANDLE           hMemCtxPrivData,
-                                      RGXFWIF_DM           eFWDataMaster,
-                                      IMG_UINT64           ui64TempSpillingAddr,
-                                      IMG_UINT32           ui32BPAddr,
-                                      IMG_UINT32           ui32HandlerAddr,
-                                      IMG_UINT32           ui32DataMaster)
+PVRSRV_ERROR
+PVRSRVRGXSetBreakpointKM(CONNECTION_DATA *psConnection,
+			 PVRSRV_DEVICE_NODE *psDeviceNode,
+			 IMG_HANDLE hMemCtxPrivData, RGXFWIF_DM eFWDataMaster,
+			 IMG_UINT64 ui64TempSpillingAddr, IMG_UINT32 ui32BPAddr,
+			 IMG_UINT32 ui32HandlerAddr, IMG_UINT32 ui32DataMaster)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	DEVMEM_MEMDESC		*psFWMemContextMemDesc = RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sBPCmd;
-	IMG_UINT32			ui32kCCBCommandSlot;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	DEVMEM_MEMDESC *psFWMemContextMemDesc =
+		RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sBPCmd;
+	IMG_UINT32 ui32kCCBCommandSlot;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
 	OSLockAcquire(psDevInfo->hBPLock);
 
-	if (psDevInfo->bBPSet)
-	{
+	if (psDevInfo->bBPSet) {
 		eError = PVRSRV_ERROR_BP_ALREADY_SET;
 		goto unlock;
 	}
@@ -81,24 +79,25 @@ PVRSRV_ERROR PVRSRVRGXSetBreakpointKM(CONNECTION_DATA    * psConnection,
 	sBPCmd.uCmdData.sBPData.ui32HandlerAddr = ui32HandlerAddr;
 	sBPCmd.uCmdData.sBPData.ui32BPDM = ui32DataMaster;
 	sBPCmd.uCmdData.sBPData.ui64SpillAddr = ui64TempSpillingAddr;
-	sBPCmd.uCmdData.sBPData.ui32BPDataFlags = RGXFWIF_BPDATA_FLAGS_WRITE | RGXFWIF_BPDATA_FLAGS_ENABLE;
+	sBPCmd.uCmdData.sBPData.ui32BPDataFlags = RGXFWIF_BPDATA_FLAGS_WRITE |
+						  RGXFWIF_BPDATA_FLAGS_ENABLE;
 	sBPCmd.uCmdData.sBPData.eDM = eFWDataMaster;
 
 	eError = RGXSetFirmwareAddress(&sBPCmd.uCmdData.sBPData.psFWMemContext,
-				psFWMemContextMemDesc,
-				0 ,
-				RFW_FWADDR_NOREF_FLAG);
+				       psFWMemContextMemDesc, 0,
+				       RFW_FWADDR_NOREF_FLAG);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXSetFirmwareAddress", unlock);
 
-	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo,
-	                                          eFWDataMaster,
-	                                          &sBPCmd,
-	                                          PDUMP_FLAGS_CONTINUOUS,
-	                                          &ui32kCCBCommandSlot);
-	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot", unlock);
+	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo, eFWDataMaster,
+						  &sBPCmd,
+						  PDUMP_FLAGS_CONTINUOUS,
+						  &ui32kCCBCommandSlot);
+	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot",
+			      unlock);
 
 	/* Wait for FW to complete command execution */
-	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot, PDUMP_FLAGS_CONTINUOUS);
+	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot,
+					  PDUMP_FLAGS_CONTINUOUS);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXWaitForKCCBSlotUpdate", unlock);
 
 	psDevInfo->eBPDM = eFWDataMaster;
@@ -110,41 +109,43 @@ unlock:
 	return eError;
 }
 
-PVRSRV_ERROR PVRSRVRGXClearBreakpointKM(CONNECTION_DATA    * psConnection,
-                                        PVRSRV_DEVICE_NODE * psDeviceNode,
-                                        IMG_HANDLE           hMemCtxPrivData)
+PVRSRV_ERROR PVRSRVRGXClearBreakpointKM(CONNECTION_DATA *psConnection,
+					PVRSRV_DEVICE_NODE *psDeviceNode,
+					IMG_HANDLE hMemCtxPrivData)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	DEVMEM_MEMDESC		*psFWMemContextMemDesc = RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sBPCmd;
-	IMG_UINT32			ui32kCCBCommandSlot;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	DEVMEM_MEMDESC *psFWMemContextMemDesc =
+		RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sBPCmd;
+	IMG_UINT32 ui32kCCBCommandSlot;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
 	sBPCmd.eCmdType = RGXFWIF_KCCB_CMD_BP;
 	sBPCmd.uCmdData.sBPData.ui32BPAddr = 0;
 	sBPCmd.uCmdData.sBPData.ui32HandlerAddr = 0;
-	sBPCmd.uCmdData.sBPData.ui32BPDataFlags = RGXFWIF_BPDATA_FLAGS_WRITE | RGXFWIF_BPDATA_FLAGS_CTL;
+	sBPCmd.uCmdData.sBPData.ui32BPDataFlags = RGXFWIF_BPDATA_FLAGS_WRITE |
+						  RGXFWIF_BPDATA_FLAGS_CTL;
 	sBPCmd.uCmdData.sBPData.eDM = psDevInfo->eBPDM;
 
 	OSLockAcquire(psDevInfo->hBPLock);
 
 	eError = RGXSetFirmwareAddress(&sBPCmd.uCmdData.sBPData.psFWMemContext,
-				psFWMemContextMemDesc,
-				0 ,
-				RFW_FWADDR_NOREF_FLAG);
+				       psFWMemContextMemDesc, 0,
+				       RFW_FWADDR_NOREF_FLAG);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXSetFirmwareAddress", unlock);
 
-	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo,
-	                                          psDevInfo->eBPDM,
-	                                          &sBPCmd,
-	                                          PDUMP_FLAGS_CONTINUOUS,
-	                                          &ui32kCCBCommandSlot);
-	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot", unlock);
+	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo, psDevInfo->eBPDM,
+						  &sBPCmd,
+						  PDUMP_FLAGS_CONTINUOUS,
+						  &ui32kCCBCommandSlot);
+	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot",
+			      unlock);
 
 	/* Wait for FW to complete command execution */
-	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot, PDUMP_FLAGS_CONTINUOUS);
+	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot,
+					  PDUMP_FLAGS_CONTINUOUS);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXWaitForKCCBSlotUpdate", unlock);
 
 	psDevInfo->bBPSet = IMG_FALSE;
@@ -155,45 +156,46 @@ unlock:
 	return eError;
 }
 
-PVRSRV_ERROR PVRSRVRGXEnableBreakpointKM(CONNECTION_DATA    * psConnection,
-                                         PVRSRV_DEVICE_NODE * psDeviceNode,
-                                         IMG_HANDLE           hMemCtxPrivData)
+PVRSRV_ERROR PVRSRVRGXEnableBreakpointKM(CONNECTION_DATA *psConnection,
+					 PVRSRV_DEVICE_NODE *psDeviceNode,
+					 IMG_HANDLE hMemCtxPrivData)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	DEVMEM_MEMDESC		*psFWMemContextMemDesc = RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sBPCmd;
-	IMG_UINT32			ui32kCCBCommandSlot;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	DEVMEM_MEMDESC *psFWMemContextMemDesc =
+		RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sBPCmd;
+	IMG_UINT32 ui32kCCBCommandSlot;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
 	OSLockAcquire(psDevInfo->hBPLock);
 
-	if (psDevInfo->bBPSet == IMG_FALSE)
-	{
+	if (psDevInfo->bBPSet == IMG_FALSE) {
 		eError = PVRSRV_ERROR_BP_NOT_SET;
 		goto unlock;
 	}
 
 	sBPCmd.eCmdType = RGXFWIF_KCCB_CMD_BP;
-	sBPCmd.uCmdData.sBPData.ui32BPDataFlags = RGXFWIF_BPDATA_FLAGS_CTL | RGXFWIF_BPDATA_FLAGS_ENABLE;
+	sBPCmd.uCmdData.sBPData.ui32BPDataFlags = RGXFWIF_BPDATA_FLAGS_CTL |
+						  RGXFWIF_BPDATA_FLAGS_ENABLE;
 	sBPCmd.uCmdData.sBPData.eDM = psDevInfo->eBPDM;
 
 	eError = RGXSetFirmwareAddress(&sBPCmd.uCmdData.sBPData.psFWMemContext,
-				psFWMemContextMemDesc,
-				0 ,
-				RFW_FWADDR_NOREF_FLAG);
+				       psFWMemContextMemDesc, 0,
+				       RFW_FWADDR_NOREF_FLAG);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXSetFirmwareAddress", unlock);
 
-	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo,
-	                                          psDevInfo->eBPDM,
-	                                          &sBPCmd,
-	                                          PDUMP_FLAGS_CONTINUOUS,
-	                                          &ui32kCCBCommandSlot);
-	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot", unlock);
+	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo, psDevInfo->eBPDM,
+						  &sBPCmd,
+						  PDUMP_FLAGS_CONTINUOUS,
+						  &ui32kCCBCommandSlot);
+	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot",
+			      unlock);
 
 	/* Wait for FW to complete command execution */
-	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot, PDUMP_FLAGS_CONTINUOUS);
+	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot,
+					  PDUMP_FLAGS_CONTINUOUS);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXWaitForKCCBSlotUpdate", unlock);
 
 unlock:
@@ -202,22 +204,22 @@ unlock:
 	return eError;
 }
 
-PVRSRV_ERROR PVRSRVRGXDisableBreakpointKM(CONNECTION_DATA    * psConnection,
-                                          PVRSRV_DEVICE_NODE * psDeviceNode,
-                                          IMG_HANDLE           hMemCtxPrivData)
+PVRSRV_ERROR PVRSRVRGXDisableBreakpointKM(CONNECTION_DATA *psConnection,
+					  PVRSRV_DEVICE_NODE *psDeviceNode,
+					  IMG_HANDLE hMemCtxPrivData)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	DEVMEM_MEMDESC		*psFWMemContextMemDesc = RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sBPCmd;
-	IMG_UINT32			ui32kCCBCommandSlot;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	DEVMEM_MEMDESC *psFWMemContextMemDesc =
+		RGXGetFWMemDescFromMemoryContextHandle(hMemCtxPrivData);
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sBPCmd;
+	IMG_UINT32 ui32kCCBCommandSlot;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
 	OSLockAcquire(psDevInfo->hBPLock);
 
-	if (psDevInfo->bBPSet == IMG_FALSE)
-	{
+	if (psDevInfo->bBPSet == IMG_FALSE) {
 		eError = PVRSRV_ERROR_BP_NOT_SET;
 		goto unlock;
 	}
@@ -227,20 +229,20 @@ PVRSRV_ERROR PVRSRVRGXDisableBreakpointKM(CONNECTION_DATA    * psConnection,
 	sBPCmd.uCmdData.sBPData.eDM = psDevInfo->eBPDM;
 
 	eError = RGXSetFirmwareAddress(&sBPCmd.uCmdData.sBPData.psFWMemContext,
-				psFWMemContextMemDesc,
-				0 ,
-				RFW_FWADDR_NOREF_FLAG);
+				       psFWMemContextMemDesc, 0,
+				       RFW_FWADDR_NOREF_FLAG);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXSetFirmwareAddress", unlock);
 
-	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo,
-	                                          psDevInfo->eBPDM,
-	                                          &sBPCmd,
-	                                          PDUMP_FLAGS_CONTINUOUS,
-	                                          &ui32kCCBCommandSlot);
-	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot", unlock);
+	eError = RGXScheduleCommandAndGetKCCBSlot(psDevInfo, psDevInfo->eBPDM,
+						  &sBPCmd,
+						  PDUMP_FLAGS_CONTINUOUS,
+						  &ui32kCCBCommandSlot);
+	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot",
+			      unlock);
 
 	/* Wait for FW to complete command execution */
-	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot, PDUMP_FLAGS_CONTINUOUS);
+	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot,
+					  PDUMP_FLAGS_CONTINUOUS);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXWaitForKCCBSlotUpdate", unlock);
 
 unlock:
@@ -249,15 +251,14 @@ unlock:
 	return eError;
 }
 
-PVRSRV_ERROR PVRSRVRGXOverallocateBPRegistersKM(CONNECTION_DATA    * psConnection,
-                                                PVRSRV_DEVICE_NODE * psDeviceNode,
-                                                IMG_UINT32           ui32TempRegs,
-                                                IMG_UINT32           ui32SharedRegs)
+PVRSRV_ERROR PVRSRVRGXOverallocateBPRegistersKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_UINT32 ui32TempRegs, IMG_UINT32 ui32SharedRegs)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sBPCmd;
-	IMG_UINT32			ui32kCCBCommandSlot;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sBPCmd;
+	IMG_UINT32 ui32kCCBCommandSlot;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -271,14 +272,15 @@ PVRSRV_ERROR PVRSRVRGXOverallocateBPRegistersKM(CONNECTION_DATA    * psConnectio
 	OSLockAcquire(psDevInfo->hBPLock);
 
 	eError = RGXScheduleCommandAndGetKCCBSlot(psDeviceNode->pvDevice,
-	                                          RGXFWIF_DM_GP,
-	                                          &sBPCmd,
-	                                          PDUMP_FLAGS_CONTINUOUS,
-	                                          &ui32kCCBCommandSlot);
-	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot", unlock);
+						  RGXFWIF_DM_GP, &sBPCmd,
+						  PDUMP_FLAGS_CONTINUOUS,
+						  &ui32kCCBCommandSlot);
+	PVR_LOG_GOTO_IF_ERROR(eError, "RGXScheduleCommandAndGetKCCBSlot",
+			      unlock);
 
 	/* Wait for FW to complete command execution */
-	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot, PDUMP_FLAGS_CONTINUOUS);
+	eError = RGXWaitForKCCBSlotUpdate(psDevInfo, ui32kCCBCommandSlot,
+					  PDUMP_FLAGS_CONTINUOUS);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXWaitForKCCBSlotUpdate", unlock);
 
 unlock:

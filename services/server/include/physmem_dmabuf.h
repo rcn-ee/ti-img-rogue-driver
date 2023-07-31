@@ -60,65 +60,48 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pmr.h"
 
 typedef void (*PFN_DESTROY_DMABUF_PMR)(PHYS_HEAP *psHeap,
-                                       struct dma_buf_attachment *psAttachment);
+				       struct dma_buf_attachment *psAttachment);
 
 PVRSRV_ERROR
-PhysmemCreateNewDmaBufBackedPMR(PHYS_HEAP *psHeap,
-                                struct dma_buf_attachment *psAttachment,
-                                PFN_DESTROY_DMABUF_PMR pfnDestroy,
-                                PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                                IMG_DEVMEM_SIZE_T uiChunkSize,
-                                IMG_UINT32 ui32NumPhysChunks,
-                                IMG_UINT32 ui32NumVirtChunks,
-                                IMG_UINT32 *pui32MappingTable,
-		                        IMG_UINT32 ui32NameSize,
-		                        const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN],
-                                PMR **ppsPMRPtr);
+PhysmemCreateNewDmaBufBackedPMR(
+	PHYS_HEAP *psHeap, struct dma_buf_attachment *psAttachment,
+	PFN_DESTROY_DMABUF_PMR pfnDestroy, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	IMG_DEVMEM_SIZE_T uiChunkSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 ui32NameSize,
+	const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN], PMR **ppsPMRPtr);
 
-struct dma_buf *
-PhysmemGetDmaBuf(PMR *psPMR);
+struct dma_buf *PhysmemGetDmaBuf(PMR *psPMR);
 
 PVRSRV_ERROR
 PhysmemExportDmaBuf(CONNECTION_DATA *psConnection,
-                    PVRSRV_DEVICE_NODE *psDevNode,
-                    PMR *psPMR,
-                    IMG_INT *piFd);
+		    PVRSRV_DEVICE_NODE *psDevNode, PMR *psPMR, IMG_INT *piFd);
 
 PVRSRV_ERROR
 PhysmemImportDmaBuf(CONNECTION_DATA *psConnection,
-                    PVRSRV_DEVICE_NODE *psDevNode,
-                    IMG_INT fd,
-                    PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                    IMG_UINT32 ui32NameSize,
-                    const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN],
-                    PMR **ppsPMRPtr,
-                    IMG_DEVMEM_SIZE_T *puiSize,
-                    IMG_DEVMEM_ALIGN_T *puiAlign);
+		    PVRSRV_DEVICE_NODE *psDevNode, IMG_INT fd,
+		    PVRSRV_MEMALLOCFLAGS_T uiFlags, IMG_UINT32 ui32NameSize,
+		    const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN],
+		    PMR **ppsPMRPtr, IMG_DEVMEM_SIZE_T *puiSize,
+		    IMG_DEVMEM_ALIGN_T *puiAlign);
 
 PVRSRV_ERROR
 PhysmemImportDmaBufLocked(CONNECTION_DATA *psConnection,
-                          PVRSRV_DEVICE_NODE *psDevNode,
-                          IMG_INT fd,
-                          PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                          IMG_UINT32 ui32NameSize,
-                          const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN],
-                          PMR **ppsPMRPtr,
-                          IMG_DEVMEM_SIZE_T *puiSize,
-                          IMG_DEVMEM_ALIGN_T *puiAlign);
+			  PVRSRV_DEVICE_NODE *psDevNode, IMG_INT fd,
+			  PVRSRV_MEMALLOCFLAGS_T uiFlags,
+			  IMG_UINT32 ui32NameSize,
+			  const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN],
+			  PMR **ppsPMRPtr, IMG_DEVMEM_SIZE_T *puiSize,
+			  IMG_DEVMEM_ALIGN_T *puiAlign);
 
 PVRSRV_ERROR
-PhysmemImportSparseDmaBuf(CONNECTION_DATA *psConnection,
-                          PVRSRV_DEVICE_NODE *psDevNode,
-                          IMG_INT fd,
-                          PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                          IMG_DEVMEM_SIZE_T uiChunkSize,
-                          IMG_UINT32 ui32NumPhysChunks,
-                          IMG_UINT32 ui32NumVirtChunks,
-                          IMG_UINT32 *pui32MappingTable,
-                          IMG_UINT32 ui32NameSize,
-                          const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN],
-                          PMR **ppsPMRPtr,
-                          IMG_DEVMEM_SIZE_T *puiSize,
-                          IMG_DEVMEM_ALIGN_T *puiAlign);
+PhysmemImportSparseDmaBuf(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+	IMG_INT fd, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	IMG_DEVMEM_SIZE_T uiChunkSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 ui32NameSize,
+	const IMG_CHAR pszName[DEVMEM_ANNOTATION_MAX_LEN], PMR **ppsPMRPtr,
+	IMG_DEVMEM_SIZE_T *puiSize, IMG_DEVMEM_ALIGN_T *puiAlign);
 
 #endif /* !defined(PHYSMEM_DMABUF_H) */

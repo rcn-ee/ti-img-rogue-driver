@@ -49,8 +49,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxdebug_common.h"
 #include "rgx_fwif_km.h"
 
-typedef struct _RGX_SYNC_DATA_
-{
+typedef struct _RGX_SYNC_DATA_ {
 	PRGXFWIF_UFO_ADDR *pauiClientUpdateUFOAddress;
 	IMG_UINT32 *paui32ClientUpdateValue;
 	IMG_UINT32 ui32ClientUpdateValueCount;
@@ -62,12 +61,12 @@ typedef struct _RGX_SYNC_DATA_
 	IMG_UINT32 ui32ClientPRUpdateCount;
 } RGX_SYNC_DATA;
 
-PVRSRV_ERROR RGXSyncAppendTimelineUpdate(IMG_UINT32 ui32FenceTimelineUpdateValue,
-										 SYNC_ADDR_LIST	*psSyncList,
-										 SYNC_ADDR_LIST	*psPRSyncList,
-										 PVRSRV_CLIENT_SYNC_PRIM *psFenceTimelineUpdateSync,
-										 RGX_SYNC_DATA *psSyncData,
-										 IMG_BOOL bKick3D);
+PVRSRV_ERROR
+RGXSyncAppendTimelineUpdate(IMG_UINT32 ui32FenceTimelineUpdateValue,
+			    SYNC_ADDR_LIST *psSyncList,
+			    SYNC_ADDR_LIST *psPRSyncList,
+			    PVRSRV_CLIENT_SYNC_PRIM *psFenceTimelineUpdateSync,
+			    RGX_SYNC_DATA *psSyncData, IMG_BOOL bKick3D);
 
 #endif /* RGXSYNCUTILS_H */
 

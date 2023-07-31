@@ -48,8 +48,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgx_fwif_sf.h"
 
-static const IMG_CHAR *const groups[]= {
-#define X(A,B) #B,
+static const IMG_CHAR *const groups[] = {
+#define X(A, B) #B,
 	RGXFW_LOG_SFGROUPLIST
 #undef X
 };
@@ -58,17 +58,17 @@ static const IMG_CHAR *const groups[]= {
  *   return index to array if found or RGXFW_SF_LAST if none found.
  *   bsearch could be used as ids are in increasing order. */
 #if defined(RGX_FIRMWARE)
-static IMG_UINT32 idToStringID(IMG_UINT32 ui32CheckData, const RGXFW_STID_FMT *const psSFs)
+static IMG_UINT32 idToStringID(IMG_UINT32 ui32CheckData,
+			       const RGXFW_STID_FMT *const psSFs)
 #else
-static IMG_UINT32 idToStringID(IMG_UINT32 ui32CheckData, const RGXKM_STID_FMT *const psSFs)
+static IMG_UINT32 idToStringID(IMG_UINT32 ui32CheckData,
+			       const RGXKM_STID_FMT *const psSFs)
 #endif
 {
 	IMG_UINT32 i = 0, ui32Id = (IMG_UINT32)RGXFW_SF_LAST;
 
-	for ( i = 0 ; psSFs[i].ui32Id != (IMG_UINT32)RGXFW_SF_LAST ; i++)
-	{
-		if ( ui32CheckData == psSFs[i].ui32Id )
-		{
+	for (i = 0; psSFs[i].ui32Id != (IMG_UINT32)RGXFW_SF_LAST; i++) {
+		if (ui32CheckData == psSFs[i].ui32Id) {
 			ui32Id = i;
 			break;
 		}

@@ -44,15 +44,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define OSDI_IMPL_H
 
 #if defined(__linux__)
- #include <linux/version.h>
+#include <linux/version.h>
 
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
-  #include <linux/stdarg.h>
- #else
-  #include <stdarg.h>
- #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+#include <linux/stdarg.h>
 #else
- #include <stdarg.h>
+#include <stdarg.h>
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#else
+#include <stdarg.h>
 #endif /* __linux__ */
 
 #include "di_common.h"
@@ -60,9 +60,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /*! Implementation callbacks. Those operations are performed on native
  * implementation handles. */
-typedef struct OSDI_IMPL_ENTRY_CB
-{
-    /*! @Function pfnWrite
+typedef struct OSDI_IMPL_ENTRY_CB {
+	/*! @Function pfnWrite
      *
      * @Description
      * Writes the binary data of the DI entry to the output sync, whatever that
@@ -72,10 +71,10 @@ typedef struct OSDI_IMPL_ENTRY_CB
      * @Input pvData data
      * @Input uiSize pvData length
      */
-    void (*pfnWrite)(void  *pvNativeHandle, const void *pvData,
-                     IMG_UINT32 uiSize);
+	void (*pfnWrite)(void *pvNativeHandle, const void *pvData,
+			 IMG_UINT32 uiSize);
 
-    /*! @Function pfnVPrintf
+	/*! @Function pfnVPrintf
      *
      * @Description
      * Implementation of the 'vprintf' operation.
@@ -84,9 +83,10 @@ typedef struct OSDI_IMPL_ENTRY_CB
      * @Input pszFmt NUL-terminated format string
      * @Input va_list variable length argument list
      */
-    void (*pfnVPrintf)(void *pvNativeHandle, const IMG_CHAR *pszFmt, va_list pArgs);
+	void (*pfnVPrintf)(void *pvNativeHandle, const IMG_CHAR *pszFmt,
+			   va_list pArgs);
 
-    /*! @Function pfnPuts
+	/*! @Function pfnPuts
      *
      * @Description
      * Implementation of the 'puts' operation.
@@ -94,42 +94,40 @@ typedef struct OSDI_IMPL_ENTRY_CB
      * @Input pvNativeHandle native implementation handle
      * @Input pszStr NUL-terminated string
      */
-    void (*pfnPuts)(void *pvNativeHandle, const IMG_CHAR *pszStr);
+	void (*pfnPuts)(void *pvNativeHandle, const IMG_CHAR *pszStr);
 
-    /*! @Function pfnHasOverflowed
+	/*! @Function pfnHasOverflowed
      *
      * @Description
      * Checks if the native implementation's buffer has overflowed.
      *
      * @Input pvNativeHandle native implementation handle
      */
-    IMG_BOOL (*pfnHasOverflowed)(void *pvNativeHandle);
+	IMG_BOOL (*pfnHasOverflowed)(void *pvNativeHandle);
 } OSDI_IMPL_ENTRY_CB;
 
 /*! Debug Info entry specialisation. */
-struct OSDI_IMPL_ENTRY
-{
-    /*! Pointer to the private data. The data originates from DICreateEntry()
+struct OSDI_IMPL_ENTRY {
+	/*! Pointer to the private data. The data originates from DICreateEntry()
      *  function. */
-    void *pvPrivData;
-    /*! Pointer to the implementation native handle. */
-    void *pvNative;
-    /*! Implementation entry callbacks. */
-    OSDI_IMPL_ENTRY_CB *psCb;
+	void *pvPrivData;
+	/*! Pointer to the implementation native handle. */
+	void *pvNative;
+	/*! Implementation entry callbacks. */
+	OSDI_IMPL_ENTRY_CB *psCb;
 }; /* OSDI_IMPL_ENTRY is already typedef-ed in di_common.h */
 
 /*! Debug Info implementation callbacks. */
-typedef struct OSDI_IMPL_CB
-{
-    /*! Initialise implementation callback.
+typedef struct OSDI_IMPL_CB {
+	/*! Initialise implementation callback.
      */
-    PVRSRV_ERROR (*pfnInit)(void);
+	PVRSRV_ERROR (*pfnInit)(void);
 
-    /*! De-initialise implementation callback.
+	/*! De-initialise implementation callback.
      */
-    void (*pfnDeInit)(void);
+	void (*pfnDeInit)(void);
 
-    /*! @Function pfnCreateEntry
+	/*! @Function pfnCreateEntry
      *
      * @Description
      * Creates entry of eType type with pszName in the pvNativeGroup parent
@@ -148,23 +146,21 @@ typedef struct OSDI_IMPL_CB
      *
      * return PVRSRV_ERROR error code
      */
-    PVRSRV_ERROR (*pfnCreateEntry)(const IMG_CHAR *pszName,
-                                   DI_ENTRY_TYPE eType,
-                                   const DI_ITERATOR_CB *psIterCb,
-                                   void *pvPrivData,
-                                   void *pvNativeGroup,
-                                   void **pvNativeEntry);
+	PVRSRV_ERROR(*pfnCreateEntry)
+	(const IMG_CHAR *pszName, DI_ENTRY_TYPE eType,
+	 const DI_ITERATOR_CB *psIterCb, void *pvPrivData, void *pvNativeGroup,
+	 void **pvNativeEntry);
 
-    /*! @Function pfnDestroyEntry
+	/*! @Function pfnDestroyEntry
      *
      * @Description
      * Destroys native entry.
      *
      * @Input psNativeEntry: handle to the entry
      */
-    void (*pfnDestroyEntry)(void *psNativeEntry);
+	void (*pfnDestroyEntry)(void *psNativeEntry);
 
-    /*! @Function pfnCreateGroup
+	/*! @Function pfnCreateGroup
      *
      * @Description
      * Creates group with pszName in the psNativeParentGroup parent group.
@@ -179,18 +175,18 @@ typedef struct OSDI_IMPL_CB
      *
      * return PVRSRV_ERROR error code
      */
-    PVRSRV_ERROR (*pfnCreateGroup)(const IMG_CHAR *pszName,
-                                   void *psNativeParentGroup,
-                                   void **psNativeGroup);
+	PVRSRV_ERROR(*pfnCreateGroup)
+	(const IMG_CHAR *pszName, void *psNativeParentGroup,
+	 void **psNativeGroup);
 
-    /*! @Function pfnDestroyGroup
+	/*! @Function pfnDestroyGroup
      *
      * @Description
      * Destroys native group.
      *
      * @Input psNativeGroup: handle to the group
      */
-    void (*pfnDestroyGroup)(void *psNativeGroup);
+	void (*pfnDestroyGroup)(void *psNativeGroup);
 } OSDI_IMPL_CB;
 
 /*! @Function DIRegisterImplementation
@@ -206,6 +202,6 @@ typedef struct OSDI_IMPL_CB
  * @Return PVRSRV_ERROR error code
  */
 PVRSRV_ERROR DIRegisterImplementation(const IMG_CHAR *pszName,
-                                      const OSDI_IMPL_CB *psImplCb);
+				      const OSDI_IMPL_CB *psImplCb);
 
 #endif /* OSDI_IMPL_H */

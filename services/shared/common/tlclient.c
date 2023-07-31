@@ -79,26 +79,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Defines/Constants
  */
 
-#define NO_ACQUIRE             0xffffffffU
+#define NO_ACQUIRE 0xffffffffU
 
 /* User-side stream descriptor structure.
  */
-typedef struct _TL_STREAM_DESC_
-{
+typedef struct _TL_STREAM_DESC_ {
 	/* Handle on kernel-side stream descriptor*/
-	IMG_HANDLE		hServerSD;
+	IMG_HANDLE hServerSD;
 
 	/* Stream data buffer variables */
-	DEVMEM_MEMDESC*			psUMmemDesc;
-	IMG_PBYTE				pBaseAddr;
+	DEVMEM_MEMDESC *psUMmemDesc;
+	IMG_PBYTE pBaseAddr;
 
 	/* Offset in bytes into the circular buffer and valid only after
 	 * an Acquire call and undefined after a release. */
-	IMG_UINT32	uiReadOffset;
+	IMG_UINT32 uiReadOffset;
 
 	/* Always a positive integer when the Acquire call returns and a release
 	 * is outstanding. Undefined at all other times. */
-	IMG_UINT32	uiReadLen;
+	IMG_UINT32 uiReadLen;
 
 	/* Counter indicating how many writes to a stream failed.
 	 * It's used to reduce number of errors in output log. */
@@ -108,12 +107,10 @@ typedef struct _TL_STREAM_DESC_
 	IMG_CHAR szName[PRVSRVTL_MAX_STREAM_NAME_SIZE];
 } TL_STREAM_DESC, *PTL_STREAM_DESC;
 
-
 IMG_INTERNAL
 PVRSRV_ERROR TLClientOpenStream(SHARED_DEV_CONNECTION hDevConnection,
-		const IMG_CHAR* pszName,
-		IMG_UINT32   ui32Mode,
-		IMG_HANDLE*  phSD)
+				const IMG_CHAR *pszName, IMG_UINT32 ui32Mode,
+				IMG_HANDLE *phSD)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
 	TL_STREAM_DESC *psSD = NULL;
@@ -136,42 +133,37 @@ PVRSRV_ERROR TLClientOpenStream(SHARED_DEV_CONNECTION hDevConnection,
 	/* Send open stream request to kernel server to get stream handle and
 	 * buffer cookie so we can get access to the buffer in this process. */
 	eError = BridgeTLOpenStream(GetBridgeHandle(hDevConnection), pszName,
-			ui32Mode, &psSD->hServerSD, &hTLPMR);
-	if (eError != PVRSRV_OK)
-	{
+				    ui32Mode, &psSD->hServerSD, &hTLPMR);
+	if (eError != PVRSRV_OK) {
 		if ((ui32Mode & PVRSRV_STREAM_FLAG_OPEN_WAIT) &&
-			(eError == PVRSRV_ERROR_TIMEOUT))
-		{
+		    (eError == PVRSRV_ERROR_TIMEOUT)) {
 			goto e1;
 		}
 		PVR_LOG_GOTO_IF_ERROR(eError, "BridgeTLOpenStream", e1);
 	}
 
 	/* Convert server export cookie into a cookie for use by this client */
-	eError = DevmemMakeLocalImportHandle(hDevConnection,
-			hTLPMR, &hTLImportHandle);
+	eError = DevmemMakeLocalImportHandle(hDevConnection, hTLPMR,
+					     &hTLImportHandle);
 	PVR_LOG_GOTO_IF_ERROR(eError, "DevmemMakeLocalImportHandle", e2);
 
 	uiMemFlags |= ui32Mode & PVRSRV_STREAM_FLAG_OPEN_WO ?
-	        PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE : 0ULL;
+			      PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE :
+			      0ULL;
 	/* Now convert client cookie into a client handle on the buffer's
 	 * physical memory region */
-	eError = DevmemLocalImport(hDevConnection,
-	                           hTLImportHandle,
-	                           uiMemFlags,
-	                           &psSD->psUMmemDesc,
-	                           &uiImportSize,
-	                           "TLBuffer");
+	eError = DevmemLocalImport(hDevConnection, hTLImportHandle, uiMemFlags,
+				   &psSD->psUMmemDesc, &uiImportSize,
+				   "TLBuffer");
 	PVR_LOG_GOTO_IF_ERROR(eError, "DevmemImport", e3);
 
 	/* Now map the memory into the virtual address space of this process. */
-	eError = DevmemAcquireCpuVirtAddr(psSD->psUMmemDesc, (void **)
-															&psSD->pBaseAddr);
+	eError = DevmemAcquireCpuVirtAddr(psSD->psUMmemDesc,
+					  (void **)&psSD->pBaseAddr);
 	PVR_LOG_GOTO_IF_ERROR(eError, "DevmemAcquireCpuVirtAddr", e4);
 
 	/* Ignore error, not much that can be done */
-	(void) DevmemUnmakeLocalImportHandle(hDevConnection,
-			hTLImportHandle);
+	(void)DevmemUnmakeLocalImportHandle(hDevConnection, hTLImportHandle);
 
 	/* Copy stream name */
 	OSStringLCopy(psSD->szName, pszName, PRVSRVTL_MAX_STREAM_NAME_SIZE);
@@ -184,8 +176,7 @@ PVRSRV_ERROR TLClientOpenStream(SHARED_DEV_CONNECTION hDevConnection,
 e4:
 	DevmemFree(psSD->psUMmemDesc);
 e3:
-	(void) DevmemUnmakeLocalImportHandle(hDevConnection,
-				&hTLImportHandle);
+	(void)DevmemUnmakeLocalImportHandle(hDevConnection, &hTLImportHandle);
 /* Clean up post stream open */
 e2:
 	BridgeTLCloseStream(GetBridgeHandle(hDevConnection), psSD->hServerSD);
@@ -200,28 +191,29 @@ e0:
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientCloseStream(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD)
+				 IMG_HANDLE hSD)
 {
 	PVRSRV_ERROR eError;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(hSD);
 
 	/* Check the caller provided connection is valid */
-	if (!psSD->hServerSD)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: descriptor already "
-				"closed/not open", __func__));
+	if (!psSD->hServerSD) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: descriptor already "
+			 "closed/not open",
+			 __func__));
 		return PVRSRV_ERROR_HANDLE_NOT_FOUND;
 	}
 
 	/* Check if acquire is outstanding, perform release if it is, ignore result
 	 * as there is not much we can do if it is an error other than close */
-	if (psSD->uiReadLen != NO_ACQUIRE)
-	{
-		(void) BridgeTLReleaseData(GetBridgeHandle(hDevConnection),
-				psSD->hServerSD, psSD->uiReadOffset, psSD->uiReadLen);
+	if (psSD->uiReadLen != NO_ACQUIRE) {
+		(void)BridgeTLReleaseData(GetBridgeHandle(hDevConnection),
+					  psSD->hServerSD, psSD->uiReadOffset,
+					  psSD->uiReadLen);
 		psSD->uiReadLen = psSD->uiReadOffset = NO_ACQUIRE;
 	}
 
@@ -232,17 +224,15 @@ PVRSRV_ERROR TLClientCloseStream(SHARED_DEV_CONNECTION hDevConnection,
 
 	/* Send close to server to clean up kernel mode resources for this
 	 * handle and release the memory. */
-	eError = DestroyServerResource(hDevConnection,
-	                               NULL,
-	                               BridgeTLCloseStream,
-	                               psSD->hServerSD);
+	eError = DestroyServerResource(hDevConnection, NULL,
+				       BridgeTLCloseStream, psSD->hServerSD);
 	PVR_LOG_IF_ERROR(eError, "BridgeTLCloseStream");
 
-	if (psSD->ui32WritesFailed != 0)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s() %u writes failed to stream %s (%c)",
-		        __func__, psSD->ui32WritesFailed, psSD->szName,
-		        psSD->ui32WritesFailed == IMG_UINT32_MAX ? 'T' : 'F'));
+	if (psSD->ui32WritesFailed != 0) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s() %u writes failed to stream %s (%c)", __func__,
+			 psSD->ui32WritesFailed, psSD->szName,
+			 psSD->ui32WritesFailed == IMG_UINT32_MAX ? 'T' : 'F'));
 	}
 
 	OSCachedMemSet(psSD, 0x00, sizeof(TL_STREAM_DESC));
@@ -252,31 +242,30 @@ PVRSRV_ERROR TLClientCloseStream(SHARED_DEV_CONNECTION hDevConnection,
 }
 
 IMG_INTERNAL
-PVRSRV_ERROR TLClientDiscoverStreams(SHARED_DEV_CONNECTION hDevConnection,
-		const IMG_CHAR *pszNamePattern,
-		IMG_CHAR aszStreams[][PRVSRVTL_MAX_STREAM_NAME_SIZE],
-		IMG_UINT32 *pui32NumFound)
+PVRSRV_ERROR
+TLClientDiscoverStreams(SHARED_DEV_CONNECTION hDevConnection,
+			const IMG_CHAR *pszNamePattern,
+			IMG_CHAR aszStreams[][PRVSRVTL_MAX_STREAM_NAME_SIZE],
+			IMG_UINT32 *pui32NumFound)
 {
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(pszNamePattern);
 	PVR_ASSERT(pui32NumFound);
 
-	return BridgeTLDiscoverStreams(GetBridgeHandle(hDevConnection),
-			pszNamePattern,
-			/* we need to treat this as one dimensional array */
-			*pui32NumFound * PRVSRVTL_MAX_STREAM_NAME_SIZE,
-			(IMG_CHAR *) aszStreams,
-			pui32NumFound);
+	return BridgeTLDiscoverStreams(
+		GetBridgeHandle(hDevConnection), pszNamePattern,
+		/* we need to treat this as one dimensional array */
+		*pui32NumFound * PRVSRVTL_MAX_STREAM_NAME_SIZE,
+		(IMG_CHAR *)aszStreams, pui32NumFound);
 }
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReserveStream(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT8 **ppui8Data,
-		IMG_UINT32 ui32Size)
+				   IMG_HANDLE hSD, IMG_UINT8 **ppui8Data,
+				   IMG_UINT32 ui32Size)
 {
 	PVRSRV_ERROR eError;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 	IMG_UINT32 ui32BufferOffset, ui32Unused;
 
 	PVR_ASSERT(hDevConnection);
@@ -285,7 +274,8 @@ PVRSRV_ERROR TLClientReserveStream(SHARED_DEV_CONNECTION hDevConnection,
 	PVR_ASSERT(ui32Size);
 
 	eError = BridgeTLReserveStream(GetBridgeHandle(hDevConnection),
-			psSD->hServerSD, &ui32BufferOffset, ui32Size, ui32Size, &ui32Unused);
+				       psSD->hServerSD, &ui32BufferOffset,
+				       ui32Size, ui32Size, &ui32Unused);
 	PVR_RETURN_IF_ERROR(eError);
 
 	*ppui8Data = psSD->pBaseAddr + ui32BufferOffset;
@@ -295,14 +285,12 @@ PVRSRV_ERROR TLClientReserveStream(SHARED_DEV_CONNECTION hDevConnection,
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReserveStream2(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT8 **ppui8Data,
-		IMG_UINT32 ui32Size,
-		IMG_UINT32 ui32SizeMin,
-		IMG_UINT32 *pui32Available)
+				    IMG_HANDLE hSD, IMG_UINT8 **ppui8Data,
+				    IMG_UINT32 ui32Size, IMG_UINT32 ui32SizeMin,
+				    IMG_UINT32 *pui32Available)
 {
 	PVRSRV_ERROR eError;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 	IMG_UINT32 ui32BufferOffset;
 
 	PVR_ASSERT(hDevConnection);
@@ -311,8 +299,8 @@ PVRSRV_ERROR TLClientReserveStream2(SHARED_DEV_CONNECTION hDevConnection,
 	PVR_ASSERT(ui32Size);
 
 	eError = BridgeTLReserveStream(GetBridgeHandle(hDevConnection),
-			psSD->hServerSD, &ui32BufferOffset, ui32Size, ui32SizeMin,
-			pui32Available);
+				       psSD->hServerSD, &ui32BufferOffset,
+				       ui32Size, ui32SizeMin, pui32Available);
 	PVR_RETURN_IF_ERROR(eError);
 
 	*ppui8Data = psSD->pBaseAddr + ui32BufferOffset;
@@ -322,18 +310,17 @@ PVRSRV_ERROR TLClientReserveStream2(SHARED_DEV_CONNECTION hDevConnection,
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientCommitStream(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT32 ui32Size)
+				  IMG_HANDLE hSD, IMG_UINT32 ui32Size)
 {
 	PVRSRV_ERROR eError;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(hSD);
 	PVR_ASSERT(ui32Size);
 
 	eError = BridgeTLCommitStream(GetBridgeHandle(hDevConnection),
-			psSD->hServerSD, ui32Size);
+				      psSD->hServerSD, ui32Size);
 	PVR_RETURN_IF_ERROR(eError);
 
 	return PVRSRV_OK;
@@ -341,12 +328,11 @@ PVRSRV_ERROR TLClientCommitStream(SHARED_DEV_CONNECTION hDevConnection,
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientAcquireData(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE  hSD,
-		IMG_PBYTE*  ppPacketBuf,
-		IMG_UINT32* pui32BufLen)
+				 IMG_HANDLE hSD, IMG_PBYTE *ppPacketBuf,
+				 IMG_UINT32 *pui32BufLen)
 {
 	PVRSRV_ERROR eError;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(hSD);
@@ -359,23 +345,22 @@ PVRSRV_ERROR TLClientAcquireData(SHARED_DEV_CONNECTION hDevConnection,
 	*pui32BufLen = 0;
 
 	/* Check Acquire has not been called twice in a row without a release */
-	if (psSD->uiReadOffset != NO_ACQUIRE)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: acquire already "
-				"outstanding, ReadOffset(%d), ReadLength(%d)",
-				__func__, psSD->uiReadOffset, psSD->uiReadLen));
+	if (psSD->uiReadOffset != NO_ACQUIRE) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: acquire already "
+			 "outstanding, ReadOffset(%d), ReadLength(%d)",
+			 __func__, psSD->uiReadOffset, psSD->uiReadLen));
 		return PVRSRV_ERROR_RETRY;
 	}
 
 	/* Ask the kernel server for the next chunk of data to read */
 	eError = BridgeTLAcquireData(GetBridgeHandle(hDevConnection),
-			psSD->hServerSD, &psSD->uiReadOffset, &psSD->uiReadLen);
-	if (eError != PVRSRV_OK)
-	{
+				     psSD->hServerSD, &psSD->uiReadOffset,
+				     &psSD->uiReadLen);
+	if (eError != PVRSRV_OK) {
 		/* Mask reporting of the errors seen under normal operation */
 		if ((eError != PVRSRV_ERROR_TIMEOUT) &&
-			(eError != PVRSRV_ERROR_STREAM_READLIMIT_REACHED))
-		{
+		    (eError != PVRSRV_ERROR_STREAM_READLIMIT_REACHED)) {
 			PVR_LOG_ERROR(eError, "BridgeTLAcquireData");
 		}
 		psSD->uiReadOffset = psSD->uiReadLen = NO_ACQUIRE;
@@ -386,8 +371,7 @@ PVRSRV_ERROR TLClientAcquireData(SHARED_DEV_CONNECTION hDevConnection,
 	/* Return the data offset and length to the caller if bytes are available
 	 * to be read. Could be zero for non-blocking mode so pass back cleared
 	 * values above */
-	if (psSD->uiReadLen)
-	{
+	if (psSD->uiReadLen) {
 		*ppPacketBuf = psSD->pBaseAddr + psSD->uiReadOffset;
 		*pui32BufLen = psSD->uiReadLen;
 	}
@@ -395,30 +379,27 @@ PVRSRV_ERROR TLClientAcquireData(SHARED_DEV_CONNECTION hDevConnection,
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR _TLClientReleaseDataLen(
-		SHARED_DEV_CONNECTION hDevConnection,
-		TL_STREAM_DESC* psSD,
-		IMG_UINT32 uiReadLen)
+static PVRSRV_ERROR
+_TLClientReleaseDataLen(SHARED_DEV_CONNECTION hDevConnection,
+			TL_STREAM_DESC *psSD, IMG_UINT32 uiReadLen)
 {
 	PVRSRV_ERROR eError;
 
 	/* the previous acquire did not return any data, this is a no-operation */
-	if (psSD->uiReadLen == 0)
-	{
+	if (psSD->uiReadLen == 0) {
 		return PVRSRV_OK;
 	}
 
 	/* Check release has not been called twice in a row without an acquire */
-	if (psSD->uiReadOffset == NO_ACQUIRE)
-	{
+	if (psSD->uiReadOffset == NO_ACQUIRE) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: no acquire to release", __func__));
 		return PVRSRV_ERROR_RETRY;
 	}
 
 	/* Inform the kernel to release the data from the buffer */
 	eError = BridgeTLReleaseData(GetBridgeHandle(hDevConnection),
-			psSD->hServerSD,
-			psSD->uiReadOffset, uiReadLen);
+				     psSD->hServerSD, psSD->uiReadOffset,
+				     uiReadLen);
 	PVR_LOG_IF_ERROR(eError, "BridgeTLReleaseData");
 
 	/* Reset state to indicate no outstanding acquire */
@@ -429,9 +410,9 @@ static PVRSRV_ERROR _TLClientReleaseDataLen(
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReleaseData(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD)
+				 IMG_HANDLE hSD)
 {
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(hSD);
@@ -441,16 +422,15 @@ PVRSRV_ERROR TLClientReleaseData(SHARED_DEV_CONNECTION hDevConnection,
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReleaseDataLess(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD, IMG_UINT32 uiActualReadLen)
+				     IMG_HANDLE hSD, IMG_UINT32 uiActualReadLen)
 {
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(hSD);
 
 	/* Check the specified size is within the size returned by Acquire */
-	if (uiActualReadLen > psSD->uiReadLen)
-	{
+	if (uiActualReadLen > psSD->uiReadLen) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: no acquire to release", __func__));
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
@@ -460,12 +440,11 @@ PVRSRV_ERROR TLClientReleaseDataLess(SHARED_DEV_CONNECTION hDevConnection,
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientWriteData(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT32 ui32Size,
-		IMG_BYTE *pui8Data)
+			       IMG_HANDLE hSD, IMG_UINT32 ui32Size,
+			       IMG_BYTE *pui8Data)
 {
 	PVRSRV_ERROR eError;
-	TL_STREAM_DESC* psSD = (TL_STREAM_DESC*) hSD;
+	TL_STREAM_DESC *psSD = (TL_STREAM_DESC *)hSD;
 
 	PVR_ASSERT(hDevConnection);
 	PVR_ASSERT(hSD);
@@ -473,21 +452,16 @@ PVRSRV_ERROR TLClientWriteData(SHARED_DEV_CONNECTION hDevConnection,
 	PVR_ASSERT(pui8Data);
 
 	eError = BridgeTLWriteData(GetBridgeHandle(hDevConnection),
-			psSD->hServerSD, ui32Size, pui8Data);
+				   psSD->hServerSD, ui32Size, pui8Data);
 
-	if (eError == PVRSRV_ERROR_STREAM_FULL)
-	{
-		if (psSD->ui32WritesFailed == 0)
-		{
+	if (eError == PVRSRV_ERROR_STREAM_FULL) {
+		if (psSD->ui32WritesFailed == 0) {
 			PVR_LOG_ERROR(eError, "BridgeTLWriteData");
 		}
-		if (psSD->ui32WritesFailed != IMG_UINT32_MAX)
-		{
+		if (psSD->ui32WritesFailed != IMG_UINT32_MAX) {
 			psSD->ui32WritesFailed++;
 		}
-	}
-	else if (eError != PVRSRV_OK)
-	{
+	} else if (eError != PVRSRV_OK) {
 		PVR_LOG_ERROR(eError, "BridgeTLWriteData");
 	}
 

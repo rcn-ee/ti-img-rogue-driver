@@ -48,17 +48,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "osfunc.h"
 #include "pvrsrv.h"
 
-typedef struct _DMA_ALLOC_
-{
-	IMG_UINT64       ui64Size;
+typedef struct _DMA_ALLOC_ {
+	IMG_UINT64 ui64Size;
 	IMG_CPU_VIRTADDR pvVirtAddr;
-	IMG_DEV_PHYADDR  sBusAddr;
-	IMG_HANDLE       hHandle;
+	IMG_DEV_PHYADDR sBusAddr;
+	IMG_HANDLE hHandle;
 #if defined(__linux__)
-	struct page      *psPage;
-	pgprot_t         PageProps;
+	struct page *psPage;
+	pgprot_t PageProps;
 #endif
-	void             *pvOSDevice;
+	void *pvOSDevice;
 } DMA_ALLOC;
 
 /*!

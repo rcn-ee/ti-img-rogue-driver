@@ -69,8 +69,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static IMG_HANDLE ghSysData;
 
-typedef struct
-{
+typedef struct {
 	IMG_UINT32 ui32IRQ;
 	PFN_LISR pfnLISR;
 	void *pvLISRData;
@@ -80,8 +79,7 @@ static irqreturn_t MTKLISRWrapper(int iIrq, void *pvData)
 {
 	LISR_WRAPPER_DATA *psWrapperData = pvData;
 
-	if (psWrapperData->pfnLISR(psWrapperData->pvLISRData))
-	{
+	if (psWrapperData->pfnLISR(psWrapperData->pvLISRData)) {
 		return IRQ_HANDLED;
 	}
 
@@ -91,11 +89,10 @@ static irqreturn_t MTKLISRWrapper(int iIrq, void *pvData)
 /*
  * CPU to Device physical address translation
  */
-static
-void UMAPhysHeapCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-				   IMG_UINT32 ui32NumOfAddr,
-				   IMG_DEV_PHYADDR *psDevPAddr,
-				   IMG_CPU_PHYADDR *psCpuPAddr)
+static void UMAPhysHeapCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
+					  IMG_UINT32 ui32NumOfAddr,
+					  IMG_DEV_PHYADDR *psDevPAddr,
+					  IMG_CPU_PHYADDR *psCpuPAddr)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 
@@ -111,11 +108,10 @@ void UMAPhysHeapCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
 /*
  * Device to CPU physical address translation
  */
-static
-void UMAPhysHeapDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-				   IMG_UINT32 ui32NumOfAddr,
-				   IMG_CPU_PHYADDR *psCpuPAddr,
-				   IMG_DEV_PHYADDR *psDevPAddr)
+static void UMAPhysHeapDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
+					  IMG_UINT32 ui32NumOfAddr,
+					  IMG_CPU_PHYADDR *psCpuPAddr,
+					  IMG_DEV_PHYADDR *psDevPAddr)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 
@@ -134,10 +130,8 @@ static PHYS_HEAP_FUNCTIONS gsPhysHeapFuncs = {
 };
 
 static PVRSRV_ERROR MTKSysDevPrePowerState(
-		IMG_HANDLE hSysData,
-		PVRSRV_SYS_POWER_STATE eNewPowerState,
-		PVRSRV_SYS_POWER_STATE eCurrentPowerState,
-		PVRSRV_POWER_FLAGS ePwrFlags)
+	IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
+	PVRSRV_SYS_POWER_STATE eCurrentPowerState, PVRSRV_POWER_FLAGS ePwrFlags)
 {
 	struct mtk_mfg *mfg = hSysData;
 
@@ -155,16 +149,14 @@ static PVRSRV_ERROR MTKSysDevPrePowerState(
 }
 
 static PVRSRV_ERROR MTKSysDevPostPowerState(
-		IMG_HANDLE hSysData,
-		PVRSRV_SYS_POWER_STATE eNewPowerState,
-		PVRSRV_SYS_POWER_STATE eCurrentPowerState,
-		PVRSRV_POWER_FLAGS ePwrFlags)
+	IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
+	PVRSRV_SYS_POWER_STATE eCurrentPowerState, PVRSRV_POWER_FLAGS ePwrFlags)
 {
 	struct mtk_mfg *mfg = hSysData;
 	PVRSRV_ERROR ret;
 
-	mtk_mfg_debug("MTKSysDevPostPowerState (%d->%d)\n",
-		      eCurrentPowerState, eNewPowerState);
+	mtk_mfg_debug("MTKSysDevPostPowerState (%d->%d)\n", eCurrentPowerState,
+		      eNewPowerState);
 
 	mutex_lock(&mfg->set_power_state);
 
@@ -198,16 +190,18 @@ static const int vt_voltages[] = { 900, 1000, 1130 };
 #define POWER_TABLE_NUM_VOLT ARRAY_SIZE(vt_voltages)
 
 static const unsigned int
-power_table[POWER_TABLE_NUM_VOLT][POWER_TABLE_NUM_TEMP] = {
-	/*   25     45      65      85     105 */
-	{ 14540, 35490,  60420, 120690, 230000 },  /*  900 mV */
-	{ 21570, 41910,  82380, 159140, 298620 },  /* 1000 mV */
-	{ 32320, 72950, 111320, 209290, 382700 },  /* 1130 mV */
-};
+	power_table[POWER_TABLE_NUM_VOLT][POWER_TABLE_NUM_TEMP] = {
+		/*   25     45      65      85     105 */
+		{ 14540, 35490, 60420, 120690, 230000 }, /*  900 mV */
+		{ 21570, 41910, 82380, 159140, 298620 }, /* 1000 mV */
+		{ 32320, 72950, 111320, 209290, 382700 }, /* 1130 mV */
+	};
 
 /** Frequency and Power in Khz and mW respectively */
-static const int f_range[] = {253500, 299000, 396500, 455000, 494000, 598000};
-static const IMG_UINT32 max_dynamic_power[] = {612, 722, 957, 1100, 1194, 1445};
+static const int f_range[] = { 253500, 299000, 396500, 455000, 494000, 598000 };
+static const IMG_UINT32 max_dynamic_power[] = {
+	612, 722, 957, 1100, 1194, 1445
+};
 
 static u32 interpolate(int value, const int *x, const unsigned int *y, int len)
 {
@@ -251,7 +245,8 @@ static unsigned long mtk_mfg_get_static_power(unsigned long voltage)
 	struct mtk_mfg *mfg = ghSysData;
 	struct thermal_zone_device *tz = mfg->tz;
 	unsigned long power;
-#if !defined(CHROMIUMOS_KERNEL) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0))
+#if !defined(CHROMIUMOS_KERNEL) && \
+	(LINUX_VERSION_CODE < KERNEL_VERSION(4, 4, 0))
 	unsigned long temperature = FALLBACK_STATIC_TEMPERATURE;
 #else
 	int temperature = FALLBACK_STATIC_TEMPERATURE;
@@ -275,22 +270,19 @@ static unsigned long mtk_mfg_get_static_power(unsigned long voltage)
 	}
 
 	if (low_idx == high_idx) {
-		power = interpolate(temperature,
-				    vt_temperatures,
+		power = interpolate(temperature, vt_temperatures,
 				    &power_table[low_idx][0],
 				    POWER_TABLE_NUM_TEMP);
 	} else {
 		unsigned long dvt =
-				vt_voltages[high_idx] - vt_voltages[low_idx];
+			vt_voltages[high_idx] - vt_voltages[low_idx];
 		unsigned long power1, power2;
 
-		power1 = interpolate(temperature,
-				     vt_temperatures,
+		power1 = interpolate(temperature, vt_temperatures,
 				     &power_table[high_idx][0],
 				     POWER_TABLE_NUM_TEMP);
 
-		power2 = interpolate(temperature,
-				     vt_temperatures,
+		power2 = interpolate(temperature, vt_temperatures,
 				     &power_table[low_idx][0],
 				     POWER_TABLE_NUM_TEMP);
 
@@ -316,7 +308,7 @@ static unsigned long mtk_mfg_get_dynamic_power(unsigned long freq,
 					       unsigned long voltage)
 #endif
 {
-	#define NUM_RANGE  ARRAY_SIZE(f_range)
+#define NUM_RANGE ARRAY_SIZE(f_range)
 	/** Frequency and Power in Khz and mW respectively */
 	IMG_INT32 i, low_idx = 0, high_idx = NUM_RANGE - 1;
 	IMG_UINT32 power;
@@ -334,7 +326,7 @@ static unsigned long mtk_mfg_get_dynamic_power(unsigned long freq,
 	} else {
 		IMG_UINT32 f_interval = f_range[high_idx] - f_range[low_idx];
 		IMG_UINT32 p_interval = max_dynamic_power[high_idx] -
-				max_dynamic_power[low_idx];
+					max_dynamic_power[low_idx];
 
 		power = p_interval * (freq - f_range[low_idx]);
 		do_div(power, f_interval);
@@ -345,20 +337,18 @@ static unsigned long mtk_mfg_get_dynamic_power(unsigned long freq,
 				    1000000UL);
 
 	return power;
-	#undef NUM_RANGE
+#undef NUM_RANGE
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0))
-static int mtk_mfg_get_real_power(struct devfreq *df,
-						   u32 *power,
-					       unsigned long freq,
-					       unsigned long voltage)
+static int mtk_mfg_get_real_power(struct devfreq *df, u32 *power,
+				  unsigned long freq, unsigned long voltage)
 {
 	if (!df || !power)
 		return -EINVAL;
 
 	*power = mtk_mfg_get_static_power(df, voltage) +
-		     mtk_mfg_get_dynamic_power(df, freq, voltage);
+		 mtk_mfg_get_dynamic_power(df, freq, voltage);
 
 	return 0;
 }
@@ -390,33 +380,34 @@ static void SetVoltage(IMG_HANDLE hSysData, IMG_UINT32 volt)
 }
 #endif
 
-static PVRSRV_ERROR DeviceConfigCreate(void *pvOSDevice,
-									   struct mtk_mfg *mfg,
-									   PVRSRV_DEVICE_CONFIG **ppsDevConfigOut)
+static PVRSRV_ERROR DeviceConfigCreate(void *pvOSDevice, struct mtk_mfg *mfg,
+				       PVRSRV_DEVICE_CONFIG **ppsDevConfigOut)
 {
 	PVRSRV_DEVICE_CONFIG *psDevConfig;
 	RGX_DATA *psRGXData;
 	RGX_TIMING_INFORMATION *psRGXTimingInfo;
 	PHYS_HEAP_CONFIG *psPhysHeapConfig;
 
-	psDevConfig = OSAllocZMem(sizeof(*psDevConfig) +
-							  sizeof(*psRGXData) +
-							  sizeof(*psRGXTimingInfo) +
-							  sizeof(*psPhysHeapConfig));
-	if (!psDevConfig)
-	{
+	psDevConfig = OSAllocZMem(sizeof(*psDevConfig) + sizeof(*psRGXData) +
+				  sizeof(*psRGXTimingInfo) +
+				  sizeof(*psPhysHeapConfig));
+	if (!psDevConfig) {
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 
-	psRGXData = (RGX_DATA *)((IMG_CHAR *)psDevConfig + sizeof(*psDevConfig));
-	psRGXTimingInfo = (RGX_TIMING_INFORMATION *)((IMG_CHAR *)psRGXData + sizeof(*psRGXData));
-	psPhysHeapConfig = (PHYS_HEAP_CONFIG *)((IMG_CHAR *)psRGXTimingInfo + sizeof(*psRGXTimingInfo));
+	psRGXData =
+		(RGX_DATA *)((IMG_CHAR *)psDevConfig + sizeof(*psDevConfig));
+	psRGXTimingInfo = (RGX_TIMING_INFORMATION *)((IMG_CHAR *)psRGXData +
+						     sizeof(*psRGXData));
+	psPhysHeapConfig = (PHYS_HEAP_CONFIG *)((IMG_CHAR *)psRGXTimingInfo +
+						sizeof(*psRGXTimingInfo));
 
 	/* Set up the RGX timing information */
 	psRGXTimingInfo->ui32CoreClockSpeed = RGX_HW_CORE_CLOCK_SPEED;
 	psRGXTimingInfo->bEnableActivePM = IMG_TRUE;
 	psRGXTimingInfo->bEnableRDPowIsland = IMG_TRUE;
-	psRGXTimingInfo->ui32ActivePMLatencyms = SYS_RGX_ACTIVE_POWER_LATENCY_MS;
+	psRGXTimingInfo->ui32ActivePMLatencyms =
+		SYS_RGX_ACTIVE_POWER_LATENCY_MS;
 
 	/* Set up the RGX data */
 	psRGXData->psRGXTimingInfo = psRGXTimingInfo;
@@ -441,7 +432,7 @@ static PVRSRV_ERROR DeviceConfigCreate(void *pvOSDevice,
 	psDevConfig->bDevicePA0IsValid = IMG_FALSE;
 
 	psDevConfig->hDevData = psRGXData;
-	psDevConfig->hSysData = (IMG_HANDLE) mfg;
+	psDevConfig->hSysData = (IMG_HANDLE)mfg;
 	ghSysData = psDevConfig->hSysData;
 
 	psDevConfig->pfnSysDevFeatureDepInit = NULL;
@@ -506,8 +497,7 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	dma_set_mask(dev, DMA_BIT_MASK(33));
 
 	eError = DeviceConfigCreate(pvOSDevice, mfg, &psDevConfig);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		mtk_mfg_destroy(mfg);
 
 		return eError;
@@ -535,20 +525,16 @@ void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	mtk_mfg_destroy(mfg);
 }
 
-PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,
-								  IMG_UINT32 ui32IRQ,
-								  const IMG_CHAR *pszName,
-								  PFN_LISR pfnLISR,
-								  void *pvData,
-								  IMG_HANDLE *phLISRData)
+PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData, IMG_UINT32 ui32IRQ,
+				  const IMG_CHAR *pszName, PFN_LISR pfnLISR,
+				  void *pvData, IMG_HANDLE *phLISRData)
 {
 	LISR_WRAPPER_DATA *psWrapperData;
 
 	PVR_UNREFERENCED_PARAMETER(hSysData);
 
 	psWrapperData = OSAllocMem(sizeof(*psWrapperData));
-	if (!psWrapperData)
-	{
+	if (!psWrapperData) {
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -557,14 +543,13 @@ PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,
 	psWrapperData->pvLISRData = pvData;
 
 	if (request_irq(ui32IRQ, MTKLISRWrapper, IRQF_TRIGGER_LOW, pszName,
-					psWrapperData))
-	{
+			psWrapperData)) {
 		OSFreeMem(psWrapperData);
 
 		return PVRSRV_ERROR_UNABLE_TO_REGISTER_ISR_HANDLER;
 	}
 
-	*phLISRData = (IMG_HANDLE) psWrapperData;
+	*phLISRData = (IMG_HANDLE)psWrapperData;
 
 	return PVRSRV_OK;
 }

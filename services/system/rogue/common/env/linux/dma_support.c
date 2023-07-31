@@ -56,18 +56,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define DMA_MAX_IOREMAP_ENTRIES 2
 static IMG_BOOL gbEnableDmaIoRemapping = IMG_FALSE;
-static DMA_ALLOC gsDmaIoRemapArray[DMA_MAX_IOREMAP_ENTRIES] = {{0}};
+static DMA_ALLOC gsDmaIoRemapArray[DMA_MAX_IOREMAP_ENTRIES] = { { 0 } };
 
-static void*
-SysDmaAcquireKernelAddress(struct page *psPage, IMG_UINT64 ui64Size, DMA_ALLOC *psDmaAlloc)
+static void *SysDmaAcquireKernelAddress(struct page *psPage,
+					IMG_UINT64 ui64Size,
+					DMA_ALLOC *psDmaAlloc)
 {
 	IMG_BOOL bPageByPage = IMG_TRUE;
 	IMG_UINT32 uiIdx;
 	void *pvVirtAddr = NULL;
 	IMG_UINT32 ui32PgCount = (IMG_UINT32)(ui64Size >> OSGetPageShift());
 	PVRSRV_DEVICE_NODE *psDevNode = OSAllocZMemNoStats(sizeof(*psDevNode));
-	PVRSRV_DEVICE_CONFIG *psDevConfig = OSAllocZMemNoStats(sizeof(*psDevConfig));
-	struct page **pagearray = OSAllocZMemNoStats(ui32PgCount * sizeof(struct page *));
+	PVRSRV_DEVICE_CONFIG *psDevConfig =
+		OSAllocZMemNoStats(sizeof(*psDevConfig));
+	struct page **pagearray =
+		OSAllocZMemNoStats(ui32PgCount * sizeof(struct page *));
 	void *pvOSDevice = psDmaAlloc->pvOSDevice;
 #if defined(CONFIG_ARM64)
 	pgprot_t prot = pgprot_writecombine(PAGE_KERNEL);
@@ -76,20 +79,16 @@ SysDmaAcquireKernelAddress(struct page *psPage, IMG_UINT64 ui64Size, DMA_ALLOC *
 #endif
 
 	/* Validate all required dynamic tmp buffer allocations */
-	if (psDevNode == NULL || psDevConfig == NULL || pagearray == NULL)
-	{
-		if (psDevNode)
-		{
+	if (psDevNode == NULL || psDevConfig == NULL || pagearray == NULL) {
+		if (psDevNode) {
 			OSFreeMem(psDevNode);
 		}
 
-		if (psDevConfig)
-		{
+		if (psDevConfig) {
 			OSFreeMem(psDevConfig);
 		}
 
-		if (pagearray)
-		{
+		if (pagearray) {
 			OSFreeMem(pagearray);
 		}
 
@@ -101,16 +100,14 @@ SysDmaAcquireKernelAddress(struct page *psPage, IMG_UINT64 ui64Size, DMA_ALLOC *
 	psDevNode->psDevConfig = psDevConfig;
 
 	/* Evict any page data contents from d-cache */
-	for (uiIdx = 0; uiIdx < ui32PgCount; uiIdx++)
-	{
+	for (uiIdx = 0; uiIdx < ui32PgCount; uiIdx++) {
 		void *pvVirtStart, *pvVirtEnd;
 		IMG_CPU_PHYADDR sCPUPhysStart, sCPUPhysEnd;
 
 		/* Prepare array required for vmap */
 		pagearray[uiIdx] = &psPage[uiIdx];
 
-		if (bPageByPage)
-		{
+		if (bPageByPage) {
 #if defined(CONFIG_64BIT)
 			bPageByPage = IMG_FALSE;
 
@@ -130,9 +127,9 @@ SysDmaAcquireKernelAddress(struct page *psPage, IMG_UINT64 ui64Size, DMA_ALLOC *
 #endif
 
 			/* Fallback to range-based d-cache flush */
-			OSCPUCacheInvalidateRangeKM(psDevNode,
-										pvVirtStart, pvVirtEnd,
-										sCPUPhysStart, sCPUPhysEnd);
+			OSCPUCacheInvalidateRangeKM(psDevNode, pvVirtStart,
+						    pvVirtEnd, sCPUPhysStart,
+						    sCPUPhysEnd);
 
 			kunmap(&psPage[uiIdx]);
 		}
@@ -151,7 +148,8 @@ e0:
 	return pvVirtAddr;
 }
 
-static void SysDmaReleaseKernelAddress(void *pvVirtAddr, IMG_UINT64 ui64Size, pgprot_t pgprot)
+static void SysDmaReleaseKernelAddress(void *pvVirtAddr, IMG_UINT64 ui64Size,
+				       pgprot_t pgprot)
 {
 	pvr_vunmap(pvVirtAddr, ui64Size >> OSGetPageShift(), pgprot);
 }
@@ -172,13 +170,9 @@ PVRSRV_ERROR SysDmaAllocMem(DMA_ALLOC *psDmaAlloc)
 	struct page *psPage;
 	size_t uiSize;
 
-	if (psDmaAlloc == NULL ||
-		psDmaAlloc->hHandle ||
-		psDmaAlloc->pvVirtAddr ||
-		psDmaAlloc->ui64Size == 0 ||
-		psDmaAlloc->sBusAddr.uiAddr ||
-		psDmaAlloc->pvOSDevice == NULL)
-	{
+	if (psDmaAlloc == NULL || psDmaAlloc->hHandle ||
+	    psDmaAlloc->pvVirtAddr || psDmaAlloc->ui64Size == 0 ||
+	    psDmaAlloc->sBusAddr.uiAddr || psDmaAlloc->pvOSDevice == NULL) {
 		PVR_LOG_IF_FALSE((IMG_FALSE), "Invalid parameter");
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
@@ -186,58 +180,60 @@ PVRSRV_ERROR SysDmaAllocMem(DMA_ALLOC *psDmaAlloc)
 	uiSize = PVR_ALIGN(psDmaAlloc->ui64Size, PAGE_SIZE);
 	psDev = (struct device *)psDmaAlloc->pvOSDevice;
 
-	psDmaAlloc->hHandle = dma_alloc_coherent(psDev, uiSize, (dma_addr_t *)&psDmaAlloc->sBusAddr.uiAddr, GFP_KERNEL);
+	psDmaAlloc->hHandle = dma_alloc_coherent(
+		psDev, uiSize, (dma_addr_t *)&psDmaAlloc->sBusAddr.uiAddr,
+		GFP_KERNEL);
 
-	if (psDmaAlloc->hHandle)
-	{
+	if (psDmaAlloc->hHandle) {
 		psDmaAlloc->pvVirtAddr = psDmaAlloc->hHandle;
 
-		PVR_DPF((PVR_DBG_MESSAGE,
-				"Allocated DMA buffer V:0x%p P:0x%llx S:0x"IMG_SIZE_FMTSPECX,
-				psDmaAlloc->pvVirtAddr,
-				psDmaAlloc->sBusAddr.uiAddr,
-				uiSize));
-	}
-	else if ((psPage = alloc_pages(GFP_KERNEL, get_order(uiSize))))
-	{
-		psDmaAlloc->sBusAddr.uiAddr = dma_map_page(psDev, psPage, 0, uiSize, DMA_BIDIRECTIONAL);
-		if (dma_mapping_error(psDev, psDmaAlloc->sBusAddr.uiAddr))
-		{
+		PVR_DPF((
+			PVR_DBG_MESSAGE,
+			"Allocated DMA buffer V:0x%p P:0x%llx S:0x" IMG_SIZE_FMTSPECX,
+			psDmaAlloc->pvVirtAddr, psDmaAlloc->sBusAddr.uiAddr,
+			uiSize));
+	} else if ((psPage = alloc_pages(GFP_KERNEL, get_order(uiSize)))) {
+		psDmaAlloc->sBusAddr.uiAddr = dma_map_page(
+			psDev, psPage, 0, uiSize, DMA_BIDIRECTIONAL);
+		if (dma_mapping_error(psDev, psDmaAlloc->sBusAddr.uiAddr)) {
 			PVR_DPF((PVR_DBG_ERROR,
-					"dma_map_page() failed, page 0x%p order %d",
-					psPage,
-					get_order(uiSize)));
+				 "dma_map_page() failed, page 0x%p order %d",
+				 psPage, get_order(uiSize)));
 			__free_pages(psPage, get_order(uiSize));
 			goto e0;
 		}
 		psDmaAlloc->psPage = psPage;
 
-		psDmaAlloc->pvVirtAddr = SysDmaAcquireKernelAddress(psPage, uiSize, psDmaAlloc);
-		if (! psDmaAlloc->pvVirtAddr)
-		{
-			PVR_DPF((PVR_DBG_ERROR,
-					"SysDmaAcquireKernelAddress() failed, page 0x%p order %d",
-					psPage,
-					get_order(uiSize)));
-			dma_unmap_page(psDev, psDmaAlloc->sBusAddr.uiAddr, uiSize, DMA_BIDIRECTIONAL);
+		psDmaAlloc->pvVirtAddr =
+			SysDmaAcquireKernelAddress(psPage, uiSize, psDmaAlloc);
+		if (!psDmaAlloc->pvVirtAddr) {
+			PVR_DPF((
+				PVR_DBG_ERROR,
+				"SysDmaAcquireKernelAddress() failed, page 0x%p order %d",
+				psPage, get_order(uiSize)));
+			dma_unmap_page(psDev, psDmaAlloc->sBusAddr.uiAddr,
+				       uiSize, DMA_BIDIRECTIONAL);
 			__free_pages(psPage, get_order(uiSize));
 			goto e0;
 		}
 
-		PVR_DPF((PVR_DBG_MESSAGE,
-				"Allocated contiguous buffer V:0x%p P:0x%llx S:0x"IMG_SIZE_FMTSPECX,
-				psDmaAlloc->pvVirtAddr,
-				psDmaAlloc->sBusAddr.uiAddr,
-				uiSize));
-	}
-	else
-	{
-		PVR_DPF((PVR_DBG_ERROR,	"Unable to allocate contiguous buffer, size: 0x"IMG_SIZE_FMTSPECX, uiSize));
+		PVR_DPF((
+			PVR_DBG_MESSAGE,
+			"Allocated contiguous buffer V:0x%p P:0x%llx S:0x" IMG_SIZE_FMTSPECX,
+			psDmaAlloc->pvVirtAddr, psDmaAlloc->sBusAddr.uiAddr,
+			uiSize));
+	} else {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"Unable to allocate contiguous buffer, size: 0x" IMG_SIZE_FMTSPECX,
+			uiSize));
 		eError = PVRSRV_ERROR_FAILED_TO_ALLOC_PAGES;
 	}
 
 e0:
-	PVR_LOG_RETURN_IF_FALSE((psDmaAlloc->pvVirtAddr), "DMA/CMA allocation failed", PVRSRV_ERROR_FAILED_TO_ALLOC_PAGES);
+	PVR_LOG_RETURN_IF_FALSE((psDmaAlloc->pvVirtAddr),
+				"DMA/CMA allocation failed",
+				PVRSRV_ERROR_FAILED_TO_ALLOC_PAGES);
 	return eError;
 }
 
@@ -254,12 +250,9 @@ void SysDmaFreeMem(DMA_ALLOC *psDmaAlloc)
 	size_t uiSize;
 	struct device *psDev;
 
-	if (psDmaAlloc == NULL ||
-		psDmaAlloc->ui64Size == 0 ||
-		psDmaAlloc->pvOSDevice == NULL ||
-		psDmaAlloc->pvVirtAddr == NULL ||
-		psDmaAlloc->sBusAddr.uiAddr == 0)
-	{
+	if (psDmaAlloc == NULL || psDmaAlloc->ui64Size == 0 ||
+	    psDmaAlloc->pvOSDevice == NULL || psDmaAlloc->pvVirtAddr == NULL ||
+	    psDmaAlloc->sBusAddr.uiAddr == 0) {
 		PVR_LOG_IF_FALSE((IMG_FALSE), "Invalid parameter");
 		return;
 	}
@@ -267,21 +260,22 @@ void SysDmaFreeMem(DMA_ALLOC *psDmaAlloc)
 	uiSize = PVR_ALIGN(psDmaAlloc->ui64Size, PAGE_SIZE);
 	psDev = (struct device *)psDmaAlloc->pvOSDevice;
 
-	if (psDmaAlloc->pvVirtAddr != psDmaAlloc->hHandle)
-	{
-		SysDmaReleaseKernelAddress(psDmaAlloc->pvVirtAddr, uiSize, psDmaAlloc->PageProps);
+	if (psDmaAlloc->pvVirtAddr != psDmaAlloc->hHandle) {
+		SysDmaReleaseKernelAddress(psDmaAlloc->pvVirtAddr, uiSize,
+					   psDmaAlloc->PageProps);
 	}
 
-	if (! psDmaAlloc->hHandle)
-	{
+	if (!psDmaAlloc->hHandle) {
 		struct page *psPage;
-		dma_unmap_page(psDev, psDmaAlloc->sBusAddr.uiAddr, uiSize, DMA_BIDIRECTIONAL);
+		dma_unmap_page(psDev, psDmaAlloc->sBusAddr.uiAddr, uiSize,
+			       DMA_BIDIRECTIONAL);
 		psPage = psDmaAlloc->psPage;
 		__free_pages(psPage, get_order(uiSize));
 		return;
 	}
 
-	dma_free_coherent(psDev, uiSize, psDmaAlloc->hHandle, (dma_addr_t )psDmaAlloc->sBusAddr.uiAddr);
+	dma_free_coherent(psDev, uiSize, psDmaAlloc->hHandle,
+			  (dma_addr_t)psDmaAlloc->sBusAddr.uiAddr);
 }
 
 /*!
@@ -300,67 +294,59 @@ PVRSRV_ERROR SysDmaRegisterForIoRemapping(DMA_ALLOC *psDmaAlloc)
 	IMG_BOOL bTabEntryFound = IMG_TRUE;
 	PVRSRV_ERROR eError = PVRSRV_ERROR_TOO_FEW_BUFFERS;
 
-	if (psDmaAlloc == NULL ||
-		psDmaAlloc->ui64Size == 0 ||
-		psDmaAlloc->pvOSDevice == NULL ||
-		psDmaAlloc->pvVirtAddr == NULL ||
-		psDmaAlloc->sBusAddr.uiAddr == 0)
-	{
+	if (psDmaAlloc == NULL || psDmaAlloc->ui64Size == 0 ||
+	    psDmaAlloc->pvOSDevice == NULL || psDmaAlloc->pvVirtAddr == NULL ||
+	    psDmaAlloc->sBusAddr.uiAddr == 0) {
 		PVR_LOG_IF_FALSE((IMG_FALSE), "Invalid parameter");
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	uiSize = PVR_ALIGN(psDmaAlloc->ui64Size, PAGE_SIZE);
 
-	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx)
-	{
+	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx) {
 		/* Check if an I/O remap entry exists for remapping */
-		if (gsDmaIoRemapArray[ui32Idx].pvVirtAddr == NULL)
-		{
-			PVR_ASSERT(gsDmaIoRemapArray[ui32Idx].sBusAddr.uiAddr == 0);
+		if (gsDmaIoRemapArray[ui32Idx].pvVirtAddr == NULL) {
+			PVR_ASSERT(gsDmaIoRemapArray[ui32Idx].sBusAddr.uiAddr ==
+				   0);
 			PVR_ASSERT(gsDmaIoRemapArray[ui32Idx].ui64Size == 0);
 			break;
 		}
 	}
 
-	if (ui32Idx >= DMA_MAX_IOREMAP_ENTRIES)
-	{
+	if (ui32Idx >= DMA_MAX_IOREMAP_ENTRIES) {
 		bTabEntryFound = IMG_FALSE;
 	}
 
-	if (bTabEntryFound)
-	{
+	if (bTabEntryFound) {
 		IMG_BOOL bSameVAddr, bSamePAddr, bSameSize;
 
-		bSamePAddr = gsDmaIoRemapArray[ui32Idx].sBusAddr.uiAddr == psDmaAlloc->sBusAddr.uiAddr;
-		bSameVAddr = gsDmaIoRemapArray[ui32Idx].pvVirtAddr == psDmaAlloc->pvVirtAddr;
+		bSamePAddr = gsDmaIoRemapArray[ui32Idx].sBusAddr.uiAddr ==
+			     psDmaAlloc->sBusAddr.uiAddr;
+		bSameVAddr = gsDmaIoRemapArray[ui32Idx].pvVirtAddr ==
+			     psDmaAlloc->pvVirtAddr;
 		bSameSize = gsDmaIoRemapArray[ui32Idx].ui64Size == uiSize;
 
-		if (bSameVAddr)
-		{
-			if (bSamePAddr && bSameSize)
-			{
+		if (bSameVAddr) {
+			if (bSamePAddr && bSameSize) {
 				eError = PVRSRV_OK;
-			}
-			else
-			{
+			} else {
 				eError = PVRSRV_ERROR_ALREADY_EXISTS;
 			}
-		}
-		else
-		{
+		} else {
 			PVR_ASSERT(bSamePAddr == IMG_FALSE);
 
 			gsDmaIoRemapArray[ui32Idx].ui64Size = uiSize;
-			gsDmaIoRemapArray[ui32Idx].sBusAddr = psDmaAlloc->sBusAddr;
-			gsDmaIoRemapArray[ui32Idx].pvVirtAddr = psDmaAlloc->pvVirtAddr;
+			gsDmaIoRemapArray[ui32Idx].sBusAddr =
+				psDmaAlloc->sBusAddr;
+			gsDmaIoRemapArray[ui32Idx].pvVirtAddr =
+				psDmaAlloc->pvVirtAddr;
 
-			PVR_DPF((PVR_DBG_MESSAGE,
-					"DMA: register I/O remap: "
-					"VA: 0x%p, PA: 0x%llx, Size: 0x"IMG_SIZE_FMTSPECX,
-					psDmaAlloc->pvVirtAddr,
-					psDmaAlloc->sBusAddr.uiAddr,
-					uiSize));
+			PVR_DPF((
+				PVR_DBG_MESSAGE,
+				"DMA: register I/O remap: "
+				"VA: 0x%p, PA: 0x%llx, Size: 0x" IMG_SIZE_FMTSPECX,
+				psDmaAlloc->pvVirtAddr,
+				psDmaAlloc->sBusAddr.uiAddr, uiSize));
 
 			gbEnableDmaIoRemapping = IMG_TRUE;
 			eError = PVRSRV_OK;
@@ -383,12 +369,9 @@ void SysDmaDeregisterForIoRemapping(DMA_ALLOC *psDmaAlloc)
 	size_t uiSize;
 	IMG_UINT32 ui32Idx;
 
-	if (psDmaAlloc == NULL ||
-		psDmaAlloc->ui64Size == 0 ||
-		psDmaAlloc->pvOSDevice == NULL ||
-		psDmaAlloc->pvVirtAddr == NULL ||
-		psDmaAlloc->sBusAddr.uiAddr == 0)
-	{
+	if (psDmaAlloc == NULL || psDmaAlloc->ui64Size == 0 ||
+	    psDmaAlloc->pvOSDevice == NULL || psDmaAlloc->pvVirtAddr == NULL ||
+	    psDmaAlloc->sBusAddr.uiAddr == 0) {
 		PVR_LOG_IF_FALSE((IMG_FALSE), "Invalid parameter");
 		return;
 	}
@@ -396,36 +379,32 @@ void SysDmaDeregisterForIoRemapping(DMA_ALLOC *psDmaAlloc)
 	uiSize = PVR_ALIGN(psDmaAlloc->ui64Size, PAGE_SIZE);
 
 	/* Remove specified entries from list of I/O remap entries */
-	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx)
-	{
-		if (gsDmaIoRemapArray[ui32Idx].pvVirtAddr == psDmaAlloc->pvVirtAddr)
-		{
+	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx) {
+		if (gsDmaIoRemapArray[ui32Idx].pvVirtAddr ==
+		    psDmaAlloc->pvVirtAddr) {
 			gsDmaIoRemapArray[ui32Idx].sBusAddr.uiAddr = 0;
 			gsDmaIoRemapArray[ui32Idx].pvVirtAddr = NULL;
 			gsDmaIoRemapArray[ui32Idx].ui64Size = 0;
 
-			PVR_DPF((PVR_DBG_MESSAGE,
-					"DMA: deregister I/O remap: "
-					"VA: 0x%p, PA: 0x%llx, Size: 0x"IMG_SIZE_FMTSPECX,
-					psDmaAlloc->pvVirtAddr,
-					psDmaAlloc->sBusAddr.uiAddr,
-					uiSize));
+			PVR_DPF((
+				PVR_DBG_MESSAGE,
+				"DMA: deregister I/O remap: "
+				"VA: 0x%p, PA: 0x%llx, Size: 0x" IMG_SIZE_FMTSPECX,
+				psDmaAlloc->pvVirtAddr,
+				psDmaAlloc->sBusAddr.uiAddr, uiSize));
 
 			break;
 		}
 	}
 
 	/* Check if no other I/O remap entries exists for remapping */
-	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx)
-	{
-		if (gsDmaIoRemapArray[ui32Idx].pvVirtAddr != NULL)
-		{
+	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx) {
+		if (gsDmaIoRemapArray[ui32Idx].pvVirtAddr != NULL) {
 			break;
 		}
 	}
 
-	if (ui32Idx == DMA_MAX_IOREMAP_ENTRIES)
-	{
+	if (ui32Idx == DMA_MAX_IOREMAP_ENTRIES) {
 		/* No entries found so disable remapping */
 		gbEnableDmaIoRemapping = IMG_FALSE;
 	}
@@ -439,33 +418,33 @@ void SysDmaDeregisterForIoRemapping(DMA_ALLOC *psDmaAlloc)
 
  @Return			IMG_CPU_VIRTADDR on success. Otherwise, a NULL
  ******************************************************************************/
-IMG_CPU_VIRTADDR SysDmaDevPAddrToCpuVAddr(IMG_UINT64 uiAddr, IMG_UINT64 ui64Size)
+IMG_CPU_VIRTADDR SysDmaDevPAddrToCpuVAddr(IMG_UINT64 uiAddr,
+					  IMG_UINT64 ui64Size)
 {
 	IMG_CPU_VIRTADDR pvDMAVirtAddr = NULL;
 	DMA_ALLOC *psHeapDmaAlloc;
 	IMG_UINT32 ui32Idx;
 
-	if (gbEnableDmaIoRemapping == IMG_FALSE)
-	{
+	if (gbEnableDmaIoRemapping == IMG_FALSE) {
 		return pvDMAVirtAddr;
 	}
 
-	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx)
-	{
+	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx) {
 		psHeapDmaAlloc = &gsDmaIoRemapArray[ui32Idx];
-		if (psHeapDmaAlloc->sBusAddr.uiAddr && uiAddr >= psHeapDmaAlloc->sBusAddr.uiAddr)
-		{
+		if (psHeapDmaAlloc->sBusAddr.uiAddr &&
+		    uiAddr >= psHeapDmaAlloc->sBusAddr.uiAddr) {
 			IMG_UINT64 uiSpan = psHeapDmaAlloc->ui64Size;
-			IMG_UINT64 uiOffset = uiAddr - psHeapDmaAlloc->sBusAddr.uiAddr;
+			IMG_UINT64 uiOffset =
+				uiAddr - psHeapDmaAlloc->sBusAddr.uiAddr;
 
-			if (uiOffset < uiSpan)
-			{
-				PVR_ASSERT((uiOffset+ui64Size-1) < uiSpan);
-				pvDMAVirtAddr = psHeapDmaAlloc->pvVirtAddr + uiOffset;
+			if (uiOffset < uiSpan) {
+				PVR_ASSERT((uiOffset + ui64Size - 1) < uiSpan);
+				pvDMAVirtAddr =
+					psHeapDmaAlloc->pvVirtAddr + uiOffset;
 
 				PVR_DPF((PVR_DBG_MESSAGE,
-					"DMA: remap: PA: 0x%llx => VA: 0x%p",
-					uiAddr, pvDMAVirtAddr));
+					 "DMA: remap: PA: 0x%llx => VA: 0x%p",
+					 uiAddr, pvDMAVirtAddr));
 
 				break;
 			}
@@ -489,26 +468,25 @@ IMG_UINT64 SysDmaCpuVAddrToDevPAddr(IMG_CPU_VIRTADDR pvDMAVirtAddr)
 	DMA_ALLOC *psHeapDmaAlloc;
 	IMG_UINT32 ui32Idx;
 
-	if (gbEnableDmaIoRemapping == IMG_FALSE)
-	{
+	if (gbEnableDmaIoRemapping == IMG_FALSE) {
 		return uiAddr;
 	}
 
-	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx)
-	{
+	for (ui32Idx = 0; ui32Idx < DMA_MAX_IOREMAP_ENTRIES; ++ui32Idx) {
 		psHeapDmaAlloc = &gsDmaIoRemapArray[ui32Idx];
-		if (psHeapDmaAlloc->pvVirtAddr && pvDMAVirtAddr >= psHeapDmaAlloc->pvVirtAddr)
-		{
+		if (psHeapDmaAlloc->pvVirtAddr &&
+		    pvDMAVirtAddr >= psHeapDmaAlloc->pvVirtAddr) {
 			IMG_UINT64 uiSpan = psHeapDmaAlloc->ui64Size;
-			IMG_UINT64 uiOffset = pvDMAVirtAddr - psHeapDmaAlloc->pvVirtAddr;
+			IMG_UINT64 uiOffset =
+				pvDMAVirtAddr - psHeapDmaAlloc->pvVirtAddr;
 
-			if (uiOffset < uiSpan)
-			{
-				uiAddr = psHeapDmaAlloc->sBusAddr.uiAddr + uiOffset;
+			if (uiOffset < uiSpan) {
+				uiAddr = psHeapDmaAlloc->sBusAddr.uiAddr +
+					 uiOffset;
 
 				PVR_DPF((PVR_DBG_MESSAGE,
-					"DMA: remap: VA: 0x%p => PA: 0x%llx",
-					pvDMAVirtAddr, uiAddr));
+					 "DMA: remap: VA: 0x%p => PA: 0x%llx",
+					 pvDMAVirtAddr, uiAddr));
 
 				break;
 			}

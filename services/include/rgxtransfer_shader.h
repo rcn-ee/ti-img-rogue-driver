@@ -50,8 +50,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "pvrversion.h"
 
-typedef struct _RGX_SHADER_HEADER_
-{
+typedef struct _RGX_SHADER_HEADER_ {
 	IMG_UINT32 ui32Version;
 	IMG_UINT32 ui32NumFragment;
 	IMG_UINT32 ui32SizeFragment;
@@ -65,7 +64,8 @@ typedef struct _RGX_SHADER_HEADER_
    if a change to the TQ shader factory breaks compatibility. */
 #define RGX_TQ_SHADERS_VERSION 1U
 
-#define RGX_TQ_SHADERS_VERSION_PACK \
-	(((RGX_TQ_SHADERS_VERSION & 0xFFU) << 16) | ((PVRVERSION_MAJ & 0xFFU) << 8) | ((PVRVERSION_MIN & 0xFFU) << 0))
+#define RGX_TQ_SHADERS_VERSION_PACK                 \
+	(((RGX_TQ_SHADERS_VERSION & 0xFFU) << 16) | \
+	 ((PVRVERSION_MAJ & 0xFFU) << 8) | ((PVRVERSION_MIN & 0xFFU) << 0))
 
 #endif /* RGXSHADERHEADER_H */

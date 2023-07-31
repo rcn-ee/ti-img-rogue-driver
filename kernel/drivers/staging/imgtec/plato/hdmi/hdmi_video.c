@@ -103,7 +103,7 @@ static bool video_configure_vp(struct hdmi_device *hdmi)
 	HDMI_CHECKPOINT;
 
 	if (hdmi->hdmi_data.enc_out_format == ENCODING_RGB ||
-		hdmi->hdmi_data.enc_out_format == ENCODING_YCC444) {
+	    hdmi->hdmi_data.enc_out_format == ENCODING_YCC444) {
 		if (hdmi->hdmi_data.enc_color_depth == 0) {
 			output_select = 3;
 		} else if (hdmi->hdmi_data.enc_color_depth == 8) {
@@ -116,47 +116,48 @@ static bool video_configure_vp(struct hdmi_device *hdmi)
 		} else if (hdmi->hdmi_data.enc_color_depth == 16) {
 			color_depth = 7;
 		} else {
-			hdmi_error(hdmi, "- %s: Found unsupported color depth (%d)", __func__, hdmi->hdmi_data.enc_color_depth);
+			hdmi_error(hdmi,
+				   "- %s: Found unsupported color depth (%d)",
+				   __func__, hdmi->hdmi_data.enc_color_depth);
 			return false;
 		}
 	} else if (hdmi->hdmi_data.enc_out_format == ENCODING_YCC422_8BITS) {
-		if ((hdmi->hdmi_data.enc_color_depth == 8)
-		    || (hdmi->hdmi_data.enc_color_depth == 0)) {
+		if ((hdmi->hdmi_data.enc_color_depth == 8) ||
+		    (hdmi->hdmi_data.enc_color_depth == 0)) {
 			remap_size = 0;
 		} else if (hdmi->hdmi_data.enc_color_depth == 10) {
 			remap_size = 1;
 		} else if (hdmi->hdmi_data.enc_color_depth == 12) {
 			remap_size = 2;
 		} else {
-			hdmi_error(hdmi, "- %s: Invalid color remap size (%d)", __func__, hdmi->hdmi_data.enc_color_depth);
+			hdmi_error(hdmi, "- %s: Invalid color remap size (%d)",
+				   __func__, hdmi->hdmi_data.enc_color_depth);
 			return false;
 		}
 		output_select = 1;
 	} else {
 		hdmi_error(hdmi, "- %s: Invalid output encoding type: %d",
-					__func__, hdmi->hdmi_data.enc_out_format);
+			   __func__, hdmi->hdmi_data.enc_out_format);
 		return false;
 	}
 
-	hdmi_info(hdmi, " - %s: output_select: %d, color_depth: %d\n",
-					__func__, output_select, color_depth);
+	hdmi_info(hdmi, " - %s: output_select: %d, color_depth: %d\n", __func__,
+		  output_select, color_depth);
 
 	reg = SET_FIELD(HDMI_VP_PR_CD_COLOR_DEPTH_START,
-		HDMI_VP_PR_CD_COLOR_DEPTH_MASK,
-		color_depth) |
-	SET_FIELD(HDMI_VP_PR_CD_DESIRED_PR_FACTOR_START,
-		HDMI_VP_PR_CD_DESIRED_PR_FACTOR_MASK,
-		hdmi->hdmi_data.pix_repet_factor);
+			HDMI_VP_PR_CD_COLOR_DEPTH_MASK, color_depth) |
+	      SET_FIELD(HDMI_VP_PR_CD_DESIRED_PR_FACTOR_START,
+			HDMI_VP_PR_CD_DESIRED_PR_FACTOR_MASK,
+			hdmi->hdmi_data.pix_repet_factor);
 	hdmi_write_reg32(hdmi, HDMI_VP_PR_CD_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_VP_STUFF_IDEFAULT_PHASE_START,
-		HDMI_VP_STUFF_IDEFAULT_PHASE_MASK,
-		hdmi->hdmi_data.pp_default_phase);
+			HDMI_VP_STUFF_IDEFAULT_PHASE_MASK,
+			hdmi->hdmi_data.pp_default_phase);
 	hdmi_write_reg32(hdmi, HDMI_VP_STUFF_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_VP_REMAP_YCC422_SIZE_START,
-		HDMI_VP_REMAP_YCC422_SIZE_MASK,
-		remap_size);
+			HDMI_VP_REMAP_YCC422_SIZE_MASK, remap_size);
 	hdmi_write_reg32(hdmi, HDMI_VP_REMAP_OFFSET, reg);
 
 	/* Grabbed from reference driver */
@@ -164,52 +165,41 @@ static bool video_configure_vp(struct hdmi_device *hdmi)
 	if (output_select == 0) {
 		/* pixel packing */
 		reg = SET_FIELD(HDMI_VP_CONF_PP_EN_START,
-			HDMI_VP_CONF_PP_EN_MASK,
-			1);
+				HDMI_VP_CONF_PP_EN_MASK, 1);
 	} else if (output_select == 1) {
 		/* YCC422 */
 		reg = SET_FIELD(HDMI_VP_CONF_YCC422_EN_START,
-			HDMI_VP_CONF_YCC422_EN_MASK,
-			1);
+				HDMI_VP_CONF_YCC422_EN_MASK, 1);
 	} else if (output_select == 2 || output_select == 3) {
 		/* Enable bypass */
 		reg = SET_FIELD(HDMI_VP_CONF_BYPASS_EN_START,
-			HDMI_VP_CONF_BYPASS_EN_MASK,
-			1) |
-		SET_FIELD(HDMI_VP_CONF_BYPASS_SELECT_START,
-			HDMI_VP_CONF_BYPASS_SELECT_MASK,
-			1);
+				HDMI_VP_CONF_BYPASS_EN_MASK, 1) |
+		      SET_FIELD(HDMI_VP_CONF_BYPASS_SELECT_START,
+				HDMI_VP_CONF_BYPASS_SELECT_MASK, 1);
 	}
 
 	reg |= SET_FIELD(HDMI_VP_CONF_OUTPUT_SELECTOR_START,
-		HDMI_VP_CONF_OUTPUT_SELECTOR_MASK,
-		output_select);
+			 HDMI_VP_CONF_OUTPUT_SELECTOR_MASK, output_select);
 
 #if defined(EMULATOR)
 	reg |= SET_FIELD(HDMI_VP_CONF_BYPASS_EN_START,
-		HDMI_VP_CONF_BYPASS_EN_MASK,
-		1) |
-	SET_FIELD(HDMI_VP_CONF_BYPASS_SELECT_START,
-		HDMI_VP_CONF_BYPASS_SELECT_MASK,
-		1);
+			 HDMI_VP_CONF_BYPASS_EN_MASK, 1) |
+	       SET_FIELD(HDMI_VP_CONF_BYPASS_SELECT_START,
+			 HDMI_VP_CONF_BYPASS_SELECT_MASK, 1);
 #endif
 
 	/* pixel packing */
-	reg |= SET_FIELD(HDMI_VP_CONF_PP_EN_START,
-		HDMI_VP_CONF_PP_EN_MASK,
-		1);
+	reg |= SET_FIELD(HDMI_VP_CONF_PP_EN_START, HDMI_VP_CONF_PP_EN_MASK, 1);
 	hdmi_write_reg32(hdmi, HDMI_VP_CONF_OFFSET, reg);
 
 	/* YCC422 and pixel packing stuffing */
 	reg = SET_FIELD(HDMI_VP_STUFF_IDEFAULT_PHASE_START,
-		HDMI_VP_STUFF_IDEFAULT_PHASE_MASK,
-		hdmi->hdmi_data.pp_default_phase) |
-	SET_FIELD(HDMI_VP_STUFF_YCC422_STUFFING_START,
-		HDMI_VP_STUFF_YCC422_STUFFING_MASK,
-		1) |
-	SET_FIELD(HDMI_VP_STUFF_PP_STUFFING_START,
-		HDMI_VP_STUFF_PP_STUFFING_MASK,
-		1);
+			HDMI_VP_STUFF_IDEFAULT_PHASE_MASK,
+			hdmi->hdmi_data.pp_default_phase) |
+	      SET_FIELD(HDMI_VP_STUFF_YCC422_STUFFING_START,
+			HDMI_VP_STUFF_YCC422_STUFFING_MASK, 1) |
+	      SET_FIELD(HDMI_VP_STUFF_PP_STUFFING_START,
+			HDMI_VP_STUFF_PP_STUFFING_MASK, 1);
 	hdmi_write_reg32(hdmi, HDMI_VP_STUFF_OFFSET, reg);
 
 	return true;
@@ -226,8 +216,9 @@ static bool video_configure_vs(struct hdmi_device *hdmi)
 	HDMI_CHECKPOINT;
 
 	if (hdmi->hdmi_data.enc_in_format == ENCODING_RGB ||
-		hdmi->hdmi_data.enc_in_format == ENCODING_YCC444) {
-		if (hdmi->hdmi_data.enc_color_depth == 8 || hdmi->hdmi_data.enc_color_depth == 0) {
+	    hdmi->hdmi_data.enc_in_format == ENCODING_YCC444) {
+		if (hdmi->hdmi_data.enc_color_depth == 8 ||
+		    hdmi->hdmi_data.enc_color_depth == 0) {
 			map_code = 1;
 		} else if (hdmi->hdmi_data.enc_color_depth == 10) {
 			map_code = 3;
@@ -236,32 +227,37 @@ static bool video_configure_vs(struct hdmi_device *hdmi)
 		} else if (hdmi->hdmi_data.enc_color_depth == 16) {
 			map_code = 7;
 		} else {
-			hdmi_error(hdmi, "- %s: Invalid color depth\n", __func__);
+			hdmi_error(hdmi, "- %s: Invalid color depth\n",
+				   __func__);
 			return false;
 		}
-		map_code += (hdmi->hdmi_data.enc_in_format  == ENCODING_YCC444) ? 8 : 0;
+		map_code += (hdmi->hdmi_data.enc_in_format == ENCODING_YCC444) ?
+				    8 :
+				    0;
 	} else if (hdmi->hdmi_data.enc_in_format == ENCODING_YCC422_8BITS) {
 		/* YCC422 mapping is discontinued - only map 1 is supported */
 		if (hdmi->hdmi_data.enc_color_depth == 12) {
 			map_code = 18;
 		} else if (hdmi->hdmi_data.enc_color_depth == 10) {
 			map_code = 20;
-		} else if ((hdmi->hdmi_data.enc_color_depth == 8)
-			   || (hdmi->hdmi_data.enc_color_depth == 0)) {
+		} else if ((hdmi->hdmi_data.enc_color_depth == 8) ||
+			   (hdmi->hdmi_data.enc_color_depth == 0)) {
 			map_code = 22;
 		} else {
 			hdmi_error(hdmi, "- %s: Invalid color remap size: %d",
-					__func__, hdmi->hdmi_data.enc_color_depth);
+				   __func__, hdmi->hdmi_data.enc_color_depth);
 			return false;
 		}
 	} else {
 		hdmi_error(hdmi, "- %s: Invalid input encoding type: %d",
-					__func__, hdmi->hdmi_data.enc_in_format);
+			   __func__, hdmi->hdmi_data.enc_in_format);
 		return false;
 	}
 
-	reg = SET_FIELD(HDMI_TX_INVID0_INTERNAL_DE_GEN_START, HDMI_TX_INVID0_INTERNAL_DE_GEN_MASK, 0);
-	reg |= SET_FIELD(HDMI_TX_INVID0_VIDEO_MAPPING_START, HDMI_TX_INVID0_VIDEO_MAPPING_MASK, map_code);
+	reg = SET_FIELD(HDMI_TX_INVID0_INTERNAL_DE_GEN_START,
+			HDMI_TX_INVID0_INTERNAL_DE_GEN_MASK, 0);
+	reg |= SET_FIELD(HDMI_TX_INVID0_VIDEO_MAPPING_START,
+			 HDMI_TX_INVID0_VIDEO_MAPPING_MASK, map_code);
 	hdmi_write_reg32(hdmi, HDMI_TX_INVID0_OFFSET, reg);
 
 #if !defined(EMULATOR)
@@ -281,58 +277,61 @@ static bool video_configure_vs(struct hdmi_device *hdmi)
 /*
  * Frame composer
  */
-static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode *mode)
+static bool video_configure_fc(struct hdmi_device *hdmi,
+			       struct drm_display_mode *mode)
 {
 	u32 reg = 0;
-	u32 hblank, vblank, hsync_delay, vsync_delay, hsync_length, vsync_length;
+	u32 hblank, vblank, hsync_delay, vsync_delay, hsync_length,
+		vsync_length;
 
 	/*
 	 *Input video configuration
 	 */
 	reg = SET_FIELD(HDMI_FC_INVIDCONF_VSYNC_IN_POLARITY_START,
-		HDMI_FC_INVIDCONF_VSYNC_IN_POLARITY_MASK,
-		hdmi->hdmi_data.video_mode.vsync_polarity) |
-	SET_FIELD(HDMI_FC_INVIDCONF_HSYNC_IN_POLARITY_START,
-		HDMI_FC_INVIDCONF_HSYNC_IN_POLARITY_MASK,
-		hdmi->hdmi_data.video_mode.hsync_polarity) |
-	SET_FIELD(HDMI_FC_INVIDCONF_DE_IN_POLARITY_START,
-		HDMI_FC_INVIDCONF_DE_IN_POLARITY_MASK,
-		hdmi->hdmi_data.video_mode.data_enable_polarity) |
-	SET_FIELD(HDMI_FC_INVIDCONF_R_V_BLANK_IN_OSC_START,
-		HDMI_FC_INVIDCONF_R_V_BLANK_IN_OSC_MASK,
-		hdmi->hdmi_data.video_mode.interlaced) |
-	SET_FIELD(HDMI_FC_INVIDCONF_IN_I_P_START,
-		HDMI_FC_INVIDCONF_IN_I_P_MASK,
-		hdmi->hdmi_data.video_mode.interlaced) |
-	SET_FIELD(HDMI_FC_INVIDCONF_DVI_MODEZ_START,
-		HDMI_FC_INVIDCONF_DVI_MODEZ_MASK,
-		hdmi->hdmi_data.video_mode.dvi);    // Nick's original was !dvi
+			HDMI_FC_INVIDCONF_VSYNC_IN_POLARITY_MASK,
+			hdmi->hdmi_data.video_mode.vsync_polarity) |
+	      SET_FIELD(HDMI_FC_INVIDCONF_HSYNC_IN_POLARITY_START,
+			HDMI_FC_INVIDCONF_HSYNC_IN_POLARITY_MASK,
+			hdmi->hdmi_data.video_mode.hsync_polarity) |
+	      SET_FIELD(HDMI_FC_INVIDCONF_DE_IN_POLARITY_START,
+			HDMI_FC_INVIDCONF_DE_IN_POLARITY_MASK,
+			hdmi->hdmi_data.video_mode.data_enable_polarity) |
+	      SET_FIELD(HDMI_FC_INVIDCONF_R_V_BLANK_IN_OSC_START,
+			HDMI_FC_INVIDCONF_R_V_BLANK_IN_OSC_MASK,
+			hdmi->hdmi_data.video_mode.interlaced) |
+	      SET_FIELD(HDMI_FC_INVIDCONF_IN_I_P_START,
+			HDMI_FC_INVIDCONF_IN_I_P_MASK,
+			hdmi->hdmi_data.video_mode.interlaced) |
+	      SET_FIELD(HDMI_FC_INVIDCONF_DVI_MODEZ_START,
+			HDMI_FC_INVIDCONF_DVI_MODEZ_MASK,
+			hdmi->hdmi_data.video_mode
+				.dvi); // Nick's original was !dvi
 	hdmi_write_reg32(hdmi, HDMI_FC_INVIDCONF_OFFSET, reg);
 
 	/*
 	 * Input HActive Pixels
 	 */
 	reg = SET_FIELD(HDMI_FC_INHACTIV0_H_IN_ACTIV_START,
-		HDMI_FC_INHACTIV0_H_IN_ACTIV_MASK,
-		mode->hdisplay & 0xFF);
+			HDMI_FC_INHACTIV0_H_IN_ACTIV_MASK,
+			mode->hdisplay & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_INHACTIV0_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_FC_INHACTIV1_H_IN_ACTIV_UPPER_START,
-		HDMI_FC_INHACTIV1_H_IN_ACTIV_UPPER_MASK,
-		mode->hdisplay >> 8);
+			HDMI_FC_INHACTIV1_H_IN_ACTIV_UPPER_MASK,
+			mode->hdisplay >> 8);
 	hdmi_write_reg32(hdmi, HDMI_FC_INHACTIV1_OFFSET, reg);
 
 	/*
 	 * Input VActive Pixels
 	 */
 	reg = SET_FIELD(HDMI_FC_INVACTIV0_V_IN_ACTIV_START,
-		HDMI_FC_INVACTIV0_V_IN_ACTIV_MASK,
-		mode->vdisplay & 0xFF);
+			HDMI_FC_INVACTIV0_V_IN_ACTIV_MASK,
+			mode->vdisplay & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_INVACTIV0_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_FC_INVACTIV1_V_IN_ACTIV_UPPER_START,
-		HDMI_FC_INVACTIV1_V_IN_ACTIV_UPPER_MASK,
-		mode->vdisplay >> 8);
+			HDMI_FC_INVACTIV1_V_IN_ACTIV_UPPER_MASK,
+			mode->vdisplay >> 8);
 	hdmi_write_reg32(hdmi, HDMI_FC_INVACTIV1_OFFSET, reg);
 
 	/*
@@ -340,13 +339,11 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
 	 */
 	hblank = mode->htotal - mode->hdisplay;
 	reg = SET_FIELD(HDMI_FC_INHBLANK0_H_IN_BLANK_START,
-		HDMI_FC_INHBLANK0_H_IN_BLANK_MASK,
-		hblank & 0xFF);
+			HDMI_FC_INHBLANK0_H_IN_BLANK_MASK, hblank & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_INHBLANK0_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_FC_INHBLANK1_H_IN_BLANK_UPPER_START,
-		HDMI_FC_INHBLANK1_H_IN_BLANK_UPPER_MASK,
-		hblank >> 8);
+			HDMI_FC_INHBLANK1_H_IN_BLANK_UPPER_MASK, hblank >> 8);
 	hdmi_write_reg32(hdmi, HDMI_FC_INHBLANK1_OFFSET, reg);
 
 	/*
@@ -354,8 +351,7 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
 	 */
 	vblank = mode->vtotal - mode->vdisplay;
 	reg = SET_FIELD(HDMI_FC_INVBLANK_V_IN_BLANK_START,
-		HDMI_FC_INVBLANK_V_IN_BLANK_MASK,
-		vblank & 0xFF);
+			HDMI_FC_INVBLANK_V_IN_BLANK_MASK, vblank & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_INVBLANK_OFFSET, reg);
 
 	/*
@@ -363,13 +359,13 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
 	 */
 	hsync_delay = mode->hsync_start - mode->hdisplay;
 	reg = SET_FIELD(HDMI_FC_HSYNCINDELAY0_H_IN_DELAY_START,
-		HDMI_FC_HSYNCINDELAY0_H_IN_DELAY_MASK,
-		hsync_delay & 0xFF);
+			HDMI_FC_HSYNCINDELAY0_H_IN_DELAY_MASK,
+			hsync_delay & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_HSYNCINDELAY0_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_FC_HSYNCINDELAY1_H_IN_DELAY_UPPER_START,
-		HDMI_FC_HSYNCINDELAY1_H_IN_DELAY_UPPER_MASK,
-		hsync_delay >> 8);
+			HDMI_FC_HSYNCINDELAY1_H_IN_DELAY_UPPER_MASK,
+			hsync_delay >> 8);
 	hdmi_write_reg32(hdmi, HDMI_FC_HSYNCINDELAY1_OFFSET, reg);
 
 	/*
@@ -377,8 +373,8 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
 	 */
 	vsync_delay = mode->vsync_start - mode->vdisplay;
 	reg = SET_FIELD(HDMI_FC_VSYNCINDELAY_V_IN_DELAY_START,
-		HDMI_FC_VSYNCINDELAY_V_IN_DELAY_MASK,
-		vsync_delay & 0xFF);
+			HDMI_FC_VSYNCINDELAY_V_IN_DELAY_MASK,
+			vsync_delay & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_VSYNCINDELAY_OFFSET, reg);
 
 	/*
@@ -386,13 +382,13 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
 	 */
 	hsync_length = mode->hsync_end - mode->hsync_start;
 	reg = SET_FIELD(HDMI_FC_HSYNCINWIDTH0_H_IN_WIDTH_START,
-		HDMI_FC_HSYNCINWIDTH0_H_IN_WIDTH_MASK,
-		hsync_length & 0xFF);
+			HDMI_FC_HSYNCINWIDTH0_H_IN_WIDTH_MASK,
+			hsync_length & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_HSYNCINWIDTH0_OFFSET, reg);
 
 	reg = SET_FIELD(HDMI_FC_HSYNCINWIDTH1_H_IN_WIDTH_UPPER_START,
-		HDMI_FC_HSYNCINWIDTH1_H_IN_WIDTH_UPPER_MASK,
-		hsync_length >> 8);
+			HDMI_FC_HSYNCINWIDTH1_H_IN_WIDTH_UPPER_MASK,
+			hsync_length >> 8);
 	hdmi_write_reg32(hdmi, HDMI_FC_HSYNCINWIDTH1_OFFSET, reg);
 
 	/*
@@ -400,12 +396,11 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
 	 */
 	vsync_length = mode->vsync_end - mode->vsync_start;
 	reg = SET_FIELD(HDMI_FC_VSYNCINWIDTH_V_IN_WIDTH_START,
-		HDMI_FC_VSYNCINWIDTH_V_IN_WIDTH_MASK,
-		vsync_length & 0xFF);
+			HDMI_FC_VSYNCINWIDTH_V_IN_WIDTH_MASK,
+			vsync_length & 0xFF);
 	hdmi_write_reg32(hdmi, HDMI_FC_VSYNCINWIDTH_OFFSET, reg);
 
 	return true;
-
 }
 
 /*
@@ -416,17 +411,22 @@ static bool video_configure_fc(struct hdmi_device *hdmi, struct drm_display_mode
  * 4. Power-on, PLL configuration, and reset Tx PHY
  * 5. Wait for PHY lock to assert
  */
-int video_configure_mode(struct hdmi_device *hdmi, struct drm_display_mode *mode)
+int video_configure_mode(struct hdmi_device *hdmi,
+			 struct drm_display_mode *mode)
 {
 	int err = 0;
 
 	HDMI_CHECKPOINT;
 
-	hdmi_info(hdmi, " - %s: Configuring video mode for VIC %d\n", __func__, hdmi->hdmi_data.vic);
+	hdmi_info(hdmi, " - %s: Configuring video mode for VIC %d\n", __func__,
+		  hdmi->hdmi_data.vic);
 
-	hdmi->hdmi_data.video_mode.vsync_polarity = mode->flags & DRM_MODE_FLAG_PVSYNC;
-	hdmi->hdmi_data.video_mode.hsync_polarity = mode->flags & DRM_MODE_FLAG_PHSYNC;
-	hdmi->hdmi_data.video_mode.interlaced = mode->flags & DRM_MODE_FLAG_INTERLACE;
+	hdmi->hdmi_data.video_mode.vsync_polarity = mode->flags &
+						    DRM_MODE_FLAG_PVSYNC;
+	hdmi->hdmi_data.video_mode.hsync_polarity = mode->flags &
+						    DRM_MODE_FLAG_PHSYNC;
+	hdmi->hdmi_data.video_mode.interlaced = mode->flags &
+						DRM_MODE_FLAG_INTERLACE;
 
 	/*
 	 * Step D.2: Set desired video mode based on current VideoParams structure
@@ -473,7 +473,8 @@ int video_configure_mode(struct hdmi_device *hdmi, struct drm_display_mode *mode
 	hdmi_write_reg32(hdmi, HDMI_FC_CH1PREAM_OFFSET, 0x16);
 	hdmi_write_reg32(hdmi, HDMI_FC_CH2PREAM_OFFSET, 0x21);
 	hdmi_write_reg32(hdmi, HDMI_MC_CLKDIS_OFFSET,
-		SET_FIELD(HDMI_MC_CLKDIS_HDCPCLK_DIS_START, HDMI_MC_CLKDIS_HDCPCLK_DIS_MASK, 1));
+			 SET_FIELD(HDMI_MC_CLKDIS_HDCPCLK_DIS_START,
+				   HDMI_MC_CLKDIS_HDCPCLK_DIS_MASK, 1));
 
 EXIT:
 	return err;
@@ -482,7 +483,8 @@ EXIT:
 /*
  * See HDMI ref driver packets.c
  */
-int video_configure_infoframes(struct hdmi_device *hdmi, struct drm_display_mode *mode)
+int video_configure_infoframes(struct hdmi_device *hdmi,
+			       struct drm_display_mode *mode)
 {
 	u32 reg;
 
@@ -493,51 +495,52 @@ int video_configure_infoframes(struct hdmi_device *hdmi, struct drm_display_mode
 #endif
 
 	/* Only relevant for HDMI */
-	if (!hdmi->hdmi_data.video_mode.dvi) {   // Nick's original was without !
-		hdmi_info(hdmi, "- %s: Sink is DVI, not configuring infoframes\n", __func__);
+	if (!hdmi->hdmi_data.video_mode.dvi) { // Nick's original was without !
+		hdmi_info(hdmi,
+			  "- %s: Sink is DVI, not configuring infoframes\n",
+			  __func__);
 		return 0;
 	}
 
 	/* AVI CONF0 setup */
-	reg = SET_FIELD(HDMI_FC_AVICONF0_RGBYCC_START, HDMI_FC_AVICONF0_RGBYCC_MASK, 0);
+	reg = SET_FIELD(HDMI_FC_AVICONF0_RGBYCC_START,
+			HDMI_FC_AVICONF0_RGBYCC_MASK, 0);
 	reg |= SET_FIELD(HDMI_FC_AVICONF0_SCAN_INFO_START,
-		HDMI_FC_AVICONF0_SCAN_INFO_MASK,
-		0);
+			 HDMI_FC_AVICONF0_SCAN_INFO_MASK, 0);
 	hdmi_write_reg32(hdmi, HDMI_FC_AVICONF0_OFFSET, reg);
 
 	/* AVI CONF1 setup */
-	reg = SET_FIELD(HDMI_FC_AVICONF1_PIC_ASPECT_RATIO_START,
+	reg = SET_FIELD(
 		HDMI_FC_AVICONF1_PIC_ASPECT_RATIO_START,
-		(mode->picture_aspect_ratio == HDMI_PICTURE_ASPECT_16_9) ? 2 : 1);
+		HDMI_FC_AVICONF1_PIC_ASPECT_RATIO_START,
+		(mode->picture_aspect_ratio == HDMI_PICTURE_ASPECT_16_9) ? 2 :
+									   1);
 	reg |= SET_FIELD(HDMI_FC_AVICONF1_COLORIMETRY_START,
-		HDMI_FC_AVICONF1_COLORIMETRY_MASK,
-		hdmi->hdmi_data.colorimetry);
+			 HDMI_FC_AVICONF1_COLORIMETRY_MASK,
+			 hdmi->hdmi_data.colorimetry);
 	reg |= SET_FIELD(HDMI_FC_AVICONF1_ACTIVE_ASPECT_RATIO_START,
-		HDMI_FC_AVICONF1_ACTIVE_ASPECT_RATIO_MASK,
-		hdmi->hdmi_data.active_aspect_ratio);
+			 HDMI_FC_AVICONF1_ACTIVE_ASPECT_RATIO_MASK,
+			 hdmi->hdmi_data.active_aspect_ratio);
 	hdmi_write_reg32(hdmi, HDMI_FC_AVICONF1_OFFSET, reg);
 
 	/* Go back and set active format valid bit */
 	reg = SET_FIELD(HDMI_FC_AVICONF0_ACTIVE_FORMAT_PRESENT_START,
-		HDMI_FC_AVICONF0_ACTIVE_FORMAT_PRESENT_MASK,
-		1);
-	hdmi_mod_reg32(hdmi, HDMI_FC_AVICONF0_OFFSET,
-		reg, HDMI_FC_AVICONF0_ACTIVE_FORMAT_PRESENT_MASK);
+			HDMI_FC_AVICONF0_ACTIVE_FORMAT_PRESENT_MASK, 1);
+	hdmi_mod_reg32(hdmi, HDMI_FC_AVICONF0_OFFSET, reg,
+		       HDMI_FC_AVICONF0_ACTIVE_FORMAT_PRESENT_MASK);
 
 	/* AVI CONF2 setup */
 	reg = SET_FIELD(HDMI_FC_AVICONF2_IT_CONTENT_START,
-		HDMI_FC_AVICONF2_IT_CONTENT_MASK,
-		0);
+			HDMI_FC_AVICONF2_IT_CONTENT_MASK, 0);
 	reg |= SET_FIELD(HDMI_FC_AVICONF2_QUANTIZATION_RANGE_START,
-		HDMI_FC_AVICONF2_QUANTIZATION_RANGE_MASK,
-		0);
+			 HDMI_FC_AVICONF2_QUANTIZATION_RANGE_MASK, 0);
 	reg |= SET_FIELD(HDMI_FC_AVICONF2_NON_UNIFORM_PIC_SCALING_START,
-		HDMI_FC_AVICONF2_NON_UNIFORM_PIC_SCALING_MASK,
-		0);
+			 HDMI_FC_AVICONF2_NON_UNIFORM_PIC_SCALING_MASK, 0);
 	hdmi_write_reg32(hdmi, HDMI_FC_AVICONF2_OFFSET, reg);
 
 	/* AVI VID setup */
-	reg = SET_FIELD(HDMI_FC_AVIVID_START, HDMI_FC_AVIVID_MASK, hdmi->hdmi_data.vic);
+	reg = SET_FIELD(HDMI_FC_AVIVID_START, HDMI_FC_AVIVID_MASK,
+			hdmi->hdmi_data.vic);
 	hdmi_write_reg32(hdmi, HDMI_FC_AVIVID_OFFSET, reg);
 
 	/* Set horizontal bars to 0 */
@@ -546,8 +549,9 @@ int video_configure_infoframes(struct hdmi_device *hdmi, struct drm_display_mode
 	hdmi_write_reg32(hdmi, HDMI_FC_AVISBB0_OFFSET, 0);
 	hdmi_write_reg32(hdmi, HDMI_FC_AVISBB1_OFFSET, 0);
 	hdmi_mod_reg32(hdmi, HDMI_FC_AVICONF0_OFFSET,
-		SET_FIELD(HDMI_FC_AVICONF0_HBAR_VALID_START, HDMI_FC_AVICONF0_HBAR_VALID_MASK, 1),
-		HDMI_FC_AVICONF0_HBAR_VALID_MASK);
+		       SET_FIELD(HDMI_FC_AVICONF0_HBAR_VALID_START,
+				 HDMI_FC_AVICONF0_HBAR_VALID_MASK, 1),
+		       HDMI_FC_AVICONF0_HBAR_VALID_MASK);
 
 	/* Set vertical bars to 0 */
 	hdmi_write_reg32(hdmi, HDMI_FC_AVIELB0_OFFSET, 0);
@@ -555,15 +559,18 @@ int video_configure_infoframes(struct hdmi_device *hdmi, struct drm_display_mode
 	hdmi_write_reg32(hdmi, HDMI_FC_AVISRB0_OFFSET, 0);
 	hdmi_write_reg32(hdmi, HDMI_FC_AVISRB1_OFFSET, 0);
 	hdmi_mod_reg32(hdmi, HDMI_FC_AVICONF0_OFFSET,
-		SET_FIELD(HDMI_FC_AVICONF0_VBAR_VALID_START, HDMI_FC_AVICONF0_VBAR_VALID_MASK, 1),
-		HDMI_FC_AVICONF0_VBAR_VALID_MASK);
+		       SET_FIELD(HDMI_FC_AVICONF0_VBAR_VALID_START,
+				 HDMI_FC_AVICONF0_VBAR_VALID_MASK, 1),
+		       HDMI_FC_AVICONF0_VBAR_VALID_MASK);
 
 	/* Set out pixel repetition factor */
-	hdmi_mod_reg32(hdmi, HDMI_FC_PRCONF_OFFSET,
+	hdmi_mod_reg32(
+		hdmi, HDMI_FC_PRCONF_OFFSET,
 		SET_FIELD(HDMI_FC_PRCONF_OUTPUT_PR_FACTOR_START,
-			HDMI_FC_PRCONF_OUTPUT_PR_FACTOR_MASK,
-			((hdmi->hdmi_data.video_mode.pixel_repetition_input + 1) *
-			(hdmi->hdmi_data.pix_repet_factor + 1) - 1)),
+			  HDMI_FC_PRCONF_OUTPUT_PR_FACTOR_MASK,
+			  ((hdmi->hdmi_data.video_mode.pixel_repetition_input +
+			    1) * (hdmi->hdmi_data.pix_repet_factor + 1) -
+			   1)),
 		HDMI_FC_PRCONF_OUTPUT_PR_FACTOR_MASK);
 
 	return 0;
@@ -584,8 +591,8 @@ int video_init(struct hdmi_device *hdmi)
 	hdmi_write_reg32(hdmi, HDMI_FC_DBGTMDS_1_OFFSET, 0xFF); /* G */
 	hdmi_write_reg32(hdmi, HDMI_FC_DBGTMDS_0_OFFSET, 0x00); /* B */
 	hdmi_write_reg32(hdmi, HDMI_FC_DBGFORCE_OFFSET,
-		SET_FIELD(HDMI_FC_DBGFORCE_FORCE_VIDEO_START,
-					HDMI_FC_DBGFORCE_FORCE_VIDEO_MASK, 0));
+			 SET_FIELD(HDMI_FC_DBGFORCE_FORCE_VIDEO_START,
+				   HDMI_FC_DBGFORCE_FORCE_VIDEO_MASK, 0));
 
 	return err;
 }

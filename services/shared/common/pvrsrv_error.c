@@ -46,16 +46,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 IMG_EXPORT
 const IMG_CHAR *PVRSRVGetErrorString(PVRSRV_ERROR eError)
 {
-	switch (eError)
-	{
-		case PVRSRV_OK:
-			return "PVRSRV_OK";
+	switch (eError) {
+	case PVRSRV_OK:
+		return "PVRSRV_OK";
 #define PVRE(x) \
-		case x: \
-			return #x;
+	case x: \
+		return #x;
 #include "pvrsrv_errors.h"
 #undef PVRE
-		default:
-			return "Unknown PVRSRV error number";
+	default:
+		return "Unknown PVRSRV error number";
 	}
 }

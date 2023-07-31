@@ -53,8 +53,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxdefs_km.h"
 #include "pvr_notifier.h"
 
-#define MAX_CLIENT_CCB_NAME	30
-#define SYNC_FLAG_MASK_ALL  IMG_UINT32_MAX
+#define MAX_CLIENT_CCB_NAME 30
+#define SYNC_FLAG_MASK_ALL IMG_UINT32_MAX
 
 /*
  * This size is to be used when a client CCB is found to consume very
@@ -62,64 +62,87 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * In such a case, instead of allocating CCB of size of only a few KBs, we
  * allocate at-least this much to be future risk-free.
  */
-#define MIN_SAFE_CCB_SIZE_LOG2         13  /* 8K (2 Pages) */
-#define MAX_SAFE_CCB_SIZE_LOG2         18  /* 256K (64 Pages) */
+#define MIN_SAFE_CCB_SIZE_LOG2 13 /* 8K (2 Pages) */
+#define MAX_SAFE_CCB_SIZE_LOG2 18 /* 256K (64 Pages) */
 
-#define RGX_TQ3D_CCB_SIZE_LOG2         PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ3D
+#define RGX_TQ3D_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ3D
 static_assert(RGX_TQ3D_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_TQ3D_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TQ3D CCB size is invalid");
-#define RGX_TQ3D_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TQ3D
-static_assert(RGX_TQ3D_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ3D
-	&& RGX_TQ3D_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TQ3D max CCB size is invalid");
+		      RGX_TQ3D_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TQ3D CCB size is invalid");
+#define RGX_TQ3D_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TQ3D
+static_assert(RGX_TQ3D_CCB_MAX_SIZE_LOG2 >=
+			      PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ3D &&
+		      RGX_TQ3D_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TQ3D max CCB size is invalid");
 
-#define RGX_TQ2D_CCB_SIZE_LOG2         PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ2D
+#define RGX_TQ2D_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ2D
 static_assert(RGX_TQ2D_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_TQ2D_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TQ2D CCB size is invalid");
-#define RGX_TQ2D_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TQ2D
-static_assert(RGX_TQ2D_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ2D &&
-	RGX_TQ2D_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TQ2D max CCB size is invalid");
+		      RGX_TQ2D_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TQ2D CCB size is invalid");
+#define RGX_TQ2D_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TQ2D
+static_assert(RGX_TQ2D_CCB_MAX_SIZE_LOG2 >=
+			      PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TQ2D &&
+		      RGX_TQ2D_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TQ2D max CCB size is invalid");
 
-#define RGX_CDM_CCB_SIZE_LOG2          PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_CDM
+#define RGX_CDM_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_CDM
 static_assert(RGX_CDM_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_CDM_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "CDM CCB size is invalid");
-#define RGX_CDM_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_CDM
-static_assert(RGX_CDM_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_CDM &&
-	RGX_CDM_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "CDM max CCB size is invalid");
+		      RGX_CDM_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "CDM CCB size is invalid");
+#define RGX_CDM_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_CDM
+static_assert(RGX_CDM_CCB_MAX_SIZE_LOG2 >=
+			      PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_CDM &&
+		      RGX_CDM_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "CDM max CCB size is invalid");
 
-#define RGX_TA_CCB_SIZE_LOG2           PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TA
+#define RGX_TA_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TA
 static_assert(RGX_TA_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_TA_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TA CCB size is invalid");
-#define RGX_TA_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TA
+		      RGX_TA_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TA CCB size is invalid");
+#define RGX_TA_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TA
 static_assert(RGX_TA_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TA &&
-	RGX_TA_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TA max CCB size is invalid");
+		      RGX_TA_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TA max CCB size is invalid");
 
-#define RGX_3D_CCB_SIZE_LOG2           PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_3D
+#define RGX_3D_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_3D
 static_assert(RGX_3D_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_3D_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "3D CCB size is invalid");
-#define RGX_3D_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_3D
+		      RGX_3D_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "3D CCB size is invalid");
+#define RGX_3D_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_3D
 static_assert(RGX_3D_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_3D &&
-	RGX_3D_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "3D max CCB size is invalid");
+		      RGX_3D_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "3D max CCB size is invalid");
 
-#define RGX_KICKSYNC_CCB_SIZE_LOG2     PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_KICKSYNC
+#define RGX_KICKSYNC_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_KICKSYNC
 static_assert(RGX_KICKSYNC_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_KICKSYNC_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "KickSync CCB size is invalid");
-#define RGX_KICKSYNC_CCB_MAX_SIZE_LOG2	PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_KICKSYNC
-static_assert(RGX_KICKSYNC_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_KICKSYNC &&
-	RGX_KICKSYNC_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "KickSync max CCB size is invalid");
+		      RGX_KICKSYNC_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "KickSync CCB size is invalid");
+#define RGX_KICKSYNC_CCB_MAX_SIZE_LOG2 \
+	PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_KICKSYNC
+static_assert(RGX_KICKSYNC_CCB_MAX_SIZE_LOG2 >=
+			      PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_KICKSYNC &&
+		      RGX_KICKSYNC_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "KickSync max CCB size is invalid");
 
-#define RGX_TDM_CCB_SIZE_LOG2         PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TDM
+#define RGX_TDM_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TDM
 static_assert(RGX_TDM_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_TDM_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TDM CCB size is invalid");
-#define RGX_TDM_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TDM
-static_assert(RGX_TDM_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TDM &&
-	RGX_TDM_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "TDM max CCB size is invalid");
+		      RGX_TDM_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TDM CCB size is invalid");
+#define RGX_TDM_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_TDM
+static_assert(RGX_TDM_CCB_MAX_SIZE_LOG2 >=
+			      PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_TDM &&
+		      RGX_TDM_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "TDM max CCB size is invalid");
 
-#define RGX_RDM_CCB_SIZE_LOG2          PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_RDM
+#define RGX_RDM_CCB_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_RDM
 static_assert(RGX_RDM_CCB_SIZE_LOG2 >= MIN_SAFE_CCB_SIZE_LOG2 &&
-	RGX_RDM_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "RDM CCB size is invalid");
-#define RGX_RDM_CCB_MAX_SIZE_LOG2		PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_RDM
-static_assert(RGX_RDM_CCB_MAX_SIZE_LOG2 >= PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_RDM &&
-	RGX_RDM_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2, "RDM max CCB size is invalid");
+		      RGX_RDM_CCB_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "RDM CCB size is invalid");
+#define RGX_RDM_CCB_MAX_SIZE_LOG2 PVRSRV_RGX_LOG2_CLIENT_CCB_MAX_SIZE_RDM
+static_assert(RGX_RDM_CCB_MAX_SIZE_LOG2 >=
+			      PVRSRV_RGX_LOG2_CLIENT_CCB_SIZE_RDM &&
+		      RGX_RDM_CCB_MAX_SIZE_LOG2 <= MAX_SAFE_CCB_SIZE_LOG2,
+	      "RDM max CCB size is invalid");
 
 typedef struct _RGX_CLIENT_CCB_ RGX_CLIENT_CCB;
 
@@ -130,68 +153,66 @@ typedef struct _RGX_CLIENT_CCB_ RGX_CLIENT_CCB;
 
 typedef struct _RGX_CCB_CMD_HELPER_DATA_ {
 	/* Data setup at command init time */
-	RGX_CLIENT_CCB			*psClientCCB;
-	IMG_CHAR				*pszCommandName;
-	IMG_UINT32				ui32PDumpFlags;
+	RGX_CLIENT_CCB *psClientCCB;
+	IMG_CHAR *pszCommandName;
+	IMG_UINT32 ui32PDumpFlags;
 
-	IMG_UINT32				ui32ClientFenceCount;
-	PRGXFWIF_UFO_ADDR		*pauiFenceUFOAddress;
-	IMG_UINT32				*paui32FenceValue;
-	IMG_UINT32				ui32ClientUpdateCount;
-	PRGXFWIF_UFO_ADDR		*pauiUpdateUFOAddress;
-	IMG_UINT32				*paui32UpdateValue;
-	RGXFWIF_CCB_CMD_TYPE	eType;
-	IMG_UINT32				ui32CmdSize;
-	IMG_UINT8				*pui8DMCmd;
-	IMG_UINT32				ui32FBSCInvalCmdSize;
-	IMG_UINT32				ui32DMCmdSize;
-	IMG_UINT32				ui32TotalSize;
-	IMG_UINT32				ui32DMCmdOffset;
+	IMG_UINT32 ui32ClientFenceCount;
+	PRGXFWIF_UFO_ADDR *pauiFenceUFOAddress;
+	IMG_UINT32 *paui32FenceValue;
+	IMG_UINT32 ui32ClientUpdateCount;
+	PRGXFWIF_UFO_ADDR *pauiUpdateUFOAddress;
+	IMG_UINT32 *paui32UpdateValue;
+	RGXFWIF_CCB_CMD_TYPE eType;
+	IMG_UINT32 ui32CmdSize;
+	IMG_UINT8 *pui8DMCmd;
+	IMG_UINT32 ui32FBSCInvalCmdSize;
+	IMG_UINT32 ui32DMCmdSize;
+	IMG_UINT32 ui32TotalSize;
+	IMG_UINT32 ui32DMCmdOffset;
 
 	/* data for FBSC invalidate command */
-	IMG_UINT64				ui64FBSCEntryMask;
+	IMG_UINT64 ui64FBSCEntryMask;
 
 	/* timestamp commands */
 	PRGXFWIF_TIMESTAMP_ADDR pPreTimestampAddr;
-	IMG_UINT32              ui32PreTimeStampCmdSize;
+	IMG_UINT32 ui32PreTimeStampCmdSize;
 	PRGXFWIF_TIMESTAMP_ADDR pPostTimestampAddr;
-	IMG_UINT32              ui32PostTimeStampCmdSize;
-	PRGXFWIF_UFO_ADDR       pRMWUFOAddr;
-	IMG_UINT32              ui32RMWUFOCmdSize;
+	IMG_UINT32 ui32PostTimeStampCmdSize;
+	PRGXFWIF_UFO_ADDR pRMWUFOAddr;
+	IMG_UINT32 ui32RMWUFOCmdSize;
 
 	/* Job reference fields */
-	IMG_UINT32				ui32ExtJobRef;
-	IMG_UINT32				ui32IntJobRef;
+	IMG_UINT32 ui32ExtJobRef;
+	IMG_UINT32 ui32IntJobRef;
 
 	/* FW Memdesc for Workload information */
-	RGXFWIF_WORKEST_KICK_DATA	*psWorkEstKickData;
+	RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData;
 
 } RGX_CCB_CMD_HELPER_DATA;
 
-#define PADDING_COMMAND_SIZE	(sizeof(RGXFWIF_CCB_CMD_HEADER))
+#define PADDING_COMMAND_SIZE (sizeof(RGXFWIF_CCB_CMD_HEADER))
 
-
-#define RGX_CCB_REQUESTORS(TYPE) \
-	/* for debugging purposes */ TYPE(UNDEF)	\
-	TYPE(TA)	\
-	TYPE(3D)	\
-	TYPE(CDM)	\
-	TYPE(SH)	\
-	TYPE(RS)	\
-	TYPE(TQ_3D)	\
-	TYPE(TQ_2D)	\
-	TYPE(TQ_TDM)	\
-	TYPE(KICKSYNC)	\
-	TYPE(RAY)	\
+#define RGX_CCB_REQUESTORS(TYPE)                 \
+	/* for debugging purposes */ TYPE(UNDEF) \
+	TYPE(TA)                                 \
+	TYPE(3D)                                 \
+	TYPE(CDM)                                \
+	TYPE(SH)                                 \
+	TYPE(RS)                                 \
+	TYPE(TQ_3D)                              \
+	TYPE(TQ_2D)                              \
+	TYPE(TQ_TDM)                             \
+	TYPE(KICKSYNC)                           \
+	TYPE(RAY)
 
 /* Forms an enum constant for each type present in RGX_CCB_REQUESTORS list. The enum is mainly used as
    an index to the aszCCBRequestors table defined in rgxccb.c. The total number of enums must adhere
    to the following build assert.
 */
-typedef enum _RGX_CCB_REQUESTOR_TYPE_
-{
+typedef enum _RGX_CCB_REQUESTOR_TYPE_ {
 #define CONSTRUCT_ENUM(req) REQ_TYPE_##req,
-	RGX_CCB_REQUESTORS (CONSTRUCT_ENUM)
+	RGX_CCB_REQUESTORS(CONSTRUCT_ENUM)
 #undef CONSTRUCT_ENUM
 
 	/* should always be at the end */
@@ -199,11 +220,10 @@ typedef enum _RGX_CCB_REQUESTOR_TYPE_
 } RGX_CCB_REQUESTOR_TYPE;
 
 /* Tuple describing the columns of the following table */
-typedef enum _RGX_CCB_REQUESTOR_TUPLE_
-{
-	REQ_RGX_FW_CLIENT_CCB_STRING,          /* Index to comment to be dumped in DevMemAllocs when allocating FirmwareClientCCB for this requestor */
-	REQ_RGX_FW_CLIENT_CCB_CONTROL_STRING,  /* Index to comment to be dumped in DevMemAllocs when allocating FirmwareClientCCBControl for this requestor */
-	REQ_PDUMP_COMMENT,                     /* Index to comment to be dumped in PDUMPs */
+typedef enum _RGX_CCB_REQUESTOR_TUPLE_ {
+	REQ_RGX_FW_CLIENT_CCB_STRING, /* Index to comment to be dumped in DevMemAllocs when allocating FirmwareClientCCB for this requestor */
+	REQ_RGX_FW_CLIENT_CCB_CONTROL_STRING, /* Index to comment to be dumped in DevMemAllocs when allocating FirmwareClientCCBControl for this requestor */
+	REQ_PDUMP_COMMENT, /* Index to comment to be dumped in PDUMPs */
 
 	/* should always be at the end */
 	REQ_TUPLE_CARDINALITY,
@@ -211,9 +231,9 @@ typedef enum _RGX_CCB_REQUESTOR_TUPLE_
 
 /* Unpack U8 values from U32. */
 #define U32toU8_Unpack1(U32Packed) (U32Packed & 0xFF)
-#define U32toU8_Unpack2(U32Packed) ((U32Packed>>8) & 0xFF)
-#define U32toU8_Unpack3(U32Packed) ((U32Packed>>16) & 0xFF)
-#define U32toU8_Unpack4(U32Packed) ((U32Packed>>24) & 0xFF)
+#define U32toU8_Unpack2(U32Packed) ((U32Packed >> 8) & 0xFF)
+#define U32toU8_Unpack3(U32Packed) ((U32Packed >> 16) & 0xFF)
+#define U32toU8_Unpack4(U32Packed) ((U32Packed >> 24) & 0xFF)
 
 /* Defines for bit meanings within the ui32CCBFlags member of struct _RGX_CLIENT_CCB_
  *
@@ -226,9 +246,10 @@ typedef enum _RGX_CCB_REQUESTOR_TUPLE_
  *    0 = If set, CCB is still open and commands will be appended to it
  *    1 = If set, do not perform Sync Lockup Recovery (SLR) for this CCB
  */
-#define CCB_FLAGS_CCB_STATE_OPEN (0)  /*!< This bit is set to indicate CCB is in the 'Open' state. */
-#define CCB_FLAGS_SLR_DISABLED   (1)  /*!< This bit is set to disable Sync Lockup Recovery (SLR) for this CCB. */
-
+#define CCB_FLAGS_CCB_STATE_OPEN \
+	(0) /*!< This bit is set to indicate CCB is in the 'Open' state. */
+#define CCB_FLAGS_SLR_DISABLED \
+	(1) /*!< This bit is set to disable Sync Lockup Recovery (SLR) for this CCB. */
 
 /*	Table containing an array of strings for each requestor type in the list of RGX_CCB_REQUESTORS. In addition to its use in
 	this module (rgxccb.c), this table is also used to access string to be dumped in PDUMP comments, hence, marking it extern for
@@ -237,120 +258,98 @@ typedef enum _RGX_CCB_REQUESTOR_TUPLE_
 extern const IMG_CHAR *const aszCCBRequestors[][REQ_TUPLE_CARDINALITY];
 
 PVRSRV_ERROR RGXCCBPDumpDrainCCB(RGX_CLIENT_CCB *psClientCCB,
-					IMG_UINT32 ui32PDumpFlags);
+				 IMG_UINT32 ui32PDumpFlags);
 
-PVRSRV_ERROR RGXCreateCCB(PVRSRV_RGXDEV_INFO	*psDevInfo,
-						  IMG_UINT32			ui32CCBSizeLog2,
-						  IMG_UINT32			ui32CCBMaxSizeLog2,
-						  IMG_UINT32			ui32ContextFlags,
-						  CONNECTION_DATA		*psConnectionData,
-						  RGX_CCB_REQUESTOR_TYPE	eCCBRequestor,
-						  RGX_SERVER_COMMON_CONTEXT *psServerCommonContext,
-						  RGX_CLIENT_CCB		**ppsClientCCB,
-						  DEVMEM_MEMDESC		**ppsClientCCBMemDesc,
-						  DEVMEM_MEMDESC		**ppsClientCCBCtlMemDesc);
+PVRSRV_ERROR RGXCreateCCB(
+	PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CCBSizeLog2,
+	IMG_UINT32 ui32CCBMaxSizeLog2, IMG_UINT32 ui32ContextFlags,
+	CONNECTION_DATA *psConnectionData, RGX_CCB_REQUESTOR_TYPE eCCBRequestor,
+	RGX_SERVER_COMMON_CONTEXT *psServerCommonContext,
+	RGX_CLIENT_CCB **ppsClientCCB, DEVMEM_MEMDESC **ppsClientCCBMemDesc,
+	DEVMEM_MEMDESC **ppsClientCCBCtlMemDesc);
 
 void RGXDestroyCCB(PVRSRV_RGXDEV_INFO *psDevInfo, RGX_CLIENT_CCB *psClientCCB);
 
-PVRSRV_ERROR RGXCheckSpaceCCB(RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32CmdSize);
+PVRSRV_ERROR RGXCheckSpaceCCB(RGX_CLIENT_CCB *psClientCCB,
+			      IMG_UINT32 ui32CmdSize);
 
-PVRSRV_ERROR RGXAcquireCCB(RGX_CLIENT_CCB *psClientCCB,
-						   IMG_UINT32		ui32CmdSize,
-						   void				**ppvBufferSpace,
-						   IMG_UINT32		ui32PDumpFlags);
+PVRSRV_ERROR RGXAcquireCCB(RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32CmdSize,
+			   void **ppvBufferSpace, IMG_UINT32 ui32PDumpFlags);
 
-void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB,
-								IMG_UINT32		ui32CmdSize,
-								IMG_UINT32		ui32PDumpFlags);
+void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32CmdSize,
+		   IMG_UINT32 ui32PDumpFlags);
 
 IMG_UINT32 RGXGetHostWriteOffsetCCB(RGX_CLIENT_CCB *psClientCCB);
 IMG_UINT32 RGXGetWrapMaskCCB(RGX_CLIENT_CCB *psClientCCB);
 
-void RGXSetCCBFlags(RGX_CLIENT_CCB *psClientCCB,
-					IMG_UINT32		ui32Flags);
+void RGXSetCCBFlags(RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32Flags);
 
-void RGXCmdHelperInitCmdCCB_CommandSize(PVRSRV_RGXDEV_INFO *psDevInfo,
-										IMG_UINT64 ui64FBSCEntryMask,
-                                        IMG_UINT32 ui32ClientFenceCount,
-                                        IMG_UINT32 ui32ClientUpdateCount,
-                                        IMG_UINT32 ui32CmdSize,
-                                        PRGXFWIF_TIMESTAMP_ADDR *ppPreAddr,
-                                        PRGXFWIF_TIMESTAMP_ADDR *ppPostAddr,
-                                        PRGXFWIF_UFO_ADDR       *ppRMWUFOAddr,
-                                        RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
+void RGXCmdHelperInitCmdCCB_CommandSize(
+	PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT64 ui64FBSCEntryMask,
+	IMG_UINT32 ui32ClientFenceCount, IMG_UINT32 ui32ClientUpdateCount,
+	IMG_UINT32 ui32CmdSize, PRGXFWIF_TIMESTAMP_ADDR *ppPreAddr,
+	PRGXFWIF_TIMESTAMP_ADDR *ppPostAddr, PRGXFWIF_UFO_ADDR *ppRMWUFOAddr,
+	RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
 
-void RGXCmdHelperInitCmdCCB_OtherData(RGX_CLIENT_CCB *psClientCCB,
-                                      IMG_UINT32 ui32ClientFenceCount,
-                                      PRGXFWIF_UFO_ADDR *pauiFenceUFOAddress,
-                                      IMG_UINT32 *paui32FenceValue,
-                                      IMG_UINT32 ui32ClientUpdateCount,
-                                      PRGXFWIF_UFO_ADDR *pauiUpdateUFOAddress,
-                                      IMG_UINT32 *paui32UpdateValue,
-                                      IMG_UINT32 ui32CmdSize,
-                                      IMG_PBYTE pui8DMCmd,
-                                      PRGXFWIF_TIMESTAMP_ADDR *ppPreAddr,
-                                      PRGXFWIF_TIMESTAMP_ADDR *ppPostAddr,
-                                      PRGXFWIF_UFO_ADDR       *ppRMWUFOAddr,
-                                      RGXFWIF_CCB_CMD_TYPE eType,
-                                      IMG_UINT32 ui32ExtJobRef,
-                                      IMG_UINT32 ui32IntJobRef,
-                                      IMG_UINT32 ui32PDumpFlags,
-                                      RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData,
-                                      IMG_CHAR *pszCommandName,
-                                      IMG_BOOL bCCBStateOpen,
-                                      RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
+void RGXCmdHelperInitCmdCCB_OtherData(
+	RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32ClientFenceCount,
+	PRGXFWIF_UFO_ADDR *pauiFenceUFOAddress, IMG_UINT32 *paui32FenceValue,
+	IMG_UINT32 ui32ClientUpdateCount,
+	PRGXFWIF_UFO_ADDR *pauiUpdateUFOAddress, IMG_UINT32 *paui32UpdateValue,
+	IMG_UINT32 ui32CmdSize, IMG_PBYTE pui8DMCmd,
+	PRGXFWIF_TIMESTAMP_ADDR *ppPreAddr, PRGXFWIF_TIMESTAMP_ADDR *ppPostAddr,
+	PRGXFWIF_UFO_ADDR *ppRMWUFOAddr, RGXFWIF_CCB_CMD_TYPE eType,
+	IMG_UINT32 ui32ExtJobRef, IMG_UINT32 ui32IntJobRef,
+	IMG_UINT32 ui32PDumpFlags, RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData,
+	IMG_CHAR *pszCommandName, IMG_BOOL bCCBStateOpen,
+	RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
 
-void RGXCmdHelperInitCmdCCB(PVRSRV_RGXDEV_INFO *psDevInfo,
-							RGX_CLIENT_CCB          *psClientCCB,
-                            IMG_UINT64              ui64FBSCEntryMask,
-                            IMG_UINT32              ui32ClientFenceCount,
-                            PRGXFWIF_UFO_ADDR       *pauiFenceUFOAddress,
-                            IMG_UINT32              *paui32FenceValue,
-                            IMG_UINT32              ui32ClientUpdateCount,
-                            PRGXFWIF_UFO_ADDR       *pauiUpdateUFOAddress,
-                            IMG_UINT32              *paui32UpdateValue,
-                            IMG_UINT32              ui32CmdSize,
-                            IMG_UINT8               *pui8DMCmd,
-                            PRGXFWIF_TIMESTAMP_ADDR *ppPreAddr,
-                            PRGXFWIF_TIMESTAMP_ADDR *ppPostAddr,
-                            PRGXFWIF_UFO_ADDR       *ppRMWUFOAddr,
-                            RGXFWIF_CCB_CMD_TYPE    eType,
-                            IMG_UINT32              ui32ExtJobRef,
-                            IMG_UINT32              ui32IntJobRef,
-                            IMG_UINT32              ui32PDumpFlags,
-                            RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData,
-                            IMG_CHAR                *pszCommandName,
-                            IMG_BOOL                bCCBStateOpen,
-                            RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
+void RGXCmdHelperInitCmdCCB(
+	PVRSRV_RGXDEV_INFO *psDevInfo, RGX_CLIENT_CCB *psClientCCB,
+	IMG_UINT64 ui64FBSCEntryMask, IMG_UINT32 ui32ClientFenceCount,
+	PRGXFWIF_UFO_ADDR *pauiFenceUFOAddress, IMG_UINT32 *paui32FenceValue,
+	IMG_UINT32 ui32ClientUpdateCount,
+	PRGXFWIF_UFO_ADDR *pauiUpdateUFOAddress, IMG_UINT32 *paui32UpdateValue,
+	IMG_UINT32 ui32CmdSize, IMG_UINT8 *pui8DMCmd,
+	PRGXFWIF_TIMESTAMP_ADDR *ppPreAddr, PRGXFWIF_TIMESTAMP_ADDR *ppPostAddr,
+	PRGXFWIF_UFO_ADDR *ppRMWUFOAddr, RGXFWIF_CCB_CMD_TYPE eType,
+	IMG_UINT32 ui32ExtJobRef, IMG_UINT32 ui32IntJobRef,
+	IMG_UINT32 ui32PDumpFlags, RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData,
+	IMG_CHAR *pszCommandName, IMG_BOOL bCCBStateOpen,
+	RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
 
-PVRSRV_ERROR RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
-									   RGX_CCB_CMD_HELPER_DATA *asCmdHelperData);
+PVRSRV_ERROR
+RGXCmdHelperAcquireCmdCCB(IMG_UINT32 ui32CmdCount,
+			  RGX_CCB_CMD_HELPER_DATA *asCmdHelperData);
 
 void RGXCmdHelperReleaseCmdCCB(IMG_UINT32 ui32CmdCount,
-							   RGX_CCB_CMD_HELPER_DATA *asCmdHelperData,
-							   const IMG_CHAR *pcszDMName,
-							   IMG_UINT32 ui32CtxAddr);
+			       RGX_CCB_CMD_HELPER_DATA *asCmdHelperData,
+			       const IMG_CHAR *pcszDMName,
+			       IMG_UINT32 ui32CtxAddr);
 
 IMG_UINT32 RGXCmdHelperGetCommandSize(IMG_UINT32 ui32CmdCount,
-								   RGX_CCB_CMD_HELPER_DATA *asCmdHelperData);
+				      RGX_CCB_CMD_HELPER_DATA *asCmdHelperData);
 
-IMG_UINT32 RGXCmdHelperGetCommandOffset(RGX_CCB_CMD_HELPER_DATA *asCmdHelperData,
-                                        IMG_UINT32              ui32Cmdindex);
+IMG_UINT32
+RGXCmdHelperGetCommandOffset(RGX_CCB_CMD_HELPER_DATA *asCmdHelperData,
+			     IMG_UINT32 ui32Cmdindex);
 
-IMG_UINT32 RGXCmdHelperGetDMCommandHeaderOffset(RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
+IMG_UINT32
+RGXCmdHelperGetDMCommandHeaderOffset(RGX_CCB_CMD_HELPER_DATA *psCmdHelperData);
 
 void DumpFirstCCBCmd(PRGXFWIF_FWCOMMONCONTEXT sFWCommonContext,
-				RGX_CLIENT_CCB  *psCurrentClientCCB,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile);
+		     RGX_CLIENT_CCB *psCurrentClientCCB,
+		     DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+		     void *pvDumpDebugFile);
 
 void DumpCCB(PVRSRV_RGXDEV_INFO *psDevInfo,
-			PRGXFWIF_FWCOMMONCONTEXT sFWCommonContext,
-			RGX_CLIENT_CCB *psCurrentClientCCB,
-			DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-			void *pvDumpDebugFile);
+	     PRGXFWIF_FWCOMMONCONTEXT sFWCommonContext,
+	     RGX_CLIENT_CCB *psCurrentClientCCB,
+	     DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf, void *pvDumpDebugFile);
 
-PVRSRV_ERROR CheckForStalledCCB(PVRSRV_DEVICE_NODE *psDevNode, RGX_CLIENT_CCB  *psCurrentClientCCB, RGX_KICK_TYPE_DM eKickTypeDM);
+PVRSRV_ERROR CheckForStalledCCB(PVRSRV_DEVICE_NODE *psDevNode,
+				RGX_CLIENT_CCB *psCurrentClientCCB,
+				RGX_KICK_TYPE_DM eKickTypeDM);
 
 void DumpStalledContextInfo(PVRSRV_RGXDEV_INFO *psDevInfo);
 #endif /* RGXCCB_H */

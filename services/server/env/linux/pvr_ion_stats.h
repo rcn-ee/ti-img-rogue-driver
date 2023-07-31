@@ -81,7 +81,8 @@ static INLINE void PVRSRVIonRemoveMemAllocRecord(struct dma_buf *psDmaBuf)
 }
 
 #if defined(SUPPORT_PMR_DEFERRED_FREE)
-static INLINE void PVRSRVIonZombifyMemAllocRecord(const struct dma_buf *psDmaBuf)
+static INLINE void
+PVRSRVIonZombifyMemAllocRecord(const struct dma_buf *psDmaBuf)
 {
 	PVR_UNREFERENCED_PARAMETER(psDmaBuf);
 }

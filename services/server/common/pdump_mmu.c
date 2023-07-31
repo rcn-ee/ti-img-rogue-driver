@@ -53,31 +53,29 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_error.h"
 #include "allocmem.h"
 
-#define MAX_PDUMP_MMU_CONTEXTS	(10)
-static IMG_UINT32 guiPDumpMMUContextAvailabilityMask = (1<<MAX_PDUMP_MMU_CONTEXTS)-1;
+#define MAX_PDUMP_MMU_CONTEXTS (10)
+static IMG_UINT32 guiPDumpMMUContextAvailabilityMask =
+	(1 << MAX_PDUMP_MMU_CONTEXTS) - 1;
 
-
-#define MMUPX_FMT(X) ((X<3) ? ((X<2) ?  "MMUPT_\0" : "MMUPD_\0") : "MMUPC_\0")
-#define MIPSMMUPX_FMT(X) ((X<3) ? ((X<2) ?  "MIPSMMUPT_\0" : "MIPSMMUPD_\0") : "MIPSMMUPC_\0")
-
+#define MMUPX_FMT(X) \
+	((X < 3) ? ((X < 2) ? "MMUPT_\0" : "MMUPD_\0") : "MMUPC_\0")
+#define MIPSMMUPX_FMT(X) \
+	((X < 3) ? ((X < 2) ? "MIPSMMUPT_\0" : "MIPSMMUPD_\0") : "MIPSMMUPC_\0")
 
 /* Array used to look-up debug strings from MMU_LEVEL */
-static const IMG_CHAR * const apszMMULevelStringLookup[MMU_LEVEL_LAST] =
-{
+static const IMG_CHAR *const apszMMULevelStringLookup[MMU_LEVEL_LAST] = {
 	"MMU_LEVEL_0",
 	"PAGE_TABLE",
 	"PAGE_DIRECTORY",
 	"PAGE_CATALOGUE",
 };
 
-static PVRSRV_ERROR
-_ContiguousPDumpBytes(PVRSRV_DEVICE_NODE *psDeviceNode,
-		      const IMG_CHAR *pszSymbolicName,
-		      IMG_UINT32 ui32SymAddrOffset,
-		      IMG_BOOL bFlush,
-		      IMG_UINT32 uiNumBytes,
-		      void *pvBytes,
-		      IMG_UINT32 ui32Flags)
+static PVRSRV_ERROR _ContiguousPDumpBytes(PVRSRV_DEVICE_NODE *psDeviceNode,
+					  const IMG_CHAR *pszSymbolicName,
+					  IMG_UINT32 ui32SymAddrOffset,
+					  IMG_BOOL bFlush,
+					  IMG_UINT32 uiNumBytes, void *pvBytes,
+					  IMG_UINT32 ui32Flags)
 {
 	static const IMG_CHAR *pvBeyondLastPointer;
 	static const IMG_CHAR *pvBasePointer;
@@ -91,33 +89,28 @@ _ContiguousPDumpBytes(PVRSRV_DEVICE_NODE *psDeviceNode,
 
 	/* Caller has PDUMP_LOCK */
 
-	if (!bFlush && uiAccumulatedBytes > 0)
-	{
+	if (!bFlush && uiAccumulatedBytes > 0) {
 		/* do some tests for contiguity.  If it fails, we flush anyway */
 		if (pvBeyondLastPointer != pvBytes ||
 		    ui32SymAddrOffset != ui32BeyondLastOffset
 		    /* NB: ought to check that symbolic name agrees too, but
 		       we know this always to be the case in the current use-case */
-			)
-		{
+		) {
 			bFlush = IMG_TRUE;
 		}
 	}
 
 	/* Flush if necessary */
-	if (bFlush && uiAccumulatedBytes > 0)
-	{
-		eErr = PDumpWriteParameter(psDeviceNode,
-					   (IMG_UINT8 *)(uintptr_t)pvBasePointer,
-					   uiAccumulatedBytes, ui32Flags,
-					   &ui32ParamOutPos, pszFileName);
-		if (eErr == PVRSRV_OK)
-		{
+	if (bFlush && uiAccumulatedBytes > 0) {
+		eErr = PDumpWriteParameter(
+			psDeviceNode, (IMG_UINT8 *)(uintptr_t)pvBasePointer,
+			uiAccumulatedBytes, ui32Flags, &ui32ParamOutPos,
+			pszFileName);
+		if (eErr == PVRSRV_OK) {
 			eErr = PDumpSNPrintf(hScript, ui32MaxLenScript,
 					     "LDB %s:0x%X 0x%X 0x%X %s",
 					     /* dest */
-					     pszSymbolicName,
-					     ui32BaseOffset,
+					     pszSymbolicName, ui32BaseOffset,
 					     /* size */
 					     uiAccumulatedBytes,
 					     /* file offset */
@@ -127,13 +120,10 @@ _ContiguousPDumpBytes(PVRSRV_DEVICE_NODE *psDeviceNode,
 			PVR_LOG_GOTO_IF_ERROR(eErr, "PDumpSNPrintf", ErrOut);
 
 			PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
-		}
-		else if (eErr != PVRSRV_ERROR_PDUMP_NOT_ALLOWED)
-		{
-			PVR_LOG_GOTO_IF_ERROR(eErr, "PDumpWriteParameter", ErrOut);
-		}
-		else
-		{
+		} else if (eErr != PVRSRV_ERROR_PDUMP_NOT_ALLOWED) {
+			PVR_LOG_GOTO_IF_ERROR(eErr, "PDumpWriteParameter",
+					      ErrOut);
+		} else {
 			/* else Write to parameter file prevented under the flags and
 			 * current state of the driver so skip write to script and error IF.
 			 * this is normal e.g. no in capture range for example.
@@ -145,8 +135,7 @@ _ContiguousPDumpBytes(PVRSRV_DEVICE_NODE *psDeviceNode,
 	}
 
 	/* Initialise offsets and pointers if necessary */
-	if (uiAccumulatedBytes == 0)
-	{
+	if (uiAccumulatedBytes == 0) {
 		ui32BaseOffset = ui32BeyondLastOffset = ui32SymAddrOffset;
 		pvBeyondLastPointer = pvBasePointer = (const IMG_CHAR *)pvBytes;
 	}
@@ -170,10 +159,8 @@ ErrOut:
 **************************************************************************/
 PVRSRV_ERROR PDumpMMUMalloc(PVRSRV_DEVICE_NODE *psDeviceNode,
 			    const IMG_CHAR *pszPDumpDevName,
-			    MMU_LEVEL eMMULevel,
-			    IMG_DEV_PHYADDR *psDevPAddr,
-			    IMG_UINT32 ui32Size,
-			    IMG_UINT32 ui32Align,
+			    MMU_LEVEL eMMULevel, IMG_DEV_PHYADDR *psDevPAddr,
+			    IMG_UINT32 ui32Size, IMG_UINT32 ui32Align,
 			    PDUMP_MMU_TYPE eMMUType)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
@@ -190,14 +177,11 @@ PVRSRV_ERROR PDumpMMUMalloc(PVRSRV_DEVICE_NODE *psDeviceNode,
 	/*
 	  Write a comment to the PDump2 script streams indicating the memory allocation
 	*/
-	eErr = PDumpSNPrintf(hScript,
-			     ui32MaxLen,
-			     "-- CALLOC :%s:%s Size=0x%08X Alignment=0x%08X 0x0 DevPAddr=0x%08"IMG_UINT64_FMTSPECX,
-			     pszPDumpDevName,
-			     apszMMULevelStringLookup[eMMULevel],
-			     ui32Size,
-			     ui32Align,
-			     psDevPAddr->uiAddr);
+	eErr = PDumpSNPrintf(
+		hScript, ui32MaxLen,
+		"-- CALLOC :%s:%s Size=0x%08X Alignment=0x%08X 0x0 DevPAddr=0x%08" IMG_UINT64_FMTSPECX,
+		pszPDumpDevName, apszMMULevelStringLookup[eMMULevel], ui32Size,
+		ui32Align, psDevPAddr->uiAddr);
 	PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 
 	PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
@@ -210,21 +194,16 @@ PVRSRV_ERROR PDumpMMUMalloc(PVRSRV_DEVICE_NODE *psDeviceNode,
 	/*
 	  Write to the MMU script stream indicating the memory allocation
 	*/
-	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV)
-	{
+	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV) {
 		pszMMUPX = MIPSMMUPX_FMT(eMMULevel);
-	}
-	else
-	{
+	} else {
 		pszMMUPX = MMUPX_FMT(eMMULevel);
 	}
-	eErr = PDumpSNPrintf(hScript, ui32MaxLen, "CALLOC :%s:%s%016"IMG_UINT64_FMTSPECX" 0x%X 0x%X 0x0",
-			     pszPDumpDevName,
-			     pszMMUPX,
-			     ui64SymbolicAddr,
-			     ui32Size,
-			     ui32Align
-			     /* don't need this sDevPAddr.uiAddr*/);
+	eErr = PDumpSNPrintf(
+		hScript, ui32MaxLen,
+		"CALLOC :%s:%s%016" IMG_UINT64_FMTSPECX " 0x%X 0x%X 0x0",
+		pszPDumpDevName, pszMMUPX, ui64SymbolicAddr, ui32Size, ui32Align
+		/* don't need this sDevPAddr.uiAddr*/);
 	PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 	PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
 
@@ -243,10 +222,8 @@ ErrOut:
  * Description    :
 **************************************************************************/
 PVRSRV_ERROR PDumpMMUFree(PVRSRV_DEVICE_NODE *psDeviceNode,
-			const IMG_CHAR *pszPDumpDevName,
-			  MMU_LEVEL eMMULevel,
-			  IMG_DEV_PHYADDR *psDevPAddr,
-			  PDUMP_MMU_TYPE eMMUType)
+			  const IMG_CHAR *pszPDumpDevName, MMU_LEVEL eMMULevel,
+			  IMG_DEV_PHYADDR *psDevPAddr, PDUMP_MMU_TYPE eMMUType)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
 	IMG_UINT64 ui64SymbolicAddr;
@@ -262,7 +239,8 @@ PVRSRV_ERROR PDumpMMUFree(PVRSRV_DEVICE_NODE *psDeviceNode,
 	  Write a comment to the PDUMP2 script streams indicating the memory free
 	*/
 	eErr = PDumpSNPrintf(hScript, ui32MaxLen, "-- FREE :%s:%s",
-			     pszPDumpDevName, apszMMULevelStringLookup[eMMULevel]);
+			     pszPDumpDevName,
+			     apszMMULevelStringLookup[eMMULevel]);
 	PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 
 	PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
@@ -275,18 +253,14 @@ PVRSRV_ERROR PDumpMMUFree(PVRSRV_DEVICE_NODE *psDeviceNode,
 	/*
 	  Write to the MMU script stream indicating the memory free
 	*/
-	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV)
-	{
+	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV) {
 		pszMMUPX = MIPSMMUPX_FMT(eMMULevel);
-	}
-	else
-	{
+	} else {
 		pszMMUPX = MMUPX_FMT(eMMULevel);
 	}
-	eErr = PDumpSNPrintf(hScript, ui32MaxLen, "FREE :%s:%s%016"IMG_UINT64_FMTSPECX,
-			     pszPDumpDevName,
-			     pszMMUPX,
-			     ui64SymbolicAddr);
+	eErr = PDumpSNPrintf(hScript, ui32MaxLen,
+			     "FREE :%s:%s%016" IMG_UINT64_FMTSPECX,
+			     pszPDumpDevName, pszMMUPX, ui64SymbolicAddr);
 	PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 	PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
 
@@ -308,12 +282,10 @@ PVRSRV_ERROR PDumpPTBaseObjectToMem64(const IMG_CHAR *pszPDumpDevName,
 				      PMR *psPMRDest,
 				      IMG_DEVMEM_OFFSET_T uiLogicalOffsetSource,
 				      IMG_DEVMEM_OFFSET_T uiLogicalOffsetDest,
-				      IMG_UINT32 ui32Flags,
-				      MMU_LEVEL eMMULevel,
+				      IMG_UINT32 ui32Flags, MMU_LEVEL eMMULevel,
 				      IMG_UINT64 ui64PxSymAddr,
 				      IMG_UINT64 ui64PxOffset)
 {
-
 	IMG_CHAR aszMemspaceNameDest[PHYSMEM_PDUMP_MEMSPACE_MAX_LENGTH];
 	IMG_CHAR aszSymbolicNameDest[PHYSMEM_PDUMP_SYMNAME_MAX_LENGTH];
 	IMG_DEVMEM_OFFSET_T uiPDumpSymbolicOffsetDest;
@@ -322,21 +294,22 @@ PVRSRV_ERROR PDumpPTBaseObjectToMem64(const IMG_CHAR *pszPDumpDevName,
 
 	PDUMP_GET_SCRIPT_STRING()
 
-	eErr = PMR_PDumpSymbolicAddr(psPMRDest,
-				     uiLogicalOffsetDest,
-				     PHYSMEM_PDUMP_MEMSPACE_MAX_LENGTH,
-				     aszMemspaceNameDest,
-				     PHYSMEM_PDUMP_SYMNAME_MAX_LENGTH,
-				     aszSymbolicNameDest,
-				     &uiPDumpSymbolicOffsetDest,
-				     &uiNextSymNameDest);
+	eErr = PMR_PDumpSymbolicAddr(
+		psPMRDest, uiLogicalOffsetDest,
+		PHYSMEM_PDUMP_MEMSPACE_MAX_LENGTH, aszMemspaceNameDest,
+		PHYSMEM_PDUMP_SYMNAME_MAX_LENGTH, aszSymbolicNameDest,
+		&uiPDumpSymbolicOffsetDest, &uiNextSymNameDest);
 
 	PVR_GOTO_IF_ERROR(eErr, Err);
 
 	eErr = PDumpSNPrintf(hScript, ui32MaxLen,
-						 "WRW64 :%s:%s:0x%"IMG_UINT64_FMTSPECX" :%s:%s%016"IMG_UINT64_FMTSPECX":0x%"IMG_UINT64_FMTSPECX,
-						 aszMemspaceNameDest, aszSymbolicNameDest, uiPDumpSymbolicOffsetDest,
-						 pszPDumpDevName, MIPSMMUPX_FMT(eMMULevel), ui64PxSymAddr, ui64PxOffset);
+			     "WRW64 :%s:%s:0x%" IMG_UINT64_FMTSPECX
+			     " :%s:%s%016" IMG_UINT64_FMTSPECX
+			     ":0x%" IMG_UINT64_FMTSPECX,
+			     aszMemspaceNameDest, aszSymbolicNameDest,
+			     uiPDumpSymbolicOffsetDest, pszPDumpDevName,
+			     MIPSMMUPX_FMT(eMMULevel), ui64PxSymAddr,
+			     ui64PxOffset);
 
 	PVR_GOTO_IF_ERROR(eErr, Err);
 
@@ -356,24 +329,17 @@ Err:
  * Returns        : PVRSRV_ERROR
  * Description    :
 **************************************************************************/
-PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
-				   MMU_LEVEL eMMULevel,
-				   const IMG_CHAR *pszPDumpDevName,
-				   void *pvPxMem,
-				   IMG_DEV_PHYADDR sPxDevPAddr,
-				   IMG_UINT32 uiFirstEntry,
-				   IMG_UINT32 uiNumEntries,
-				   const IMG_CHAR *pszMemspaceName,
-				   const IMG_CHAR *pszSymbolicAddr,
-				   IMG_UINT64 uiSymbolicAddrOffset,
-				   IMG_UINT32 uiBytesPerEntry,
-				   IMG_UINT32 uiLog2Align,
-				   IMG_UINT32 uiAddrShift,
-				   IMG_UINT64 uiAddrMask,
-				   IMG_UINT64 uiPxEProtMask,
-				   IMG_UINT64 uiDataValidEnable,
-				   IMG_UINT32 ui32Flags,
-				   PDUMP_MMU_TYPE eMMUType)
+PVRSRV_ERROR
+PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode, MMU_LEVEL eMMULevel,
+		      const IMG_CHAR *pszPDumpDevName, void *pvPxMem,
+		      IMG_DEV_PHYADDR sPxDevPAddr, IMG_UINT32 uiFirstEntry,
+		      IMG_UINT32 uiNumEntries, const IMG_CHAR *pszMemspaceName,
+		      const IMG_CHAR *pszSymbolicAddr,
+		      IMG_UINT64 uiSymbolicAddrOffset,
+		      IMG_UINT32 uiBytesPerEntry, IMG_UINT32 uiLog2Align,
+		      IMG_UINT32 uiAddrShift, IMG_UINT64 uiAddrMask,
+		      IMG_UINT64 uiPxEProtMask, IMG_UINT64 uiDataValidEnable,
+		      IMG_UINT32 ui32Flags, PDUMP_MMU_TYPE eMMUType)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
 	IMG_UINT64 ui64PxSymAddr;
@@ -381,10 +347,10 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
 	IMG_UINT32 ui32SymAddrOffset = 0;
 	IMG_UINT32 *pui32PxMem;
 	IMG_UINT64 *pui64PxMem;
-	IMG_BOOL   bPxEValid;
+	IMG_BOOL bPxEValid;
 	IMG_UINT32 uiPxEIdx;
-	IMG_INT32  iShiftAmount;
-	IMG_CHAR   *pszWrwSuffix = NULL;
+	IMG_INT32 iShiftAmount;
+	IMG_CHAR *pszWrwSuffix = NULL;
 	void *pvRawBytes = NULL;
 	IMG_CHAR aszPxSymbolicAddr[PHYSMEM_PDUMP_SYMNAME_MAX_LENGTH];
 	IMG_UINT64 ui64PxE64;
@@ -395,10 +361,10 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
 	ui32Flags |= (PDUMP_FLAGS_BLKDATA | PDUMP_FLAGS_CONTINUOUS);
 
 	eErr = PDumpReady();
-	if (eErr != PVRSRV_OK)
-	{
+	if (eErr != PVRSRV_OK) {
 		/* Mask suspension from caller as this is terminal & logged */
-		eErr = (eErr == PVRSRV_ERROR_PDUMP_NOT_ACTIVE) ? PVRSRV_OK : eErr;
+		eErr = (eErr == PVRSRV_ERROR_PDUMP_NOT_ACTIVE) ? PVRSRV_OK :
+								 eErr;
 		goto ErrOut;
 	}
 
@@ -409,90 +375,76 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
 	*/
 	ui64PxSymAddr = sPxDevPAddr.uiAddr;
 
-	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV)
-	{
+	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV) {
 		pszMMUPX = MIPSMMUPX_FMT(eMMULevel);
-	}
-	else
-	{
+	} else {
 		pszMMUPX = MMUPX_FMT(eMMULevel);
 	}
 
-	OSSNPrintf(aszPxSymbolicAddr,
-	           PHYSMEM_PDUMP_SYMNAME_MAX_LENGTH,
-	           ":%s:%s%016"IMG_UINT64_FMTSPECX,
-	           pszPDumpDevName,
-	           pszMMUPX,
-	           ui64PxSymAddr);
+	OSSNPrintf(aszPxSymbolicAddr, PHYSMEM_PDUMP_SYMNAME_MAX_LENGTH,
+		   ":%s:%s%016" IMG_UINT64_FMTSPECX, pszPDumpDevName, pszMMUPX,
+		   ui64PxSymAddr);
 
 	PDUMP_LOCK(ui32Flags);
 
 	/*
 	  traverse PxEs, dumping entries
 	*/
-	for (uiPxEIdx = uiFirstEntry;
-	     uiPxEIdx < uiFirstEntry + uiNumEntries;
-	     uiPxEIdx++)
-	{
+	for (uiPxEIdx = uiFirstEntry; uiPxEIdx < uiFirstEntry + uiNumEntries;
+	     uiPxEIdx++) {
 		/* Calc the symbolic address offset of the PxE location
 		   This is what we have to add to the table address to get to a certain entry */
-		ui32SymAddrOffset = (uiPxEIdx*uiBytesPerEntry);
+		ui32SymAddrOffset = (uiPxEIdx * uiBytesPerEntry);
 
 		/* Calc the symbolic address of the PxE value and HW protflags */
 		/* just read it here */
-		switch (uiBytesPerEntry)
-		{
-			case 4:
-			{
-				pui32PxMem = pvPxMem;
-				ui64PxE64 = pui32PxMem[uiPxEIdx];
-				pszWrwSuffix = "";
-				pvRawBytes = &pui32PxMem[uiPxEIdx];
-				break;
-			}
-			case 8:
-			{
-				pui64PxMem = pvPxMem;
-				ui64PxE64 = pui64PxMem[uiPxEIdx];
-				pszWrwSuffix = "64";
-				pvRawBytes = &pui64PxMem[uiPxEIdx];
-				break;
-			}
-			default:
-			{
-				PVR_DPF((PVR_DBG_ERROR, "PDumpMMUPxEntries: error"));
-				ui64PxE64 = 0;
-				//!!error
-				break;
-			}
+		switch (uiBytesPerEntry) {
+		case 4: {
+			pui32PxMem = pvPxMem;
+			ui64PxE64 = pui32PxMem[uiPxEIdx];
+			pszWrwSuffix = "";
+			pvRawBytes = &pui32PxMem[uiPxEIdx];
+			break;
+		}
+		case 8: {
+			pui64PxMem = pvPxMem;
+			ui64PxE64 = pui64PxMem[uiPxEIdx];
+			pszWrwSuffix = "64";
+			pvRawBytes = &pui64PxMem[uiPxEIdx];
+			break;
+		}
+		default: {
+			PVR_DPF((PVR_DBG_ERROR, "PDumpMMUPxEntries: error"));
+			ui64PxE64 = 0;
+			//!!error
+			break;
+		}
 		}
 
-		ui64PxEValueSymAddr = (ui64PxE64 & uiAddrMask) >> uiAddrShift << uiLog2Align;
+		ui64PxEValueSymAddr = (ui64PxE64 & uiAddrMask) >>
+				      uiAddrShift << uiLog2Align;
 		ui64Protflags64 = ui64PxE64 & uiPxEProtMask;
-		bPxEValid = (ui64Protflags64 & uiDataValidEnable) ? IMG_TRUE : IMG_FALSE;
+		bPxEValid = (ui64Protflags64 & uiDataValidEnable) ? IMG_TRUE :
+								    IMG_FALSE;
 
-		if (!bPxEValid)
-		{
+		if (!bPxEValid) {
 			/* If the entry was "invalid", simply write the actual
 			   value found to the memory location */
-			eErr = _ContiguousPDumpBytes(psDeviceNode,aszPxSymbolicAddr,
-			                             ui32SymAddrOffset, IMG_FALSE,
-			                             uiBytesPerEntry, pvRawBytes,
-			                             ui32Flags);
-			if (eErr == PVRSRV_OK)
-			{
+			eErr = _ContiguousPDumpBytes(psDeviceNode,
+						     aszPxSymbolicAddr,
+						     ui32SymAddrOffset,
+						     IMG_FALSE, uiBytesPerEntry,
+						     pvRawBytes, ui32Flags);
+			if (eErr == PVRSRV_OK) {
 				goto done;
-			}
-			else
-			{
+			} else {
 				goto ErrUnlock;
 			}
 		}
 
 		_ContiguousPDumpBytes(psDeviceNode, aszPxSymbolicAddr,
-		                      ui32SymAddrOffset, IMG_TRUE,
-		                      0, NULL,
-		                      ui32Flags);
+				      ui32SymAddrOffset, IMG_TRUE, 0, NULL,
+				      ui32Flags);
 
 		iShiftAmount = (IMG_INT32)(uiLog2Align - uiAddrShift);
 
@@ -503,69 +455,54 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
 		   "reference" of the symbolic address.  Apparently WRW is
 		   correct. */
 
-		if (pszSymbolicAddr == NULL)
-		{
+		if (pszSymbolicAddr == NULL) {
 			pszSymbolicAddr = "none";
 		}
 
-		if (eMMULevel == MMU_LEVEL_1)
-		{
-			if (iShiftAmount == 0)
-			{
-				eErr = PDumpSNPrintf(hScript,
-				                     ui32MaxLen,
-				                     "WRW%s :%s:%s%016"IMG_UINT64_FMTSPECX":0x%08X :%s:%s:0x%"IMG_UINT64_FMTSPECX" | 0x%"IMG_UINT64_FMTSPECX"\n",
-				                     pszWrwSuffix,
-				                     /* dest */
-				                     pszPDumpDevName,
-				                     pszMMUPX,
-				                     ui64PxSymAddr,
-				                     ui32SymAddrOffset,
-				                     /* src */
-				                     pszMemspaceName,
-				                     pszSymbolicAddr,
-				                     uiSymbolicAddrOffset,
-				                     /* ORing prot flags */
-				                     ui64Protflags64);
+		if (eMMULevel == MMU_LEVEL_1) {
+			if (iShiftAmount == 0) {
+				eErr = PDumpSNPrintf(
+					hScript, ui32MaxLen,
+					"WRW%s :%s:%s%016" IMG_UINT64_FMTSPECX
+					":0x%08X :%s:%s:0x%" IMG_UINT64_FMTSPECX
+					" | 0x%" IMG_UINT64_FMTSPECX "\n",
+					pszWrwSuffix,
+					/* dest */
+					pszPDumpDevName, pszMMUPX,
+					ui64PxSymAddr, ui32SymAddrOffset,
+					/* src */
+					pszMemspaceName, pszSymbolicAddr,
+					uiSymbolicAddrOffset,
+					/* ORing prot flags */
+					ui64Protflags64);
+			} else {
+				eErr = PDumpSNPrintf(
+					hScript, ui32MaxLen,
+					"WRW :%s:$1 :%s:%s:0x%" IMG_UINT64_FMTSPECX
+					"\n",
+					/* dest */
+					pszPDumpDevName,
+					/* src */
+					pszMemspaceName, pszSymbolicAddr,
+					uiSymbolicAddrOffset);
 			}
-			else
-			{
-				eErr = PDumpSNPrintf(hScript,
-				                     ui32MaxLen,
-				                    "WRW :%s:$1 :%s:%s:0x%"IMG_UINT64_FMTSPECX"\n",
-				                     /* dest */
-				                     pszPDumpDevName,
-				                     /* src */
-				                     pszMemspaceName,
-				                     pszSymbolicAddr,
-				                     uiSymbolicAddrOffset);
-			}
-		}
-		else
-		{
-			if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV)
-			{
+		} else {
+			if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV) {
 				pszMMUPX = MIPSMMUPX_FMT(eMMULevel - 1);
-			}
-			else
-			{
+			} else {
 				pszMMUPX = MMUPX_FMT(eMMULevel - 1);
 			}
-			eErr = PDumpSNPrintf(hScript,
-			                     ui32MaxLen,
-			                     "WRW :%s:$1 :%s:%s%016"IMG_UINT64_FMTSPECX":0x0",
-			                     /* dest */
-			                     pszPDumpDevName,
-			                     /* src */
-			                     pszPDumpDevName,
-			                     pszMMUPX,
-			                     ui64PxEValueSymAddr);
-			if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV)
-			{
+			eErr = PDumpSNPrintf(
+				hScript, ui32MaxLen,
+				"WRW :%s:$1 :%s:%s%016" IMG_UINT64_FMTSPECX
+				":0x0",
+				/* dest */
+				pszPDumpDevName,
+				/* src */
+				pszPDumpDevName, pszMMUPX, ui64PxEValueSymAddr);
+			if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV) {
 				pszMMUPX = MIPSMMUPX_FMT(eMMULevel);
-			}
-			else
-			{
+			} else {
 				pszMMUPX = MMUPX_FMT(eMMULevel);
 			}
 		}
@@ -582,97 +519,88 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
 		   amount to get it into the position of the field.
 		   This is optimised into a single shift right by the
 		   difference between the two. */
-		if (iShiftAmount > 0)
-		{
+		if (iShiftAmount > 0) {
 			/* Page X Address is specified in units larger
 			   than the position in the PxE would suggest. */
-			eErr = PDumpSNPrintf(hScript,
-			                     ui32MaxLen,
-			                     "SHR :%s:$1 :%s:$1 0x%X",
-			                     /* dest */
-			                     pszPDumpDevName,
-			                     /* src A */
-			                     pszPDumpDevName,
-			                     /* src B */
-			                     iShiftAmount);
+			eErr = PDumpSNPrintf(hScript, ui32MaxLen,
+					     "SHR :%s:$1 :%s:$1 0x%X",
+					     /* dest */
+					     pszPDumpDevName,
+					     /* src A */
+					     pszPDumpDevName,
+					     /* src B */
+					     iShiftAmount);
 			PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 			PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
-		}
-		else if (iShiftAmount < 0)
-		{
+		} else if (iShiftAmount < 0) {
 			/* Page X Address is specified in units smaller
 			   than the position in the PxE would suggest. */
-			eErr = PDumpSNPrintf(hScript,
-			                     ui32MaxLen,
-			                     "SHL :%s:$1 :%s:$1 0x%X",
-			                     /* dest */
-			                     pszPDumpDevName,
-			                     /* src A */
-			                     pszPDumpDevName,
-			                     /* src B */
-			                     -iShiftAmount);
+			eErr = PDumpSNPrintf(hScript, ui32MaxLen,
+					     "SHL :%s:$1 :%s:$1 0x%X",
+					     /* dest */
+					     pszPDumpDevName,
+					     /* src A */
+					     pszPDumpDevName,
+					     /* src B */
+					     -iShiftAmount);
 			PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 			PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
 		}
 
-		if (eMMULevel == MMU_LEVEL_1)
-		{
-			if (iShiftAmount != 0)
-			{
+		if (eMMULevel == MMU_LEVEL_1) {
+			if (iShiftAmount != 0) {
 				/* Now we can "or" in the protection flags */
-				eErr = PDumpSNPrintf(hScript,
-				                     ui32MaxLen,
-				                     "OR :%s:$1 :%s:$1 0x%"IMG_UINT64_FMTSPECX,
-				                     /* dest */
-				                     pszPDumpDevName,
-				                     /* src A */
-				                     pszPDumpDevName,
-				                     /* src B */
-				                     ui64Protflags64);
+				eErr = PDumpSNPrintf(
+					hScript, ui32MaxLen,
+					"OR :%s:$1 :%s:$1 0x%" IMG_UINT64_FMTSPECX,
+					/* dest */
+					pszPDumpDevName,
+					/* src A */
+					pszPDumpDevName,
+					/* src B */
+					ui64Protflags64);
 				PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
-				PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
-				eErr = PDumpSNPrintf(hScript,
-				                     ui32MaxLen,
-				                     "WRW%s :%s:%s%016"IMG_UINT64_FMTSPECX":0x%08X :%s:$1",
-				                     pszWrwSuffix,
-				                     /* dest */
-				                     pszPDumpDevName,
-				                     pszMMUPX,
-				                     ui64PxSymAddr,
-				                     ui32SymAddrOffset,
-				                     /* src */
-				                     pszPDumpDevName);
+				PDumpWriteScript(psDeviceNode, hScript,
+						 ui32Flags);
+				eErr = PDumpSNPrintf(
+					hScript, ui32MaxLen,
+					"WRW%s :%s:%s%016" IMG_UINT64_FMTSPECX
+					":0x%08X :%s:$1",
+					pszWrwSuffix,
+					/* dest */
+					pszPDumpDevName, pszMMUPX,
+					ui64PxSymAddr, ui32SymAddrOffset,
+					/* src */
+					pszPDumpDevName);
 				PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
-				PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
+				PDumpWriteScript(psDeviceNode, hScript,
+						 ui32Flags);
 			}
-		}
-		else
-		{
+		} else {
 			/* Now we can "or" in the protection flags */
-			eErr = PDumpSNPrintf(hScript,
-			                     ui32MaxLen,
-			                     "OR :%s:$1 :%s:$1 0x%"IMG_UINT64_FMTSPECX,
-			                     /* dest */
-			                     pszPDumpDevName,
-			                     /* src A */
-			                     pszPDumpDevName,
-			                     /* src B */
-			                     ui64Protflags64);
+			eErr = PDumpSNPrintf(
+				hScript, ui32MaxLen,
+				"OR :%s:$1 :%s:$1 0x%" IMG_UINT64_FMTSPECX,
+				/* dest */
+				pszPDumpDevName,
+				/* src A */
+				pszPDumpDevName,
+				/* src B */
+				ui64Protflags64);
 			PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 			PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
 
 			/* Finally, we write the register into the actual PxE */
-			eErr = PDumpSNPrintf(hScript,
-			                     ui32MaxLen,
-			                     "WRW%s :%s:%s%016"IMG_UINT64_FMTSPECX":0x%08X :%s:$1",
-			                     pszWrwSuffix,
-			                     /* dest */
-			                     pszPDumpDevName,
-			                     pszMMUPX,
-			                     ui64PxSymAddr,
-			                     ui32SymAddrOffset,
-			                     /* src */
-			                     pszPDumpDevName);
+			eErr = PDumpSNPrintf(
+				hScript, ui32MaxLen,
+				"WRW%s :%s:%s%016" IMG_UINT64_FMTSPECX
+				":0x%08X :%s:$1",
+				pszWrwSuffix,
+				/* dest */
+				pszPDumpDevName, pszMMUPX, ui64PxSymAddr,
+				ui32SymAddrOffset,
+				/* src */
+				pszPDumpDevName);
 			PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 			PDumpWriteScript(psDeviceNode, hScript, ui32Flags);
 		}
@@ -681,9 +609,7 @@ PVRSRV_ERROR PDumpMMUDumpPxEntries(PVRSRV_DEVICE_NODE *psDeviceNode,
 done:
 	/* flush out any partly accumulated stuff for LDB */
 	_ContiguousPDumpBytes(psDeviceNode, aszPxSymbolicAddr,
-	                      ui32SymAddrOffset, IMG_TRUE,
-	                      0, NULL,
-	                      ui32Flags);
+			      ui32SymAddrOffset, IMG_TRUE, 0, NULL, ui32Flags);
 
 ErrUnlock:
 	PDUMP_UNLOCK(ui32Flags);
@@ -704,10 +630,8 @@ static PVRSRV_ERROR _PdumpAllocMMUContext(IMG_UINT32 *pui32MMUContextID)
 	IMG_UINT32 i;
 
 	/* there are MAX_PDUMP_MMU_CONTEXTS contexts available, find one */
-	for (i=0; i<MAX_PDUMP_MMU_CONTEXTS; i++)
-	{
-		if ((guiPDumpMMUContextAvailabilityMask & (1U << i)))
-		{
+	for (i = 0; i < MAX_PDUMP_MMU_CONTEXTS; i++) {
+		if ((guiPDumpMMUContextAvailabilityMask & (1U << i))) {
 			/* mark in use */
 			guiPDumpMMUContextAvailabilityMask &= ~(1U << i);
 			*pui32MMUContextID = i;
@@ -715,7 +639,8 @@ static PVRSRV_ERROR _PdumpAllocMMUContext(IMG_UINT32 *pui32MMUContextID)
 		}
 	}
 
-	PVR_DPF((PVR_DBG_ERROR, "_PdumpAllocMMUContext: no free MMU context ids"));
+	PVR_DPF((PVR_DBG_ERROR,
+		 "_PdumpAllocMMUContext: no free MMU context ids"));
 
 	return PVRSRV_ERROR_MMU_CONTEXT_NOT_FOUND;
 }
@@ -729,15 +654,16 @@ static PVRSRV_ERROR _PdumpAllocMMUContext(IMG_UINT32 *pui32MMUContextID)
 **************************************************************************/
 static PVRSRV_ERROR _PdumpFreeMMUContext(IMG_UINT32 ui32MMUContextID)
 {
-	if (ui32MMUContextID < MAX_PDUMP_MMU_CONTEXTS)
-	{
+	if (ui32MMUContextID < MAX_PDUMP_MMU_CONTEXTS) {
 		/* free the id */
-		PVR_ASSERT (!(guiPDumpMMUContextAvailabilityMask & (1U << ui32MMUContextID)));
+		PVR_ASSERT(!(guiPDumpMMUContextAvailabilityMask &
+			     (1U << ui32MMUContextID)));
 		guiPDumpMMUContextAvailabilityMask |= (1U << ui32MMUContextID);
 		return PVRSRV_OK;
 	}
 
-	PVR_DPF((PVR_DBG_ERROR, "_PdumpFreeMMUContext: MMU context ids invalid"));
+	PVR_DPF((PVR_DBG_ERROR,
+		 "_PdumpFreeMMUContext: MMU context ids invalid"));
 
 	return PVRSRV_ERROR_MMU_CONTEXT_NOT_FOUND;
 }
@@ -750,7 +676,7 @@ static PVRSRV_ERROR _PdumpFreeMMUContext(IMG_UINT32 ui32MMUContextID)
  * Description    : Alloc MMU Context
 **************************************************************************/
 PVRSRV_ERROR PDumpMMUAllocMMUContext(PVRSRV_DEVICE_NODE *psDeviceNode,
-				const IMG_CHAR *pszPDumpMemSpaceName,
+				     const IMG_CHAR *pszPDumpMemSpaceName,
 				     IMG_DEV_PHYADDR sPCDevPAddr,
 				     PDUMP_MMU_TYPE eMMUType,
 				     IMG_UINT32 *pui32MMUContextID,
@@ -763,8 +689,7 @@ PVRSRV_ERROR PDumpMMUAllocMMUContext(PVRSRV_DEVICE_NODE *psDeviceNode,
 	PDUMP_GET_SCRIPT_STRING();
 
 	eErr = _PdumpAllocMMUContext(&ui32MMUContextID);
-	if (eErr != PVRSRV_OK)
-	{
+	if (eErr != PVRSRV_OK) {
 		PVR_LOG_ERROR(eErr, "_PdumpAllocMMUContext");
 		PVR_DBG_BREAK;
 		goto ErrOut;
@@ -775,32 +700,24 @@ PVRSRV_ERROR PDumpMMUAllocMMUContext(PVRSRV_DEVICE_NODE *psDeviceNode,
 	*/
 	ui64PCSymAddr = sPCDevPAddr.uiAddr;
 
-	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV)
-	{
+	if (eMMUType == PDUMP_MMU_TYPE_MIPS_MICROAPTIV) {
 		pszMMUPX = MIPSMMUPX_FMT(1);
 		/* Giving it a mock value until the Pdump player implements
 		   the support for the MIPS microAptiv MMU*/
 		eMMUType = PDUMP_MMU_TYPE_VARPAGE_40BIT;
-	}
-	else
-	{
+	} else {
 		pszMMUPX = MMUPX_FMT(3);
 	}
 
-	eErr = PDumpSNPrintf(hScript,
-			     ui32MaxLen,
-			     "MMU :%s:v%d %d :%s:%s%016"IMG_UINT64_FMTSPECX,
+	eErr = PDumpSNPrintf(hScript, ui32MaxLen,
+			     "MMU :%s:v%d %d :%s:%s%016" IMG_UINT64_FMTSPECX,
 			     /* mmu context */
-			     pszPDumpMemSpaceName,
-			     ui32MMUContextID,
+			     pszPDumpMemSpaceName, ui32MMUContextID,
 			     /* mmu type */
 			     eMMUType,
 			     /* PC base address */
-			     pszPDumpMemSpaceName,
-			     pszMMUPX,
-			     ui64PCSymAddr);
-	if (eErr != PVRSRV_OK)
-	{
+			     pszPDumpMemSpaceName, pszMMUPX, ui64PCSymAddr);
+	if (eErr != PVRSRV_OK) {
 		PVR_DBG_BREAK;
 		goto ErrOut;
 	}
@@ -833,18 +750,15 @@ PVRSRV_ERROR PDumpMMUFreeMMUContext(PVRSRV_DEVICE_NODE *psDeviceNode,
 	PDUMP_GET_SCRIPT_STRING();
 
 	PDUMP_LOCK(ui32PDumpFlags);
-	eErr = PDumpSNPrintf(hScript,
-			     ui32MaxLen,
-			     "-- Clear MMU Context for memory space %s", pszPDumpMemSpaceName);
+	eErr = PDumpSNPrintf(hScript, ui32MaxLen,
+			     "-- Clear MMU Context for memory space %s",
+			     pszPDumpMemSpaceName);
 	PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 
-	PDumpWriteScript(psDeviceNode,hScript, ui32PDumpFlags);
+	PDumpWriteScript(psDeviceNode, hScript, ui32PDumpFlags);
 
-	eErr = PDumpSNPrintf(hScript,
-	                     ui32MaxLen,
-	                     "MMU :%s:v%d",
-	                     pszPDumpMemSpaceName,
-	                     ui32MMUContextID);
+	eErr = PDumpSNPrintf(hScript, ui32MaxLen, "MMU :%s:v%d",
+			     pszPDumpMemSpaceName, ui32MMUContextID);
 
 	PVR_GOTO_IF_ERROR(eErr, ErrUnlock);
 
@@ -861,12 +775,9 @@ ErrUnlock:
 
 PVRSRV_ERROR
 PDumpMMUSAB(PVRSRV_DEVICE_NODE *psDeviceNode,
-	    const IMG_CHAR *pszPDumpMemNamespace,
-	    IMG_UINT32 uiPDumpMMUCtx,
-	    IMG_DEV_VIRTADDR sDevAddrStart,
-	    IMG_DEVMEM_SIZE_T uiSize,
-	    const IMG_CHAR *pszFilename,
-	    IMG_UINT32 uiFileOffset,
+	    const IMG_CHAR *pszPDumpMemNamespace, IMG_UINT32 uiPDumpMMUCtx,
+	    IMG_DEV_VIRTADDR sDevAddrStart, IMG_DEVMEM_SIZE_T uiSize,
+	    const IMG_CHAR *pszFilename, IMG_UINT32 uiFileOffset,
 	    IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
@@ -876,23 +787,19 @@ PDumpMMUSAB(PVRSRV_DEVICE_NODE *psDeviceNode,
 	PDUMP_GET_SCRIPT_STRING();
 
 	eErr = PDumpReady();
-	if (eErr != PVRSRV_OK)
-	{
+	if (eErr != PVRSRV_OK) {
 		/* Mask suspension from caller as this is terminal & logged */
-		eErr = (eErr == PVRSRV_ERROR_PDUMP_NOT_ACTIVE) ? PVRSRV_OK : eErr;
+		eErr = (eErr == PVRSRV_ERROR_PDUMP_NOT_ACTIVE) ? PVRSRV_OK :
+								 eErr;
 		goto ErrOut;
 	}
 
-	eErr = PDumpSNPrintf(hScript,
-			     ui32MaxLen,
-			     "SAB :%s:v%x:" IMG_DEV_VIRTADDR_FMTSPEC " "
-			     IMG_DEVMEM_SIZE_FMTSPEC " "
+	eErr = PDumpSNPrintf(hScript, ui32MaxLen,
+			     "SAB :%s:v%x:" IMG_DEV_VIRTADDR_FMTSPEC
+			     " " IMG_DEVMEM_SIZE_FMTSPEC " "
 			     "0x%x %s.bin\n",
-			     pszPDumpMemNamespace,
-			     uiPDumpMMUCtx,
-			     sDevAddrStart.uiAddr,
-			     uiSize,
-			     uiFileOffset,
+			     pszPDumpMemNamespace, uiPDumpMMUCtx,
+			     sDevAddrStart.uiAddr, uiSize, uiFileOffset,
 			     pszFilename);
 	PVR_GOTO_IF_ERROR(eErr, ErrOut);
 

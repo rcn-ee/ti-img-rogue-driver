@@ -55,10 +55,11 @@
 
 #define PLATO_DDR_KINGSTON 1
 
-#define PLATO_HAS_NON_MAPPABLE(dev) (dev->rogue_mem.size < SYS_DEV_MEM_REGION_SIZE)
+#define PLATO_HAS_NON_MAPPABLE(dev) \
+	(dev->rogue_mem.size < SYS_DEV_MEM_REGION_SIZE)
 
-static int poll_pr(struct device *dev, void *base, u32 reg,
-				u32 val, u32 msk, u32 cnt, u32 intrvl)
+static int poll_pr(struct device *dev, void *base, u32 reg, u32 val, u32 msk,
+		   u32 cnt, u32 intrvl)
 {
 	u32 polnum;
 
@@ -68,7 +69,8 @@ static int poll_pr(struct device *dev, void *base, u32 reg,
 		plato_sleep_ms(intrvl);
 	}
 	if (polnum == cnt) {
-		dev_info(dev,
+		dev_info(
+			dev,
 			"Poll failed for register: 0x%08X. Expected 0x%08X Received 0x%08X",
 			(unsigned int)reg, val,
 			plato_read_reg32(base, reg) & msk);
@@ -80,12 +82,11 @@ static int poll_pr(struct device *dev, void *base, u32 reg,
 
 #define poll(dev, base, reg, val, msk) poll_pr(dev, base, reg, val, msk, 10, 10)
 
-static int plato_dram_init(struct plato_device *plato,
-	void *publ_regs,
-	void *ctrl_regs,
-	void *aon_regs,
-	u32 bldr_data[PLATO_DDR_PUBL_DATX_LANE_COUNT][PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE],
-	u32 reset_flags)
+static int plato_dram_init(struct plato_device *plato, void *publ_regs,
+			   void *ctrl_regs, void *aon_regs,
+			   u32 bldr_data[PLATO_DDR_PUBL_DATX_LANE_COUNT]
+					[PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE],
+			   u32 reset_flags)
 {
 	struct device *dev = &plato->pdev->dev;
 	/*
@@ -260,8 +261,9 @@ static int plato_dram_init(struct plato_device *plato,
 
 	/* Now getting DRAM controller out of reset */
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL,
-			reset_flags |
-			plato_read_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL));
+			  reset_flags |
+				  plato_read_reg32(aon_regs,
+						   PLATO_AON_CR_RESET_CTRL));
 
 	plato_sleep_us(1000);
 
@@ -386,10 +388,12 @@ static int plato_dram_init(struct plato_device *plato,
 		u8 reg = 0;
 
 		for (lane = 0; lane < PLATO_DDR_PUBL_DATX_LANE_COUNT; lane++) {
-			for (reg = 0; reg < PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE; reg++) {
+			for (reg = 0; reg < PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE;
+			     reg++) {
 				plato_write_reg32(publ_regs,
-					PLATO_DDR_PUBL_DXnBDLR_OFFSET(lane, reg),
-					bldr_data[lane][reg]);
+						  PLATO_DDR_PUBL_DXnBDLR_OFFSET(
+							  lane, reg),
+						  bldr_data[lane][reg]);
 			}
 		}
 	}
@@ -400,14 +404,15 @@ static int plato_dram_init(struct plato_device *plato,
 
 		for (lane = 0; lane < PLATO_DDR_PUBL_DATX_LANE_COUNT; lane++)
 			poll(dev, publ_regs,
-					PLATO_DDR_PUBL_DXnGSR_OFFSET(lane, 2),
-					0, 0x001FFFFF);
+			     PLATO_DDR_PUBL_DXnGSR_OFFSET(lane, 2), 0,
+			     0x001FFFFF);
 	}
 #endif
 
 	plato_write_reg32(publ_regs, PLATO_DDR_PUBL_PIR_OFFSET, 0x0000ff72);
 	plato_write_reg32(publ_regs, PLATO_DDR_PUBL_PIR_OFFSET, 0x0000ff73);
-	poll(dev, publ_regs, PLATO_DDR_PUBL_PGSR0_OFFSET, 0x80000fff, 0xfff80fff);
+	poll(dev, publ_regs, PLATO_DDR_PUBL_PGSR0_OFFSET, 0x80000fff,
+	     0xfff80fff);
 	poll(dev, ctrl_regs, PLATO_DDR_CTRL_STAT, 0x1, 0x1);
 
 	/* Setting the Anti Glitch OFF (?), Disabling On Die pullup/pulldowns */
@@ -417,7 +422,8 @@ static int plato_dram_init(struct plato_device *plato,
 	plato_write_reg32(publ_regs, PLATO_DDR_PUBL_DXCCR_OFFSET, 0x02400004);
 #endif
 
-	if (plato_read_reg32(publ_regs, PLATO_DDR_PUBL_PGSR0_OFFSET) != 0x80000fff) {
+	if (plato_read_reg32(publ_regs, PLATO_DDR_PUBL_PGSR0_OFFSET) !=
+	    0x80000fff) {
 		dev_err(dev, "-%s: DDR Training failed", __func__);
 		return PLATO_INIT_FAILURE;
 	}
@@ -430,10 +436,14 @@ static int plato_dram_init(struct plato_device *plato,
 		u8 reg = 0;
 
 		for (lane = 0; lane < PLATO_DDR_PUBL_DATX_LANE_COUNT; lane++) {
-			for (reg = 0; reg < PLATO_DDR_PUBL_DXGSR_REGS_PER_LANE; reg++) {
-				plato_dev_info(dev, "DX%dGSR%d: 0x%08x", lane, reg,
-					plato_read_reg32(publ_regs,
-						PLATO_DDR_PUBL_DXnGSR_OFFSET(lane, reg)));
+			for (reg = 0; reg < PLATO_DDR_PUBL_DXGSR_REGS_PER_LANE;
+			     reg++) {
+				plato_dev_info(
+					dev, "DX%dGSR%d: 0x%08x", lane, reg,
+					plato_read_reg32(
+						publ_regs,
+						PLATO_DDR_PUBL_DXnGSR_OFFSET(
+							lane, reg)));
 			}
 		}
 	}
@@ -479,11 +489,12 @@ static u32 get_plato_gpuv_div0(u32 pll_clock, u32 core_clock)
 
 	/* Bias the result by (-1) with saturation, then clip it */
 	ret = (div - (div > 0)) &
-		(PLATO_CR_GPUV_DIV_0_MASK >> PLATO_CR_GPUV_DIV_0_SHIFT);
+	      (PLATO_CR_GPUV_DIV_0_MASK >> PLATO_CR_GPUV_DIV_0_SHIFT);
 
 	/* Check for lost result after clipping, saturate if so */
 	return (div > 1) && (ret != (div - (div > 0))) ?
-		(PLATO_CR_GPUV_DIV_0_MASK >> PLATO_CR_GPUV_DIV_0_SHIFT) : ret;
+		       (PLATO_CR_GPUV_DIV_0_MASK >> PLATO_CR_GPUV_DIV_0_SHIFT) :
+		       ret;
 }
 
 /*
@@ -499,11 +510,13 @@ static u32 get_plato_pdpv0_div0(u32 pll_clock)
 
 	/* Bias the result by (-1) with saturation, then clip it */
 	ret = (div - (div > 0)) &
-		(PLATO_CR_PDPV0_DIV_0_MASK >> PLATO_CR_PDPV0_DIV_0_SHIFT);
+	      (PLATO_CR_PDPV0_DIV_0_MASK >> PLATO_CR_PDPV0_DIV_0_SHIFT);
 
 	/* Check for lost result after clipping, saturate if so */
 	return (div > 1) && (ret != (div - (div > 0))) ?
-		(PLATO_CR_PDPV0_DIV_0_MASK >> PLATO_CR_PDPV0_DIV_0_SHIFT) : ret;
+		       (PLATO_CR_PDPV0_DIV_0_MASK >>
+			PLATO_CR_PDPV0_DIV_0_SHIFT) :
+		       ret;
 }
 
 static u32 get_plato_pdpv1_div0(u32 pll_clock)
@@ -511,15 +524,17 @@ static u32 get_plato_pdpv1_div0(u32 pll_clock)
 	u32 div, ret;
 
 	div = (pll_clock / (get_plato_pdpv0_div0(pll_clock) + 1)) /
-		PLATO_MIN_PDP_CLOCK_SPEED;
+	      PLATO_MIN_PDP_CLOCK_SPEED;
 
 	/* Bias the result by (-1) with saturation, then clip it */
 	ret = (div - (div > 0)) &
-		(PLATO_CR_PDPV1_DIV_0_MASK >> PLATO_CR_PDPV1_DIV_0_SHIFT);
+	      (PLATO_CR_PDPV1_DIV_0_MASK >> PLATO_CR_PDPV1_DIV_0_SHIFT);
 
 	/* Check for lost result after clipping, saturate if so */
 	return (div > 1) && (ret != (div - (div > 0))) ?
-		(PLATO_CR_PDPV1_DIV_0_MASK >> PLATO_CR_PDPV1_DIV_0_SHIFT) : ret;
+		       (PLATO_CR_PDPV1_DIV_0_MASK >>
+			PLATO_CR_PDPV1_DIV_0_SHIFT) :
+		       ret;
 }
 
 #if defined(ENABLE_PLATO_HDMI)
@@ -536,18 +551,19 @@ static u32 get_plato_hdmicecv0_div0(u32 pll_clock)
 	u32 hdmisfr_clock_speed;
 
 	hdmicecv0_div0_limit = PLATO_CR_HDMICECV0_DIV_0_MASK >>
-	    PLATO_CR_HDMICECV0_DIV_0_SHIFT;
+			       PLATO_CR_HDMICECV0_DIV_0_SHIFT;
 	hdmicecv1_div0_limit = PLATO_CR_HDMICECV1_DIV_0_MASK >>
-	    PLATO_CR_HDMICECV1_DIV_0_SHIFT;
+			       PLATO_CR_HDMICECV1_DIV_0_SHIFT;
 
 	hdmicecv0_div0 = 0;
 	while (hdmicecv0_div0 < hdmicecv0_div0_limit) {
 		hdmicecv1_div0 = 0;
 		while (hdmicecv1_div0 < hdmicecv1_div0_limit) {
-			hdmisfr_clock_speed = pll_clock /
-				(hdmicecv0_div0 + 1) / (hdmicecv1_div0 + 1);
+			hdmisfr_clock_speed = pll_clock / (hdmicecv0_div0 + 1) /
+					      (hdmicecv1_div0 + 1);
 
-			if (hdmisfr_clock_speed <= PLATO_TARGET_HDMI_SFR_CLOCK_SPEED) {
+			if (hdmisfr_clock_speed <=
+			    PLATO_TARGET_HDMI_SFR_CLOCK_SPEED) {
 				/* Done, value of the divider found */
 				return hdmicecv0_div0;
 			}
@@ -576,13 +592,13 @@ static u32 get_plato_hdmicecv1_div0(u32 pll_clock)
 
 	/* Bias the result by (-1) with saturation, then clip it */
 	ret = (div - (div > 0)) &
-		(PLATO_CR_HDMICECV1_DIV_0_MASK >>
-		 PLATO_CR_HDMICECV1_DIV_0_SHIFT);
+	      (PLATO_CR_HDMICECV1_DIV_0_MASK >> PLATO_CR_HDMICECV1_DIV_0_SHIFT);
 
 	/* Check for lost result after clipping, saturate if so */
 	return (div > 1) && (ret != (div - (div > 0))) ?
-		(PLATO_CR_HDMICECV1_DIV_0_MASK >>
-		 PLATO_CR_HDMICECV1_DIV_0_SHIFT) : ret;
+		       (PLATO_CR_HDMICECV1_DIV_0_MASK >>
+			PLATO_CR_HDMICECV1_DIV_0_SHIFT) :
+		       ret;
 }
 
 static u32 get_plato_hdmicecv2_div0(u32 pll_clock)
@@ -600,13 +616,13 @@ static u32 get_plato_hdmicecv2_div0(u32 pll_clock)
 
 	/* Bias the result by (-1) with saturation, then clip it */
 	ret = (div - (div > 0)) &
-		(PLATO_CR_HDMICECV2_DIV_0_MASK >>
-		 PLATO_CR_HDMICECV2_DIV_0_SHIFT);
+	      (PLATO_CR_HDMICECV2_DIV_0_MASK >> PLATO_CR_HDMICECV2_DIV_0_SHIFT);
 
 	/* Check for lost result after clipping, saturate if so */
 	return (div > 1) && (ret != (div - (div > 0))) ?
-		(PLATO_CR_HDMICECV2_DIV_0_MASK >>
-		 PLATO_CR_HDMICECV2_DIV_0_SHIFT) : ret;
+		       (PLATO_CR_HDMICECV2_DIV_0_MASK >>
+			PLATO_CR_HDMICECV2_DIV_0_SHIFT) :
+		       ret;
 }
 #endif
 
@@ -616,31 +632,40 @@ static int plato_dual_channel_init(struct plato_device *plato)
 {
 	struct device *dev = &plato->pdev->dev;
 	int err = 0;
-	void *dbg_perip_regs	 = plato->sys_io.registers + SYS_PLATO_REG_PERIP_OFFSET;
-	void *ddra_ctrl_regs	 = plato->sys_io.registers + SYS_PLATO_REG_DDR_A_CTRL_OFFSET;
-	void *ddra_publ_regs	 = plato->sys_io.registers + SYS_PLATO_REG_DDR_A_PUBL_OFFSET;
-	void *ddrb_ctrl_regs	 = plato->sys_io.registers + SYS_PLATO_REG_DDR_B_CTRL_OFFSET;
-	void *ddrb_publ_regs	 = plato->sys_io.registers + SYS_PLATO_REG_DDR_B_PUBL_OFFSET;
-	void *noc_regs			 = plato->sys_io.registers + SYS_PLATO_REG_NOC_OFFSET;
-	void *aon_regs			 = plato->aon_regs.registers;
-	u32 bdlr_setup_ddra[PLATO_DDR_PUBL_DATX_LANE_COUNT][PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE] = {
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F} };
-	u32 bdlr_setup_ddrb[PLATO_DDR_PUBL_DATX_LANE_COUNT][PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE] = {
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x14141414, 0x14141414, 0x00141414},
-		 {0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F} };
+	void *dbg_perip_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_PERIP_OFFSET;
+	void *ddra_ctrl_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_A_CTRL_OFFSET;
+	void *ddra_publ_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_A_PUBL_OFFSET;
+	void *ddrb_ctrl_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_B_CTRL_OFFSET;
+	void *ddrb_publ_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_B_PUBL_OFFSET;
+	void *noc_regs = plato->sys_io.registers + SYS_PLATO_REG_NOC_OFFSET;
+	void *aon_regs = plato->aon_regs.registers;
+	u32 bdlr_setup_ddra[PLATO_DDR_PUBL_DATX_LANE_COUNT]
+			   [PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE] = {
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F }
+			   };
+	u32 bdlr_setup_ddrb[PLATO_DDR_PUBL_DATX_LANE_COUNT]
+			   [PLATO_DDR_PUBL_DXBDLR_REGS_PER_LANE] = {
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x14141414, 0x14141414, 0x00141414 },
+				   { 0x0F0F0F0F, 0x0F0F0F0F, 0x000F0F0F }
+			   };
 	u32 mem_clock_speed, mem_pll_clock_speed;
 	u32 mem_clock_pll_control0, mem_clock_pll_control1;
 	u32 mem_clock_control;
@@ -661,7 +686,8 @@ static int plato_dual_channel_init(struct plato_device *plato)
 	if (!PLATO_HAS_NON_MAPPABLE(plato)) {
 		err = poll(dev, aon_regs, PLATO_AON_CR_RESET_CTRL, 0x30, 0xF0);
 		if (err) {
-			dev_err(dev, "%s: Plato failed to come out of reset!", __func__);
+			dev_err(dev, "%s: Plato failed to come out of reset!",
+				__func__);
 			return PLATO_INIT_FAILURE;
 		}
 	}
@@ -670,7 +696,8 @@ static int plato_dual_channel_init(struct plato_device *plato)
 	// out of reset with PLL bypassed.
 	if (PLATO_HAS_NON_MAPPABLE(plato)) {
 		plato_write_reg32(aon_regs, PLATO_AON_CR_PLL_BYPASS, 0x0);
-		plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL, PLATO_CR_DISPLAY_RESET_MASK);
+		plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL,
+				  PLATO_CR_DISPLAY_RESET_MASK);
 		plato_write_reg32(aon_regs, PLATO_AON_CR_PLL_BYPASS, 0x1);
 	}
 
@@ -685,48 +712,42 @@ static int plato_dual_channel_init(struct plato_device *plato)
 	mem_clock_speed = plato_mem_clock_speed(dev);
 	mem_pll_clock_speed = mem_clock_speed;
 
-	mem_clock_pll_control0 =
-		(get_plato_pll_int(mem_pll_clock_speed) <<
-		 PLATO_CR_DDR_PLL_FBDIV_SHIFT);
+	mem_clock_pll_control0 = (get_plato_pll_int(mem_pll_clock_speed)
+				  << PLATO_CR_DDR_PLL_FBDIV_SHIFT);
 	mem_clock_pll_control0 &= PLATO_CR_DDR_PLL_FBDIV_MASK;
 	mem_clock_pll_control0 |= (1 << PLATO_CR_DDR_PLL_REFDIV_SHIFT);
 	mem_clock_pll_control0 |= (1 << PLATO_CR_DDR_PLL_POSTDIV1_SHIFT);
 	mem_clock_pll_control0 |= (1 << PLATO_CR_DDR_PLL_POSTDIV2_SHIFT);
 
-	mem_clock_pll_control1 =
-		(get_plato_pll_frac(mem_pll_clock_speed) <<
-		 PLATO_CR_DDR_PLL_FRAC_SHIFT);
+	mem_clock_pll_control1 = (get_plato_pll_frac(mem_pll_clock_speed)
+				  << PLATO_CR_DDR_PLL_FRAC_SHIFT);
 	mem_clock_pll_control1 &= PLATO_CR_DDR_PLL_FRAC_MASK;
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0,
 			  mem_clock_pll_control0);
-	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0,
-	     mem_clock_pll_control0, mem_clock_pll_control0);
+	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0, mem_clock_pll_control0,
+	     mem_clock_pll_control0);
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1,
 			  mem_clock_pll_control1);
-	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1,
-	     mem_clock_pll_control1, mem_clock_pll_control1);
+	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1, mem_clock_pll_control1,
+	     mem_clock_pll_control1);
 
-	dev_info(dev,
-		 "%s: DDR clock: %u", __func__, mem_clock_speed);
+	dev_info(dev, "%s: DDR clock: %u", __func__, mem_clock_speed);
 
 	/* Setup GPU PLL's */
 	core_clock_speed = plato_core_clock_speed(dev);
-	core_pll_clock_speed = plato_pll_clock_speed(dev,
-						     core_clock_speed);
+	core_pll_clock_speed = plato_pll_clock_speed(dev, core_clock_speed);
 
-	core_clock_pll_control0 =
-		(get_plato_pll_int(core_pll_clock_speed) <<
-		 PLATO_CR_GPU_PLL_FBDIV_SHIFT);
+	core_clock_pll_control0 = (get_plato_pll_int(core_pll_clock_speed)
+				   << PLATO_CR_GPU_PLL_FBDIV_SHIFT);
 	core_clock_pll_control0 &= PLATO_CR_GPU_PLL_FBDIV_MASK;
 	core_clock_pll_control0 |= (1 << PLATO_CR_GPU_PLL_REFDIV_SHIFT);
 	core_clock_pll_control0 |= (1 << PLATO_CR_GPU_PLL_POSTDIV1_SHIFT);
 	core_clock_pll_control0 |= (1 << PLATO_CR_GPU_PLL_POSTDIV2_SHIFT);
 
-	core_clock_pll_control1 =
-		(get_plato_pll_frac(core_pll_clock_speed) <<
-		 PLATO_CR_GPU_PLL_FRAC_SHIFT);
+	core_clock_pll_control1 = (get_plato_pll_frac(core_pll_clock_speed)
+				   << PLATO_CR_GPU_PLL_FRAC_SHIFT);
 	core_clock_pll_control1 &= PLATO_CR_GPU_PLL_FRAC_MASK;
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_0,
@@ -739,21 +760,17 @@ static int plato_dual_channel_init(struct plato_device *plato)
 	poll(dev, aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_1,
 	     core_clock_pll_control1, core_clock_pll_control1);
 
-	dev_info(dev,
-		 "%s: GPU clock: %u", __func__, core_clock_speed);
+	dev_info(dev, "%s: GPU clock: %u", __func__, core_clock_speed);
 
 #if defined(ENABLE_PLATO_HDMI)
 	/* Setup HDMI CEC clock outputs */
 	hdmicec_clock_control = 0;
-	hdmicec_clock_control |=
-		(get_plato_hdmicecv0_div0(core_pll_clock_speed) <<
-		 PLATO_CR_HDMICECV0_DIV_0_SHIFT);
-	hdmicec_clock_control |=
-		(get_plato_hdmicecv1_div0(core_pll_clock_speed) <<
-		 PLATO_CR_HDMICECV1_DIV_0_SHIFT);
-	hdmicec_clock_control |=
-		(get_plato_hdmicecv2_div0(core_pll_clock_speed) <<
-		 PLATO_CR_HDMICECV2_DIV_0_SHIFT);
+	hdmicec_clock_control |= (get_plato_hdmicecv0_div0(core_pll_clock_speed)
+				  << PLATO_CR_HDMICECV0_DIV_0_SHIFT);
+	hdmicec_clock_control |= (get_plato_hdmicecv1_div0(core_pll_clock_speed)
+				  << PLATO_CR_HDMICECV1_DIV_0_SHIFT);
+	hdmicec_clock_control |= (get_plato_hdmicecv2_div0(core_pll_clock_speed)
+				  << PLATO_CR_HDMICECV2_DIV_0_SHIFT);
 
 	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_HDMI_CEC_CLK_CTRL,
 			  hdmicec_clock_control);
@@ -779,10 +796,10 @@ static int plato_dual_channel_init(struct plato_device *plato)
 	mem_clock_control = (1 << PLATO_CR_DDRAG_GATE_EN_SHIFT) |
 			    (1 << PLATO_CR_DDRBG_GATE_EN_SHIFT);
 
-	plato_write_reg32(dbg_perip_regs,
-			  PLATO_TOP_CR_DDR_CLK_CTRL, mem_clock_control);
-	poll(dev, dbg_perip_regs,
-	     PLATO_TOP_CR_DDR_CLK_CTRL, mem_clock_control, mem_clock_control);
+	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_DDR_CLK_CTRL,
+			  mem_clock_control);
+	poll(dev, dbg_perip_regs, PLATO_TOP_CR_DDR_CLK_CTRL, mem_clock_control,
+	     mem_clock_control);
 
 	/* Enabling gated clock output for GPU and dividing the clock */
 	core_clock_control = (1 << PLATO_CR_GPUG_GATE_EN_SHIFT);
@@ -790,10 +807,10 @@ static int plato_dual_channel_init(struct plato_device *plato)
 		(get_plato_gpuv_div0(core_pll_clock_speed, core_clock_speed)
 		 << PLATO_CR_GPUV_DIV_0_SHIFT);
 
-	plato_write_reg32(dbg_perip_regs,
-			  PLATO_TOP_CR_GPU_CLK_CTRL, core_clock_control);
-	poll(dev, dbg_perip_regs,
-	     PLATO_TOP_CR_GPU_CLK_CTRL, core_clock_control, core_clock_control);
+	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_GPU_CLK_CTRL,
+			  core_clock_control);
+	poll(dev, dbg_perip_regs, PLATO_TOP_CR_GPU_CLK_CTRL, core_clock_control,
+	     core_clock_control);
 
 	PLATO_CHECKPOINT(plato);
 
@@ -801,17 +818,15 @@ static int plato_dual_channel_init(struct plato_device *plato)
 
 	/* Enabling PDP gated clock output >= 165 MHz for <= 1080p */
 	pdp_clock_control = (1 << PLATO_CR_PDPG_GATE_EN_SHIFT);
-	pdp_clock_control |=
-		(get_plato_pdpv0_div0(core_pll_clock_speed)
-		 << PLATO_CR_PDPV0_DIV_0_SHIFT);
-	pdp_clock_control |=
-		(get_plato_pdpv1_div0(core_pll_clock_speed)
-		 << PLATO_CR_PDPV1_DIV_0_SHIFT);
+	pdp_clock_control |= (get_plato_pdpv0_div0(core_pll_clock_speed)
+			      << PLATO_CR_PDPV0_DIV_0_SHIFT);
+	pdp_clock_control |= (get_plato_pdpv1_div0(core_pll_clock_speed)
+			      << PLATO_CR_PDPV1_DIV_0_SHIFT);
 
 	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL,
 			  pdp_clock_control);
-	poll(dev, dbg_perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL,
-	     pdp_clock_control, pdp_clock_control);
+	poll(dev, dbg_perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL, pdp_clock_control,
+	     pdp_clock_control);
 
 	plato_sleep_us(100);
 
@@ -837,22 +852,22 @@ static int plato_dual_channel_init(struct plato_device *plato)
 
 	/* Now putting DRAM controller out of reset */
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL,
-					PLATO_CR_DDR_A_DATA_RESET_N_MASK |
-					PLATO_CR_DDR_A_CTRL_RESET_N_MASK |
-					PLATO_CR_DDR_B_DATA_RESET_N_MASK |
-					PLATO_CR_DDR_B_CTRL_RESET_N_MASK);
+			  PLATO_CR_DDR_A_DATA_RESET_N_MASK |
+				  PLATO_CR_DDR_A_CTRL_RESET_N_MASK |
+				  PLATO_CR_DDR_B_DATA_RESET_N_MASK |
+				  PLATO_CR_DDR_B_CTRL_RESET_N_MASK);
 	plato_sleep_us(100);
 
 	/* Now putting DRAM controller into reset */
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL,
-					PLATO_CR_DDR_A_CTRL_RESET_N_MASK |
-					PLATO_CR_DDR_B_CTRL_RESET_N_MASK);
+			  PLATO_CR_DDR_A_CTRL_RESET_N_MASK |
+				  PLATO_CR_DDR_B_CTRL_RESET_N_MASK);
 
 	/* Always configure DDR A */
 	err = plato_dram_init(plato, ddra_publ_regs, ddra_ctrl_regs, aon_regs,
-					bdlr_setup_ddra,
-					PLATO_CR_DDR_A_DATA_RESET_N_MASK |
-					PLATO_CR_DDR_A_CTRL_RESET_N_MASK);
+			      bdlr_setup_ddra,
+			      PLATO_CR_DDR_A_DATA_RESET_N_MASK |
+				      PLATO_CR_DDR_A_CTRL_RESET_N_MASK);
 	if (err != 0) {
 		dev_err(dev, "DDR Bank A setup failed. Init cannot proceed.");
 		return err;
@@ -862,9 +877,9 @@ static int plato_dual_channel_init(struct plato_device *plato)
 
 	/* Configure DDR B */
 	err = plato_dram_init(plato, ddrb_publ_regs, ddrb_ctrl_regs, aon_regs,
-					bdlr_setup_ddrb,
-					PLATO_CR_DDR_B_DATA_RESET_N_MASK |
-					PLATO_CR_DDR_B_CTRL_RESET_N_MASK);
+			      bdlr_setup_ddrb,
+			      PLATO_CR_DDR_B_DATA_RESET_N_MASK |
+				      PLATO_CR_DDR_B_CTRL_RESET_N_MASK);
 	if (err != 0) {
 		dev_err(dev, "DDR Bank B setup failed. Init cannot proceed.");
 		return err;
@@ -874,9 +889,8 @@ static int plato_dual_channel_init(struct plato_device *plato)
 
 	/* Getting GPU And DDR A/B out of reset */
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000F12);
-	err = poll_pr(dev, aon_regs,
-				PLATO_AON_CR_RESET_CTRL,
-				0x00000F12, 0x00000F12, -1, 100);
+	err = poll_pr(dev, aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000F12,
+		      0x00000F12, -1, 100);
 	if (err)
 		return err;
 
@@ -884,7 +898,6 @@ static int plato_dual_channel_init(struct plato_device *plato)
 	plato_write_reg32(aon_regs, PLATO_AON_CR_ISO_CTRL, 0x000001F);
 
 	return err;
-
 }
 #else
 
@@ -892,10 +905,13 @@ static int plato_single_channel_init(struct plato_device *plato)
 {
 	struct device *dev = &plato->pdev->dev;
 	int err = 0;
-	void *dbg_perip_regs	 = plato->sys_io.registers + SYS_PLATO_REG_PERIP_OFFSET;
-	void *ddra_ctrl_regs	 = plato->sys_io.registers + SYS_PLATO_REG_DDR_A_CTRL_OFFSET;
-	void *ddra_publ_regs	 = plato->sys_io.registers + SYS_PLATO_REG_DDR_A_PUBL_OFFSET;
-	void *aon_regs			 = plato->aon_regs.registers;
+	void *dbg_perip_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_PERIP_OFFSET;
+	void *ddra_ctrl_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_A_CTRL_OFFSET;
+	void *ddra_publ_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_A_PUBL_OFFSET;
+	void *aon_regs = plato->aon_regs.registers;
 	u32 mem_clock_speed, mem_pll_clock_speed;
 	u32 mem_clock_pll_control0, mem_clock_pll_control1;
 	u32 mem_clock_control;
@@ -923,48 +939,42 @@ static int plato_single_channel_init(struct plato_device *plato)
 	mem_clock_speed = plato_mem_clock_speed(dev);
 	mem_pll_clock_speed = mem_clock_speed;
 
-	mem_clock_pll_control0 =
-		(get_plato_pll_int(mem_pll_clock_speed) <<
-		 PLATO_CR_DDR_PLL_FBDIV_SHIFT);
+	mem_clock_pll_control0 = (get_plato_pll_int(mem_pll_clock_speed)
+				  << PLATO_CR_DDR_PLL_FBDIV_SHIFT);
 	mem_clock_pll_control0 &= PLATO_CR_DDR_PLL_FBDIV_MASK;
 	mem_clock_pll_control0 |= (1 << PLATO_CR_DDR_PLL_REFDIV_SHIFT);
 	mem_clock_pll_control0 |= (1 << PLATO_CR_DDR_PLL_POSTDIV1_SHIFT);
 	mem_clock_pll_control0 |= (1 << PLATO_CR_DDR_PLL_POSTDIV2_SHIFT);
 
-	mem_clock_pll_control1 =
-		(get_plato_pll_frac(mem_pll_clock_speed) <<
-		 PLATO_CR_DDR_PLL_FRAC_SHIFT);
+	mem_clock_pll_control1 = (get_plato_pll_frac(mem_pll_clock_speed)
+				  << PLATO_CR_DDR_PLL_FRAC_SHIFT);
 	mem_clock_pll_control1 &= PLATO_CR_DDR_PLL_FRAC_MASK;
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0,
 			  mem_clock_pll_control0);
-	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0,
-	     mem_clock_pll_control0, mem_clock_pll_control0);
+	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0, mem_clock_pll_control0,
+	     mem_clock_pll_control0);
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1,
 			  mem_clock_pll_control1);
-	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1,
-	     mem_clock_pll_control1, mem_clock_pll_control1);
+	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1, mem_clock_pll_control1,
+	     mem_clock_pll_control1);
 
-	dev_info(dev,
-		 "%s: DDR clock: %u", __func__, mem_clock_speed);
+	dev_info(dev, "%s: DDR clock: %u", __func__, mem_clock_speed);
 
 	/* Setup GPU PLL's */
 	core_clock_speed = plato_core_clock_speed(dev);
-	core_pll_clock_speed = plato_pll_clock_speed(dev,
-						core_clock_speed);
+	core_pll_clock_speed = plato_pll_clock_speed(dev, core_clock_speed);
 
-	core_clock_pll_control0 =
-		(get_plato_pll_int(core_pll_clock_speed) <<
-		 PLATO_CR_GPU_PLL_FBDIV_SHIFT);
+	core_clock_pll_control0 = (get_plato_pll_int(core_pll_clock_speed)
+				   << PLATO_CR_GPU_PLL_FBDIV_SHIFT);
 	core_clock_pll_control0 &= PLATO_CR_GPU_PLL_FBDIV_MASK;
 	core_clock_pll_control0 |= (1 << PLATO_CR_GPU_PLL_REFDIV_SHIFT);
 	core_clock_pll_control0 |= (1 << PLATO_CR_GPU_PLL_POSTDIV1_SHIFT);
 	core_clock_pll_control0 |= (1 << PLATO_CR_GPU_PLL_POSTDIV2_SHIFT);
 
-	core_clock_pll_control1 =
-		(get_plato_pll_frac(core_pll_clock_speed) <<
-		 PLATO_CR_GPU_PLL_FRAC_SHIFT);
+	core_clock_pll_control1 = (get_plato_pll_frac(core_pll_clock_speed)
+				   << PLATO_CR_GPU_PLL_FRAC_SHIFT);
 	core_clock_pll_control1 &= PLATO_CR_GPU_PLL_FRAC_MASK;
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_0,
@@ -977,21 +987,17 @@ static int plato_single_channel_init(struct plato_device *plato)
 	poll(dev, aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_1,
 	     core_clock_pll_control1, core_clock_pll_control1);
 
-	dev_info(dev,
-		 "%s: GPU clock: %u", __func__, core_clock_speed);
+	dev_info(dev, "%s: GPU clock: %u", __func__, core_clock_speed);
 
 #if defined(ENABLE_PLATO_HDMI)
 	/* Setup HDMI CEC clock outputs */
 	hdmicec_clock_control = 0;
-	hdmicec_clock_control |=
-		(get_plato_hdmicecv0_div0(core_pll_clock_speed) <<
-		 PLATO_CR_HDMICECV0_DIV_0_SHIFT);
-	hdmicec_clock_control |=
-		(get_plato_hdmicecv1_div0(core_pll_clock_speed) <<
-		 PLATO_CR_HDMICECV1_DIV_0_SHIFT);
-	hdmicec_clock_control |=
-		(get_plato_hdmicecv2_div0(core_pll_clock_speed) <<
-		 PLATO_CR_HDMICECV2_DIV_0_SHIFT);
+	hdmicec_clock_control |= (get_plato_hdmicecv0_div0(core_pll_clock_speed)
+				  << PLATO_CR_HDMICECV0_DIV_0_SHIFT);
+	hdmicec_clock_control |= (get_plato_hdmicecv1_div0(core_pll_clock_speed)
+				  << PLATO_CR_HDMICECV1_DIV_0_SHIFT);
+	hdmicec_clock_control |= (get_plato_hdmicecv2_div0(core_pll_clock_speed)
+				  << PLATO_CR_HDMICECV2_DIV_0_SHIFT);
 
 	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_HDMI_CEC_CLK_CTRL,
 			  hdmicec_clock_control);
@@ -1017,10 +1023,10 @@ static int plato_single_channel_init(struct plato_device *plato)
 	mem_clock_control = (1 << PLATO_CR_DDRAG_GATE_EN_SHIFT) |
 			    (1 << PLATO_CR_DDRBG_GATE_EN_SHIFT);
 
-	plato_write_reg32(dbg_perip_regs,
-			  PLATO_TOP_CR_DDR_CLK_CTRL, mem_clock_control);
-	poll(dev, dbg_perip_regs,
-	     PLATO_TOP_CR_DDR_CLK_CTRL, mem_clock_control, mem_clock_control);
+	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_DDR_CLK_CTRL,
+			  mem_clock_control);
+	poll(dev, dbg_perip_regs, PLATO_TOP_CR_DDR_CLK_CTRL, mem_clock_control,
+	     mem_clock_control);
 
 	/* Enabling gated clock output for GPU and dividing the clock */
 	core_clock_control = (1 << PLATO_CR_GPUG_GATE_EN_SHIFT);
@@ -1028,10 +1034,10 @@ static int plato_single_channel_init(struct plato_device *plato)
 		(get_plato_gpuv_div0(core_pll_clock_speed, core_clock_speed)
 		 << PLATO_CR_GPUV_DIV_0_SHIFT);
 
-	plato_write_reg32(dbg_perip_regs,
-			  PLATO_TOP_CR_GPU_CLK_CTRL, core_clock_control);
-	poll(dev, dbg_perip_regs,
-	     PLATO_TOP_CR_GPU_CLK_CTRL, core_clock_control, core_clock_control);
+	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_GPU_CLK_CTRL,
+			  core_clock_control);
+	poll(dev, dbg_perip_regs, PLATO_TOP_CR_GPU_CLK_CTRL, core_clock_control,
+	     core_clock_control);
 
 	PLATO_CHECKPOINT(plato);
 
@@ -1039,17 +1045,15 @@ static int plato_single_channel_init(struct plato_device *plato)
 
 	/* Enabling PDP gated clock output >= 165 MHz for <= 1080p */
 	pdp_clock_control = (1 << PLATO_CR_PDPG_GATE_EN_SHIFT);
-	pdp_clock_control |=
-		(get_plato_pdpv0_div0(core_pll_clock_speed)
-		 << PLATO_CR_PDPV0_DIV_0_SHIFT);
-	pdp_clock_control |=
-		(get_plato_pdpv1_div0(core_pll_clock_speed)
-		 << PLATO_CR_PDPV1_DIV_0_SHIFT);
+	pdp_clock_control |= (get_plato_pdpv0_div0(core_pll_clock_speed)
+			      << PLATO_CR_PDPV0_DIV_0_SHIFT);
+	pdp_clock_control |= (get_plato_pdpv1_div0(core_pll_clock_speed)
+			      << PLATO_CR_PDPV1_DIV_0_SHIFT);
 
 	plato_write_reg32(dbg_perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL,
 			  pdp_clock_control);
-	poll(dev, dbg_perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL,
-	     pdp_clock_control, pdp_clock_control);
+	poll(dev, dbg_perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL, pdp_clock_control,
+	     pdp_clock_control);
 
 	plato_sleep_us(100);
 
@@ -1082,7 +1086,8 @@ static int plato_single_channel_init(struct plato_device *plato)
 
 	/* Configure DRAM A control and publ regs */
 	err = plato_dram_init(ddra_publ_regs, ddra_ctrl_regs, aon_regs,
-		PLATO_CR_DDR_A_DATA_RESET_N_MASK | PLATO_CR_DDR_A_CTRL_RESET_N_MASK);
+			      PLATO_CR_DDR_A_DATA_RESET_N_MASK |
+				      PLATO_CR_DDR_A_CTRL_RESET_N_MASK);
 	if (err != 0) {
 		dev_err(dev, "DDR Bank setup failed. Init cannot proceed.");
 		return err;
@@ -1091,9 +1096,8 @@ static int plato_single_channel_init(struct plato_device *plato)
 
 	/* Getting GPU and DDR A out of reset */
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000312);
-	err = poll_pr(dev, aon_regs,
-				PLATO_AON_CR_RESET_CTRL,
-				0x00000312, 0x00000312, -1, 100);
+	err = poll_pr(dev, aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000312,
+		      0x00000312, -1, 100);
 	if (err)
 		return err;
 
@@ -1115,20 +1119,23 @@ static int plato_memory_test(struct plato_device *plato)
 	u64 mem_size = plato->rogue_heap_mappable.size +
 		       PLATO_PDP_MEM_SIZE; /* test PDP memory heap too. */
 
-	plato_dev_info(dev, "Starting Local memory test from 0x%llx to 0x%llx (in CPU space)",
-			mem_base, mem_base + mem_size);
+	plato_dev_info(
+		dev,
+		"Starting Local memory test from 0x%llx to 0x%llx (in CPU space)",
+		mem_base, mem_base + mem_size);
 
 	while (j < mem_size - chunk) {
 		u64 p_addr = mem_base + j;
 		u32 *v_addr = (u32 *)ioremap(p_addr, chunk);
 
-		for (i = 0; i < chunk/sizeof(u32); i++) {
+		for (i = 0; i < chunk / sizeof(u32); i++) {
 			*(v_addr + i) = 0xdeadbeef;
 			tmp = *(v_addr + i);
 			if (tmp != 0xdeadbeef) {
 				dev_err(dev,
 					"Local memory read-write test failed at address=0x%llx: written 0x%x, read 0x%x",
-					mem_base + ((i * sizeof(u32)) + j), (u32) 0xdeadbeef, tmp);
+					mem_base + ((i * sizeof(u32)) + j),
+					(u32)0xdeadbeef, tmp);
 
 				iounmap(v_addr);
 				return PLATO_INIT_FAILURE;
@@ -1145,7 +1152,6 @@ static int plato_memory_test(struct plato_device *plato)
 	return PLATO_INIT_SUCCESS;
 }
 
-
 #if defined(CONFIG_MTRR) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 1, 0))
 
 /*
@@ -1154,9 +1160,8 @@ static int plato_memory_test(struct plato_device *plato)
  *     -1 means we were unable to add an mtrr but we should continue
  *     -2 means we were unable to add an mtrr but we shouldn't continue
  */
-static int mtrr_setup(struct pci_dev *pdev,
-		resource_size_t mem_start,
-		resource_size_t mem_size)
+static int mtrr_setup(struct pci_dev *pdev, resource_size_t mem_start,
+		      resource_size_t mem_size)
 {
 	int err;
 	int mtrr;
@@ -1164,16 +1169,16 @@ static int mtrr_setup(struct pci_dev *pdev,
 	/* Reset MTRR */
 	mtrr = mtrr_add(mem_start, mem_size, MTRR_TYPE_UNCACHABLE, 0);
 	if (mtrr < 0) {
-		dev_err(&pdev->dev, "%d - %s: mtrr_add failed (%d)\n",
-			__LINE__, __func__, mtrr);
+		dev_err(&pdev->dev, "%d - %s: mtrr_add failed (%d)\n", __LINE__,
+			__func__, mtrr);
 		mtrr = -2;
 		goto err_out;
 	}
 
 	err = mtrr_del(mtrr, mem_start, mem_size);
 	if (err < 0) {
-		dev_err(&pdev->dev, "%d - %s: mtrr_del failed (%d)\n",
-			__LINE__, __func__, err);
+		dev_err(&pdev->dev, "%d - %s: mtrr_del failed (%d)\n", __LINE__,
+			__func__, err);
 		mtrr = -2;
 		goto err_out;
 	}
@@ -1181,7 +1186,8 @@ static int mtrr_setup(struct pci_dev *pdev,
 	mtrr = mtrr_add(mem_start, mem_size, MTRR_TYPE_WRBACK, 0);
 	if (mtrr < 0) {
 		/* Stop, but not an error as this may be already be setup */
-		dev_warn(&pdev->dev,
+		dev_warn(
+			&pdev->dev,
 			"%d - %s: mtrr_add failed (%d) - probably means the mtrr is already setup\n",
 			__LINE__, __func__, mtrr);
 		mtrr = -1;
@@ -1190,8 +1196,8 @@ static int mtrr_setup(struct pci_dev *pdev,
 
 	err = mtrr_del(mtrr, mem_start, mem_size);
 	if (err < 0) {
-		dev_err(&pdev->dev, "%d - %s: mtrr_del failed (%d)\n",
-			__LINE__, __func__, err);
+		dev_err(&pdev->dev, "%d - %s: mtrr_del failed (%d)\n", __LINE__,
+			__func__, err);
 		mtrr = -2;
 		goto err_out;
 	}
@@ -1209,8 +1215,8 @@ static int mtrr_setup(struct pci_dev *pdev,
 
 	mtrr = mtrr_add(mem_start, mem_size, MTRR_TYPE_WRCOMB, 0);
 	if (mtrr < 0) {
-		dev_err(&pdev->dev, "%d - %s: mtrr_add failed (%d)\n",
-			__LINE__, __func__, mtrr);
+		dev_err(&pdev->dev, "%d - %s: mtrr_add failed (%d)\n", __LINE__,
+			__func__, mtrr);
 		mtrr = -1;
 	}
 
@@ -1225,23 +1231,25 @@ int plato_memory_init(struct plato_device *plato)
 	struct device *dev = &plato->pdev->dev;
 
 	/* Setup card memory */
-	plato->rogue_mem.size = pci_resource_len(plato->pdev, SYS_DEV_MEM_PCI_BASENUM);
-	if (request_pci_io_addr(plato->pdev, SYS_DEV_MEM_PCI_BASENUM, 0, plato->rogue_mem.size)
-		!= PLATO_INIT_SUCCESS) {
+	plato->rogue_mem.size =
+		pci_resource_len(plato->pdev, SYS_DEV_MEM_PCI_BASENUM);
+	if (request_pci_io_addr(plato->pdev, SYS_DEV_MEM_PCI_BASENUM, 0,
+				plato->rogue_mem.size) != PLATO_INIT_SUCCESS) {
 		dev_err(dev, "Failed to request PCI memory region");
 		return PLATO_INIT_FAILURE;
 	}
 
-	plato->rogue_mem.base = pci_resource_start(plato->pdev, SYS_DEV_MEM_PCI_BASENUM);
+	plato->rogue_mem.base =
+		pci_resource_start(plato->pdev, SYS_DEV_MEM_PCI_BASENUM);
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 1, 0))
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
 	if (arch_io_reserve_memtype_wc(plato->rogue_mem.base,
-					plato->rogue_mem.size))
+				       plato->rogue_mem.size))
 		return PLATO_INIT_FAILURE;
 #endif
-	plato->mtrr = arch_phys_wc_add(plato->rogue_mem.base,
-					plato->rogue_mem.size);
+	plato->mtrr =
+		arch_phys_wc_add(plato->rogue_mem.base, plato->rogue_mem.size);
 	if (plato->mtrr < 0) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
 		arch_io_free_memtype_wc(plato->rogue_mem.base,
@@ -1251,7 +1259,7 @@ int plato_memory_init(struct plato_device *plato)
 	}
 #elif defined(CONFIG_MTRR)
 	plato->mtrr = mtrr_setup(plato->pdev, plato->rogue_mem.base,
-		plato->rogue_mem.size);
+				 plato->rogue_mem.size);
 	if (plato->mtrr == -2)
 		return PLATO_INIT_FAILURE;
 #endif
@@ -1268,11 +1276,11 @@ int plato_memory_init(struct plato_device *plato)
 		 *
 		 * This allows to use full available memory in one contiguous heap region.
 		 */
-		dev_info(dev, "System does NOT have non-mappable memory (32GB BAR)");
+		dev_info(dev,
+			 "System does NOT have non-mappable memory (32GB BAR)");
 		plato->rogue_heap_mappable.base +=
-							PLATO_DRAM_SPLIT_ADDR -
-							(SYS_DEV_MEM_REGION_SIZE >> 1) -
-							PLATO_DDR_DEV_PHYSICAL_BASE;
+			PLATO_DRAM_SPLIT_ADDR - (SYS_DEV_MEM_REGION_SIZE >> 1) -
+			PLATO_DDR_DEV_PHYSICAL_BASE;
 		plato->rogue_heap_mappable.size = SYS_DEV_MEM_REGION_SIZE;
 
 		plato->dev_mem_base = PLATO_DDR_ALIASED_DEV_PHYSICAL_BASE;
@@ -1300,9 +1308,10 @@ int plato_memory_init(struct plato_device *plato)
 		 */
 		{
 			u32 shift = __ffs64(plato->rogue_heap_mappable.size);
-			u64 mask = (1ULL << (35-shift)) - 1ULL;
+			u64 mask = (1ULL << (35 - shift)) - 1ULL;
 
-			plato->dev_mem_base += plato->rogue_heap_mappable.base & (mask << shift);
+			plato->dev_mem_base += plato->rogue_heap_mappable.base &
+					       (mask << shift);
 		}
 
 		/*
@@ -1313,45 +1322,58 @@ int plato_memory_init(struct plato_device *plato)
 		 * region that's closest to the split point.
 		 */
 		if (plato->dev_mem_base >= PLATO_DRAM_SPLIT_ADDR)
-			plato->dev_mem_base = PLATO_DRAM_SPLIT_ADDR +
-				(plato->dev_mem_base % PLATO_DDR_ALIASED_DEV_SEGMENT_SIZE);
+			plato->dev_mem_base =
+				PLATO_DRAM_SPLIT_ADDR +
+				(plato->dev_mem_base %
+				 PLATO_DDR_ALIASED_DEV_SEGMENT_SIZE);
 		else
-			plato->dev_mem_base = PLATO_DDR_ALIASED_DEV_PHYSICAL_BASE +
-				(plato->dev_mem_base % PLATO_DDR_ALIASED_DEV_SEGMENT_SIZE);
+			plato->dev_mem_base =
+				PLATO_DDR_ALIASED_DEV_PHYSICAL_BASE +
+				(plato->dev_mem_base %
+				 PLATO_DDR_ALIASED_DEV_SEGMENT_SIZE);
 
 		// Setup non-mappable region if BAR size is less than
 		// actual memory size (8GB)
-		plato->rogue_heap_nonmappable.base = PLATO_DDR_DEV_PHYSICAL_BASE;
+		plato->rogue_heap_nonmappable.base =
+			PLATO_DDR_DEV_PHYSICAL_BASE;
 
 		/*
 		 * If mapped region is not at the base of memory,
 		 * then it is preceded by a non-mappable region
 		 */
-		 preceding_region_base = PLATO_DDR_ALIASED_DEV_PHYSICAL_BASE;
-		 preceding_region_size = plato->dev_mem_base - preceding_region_base;
+		preceding_region_base = PLATO_DDR_ALIASED_DEV_PHYSICAL_BASE;
+		preceding_region_size =
+			plato->dev_mem_base - preceding_region_base;
 
 		/*
 		 * If mapped region is not at the end of memory,
 		 * then it is followed by a non-mappable region
 		 */
-		following_region_base = plato->dev_mem_base + plato->rogue_heap_mappable.size;
-		following_region_size = PLATO_DDR_ALIASED_DEV_PHYSICAL_END -
+		following_region_base =
+			plato->dev_mem_base + plato->rogue_heap_mappable.size;
+		following_region_size =
+			PLATO_DDR_ALIASED_DEV_PHYSICAL_END -
 			(plato->dev_mem_base + plato->rogue_heap_mappable.size);
 
 		/* Use only bigger region for now */
 		if (following_region_size > preceding_region_size) {
-			plato->rogue_heap_nonmappable.base = following_region_base;
-			plato->rogue_heap_nonmappable.size = following_region_size;
+			plato->rogue_heap_nonmappable.base =
+				following_region_base;
+			plato->rogue_heap_nonmappable.size =
+				following_region_size;
 		} else {
-			plato->rogue_heap_nonmappable.base = preceding_region_base;
-			plato->rogue_heap_nonmappable.size = preceding_region_size;
+			plato->rogue_heap_nonmappable.base =
+				preceding_region_base;
+			plato->rogue_heap_nonmappable.size =
+				preceding_region_size;
 		}
 	}
 
 #if defined(SUPPORT_PLATO_DISPLAY)
 	if (plato->rogue_heap_mappable.size < PLATO_PDP_MEM_SIZE) {
 		dev_err(dev, "Not enough memory for the PDP (0x%llx < 0x%llx)",
-			(u64)plato->rogue_heap_mappable.size, (u64)PLATO_PDP_MEM_SIZE);
+			(u64)plato->rogue_heap_mappable.size,
+			(u64)PLATO_PDP_MEM_SIZE);
 		plato_memory_deinit(plato);
 		return PLATO_INIT_FAILURE;
 	}
@@ -1359,11 +1381,14 @@ int plato_memory_init(struct plato_device *plato)
 	plato->rogue_heap_mappable.size -= PLATO_PDP_MEM_SIZE;
 	/* Setup ranges for the device heaps */
 	plato->pdp_heap.size = PLATO_PDP_MEM_SIZE;
-	plato->pdp_heap.base = plato->rogue_heap_mappable.base + plato->rogue_heap_mappable.size;
+	plato->pdp_heap.base = plato->rogue_heap_mappable.base +
+			       plato->rogue_heap_mappable.size;
 #endif
 
-	plato_dev_info(dev, "Initialized rogue heap with base 0x%llx and size 0x%llx",
-		(u64)plato->rogue_heap_mappable.base, (u64)plato->rogue_heap_mappable.size);
+	plato_dev_info(
+		dev, "Initialized rogue heap with base 0x%llx and size 0x%llx",
+		(u64)plato->rogue_heap_mappable.base,
+		(u64)plato->rogue_heap_mappable.size);
 
 	if (plato_memory_test(plato) != PLATO_INIT_SUCCESS) {
 		plato_memory_deinit(plato);
@@ -1391,33 +1416,39 @@ void plato_memory_deinit(struct plato_device *plato)
 		int err;
 
 		err = mtrr_del(plato->mtrr, plato->rogue_mem.base,
-			plato->rogue_mem.size);
+			       plato->rogue_mem.size);
 		if (err < 0)
 			dev_err(&plato->pdev->dev,
-				"%d - %s: mtrr_del failed (%d)\n",
-				__LINE__, __func__, err);
+				"%d - %s: mtrr_del failed (%d)\n", __LINE__,
+				__func__, err);
 	}
 #endif
 
 	release_pci_io_addr(plato->pdev, SYS_DEV_MEM_PCI_BASENUM,
-		plato->rogue_mem.base, plato->rogue_mem.size);
+			    plato->rogue_mem.base, plato->rogue_mem.size);
 }
 
 #if defined(EMULATOR)
 static int plato_emu_init(struct plato_device *plato)
 {
 	struct device *dev = &plato->pdev->dev;
-	void *perip_regs		= plato->sys_io.registers + SYS_PLATO_REG_PERIP_OFFSET;
-	void *ddra_ctrl_regs	= plato->sys_io.registers + SYS_PLATO_REG_DDR_A_CTRL_OFFSET;
-	void *ddra_publ_regs	= plato->sys_io.registers + SYS_PLATO_REG_DDR_A_PUBL_OFFSET;
-	void *ddrb_ctrl_regs	= plato->sys_io.registers + SYS_PLATO_REG_DDR_B_CTRL_OFFSET;
-	void *ddrb_publ_regs	= plato->sys_io.registers + SYS_PLATO_REG_DDR_B_PUBL_OFFSET;
-	void *noc_regs			= plato->sys_io.registers + SYS_PLATO_REG_NOC_OFFSET;
-	void *aon_regs			= plato->aon_regs.registers;
+	void *perip_regs = plato->sys_io.registers + SYS_PLATO_REG_PERIP_OFFSET;
+	void *ddra_ctrl_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_A_CTRL_OFFSET;
+	void *ddra_publ_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_A_PUBL_OFFSET;
+	void *ddrb_ctrl_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_B_CTRL_OFFSET;
+	void *ddrb_publ_regs =
+		plato->sys_io.registers + SYS_PLATO_REG_DDR_B_PUBL_OFFSET;
+	void *noc_regs = plato->sys_io.registers + SYS_PLATO_REG_NOC_OFFSET;
+	void *aon_regs = plato->aon_regs.registers;
 
 #if defined(ENABLE_PLATO_HDMI)
-	plato_write_reg32(perip_regs, PLATO_TOP_CR_HDMI_CEC_CLK_CTRL, 0x3370A03);
-	poll(dev, perip_regs, PLATO_TOP_CR_HDMI_CEC_CLK_CTRL, 0x3370A03, 0x3370A03);
+	plato_write_reg32(perip_regs, PLATO_TOP_CR_HDMI_CEC_CLK_CTRL,
+			  0x3370A03);
+	poll(dev, perip_regs, PLATO_TOP_CR_HDMI_CEC_CLK_CTRL, 0x3370A03,
+	     0x3370A03);
 	plato_write_reg32(perip_regs, PLATO_TOP_CR_I2C_CLK_CTRL, 0x1);
 	poll(dev, perip_regs, PLATO_TOP_CR_I2C_CLK_CTRL, 0x1, 0x1);
 #endif
@@ -1426,9 +1457,11 @@ static int plato_emu_init(struct plato_device *plato)
 	poll(dev, aon_regs, PLATO_AON_CR_NOC_CLK_CTRL, 0x1, 0x1);
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0, 0x01101037);
-	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0, 0x01101037, 0x01101037);
+	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_0, 0x01101037,
+	     0x01101037);
 	plato_write_reg32(aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1, 0x00780000);
-	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1, 0x00780000, 0x00780000);
+	poll(dev, aon_regs, PLATO_AON_CR_DDR_PLL_CTRL_1, 0x00780000,
+	     0x00780000);
 
 	/* Waiting for DDR PLL getting locked */
 	poll_pr(dev, aon_regs, PLATO_AON_CR_PLL_STATUS, 0x2, 0x2, -1, 10);
@@ -1452,24 +1485,28 @@ static int plato_emu_init(struct plato_device *plato)
 	/* Enabling PDP gated clock output - 198 MHz */
 
 	plato_write_reg32(perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL, 0x00001210);
-	poll(dev, perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL, 0x00001210, 0x00001210);
+	poll(dev, perip_regs, PLATO_TOP_CR_PDP_CLK_CTRL, 0x00001210,
+	     0x00001210);
 
 	plato_sleep_us(100);
 
 	/* PDP needs HDMI clocks on for framegrabber, start them here */
 	/* Enabling HDMI gated clock output - 148.5 MHz */
 	plato_write_reg32(perip_regs, PLATO_TOP_CR_HDMI_CLK_CTRL, 0x00001310);
-	poll(dev, perip_regs, PLATO_TOP_CR_HDMI_CLK_CTRL, 0x00001310, 0x00001310);
+	poll(dev, perip_regs, PLATO_TOP_CR_HDMI_CLK_CTRL, 0x00001310,
+	     0x00001310);
 
 	plato_sleep_us(100);
 	plato_dev_info(dev, "%s: Enabled PDP and HDMI clocks", __func__);
 
 	/* GPU PLL configuration */
 	plato_write_reg32(aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_0, 0x0110103D);
-	poll(dev, aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_0, 0x0110103D, 0x0110103D);
+	poll(dev, aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_0, 0x0110103D,
+	     0x0110103D);
 
 	plato_write_reg32(aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_1, 0x00E00000);
-	poll(dev, aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_1, 0x00E00000, 0x00E00000);
+	poll(dev, aon_regs, PLATO_AON_CR_GPU_PLL_CTRL_1, 0x00E00000,
+	     0x00E00000);
 	/* Waiting for GPU PLL getting locked */
 
 	poll_pr(dev, aon_regs, PLATO_AON_CR_PLL_STATUS, 0x3, 0x3, -1, 10);
@@ -1744,58 +1781,92 @@ static int plato_emu_init(struct plato_device *plato)
 	/*
 	 * Phase 3: Start PHY initialization by accessing relevant PUB registers
 	 */
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DCR_OFFSET, 0x0000040B);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DCR_OFFSET, 0x0000040B);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DCR_OFFSET,
+			  0x0000040B);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DCR_OFFSET,
+			  0x0000040B);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PTR0_OFFSET, 0x10000010);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PTR0_OFFSET, 0x10000010);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PTR0_OFFSET,
+			  0x10000010);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PTR0_OFFSET,
+			  0x10000010);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PTR1_OFFSET, 0x00800080);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PTR1_OFFSET, 0x00800080);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PTR1_OFFSET,
+			  0x00800080);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PTR1_OFFSET,
+			  0x00800080);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PTR2_OFFSET, 0x00080421);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PTR2_OFFSET, 0x00080421);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PTR2_OFFSET,
+			  0x00080421);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PTR2_OFFSET,
+			  0x00080421);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DSGCR_OFFSET, 0x0020641F);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DSGCR_OFFSET, 0x0020641F);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DSGCR_OFFSET,
+			  0x0020641F);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DSGCR_OFFSET,
+			  0x0020641F);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR0_OFFSET, 0x00000114);
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR1_OFFSET, 0x00000000);
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR2_OFFSET, 0x00000028);
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR3_OFFSET, 0x00000000);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR0_OFFSET,
+			  0x00000114);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR1_OFFSET,
+			  0x00000000);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR2_OFFSET,
+			  0x00000028);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_MR3_OFFSET,
+			  0x00000000);
 
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR0_OFFSET, 0x00000114);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR1_OFFSET, 0x00000000);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR2_OFFSET, 0x00000028);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR3_OFFSET, 0x00000000);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR0_OFFSET,
+			  0x00000114);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR1_OFFSET,
+			  0x00000000);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR2_OFFSET,
+			  0x00000028);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_MR3_OFFSET,
+			  0x00000000);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR0_OFFSET, 0x040F0406);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR0_OFFSET, 0x040F0406);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR0_OFFSET,
+			  0x040F0406);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR0_OFFSET,
+			  0x040F0406);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR1_OFFSET, 0x28110402);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR1_OFFSET, 0x28110402);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR1_OFFSET,
+			  0x28110402);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR1_OFFSET,
+			  0x28110402);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR2_OFFSET, 0x00030002);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR2_OFFSET, 0x00030002);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR2_OFFSET,
+			  0x00030002);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR2_OFFSET,
+			  0x00030002);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR3_OFFSET, 0x02000101);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR3_OFFSET, 0x02000101);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR3_OFFSET,
+			  0x02000101);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR3_OFFSET,
+			  0x02000101);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR4_OFFSET, 0x00190602);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR4_OFFSET, 0x00190602);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR4_OFFSET,
+			  0x00190602);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR4_OFFSET,
+			  0x00190602);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR5_OFFSET, 0x0018040B);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR5_OFFSET, 0x0018040B);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_DTPR5_OFFSET,
+			  0x0018040B);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_DTPR5_OFFSET,
+			  0x0018040B);
 
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PGCR1_OFFSET, 0x020046A0);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PGCR1_OFFSET, 0x020046A0);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PGCR1_OFFSET,
+			  0x020046A0);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PGCR1_OFFSET,
+			  0x020046A0);
 
 	/*
 	 * Phase 4: Trigger PHY initialization: Impedance, PLL, and DDL;
 	 * assert PHY reset
 	 */
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET, 0x00000073);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET, 0x00000073);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET,
+			  0x00000073);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET,
+			  0x00000073);
 
 	/*
 	 * Phase 5: Monitor PHY initialization status by polling the
@@ -1815,8 +1886,10 @@ static int plato_emu_init(struct plato_device *plato)
 	 * initialization by setting PIR.INIT and PIR.CTLDINIT, and
 	 * poll PGSR0.IDONE
 	 */
-	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET, 0x00040001);
-	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET, 0x00040001);
+	plato_write_reg32(ddra_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET,
+			  0x00040001);
+	plato_write_reg32(ddrb_publ_regs, PLATO_DDR_PUBL_PIR_OFFSET,
+			  0x00040001);
 
 	/*
 	 * Phase 8: Wait for DWC_ddr_umctl2 to move to "normal" operating
@@ -1831,14 +1904,12 @@ static int plato_emu_init(struct plato_device *plato)
 	/* Getting GPU And DDR A out of reset */
 #if defined(PLATO_DUAL_CHANNEL_DDR)
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000F12);
-	poll_pr(dev, aon_regs,
-			PLATO_AON_CR_RESET_CTRL,
-			0x00000F12, 0x00000F12, -1, 100);
+	poll_pr(dev, aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000F12, 0x00000F12,
+		-1, 100);
 #else
 	plato_write_reg32(aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000312);
-	poll_pr(dev, aon_regs,
-			PLATO_AON_CR_RESET_CTRL,
-			0x00000312, 0x00000312, -1, 100);
+	poll_pr(dev, aon_regs, PLATO_AON_CR_RESET_CTRL, 0x00000312, 0x00000312,
+		-1, 100);
 #endif
 
 	/* setting CR_ISO_CTRL:CR_GPU_CLK_E */
@@ -1858,22 +1929,21 @@ static int plato_hw_init(struct plato_device *plato)
 
 	/* Config Plato until PDP registers become accessible */
 	do {
-		#if defined(PLATO_DUAL_CHANNEL_DDR)
+#if defined(PLATO_DUAL_CHANNEL_DDR)
 		err = plato_dual_channel_init(plato);
-		#else
+#else
 		err = plato_single_channel_init(plato);
-		#endif
+#endif
 
 		restart_count++;
 
 		if (err == PLATO_INIT_SUCCESS)
 			break;
 
-	} while (restart_count < max_restart &&
-			 err == PLATO_INIT_RETRY);
+	} while (restart_count < max_restart && err == PLATO_INIT_RETRY);
 
-	plato_dev_info(dev, "%s: status %d, number of tries %d",
-				__func__, err, restart_count);
+	plato_dev_info(dev, "%s: status %d, number of tries %d", __func__, err,
+		       restart_count);
 
 	return err;
 }
@@ -1882,11 +1952,11 @@ static int plato_hw_init(struct plato_device *plato)
 
 int plato_cfg_init(struct plato_device *plato)
 {
-	#if defined(EMULATOR)
+#if defined(EMULATOR)
 	return plato_emu_init(plato);
-	#elif defined(VIRTUAL_PLATFORM)
+#elif defined(VIRTUAL_PLATFORM)
 	return PLATO_INIT_SUCCESS;
-	#else
+#else
 	return plato_hw_init(plato);
-	#endif
+#endif
 }

@@ -47,6 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 
 typedef struct RI_SUBLIST_ENTRY RI_ENTRY;
-typedef RI_ENTRY* RI_HANDLE;
+typedef RI_ENTRY *RI_HANDLE;
 
 #endif /* #ifndef RI_TYPEDEFS_H */

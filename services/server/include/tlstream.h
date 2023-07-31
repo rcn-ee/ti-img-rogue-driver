@@ -100,8 +100,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * As such we *MUST* keep the values matching in order of declaration.
  */
 /*! Opmode specifying circular buffer behaviour */
-typedef enum
-{
+typedef enum {
 	/*! Undefined operation mode */
 	TL_OPMODE_UNDEF = 0,
 
@@ -139,11 +138,11 @@ static_assert(TL_OPMODE_LAST <= TL_OPMODE_MASK,
 /*! Flags specifying stream behaviour */
 /*! Do not destroy stream if there still are data that have not been
  *     copied in user space. Block until the stream is emptied. */
-#define TL_FLAG_FORCE_FLUSH            (1U<<8)
+#define TL_FLAG_FORCE_FLUSH (1U << 8)
 /*! Do not signal consumers on commit automatically when the stream buffer
  * transitions from empty to non-empty. Producer responsible for signal when
  * it chooses. */
-#define TL_FLAG_NO_SIGNAL_ON_COMMIT    (1U<<9)
+#define TL_FLAG_NO_SIGNAL_ON_COMMIT (1U << 9)
 
 /*! When a stream has this property it never wraps around and
  * overwrites existing data, hence it is a fixed size persistent
@@ -151,25 +150,25 @@ static_assert(TL_OPMODE_LAST <= TL_OPMODE_MASK,
  * the buffer is big enough for their needs.
  * When a stream is opened for reading the client will always
  * find the read position at the start of the buffer/data. */
-#define TL_FLAG_PERMANENT_NO_WRAP      (1U<<10)
+#define TL_FLAG_PERMANENT_NO_WRAP (1U << 10)
 
 /*! Defer allocation of stream's shared memory until first open. */
-#define TL_FLAG_ALLOCATE_ON_FIRST_OPEN (1U<<11)
+#define TL_FLAG_ALLOCATE_ON_FIRST_OPEN (1U << 11)
 
 /*! Structure used to pass internal TL stream sizes information to users.*/
-typedef struct _TL_STREAM_INFO_
-{
-    IMG_UINT32 headerSize;          /*!< Packet header size in bytes */
-    IMG_UINT32 minReservationSize;  /*!< Minimum data size reserved in bytes */
-    IMG_UINT32 pageSize;            /*!< Page size in bytes */
-    IMG_UINT32 pageAlign;           /*!< Page alignment in bytes */
-    IMG_UINT32 maxTLpacketSize;     /*! Max allowed TL packet size*/
+typedef struct _TL_STREAM_INFO_ {
+	IMG_UINT32 headerSize; /*!< Packet header size in bytes */
+	IMG_UINT32 minReservationSize; /*!< Minimum data size reserved in bytes */
+	IMG_UINT32 pageSize; /*!< Page size in bytes */
+	IMG_UINT32 pageAlign; /*!< Page alignment in bytes */
+	IMG_UINT32 maxTLpacketSize; /*! Max allowed TL packet size*/
 } TL_STREAM_INFO, *PTL_STREAM_INFO;
 
 /*! Callback operations or notifications that a stream producer may handle
  * when requested by the Transport Layer.
  */
-#define TL_SOURCECB_OP_CLIENT_EOS 0x01  /*!< Client has reached end of stream,
+#define TL_SOURCECB_OP_CLIENT_EOS \
+	0x01 /*!< Client has reached end of stream,
                                          * can anymore data be supplied?
                                          * ui32Resp ignored in this operation */
 
@@ -178,7 +177,8 @@ typedef struct _TL_STREAM_INFO_
  * or operation supplied in ui32ReqOp on stream hStream. The
  * Operations and notifications are defined above in TL_SOURCECB_OP */
 typedef PVRSRV_ERROR (*TL_STREAM_SOURCECB)(IMG_HANDLE hStream,
-		IMG_UINT32 ui32ReqOp, IMG_UINT32* ui32Resp, void* pvUser);
+					   IMG_UINT32 ui32ReqOp,
+					   IMG_UINT32 *ui32Resp, void *pvUser);
 
 typedef void (*TL_STREAM_ONREADEROPENCB)(void *pvArg);
 
@@ -198,8 +198,7 @@ TLAllocSharedMemIfNull(IMG_HANDLE hStream);
  @Description   Frees stream's shared memory.
  @Input         phStream    Stream handle.
 */ /**************************************************************************/
-void
-TLFreeSharedMem(IMG_HANDLE hStream);
+void TLFreeSharedMem(IMG_HANDLE hStream);
 
 /*************************************************************************/ /*!
  @Function      TLStreamCreate
@@ -233,14 +232,11 @@ TLFreeSharedMem(IMG_HANDLE hStream);
  @Return        PVRSRV_OK
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamCreate(IMG_HANDLE *phStream,
-               const IMG_CHAR *szStreamName,
-               IMG_UINT32 ui32Size,
-               IMG_UINT32 ui32StreamFlags,
-               TL_STREAM_ONREADEROPENCB pfOnReaderOpenCB,
-               void *pvOnReaderOpenUD,
-               TL_STREAM_SOURCECB pfProducerCB,
-               void *pvProducerUD);
+TLStreamCreate(IMG_HANDLE *phStream, const IMG_CHAR *szStreamName,
+	       IMG_UINT32 ui32Size, IMG_UINT32 ui32StreamFlags,
+	       TL_STREAM_ONREADEROPENCB pfOnReaderOpenCB,
+	       void *pvOnReaderOpenUD, TL_STREAM_SOURCECB pfProducerCB,
+	       void *pvProducerUD);
 
 /*************************************************************************/ /*!
  @Function      TLStreamOpen
@@ -256,9 +252,7 @@ TLStreamCreate(IMG_HANDLE *phStream,
  @Return        PVRSRV_OK                    Success.
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamOpen(IMG_HANDLE     *phStream,
-             const IMG_CHAR *szStreamName);
-
+TLStreamOpen(IMG_HANDLE *phStream, const IMG_CHAR *szStreamName);
 
 /*************************************************************************/ /*!
  @Function      TLStreamReset
@@ -309,8 +303,7 @@ TLStreamSetNotifStream(IMG_HANDLE hStream, IMG_HANDLE hNotifStream);
  @Return        PVRSRV_OK
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamReconfigure(IMG_HANDLE hStream,
-                    IMG_UINT32 ui32StreamFlags);
+TLStreamReconfigure(IMG_HANDLE hStream, IMG_UINT32 ui32StreamFlags);
 
 /*************************************************************************/ /*!
  @Function      TLStreamClose
@@ -323,8 +316,7 @@ TLStreamReconfigure(IMG_HANDLE hStream,
  @Input         hStream     Handle to stream that will be closed.
  @Return        None.
 */ /**************************************************************************/
-void
-TLStreamClose(IMG_HANDLE hStream);
+void TLStreamClose(IMG_HANDLE hStream);
 
 /*************************************************************************/ /*!
  @Function      TLStreamReserve
@@ -356,9 +348,7 @@ TLStreamClose(IMG_HANDLE hStream);
  @Return        PVRSRV_OK                   Success, output arguments valid.
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamReserve(IMG_HANDLE hStream,
-                IMG_UINT8  **ppui8Data,
-                IMG_UINT32 ui32Size);
+TLStreamReserve(IMG_HANDLE hStream, IMG_UINT8 **ppui8Data, IMG_UINT32 ui32Size);
 
 /*************************************************************************/ /*!
  @Function      TLStreamReserve2
@@ -401,12 +391,9 @@ TLStreamReserve(IMG_HANDLE hStream,
  @Return        PVRSRV_OK                   Success, output arguments valid.
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamReserve2(IMG_HANDLE hStream,
-                IMG_UINT8  **ppui8Data,
-                IMG_UINT32 ui32Size,
-                IMG_UINT32 ui32SizeMin,
-                IMG_UINT32* pui32Available,
-                IMG_BOOL* pbIsReaderConnected);
+TLStreamReserve2(IMG_HANDLE hStream, IMG_UINT8 **ppui8Data, IMG_UINT32 ui32Size,
+		 IMG_UINT32 ui32SizeMin, IMG_UINT32 *pui32Available,
+		 IMG_BOOL *pbIsReaderConnected);
 
 /*************************************************************************/ /*!
  @Function      TLStreamReserveReturnFlags
@@ -424,10 +411,8 @@ TLStreamReserve2(IMG_HANDLE hStream,
                                 the reserve function.
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamReserveReturnFlags(IMG_HANDLE hStream,
-        IMG_UINT8  **ppui8Data,
-        IMG_UINT32 ui32Size,
-		IMG_UINT32* pui32Flags);
+TLStreamReserveReturnFlags(IMG_HANDLE hStream, IMG_UINT8 **ppui8Data,
+			   IMG_UINT32 ui32Size, IMG_UINT32 *pui32Flags);
 
 /*************************************************************************/ /*!
  @Function      TLStreamGetUT
@@ -454,8 +439,7 @@ IMG_UINT32 TLStreamGetUT(IMG_HANDLE hStream);
  @Return        PVRSRV_OK
 */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamCommit(IMG_HANDLE hStream,
-               IMG_UINT32 ui32Size);
+TLStreamCommit(IMG_HANDLE hStream, IMG_UINT32 ui32Size);
 
 /*************************************************************************/ /*!
  @Function      TLStreamWrite
@@ -472,9 +456,7 @@ TLStreamCommit(IMG_HANDLE hStream,
  @Return        PVRSRV_OK
  */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamWrite(IMG_HANDLE hStream,
-              IMG_UINT8  *pui8Src,
-              IMG_UINT32 ui32Size);
+TLStreamWrite(IMG_HANDLE hStream, IMG_UINT8 *pui8Src, IMG_UINT32 ui32Size);
 
 /*************************************************************************/ /*!
  @Function      TLStreamWriteRetFlags
@@ -493,10 +475,8 @@ TLStreamWrite(IMG_HANDLE hStream,
  @Return        PVRSRV_OK
  */ /**************************************************************************/
 PVRSRV_ERROR
-TLStreamWriteRetFlags(IMG_HANDLE hStream,
-                      IMG_UINT8 *pui8Src,
-					  IMG_UINT32 ui32Size,
-					  IMG_UINT32 *pui32Flags);
+TLStreamWriteRetFlags(IMG_HANDLE hStream, IMG_UINT8 *pui8Src,
+		      IMG_UINT32 ui32Size, IMG_UINT32 *pui32Flags);
 
 /*************************************************************************/ /*!
  @Function      TLStreamSync
@@ -513,7 +493,6 @@ TLStreamWriteRetFlags(IMG_HANDLE hStream,
  */ /**************************************************************************/
 PVRSRV_ERROR
 TLStreamSync(IMG_HANDLE hStream);
-
 
 /*************************************************************************/ /*!
  @Function      TLStreamMarkEOS
@@ -558,8 +537,7 @@ TLStreamMarkStreamClose(IMG_HANDLE hStream);
  @Output        psInfo          pointer to stream info structure.
  @Return        None.
 */ /**************************************************************************/
-void
-TLStreamInfo(IMG_HANDLE hStream, PTL_STREAM_INFO psInfo);
+void TLStreamInfo(IMG_HANDLE hStream, PTL_STREAM_INFO psInfo);
 
 /*************************************************************************/ /*!
  @Function      TLStreamIsOpenForReading

@@ -60,9 +60,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * the MIPS MMU yet. So for MIPS builds we cannot use DevmemPDumpSaveToFileVirtual,
  * we have to use DevmemPDumpSaveToFile instead.
  */
-static PVRSRV_ERROR _FWDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
-                                             PVRSRV_DEVICE_NODE *psDeviceNode,
-                                             IMG_UINT32 ui32PDumpFlags)
+static PVRSRV_ERROR _FWDumpSignatureBufferKM(CONNECTION_DATA *psConnection,
+					     PVRSRV_DEVICE_NODE *psDeviceNode,
+					     IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
@@ -74,7 +74,9 @@ static PVRSRV_ERROR _FWDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
 	DECLARE_DLLIST(sSig3DChecksValidRegions);
 	DECLARE_DLLIST(sSigCDMChecksValidRegions);
 	DECLARE_DLLIST(sSigRDMChecksValidRegions);
-#if defined(SUPPORT_VALIDATION) && (defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
+#if defined(SUPPORT_VALIDATION) &&                       \
+	(defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || \
+	 defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
 	DECLARE_DLLIST(sSigValidationValidRegions);
 #endif
 
@@ -82,132 +84,146 @@ static PVRSRV_ERROR _FWDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
 
 #if defined(SUPPORT_FIRMWARE_GCOV)
 	eError = PDumpGetValidRegion(psDeviceNode,
-	                             psDevInfo->psFirmwareGcovBufferMemDesc,
-	                             psDevInfo->ui32FirmwareGcovSize,
-	                             &sFirmwareGcovBufferValidRegions);
+				     psDevInfo->psFirmwareGcovBufferMemDesc,
+				     psDevInfo->ui32FirmwareGcovSize,
+				     &sFirmwareGcovBufferValidRegions);
 	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrReturnError);
 #endif
 
 	eError = PDumpGetValidRegion(psDeviceNode,
-	                             psDevInfo->psRGXFWSigTDMChecksMemDesc,
-	                             psDevInfo->ui32SigTDMChecksSize,
-	                             &sSigTDMChecksValidRegions);
-	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrFreeGcovBufferRegions);
+				     psDevInfo->psRGXFWSigTDMChecksMemDesc,
+				     psDevInfo->ui32SigTDMChecksSize,
+				     &sSigTDMChecksValidRegions);
+	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion",
+			      ErrFreeGcovBufferRegions);
 
 	eError = PDumpGetValidRegion(psDeviceNode,
-	                             psDevInfo->psRGXFWSigTAChecksMemDesc,
-	                             psDevInfo->ui32SigTAChecksSize,
-	                             &sSigTAChecksValidRegions);
-	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrFreeSigTDMChecksRegions);
+				     psDevInfo->psRGXFWSigTAChecksMemDesc,
+				     psDevInfo->ui32SigTAChecksSize,
+				     &sSigTAChecksValidRegions);
+	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion",
+			      ErrFreeSigTDMChecksRegions);
 
 	eError = PDumpGetValidRegion(psDeviceNode,
-	                             psDevInfo->psRGXFWSig3DChecksMemDesc,
-	                             psDevInfo->ui32Sig3DChecksSize,
-	                             &sSig3DChecksValidRegions);
-	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrFreeSigTAChecksRegions);
+				     psDevInfo->psRGXFWSig3DChecksMemDesc,
+				     psDevInfo->ui32Sig3DChecksSize,
+				     &sSig3DChecksValidRegions);
+	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion",
+			      ErrFreeSigTAChecksRegions);
 
 	eError = PDumpGetValidRegion(psDeviceNode,
-	                             psDevInfo->psRGXFWSigCDMChecksMemDesc,
-	                             psDevInfo->ui32SigCDMChecksSize,
-	                             &sSigCDMChecksValidRegions);
-	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrFreeSig3DChecksRegions);
+				     psDevInfo->psRGXFWSigCDMChecksMemDesc,
+				     psDevInfo->ui32SigCDMChecksSize,
+				     &sSigCDMChecksValidRegions);
+	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion",
+			      ErrFreeSig3DChecksRegions);
 
 	if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, RAY_TRACING_ARCH) &&
-	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 1)
-	{
-		eError = PDumpGetValidRegion(psDeviceNode,
-		                             psDevInfo->psRGXFWSigRDMChecksMemDesc,
-		                             psDevInfo->ui32SigRDMChecksSize,
-		                             &sSigRDMChecksValidRegions);
-		PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrFreeSigCDMChecksRegions);
+	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 1) {
+		eError = PDumpGetValidRegion(
+			psDeviceNode, psDevInfo->psRGXFWSigRDMChecksMemDesc,
+			psDevInfo->ui32SigRDMChecksSize,
+			&sSigRDMChecksValidRegions);
+		PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion",
+				      ErrFreeSigCDMChecksRegions);
 	}
 
-#if defined(SUPPORT_VALIDATION) && (defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
+#if defined(SUPPORT_VALIDATION) &&                       \
+	(defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || \
+	 defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
 	eError = PDumpGetValidRegion(psDeviceNode,
-	                             psDevInfo->psRGXFWValidationSigMemDesc,
-	                             psDevInfo->ui32ValidationSigSize,
-	                             &sSigValidationValidRegions);
-	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion", ErrFreeSigRDMChecksRegions);
+				     psDevInfo->psRGXFWValidationSigMemDesc,
+				     psDevInfo->ui32ValidationSigSize,
+				     &sSigValidationValidRegions);
+	PVR_LOG_GOTO_IF_ERROR(eError, "PDumpGetValidRegion",
+			      ErrFreeSigRDMChecksRegions);
 #endif
 
 	PDUMPIF(psDeviceNode, "DISABLE_SIGNATURE_BUFFER_DUMP", ui32PDumpFlags);
-	PDUMPELSE(psDeviceNode, "DISABLE_SIGNATURE_BUFFER_DUMP", ui32PDumpFlags);
+	PDUMPELSE(psDeviceNode, "DISABLE_SIGNATURE_BUFFER_DUMP",
+		  ui32PDumpFlags);
 
 #if defined(SUPPORT_FIRMWARE_GCOV)
 	/* Gcov */
 	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Gcov Buffer");
 	PDumpSaveToFileVirtual(psDeviceNode,
-	                       psDevInfo->psFirmwareGcovBufferMemDesc,
-	                       &sFirmwareGcovBufferValidRegions,
-	                       "firmware_gcov.img",
-	                       ui32PDumpFlags);
+			       psDevInfo->psFirmwareGcovBufferMemDesc,
+			       &sFirmwareGcovBufferValidRegions,
+			       "firmware_gcov.img", ui32PDumpFlags);
 #endif
 	/* TDM signatures */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump TDM signatures and checksums Buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump TDM signatures and checksums Buffer");
 	PDumpSaveToFileVirtual(psDeviceNode,
-	                       psDevInfo->psRGXFWSigTDMChecksMemDesc,
-	                       &sSigTDMChecksValidRegions,
-	                       "out.2dsig",
-	                       ui32PDumpFlags);
+			       psDevInfo->psRGXFWSigTDMChecksMemDesc,
+			       &sSigTDMChecksValidRegions, "out.2dsig",
+			       ui32PDumpFlags);
 
 	/* TA signatures */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump TA signatures and checksums Buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump TA signatures and checksums Buffer");
 	PDumpSaveToFileVirtual(psDeviceNode,
-	                       psDevInfo->psRGXFWSigTAChecksMemDesc,
-	                       &sSigTAChecksValidRegions,
-	                       "out.tasig",
-	                       ui32PDumpFlags);
+			       psDevInfo->psRGXFWSigTAChecksMemDesc,
+			       &sSigTAChecksValidRegions, "out.tasig",
+			       ui32PDumpFlags);
 
 	/* 3D signatures */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump 3D signatures and checksums Buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump 3D signatures and checksums Buffer");
 	PDumpSaveToFileVirtual(psDeviceNode,
-	                       psDevInfo->psRGXFWSig3DChecksMemDesc,
-	                       &sSig3DChecksValidRegions,
-	                       "out.3dsig",
-	                       ui32PDumpFlags);
+			       psDevInfo->psRGXFWSig3DChecksMemDesc,
+			       &sSig3DChecksValidRegions, "out.3dsig",
+			       ui32PDumpFlags);
 
 	/* CDM signatures */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump CDM signatures and checksums Buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump CDM signatures and checksums Buffer");
 	PDumpSaveToFileVirtual(psDeviceNode,
-	                       psDevInfo->psRGXFWSigCDMChecksMemDesc,
-	                       &sSigCDMChecksValidRegions,
-	                       "out.cdmsig",
-	                       ui32PDumpFlags);
+			       psDevInfo->psRGXFWSigCDMChecksMemDesc,
+			       &sSigCDMChecksValidRegions, "out.cdmsig",
+			       ui32PDumpFlags);
 
 	if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, RAY_TRACING_ARCH) &&
-		RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 1)
-	{
+	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 1) {
 		/* RDM signatures */
-		PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump RDM signatures and checksums Buffer");
+		PDumpCommentWithFlags(
+			psDeviceNode, ui32PDumpFlags,
+			"** Dump RDM signatures and checksums Buffer");
 		PDumpSaveToFileVirtual(psDeviceNode,
-		                       psDevInfo->psRGXFWSigRDMChecksMemDesc,
-		                       &sSigRDMChecksValidRegions,
-		                       "out.rdmsig",
-		                       ui32PDumpFlags);
+				       psDevInfo->psRGXFWSigRDMChecksMemDesc,
+				       &sSigRDMChecksValidRegions, "out.rdmsig",
+				       ui32PDumpFlags);
 	}
 
 	PDUMPFI(psDeviceNode, "DISABLE_SIGNATURE_BUFFER_DUMP", ui32PDumpFlags);
 
-#if defined(SUPPORT_VALIDATION) && (defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
+#if defined(SUPPORT_VALIDATION) &&                       \
+	(defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || \
+	 defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
 	/*
 	 *  Validation signatures buffer
 	 */
-	PDUMPIF(psDeviceNode, "DISABLE_VALIDATION_CHECKSUM_BUFFER_DUMP", ui32PDumpFlags);
-	PDUMPELSE(psDeviceNode, "DISABLE_VALIDATION_CHECKSUM_BUFFER_DUMP", ui32PDumpFlags);
+	PDUMPIF(psDeviceNode, "DISABLE_VALIDATION_CHECKSUM_BUFFER_DUMP",
+		ui32PDumpFlags);
+	PDUMPELSE(psDeviceNode, "DISABLE_VALIDATION_CHECKSUM_BUFFER_DUMP",
+		  ui32PDumpFlags);
 
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump validation signatures buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump validation signatures buffer");
 	PDumpSaveToFileVirtual(psDeviceNode,
-	                       psDevInfo->psRGXFWValidationSigMemDesc,
-	                       &sSigValidationValidRegions,
-	                       "out.trpsig",
-	                       ui32PDumpFlags);
+			       psDevInfo->psRGXFWValidationSigMemDesc,
+			       &sSigValidationValidRegions, "out.trpsig",
+			       ui32PDumpFlags);
 
-	PDUMPFI(psDeviceNode, "DISABLE_VALIDATION_CHECKSUM_BUFFER_DUMP", ui32PDumpFlags);
+	PDUMPFI(psDeviceNode, "DISABLE_VALIDATION_CHECKSUM_BUFFER_DUMP",
+		ui32PDumpFlags);
 #endif
 
 	return PVRSRV_OK;
 
-#if defined(SUPPORT_VALIDATION) && (defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
+#if defined(SUPPORT_VALIDATION) &&                       \
+	(defined(SUPPORT_TRP) || defined(SUPPORT_WGP) || \
+	 defined(SUPPORT_FBCDC_SIGNATURE_CHECK))
 ErrFreeSigRDMChecksRegions:
 	DevmemIntPDumpFreeValidRegions(&sSigTDMChecksValidRegions);
 #endif
@@ -228,11 +244,11 @@ ErrReturnError:
 }
 
 static PVRSRV_ERROR _FWDumpTraceBufferKM(CONNECTION_DATA *psConnection,
-                                         PVRSRV_DEVICE_NODE *psDeviceNode,
-                                         IMG_UINT32 ui32PDumpFlags)
+					 PVRSRV_DEVICE_NODE *psDeviceNode,
+					 IMG_UINT32 ui32PDumpFlags)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	IMG_UINT32	ui32ThreadNum, ui32Size, ui32OutFileOffset;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	IMG_UINT32 ui32ThreadNum, ui32Size, ui32OutFileOffset;
 
 	const IMG_CHAR acOutTraceFileName[] = "out.trace";
 
@@ -241,67 +257,63 @@ static PVRSRV_ERROR _FWDumpTraceBufferKM(CONNECTION_DATA *psConnection,
 
 	/* Dump trace buffers */
 	PDUMPIF(psDeviceNode, "ENABLE_TRACEBUF", ui32PDumpFlags);
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump trace buffers");
-	for (ui32ThreadNum = 0, ui32OutFileOffset = 0; ui32ThreadNum < RGXFW_THREAD_NUM; ui32ThreadNum++)
-	{
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump trace buffers");
+	for (ui32ThreadNum = 0, ui32OutFileOffset = 0;
+	     ui32ThreadNum < RGXFW_THREAD_NUM; ui32ThreadNum++) {
 		/*
 		 * Some compilers cannot cope with the use of offsetof() below - the specific problem being the use of
 		 * a non-const variable in the expression, which it needs to be const. Typical compiler error produced is
 		 * "expression must have a constant value".
 		 */
 		const IMG_DEVMEM_OFFSET_T uiTraceBufThreadNumOff =
-				(IMG_DEVMEM_OFFSET_T)(uintptr_t)&(((RGXFWIF_TRACEBUF *)0)->sTraceBuf[ui32ThreadNum]);
+			(IMG_DEVMEM_OFFSET_T)(uintptr_t) &
+			(((RGXFWIF_TRACEBUF *)0)->sTraceBuf[ui32ThreadNum]);
 
 		/* ui32TracePointer tracepointer */
 		ui32Size = sizeof(IMG_UINT32);
-		PDumpSaveToFileVirtualNoValidate(psDeviceNode,
-		                                 psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
-		                                 uiTraceBufThreadNumOff,
-		                                 ui32Size,
-		                                 acOutTraceFileName,
-		                                 ui32OutFileOffset,
-		                                 ui32PDumpFlags);
+		PDumpSaveToFileVirtualNoValidate(
+			psDeviceNode, psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
+			uiTraceBufThreadNumOff, ui32Size, acOutTraceFileName,
+			ui32OutFileOffset, ui32PDumpFlags);
 		ui32OutFileOffset += ui32Size;
 
 		/* next, dump size of trace buffer in DWords */
 		ui32Size = sizeof(IMG_UINT32);
-		PDumpSaveToFileVirtualNoValidate(psDeviceNode,
-		                                 psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
-		                                 offsetof(RGXFWIF_TRACEBUF, ui32TraceBufSizeInDWords),
-		                                 ui32Size,
-		                                 acOutTraceFileName,
-		                                 ui32OutFileOffset,
-		                                 ui32PDumpFlags);
+		PDumpSaveToFileVirtualNoValidate(
+			psDeviceNode, psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
+			offsetof(RGXFWIF_TRACEBUF, ui32TraceBufSizeInDWords),
+			ui32Size, acOutTraceFileName, ui32OutFileOffset,
+			ui32PDumpFlags);
 		ui32OutFileOffset += ui32Size;
 
 		/* trace buffer */
-		ui32Size = psDevInfo->ui32TraceBufSizeInDWords * sizeof(IMG_UINT32);
-		PVR_ASSERT(psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum]);
-		PDumpSaveToFileVirtualNoValidate(psDeviceNode,
-		                                 psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum],
-		                                 0, /* 0 offset in the trace buffer mem desc */
-		                                 ui32Size,
-		                                 acOutTraceFileName,
-		                                 ui32OutFileOffset,
-		                                 ui32PDumpFlags);
+		ui32Size = psDevInfo->ui32TraceBufSizeInDWords *
+			   sizeof(IMG_UINT32);
+		PVR_ASSERT(
+			psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum]);
+		PDumpSaveToFileVirtualNoValidate(
+			psDeviceNode,
+			psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum],
+			0, /* 0 offset in the trace buffer mem desc */
+			ui32Size, acOutTraceFileName, ui32OutFileOffset,
+			ui32PDumpFlags);
 		ui32OutFileOffset += ui32Size;
 
 		/* assert info buffer */
-		ui32Size = RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR)
-				+ RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR)
-				+ sizeof(IMG_UINT32);
-		PDumpSaveToFileVirtualNoValidate(psDeviceNode,
-		                                 psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
-		                                 /* move to first element of sTraceBuf */
-		                                 offsetof(RGXFWIF_TRACEBUF, sTraceBuf)
-		                                     /* skip required number of sTraceBuf elements */
-		                                     + ui32ThreadNum * sizeof(RGXFWIF_TRACEBUF_SPACE)
-		                                     /* offset into its sAssertBuf, to be pdumped */
-		                                     + offsetof(RGXFWIF_TRACEBUF_SPACE, sAssertBuf),
-		                                 ui32Size,
-		                                 acOutTraceFileName,
-		                                 ui32OutFileOffset,
-		                                 ui32PDumpFlags);
+		ui32Size = RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR) +
+			   RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR) +
+			   sizeof(IMG_UINT32);
+		PDumpSaveToFileVirtualNoValidate(
+			psDeviceNode, psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
+			/* move to first element of sTraceBuf */
+			offsetof(RGXFWIF_TRACEBUF, sTraceBuf)
+				/* skip required number of sTraceBuf elements */
+				+ ui32ThreadNum * sizeof(RGXFWIF_TRACEBUF_SPACE)
+				/* offset into its sAssertBuf, to be pdumped */
+				+ offsetof(RGXFWIF_TRACEBUF_SPACE, sAssertBuf),
+			ui32Size, acOutTraceFileName, ui32OutFileOffset,
+			ui32PDumpFlags);
 		ui32OutFileOffset += ui32Size;
 	}
 	PDUMPFI(psDeviceNode, "ENABLE_TRACEBUF", ui32PDumpFlags);
@@ -311,204 +323,181 @@ static PVRSRV_ERROR _FWDumpTraceBufferKM(CONNECTION_DATA *psConnection,
 
 	/* Dump hwperf buffer */
 	PDUMPIF(psDeviceNode, "ENABLE_HWPERF", ui32PDumpFlags);
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump HWPerf Buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump HWPerf Buffer");
 	PDumpSaveToFileVirtualNoValidate(psDeviceNode,
-	                                 psDevInfo->psRGXFWIfHWPerfBufMemDesc,
-	                                 0,
-	                                 psDevInfo->ui32RGXFWIfHWPerfBufSize,
-	                                 "out.hwperf",
-	                                 0,
-	                                 ui32PDumpFlags);
+					 psDevInfo->psRGXFWIfHWPerfBufMemDesc,
+					 0, psDevInfo->ui32RGXFWIfHWPerfBufSize,
+					 "out.hwperf", 0, ui32PDumpFlags);
 	PDUMPFI(psDeviceNode, "ENABLE_HWPERF", ui32PDumpFlags);
 
 	return PVRSRV_OK;
 }
 
-
 #if defined(RGX_FEATURE_MIPS_BIT_MASK)
-static PVRSRV_ERROR _MipsDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
-                                               PVRSRV_DEVICE_NODE *psDeviceNode,
-                                               IMG_UINT32 ui32PDumpFlags)
+static PVRSRV_ERROR _MipsDumpSignatureBufferKM(CONNECTION_DATA *psConnection,
+					       PVRSRV_DEVICE_NODE *psDeviceNode,
+					       IMG_UINT32 ui32PDumpFlags)
 {
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
 	/* TA signatures */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump TA signatures and checksums Buffer");
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump TA signatures and checksums Buffer");
 
-	DevmemPDumpSaveToFile(psDevInfo->psRGXFWSigTAChecksMemDesc,
-								 0,
-								 psDevInfo->ui32SigTAChecksSize,
-								 "out.tasig",
-								 0);
+	DevmemPDumpSaveToFile(psDevInfo->psRGXFWSigTAChecksMemDesc, 0,
+			      psDevInfo->ui32SigTAChecksSize, "out.tasig", 0);
 
 	/* 3D signatures */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump 3D signatures and checksums Buffer");
-	DevmemPDumpSaveToFile(psDevInfo->psRGXFWSig3DChecksMemDesc,
-								 0,
-								 psDevInfo->ui32Sig3DChecksSize,
-								 "out.3dsig",
-								 0);
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump 3D signatures and checksums Buffer");
+	DevmemPDumpSaveToFile(psDevInfo->psRGXFWSig3DChecksMemDesc, 0,
+			      psDevInfo->ui32Sig3DChecksSize, "out.3dsig", 0);
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, TDM_PDS_CHECKSUM))
-	{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, TDM_PDS_CHECKSUM)) {
 		/* TDM signatures */
-		PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump TDM signatures and checksums Buffer");
+		PDumpCommentWithFlags(
+			psDeviceNode, ui32PDumpFlags,
+			"** Dump TDM signatures and checksums Buffer");
 		DevmemPDumpSaveToFile(psDevInfo->psRGXFWSigTDM2DChecksMemDesc,
-									 0,
-									 psDevInfo->ui32SigTDM2DChecksSize,
-									 "out.tdmsig",
-									 0);
+				      0, psDevInfo->ui32SigTDM2DChecksSize,
+				      "out.tdmsig", 0);
 	}
 
 	return PVRSRV_OK;
 }
 
 static PVRSRV_ERROR _MipsDumpTraceBufferKM(CONNECTION_DATA *psConnection,
-                                           PVRSRV_DEVICE_NODE *psDeviceNode,
-                                           IMG_UINT32 ui32PDumpFlags)
+					   PVRSRV_DEVICE_NODE *psDeviceNode,
+					   IMG_UINT32 ui32PDumpFlags)
 {
-	IMG_UINT32		ui32ThreadNum, ui32Size, ui32OutFileOffset;
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
+	IMG_UINT32 ui32ThreadNum, ui32Size, ui32OutFileOffset;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 	PVRSRV_VZ_RET_IF_MODE(GUEST, PVRSRV_OK);
 
 	/* Dump trace buffers */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump trace buffers");
-	for (ui32ThreadNum = 0, ui32OutFileOffset = 0; ui32ThreadNum < RGXFW_THREAD_NUM; ui32ThreadNum++)
-	{
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump trace buffers");
+	for (ui32ThreadNum = 0, ui32OutFileOffset = 0;
+	     ui32ThreadNum < RGXFW_THREAD_NUM; ui32ThreadNum++) {
 		/*
 		 * Some compilers cannot cope with the use of offsetof() below - the specific problem being the use of
 		 * a non-const variable in the expression, which it needs to be const. Typical compiler error produced is
 		 * "expression must have a constant value".
 		 */
-		const IMG_DEVMEM_OFFSET_T uiTraceBufOff
-		= (IMG_DEVMEM_OFFSET_T)(uintptr_t)&(((RGXFWIF_TRACEBUF *)0)->sTraceBuf[ui32ThreadNum]);
+		const IMG_DEVMEM_OFFSET_T uiTraceBufOff =
+			(IMG_DEVMEM_OFFSET_T)(uintptr_t) &
+			(((RGXFWIF_TRACEBUF *)0)->sTraceBuf[ui32ThreadNum]);
 
 		/* Same again... */
-		const IMG_DEVMEM_OFFSET_T uiTraceBufSpaceAssertBufOff
-		= (IMG_DEVMEM_OFFSET_T)(uintptr_t)&(((RGXFWIF_TRACEBUF_SPACE *)0)->sAssertBuf);
+		const IMG_DEVMEM_OFFSET_T uiTraceBufSpaceAssertBufOff =
+			(IMG_DEVMEM_OFFSET_T)(uintptr_t) &
+			(((RGXFWIF_TRACEBUF_SPACE *)0)->sAssertBuf);
 
 		/* ui32TracePointer tracepointer */
 		ui32Size = sizeof(IMG_UINT32);
 		DevmemPDumpSaveToFile(psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
-								uiTraceBufOff,
-								ui32Size,
-								"out.trace",
-								ui32OutFileOffset);
+				      uiTraceBufOff, ui32Size, "out.trace",
+				      ui32OutFileOffset);
 		ui32OutFileOffset += ui32Size;
 
 		/* next, dump size of trace buffer in DWords */
 		ui32Size = sizeof(IMG_UINT32);
 		DevmemPDumpSaveToFile(psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
-								offsetof(RGXFWIF_TRACEBUF, ui32TraceBufSizeInDWords),
-								ui32Size,
-								"out.trace",
-								ui32OutFileOffset);
+				      offsetof(RGXFWIF_TRACEBUF,
+					       ui32TraceBufSizeInDWords),
+				      ui32Size, "out.trace", ui32OutFileOffset);
 		ui32OutFileOffset += ui32Size;
 
 		/* trace buffer */
-		ui32Size = psDevInfo->ui32TraceBufSizeInDWords * sizeof(IMG_UINT32);
-		PVR_ASSERT(psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum]);
-		DevmemPDumpSaveToFile(psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum],
-								0, /* 0 offset in the trace buffer mem desc */
-								ui32Size,
-								"out.trace",
-								ui32OutFileOffset);
+		ui32Size = psDevInfo->ui32TraceBufSizeInDWords *
+			   sizeof(IMG_UINT32);
+		PVR_ASSERT(
+			psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum]);
+		DevmemPDumpSaveToFile(
+			psDevInfo->psRGXFWIfTraceBufferMemDesc[ui32ThreadNum],
+			0, /* 0 offset in the trace buffer mem desc */
+			ui32Size, "out.trace", ui32OutFileOffset);
 		ui32OutFileOffset += ui32Size;
 
 		/* assert info buffer */
-		ui32Size = RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR)
-				+ RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR)
-				+ sizeof(IMG_UINT32);
+		ui32Size = RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR) +
+			   RGXFW_TRACE_BUFFER_ASSERT_SIZE * sizeof(IMG_CHAR) +
+			   sizeof(IMG_UINT32);
 		DevmemPDumpSaveToFile(psDevInfo->psRGXFWIfTraceBufCtlMemDesc,
-								uiTraceBufOff + uiTraceBufSpaceAssertBufOff,
-								ui32Size,
-								"out.trace",
-								ui32OutFileOffset);
+				      uiTraceBufOff +
+					      uiTraceBufSpaceAssertBufOff,
+				      ui32Size, "out.trace", ui32OutFileOffset);
 		ui32OutFileOffset += ui32Size;
 	}
 
 	/* Dump hwperf buffer */
-	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags, "** Dump HWPerf Buffer");
-	DevmemPDumpSaveToFile(psDevInfo->psRGXFWIfHWPerfBufMemDesc,
-								 0,
-								 psDevInfo->ui32RGXFWIfHWPerfBufSize,
-								 "out.hwperf",
-								 0);
+	PDumpCommentWithFlags(psDeviceNode, ui32PDumpFlags,
+			      "** Dump HWPerf Buffer");
+	DevmemPDumpSaveToFile(psDevInfo->psRGXFWIfHWPerfBufMemDesc, 0,
+			      psDevInfo->ui32RGXFWIfHWPerfBufSize, "out.hwperf",
+			      0);
 
 	return PVRSRV_OK;
 }
 #endif
 
-
 /*
  * PVRSRVPDumpSignatureBufferKM
  */
-PVRSRV_ERROR PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
-                                          PVRSRV_DEVICE_NODE	*psDeviceNode,
-                                          IMG_UINT32			ui32PDumpFlags)
+PVRSRV_ERROR PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA *psConnection,
+					  PVRSRV_DEVICE_NODE *psDeviceNode,
+					  IMG_UINT32 ui32PDumpFlags)
 {
-	if (psDeviceNode->pfnCheckDeviceFeature)
-	{
+	if (psDeviceNode->pfnCheckDeviceFeature) {
 #if defined(RGX_FEATURE_MIPS_BIT_MASK)
-		if (PVRSRV_IS_FEATURE_SUPPORTED(psDeviceNode, MIPS))
-		{
-			return _MipsDumpSignatureBufferKM(psConnection,
-											  psDeviceNode,
-											  ui32PDumpFlags);
-		}
-		else
+		if (PVRSRV_IS_FEATURE_SUPPORTED(psDeviceNode, MIPS)) {
+			return _MipsDumpSignatureBufferKM(
+				psConnection, psDeviceNode, ui32PDumpFlags);
+		} else
 #endif
 		{
-			return _FWDumpSignatureBufferKM(psConnection,
-											psDeviceNode,
-											ui32PDumpFlags);
+			return _FWDumpSignatureBufferKM(
+				psConnection, psDeviceNode, ui32PDumpFlags);
 		}
 	}
 
 	return PVRSRV_OK;
 }
 
-
 #if defined(SUPPORT_VALIDATION)
-PVRSRV_ERROR PVRSRVPDumpComputeCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
-                                                   PVRSRV_DEVICE_NODE * psDeviceNode,
-                                                   IMG_UINT32 ui32PDumpFlags)
+PVRSRV_ERROR
+PVRSRVPDumpComputeCRCSignatureCheckKM(CONNECTION_DATA *psConnection,
+				      PVRSRV_DEVICE_NODE *psDeviceNode,
+				      IMG_UINT32 ui32PDumpFlags)
 {
-	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
+	PVRSRV_RGXDEV_INFO *psDevInfo =
+		(PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError;
 
-	if (!(RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE)))
-	{
+	if (!(RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))) {
 		return PVRSRV_ERROR_NOT_SUPPORTED;
 	}
 
 	/*
 	 * Add a PDUMP POLL on the WGP signature check status.
 	 */
-	if (psDevInfo->ui32ValidationFlags & RGX_VAL_WGP_SIG_CHECK_NOERR_EN)
-	{
-		PDUMPCOMMENT(psDeviceNode, "Verify WGP Signature: match required");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_PDUMPREG_NAME,
-		                     RGX_CR_SCRATCH11,
-		                     1U,
-		                     0xFFFFFFFF,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_EQUAL);
-	}
-	else if (psDevInfo->ui32ValidationFlags & RGX_VAL_WGP_SIG_CHECK_ERR_EN)
-	{
-		PDUMPCOMMENT(psDeviceNode, "Verify WGP Signature: mismatch required");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_PDUMPREG_NAME,
-		                     RGX_CR_SCRATCH11,
-		                     2U,
-		                     0xFFFFFFFF,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_EQUAL);
+	if (psDevInfo->ui32ValidationFlags & RGX_VAL_WGP_SIG_CHECK_NOERR_EN) {
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify WGP Signature: match required");
+		eError = PDUMPREGPOL(psDeviceNode, RGX_PDUMPREG_NAME,
+				     RGX_CR_SCRATCH11, 1U, 0xFFFFFFFF,
+				     ui32PDumpFlags, PDUMP_POLL_OPERATOR_EQUAL);
+	} else if (psDevInfo->ui32ValidationFlags &
+		   RGX_VAL_WGP_SIG_CHECK_ERR_EN) {
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify WGP Signature: mismatch required");
+		eError = PDUMPREGPOL(psDeviceNode, RGX_PDUMPREG_NAME,
+				     RGX_CR_SCRATCH11, 2U, 0xFFFFFFFF,
+				     ui32PDumpFlags, PDUMP_POLL_OPERATOR_EQUAL);
 	}
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -516,39 +505,33 @@ PVRSRV_ERROR PVRSRVPDumpComputeCRCSignatureCheckKM(CONNECTION_DATA * psConnectio
 }
 #endif
 
-PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
-                                            PVRSRV_DEVICE_NODE * psDeviceNode,
-                                            IMG_UINT32 ui32PDumpFlags)
+PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA *psConnection,
+					    PVRSRV_DEVICE_NODE *psDeviceNode,
+					    IMG_UINT32 ui32PDumpFlags)
 {
-#if defined(SUPPORT_VALIDATION) && (defined(SUPPORT_FBCDC_SIGNATURE_CHECK) || defined(SUPPORT_TRP))
-	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
+#if defined(SUPPORT_VALIDATION) && \
+	(defined(SUPPORT_FBCDC_SIGNATURE_CHECK) || defined(SUPPORT_TRP))
+	PVRSRV_RGXDEV_INFO *psDevInfo =
+		(PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError;
 
 #if defined(SUPPORT_FBCDC_SIGNATURE_CHECK)
 	/*
 	 * Add a PDUMP POLL on the FBC/FBDC signature check status.
 	 */
-	if (psDevInfo->ui32ValidationFlags & RGX_VAL_FBDC_SIG_CHECK_NOERR_EN)
-	{
-		PDUMPCOMMENT(psDeviceNode, "Verify FBCDC Signature: match required");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_PDUMPREG_NAME,
-		                     RGX_CR_FBCDC_STATUS,
-		                     0,
-		                     0xFFFFFFFF,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_EQUAL);
+	if (psDevInfo->ui32ValidationFlags & RGX_VAL_FBDC_SIG_CHECK_NOERR_EN) {
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify FBCDC Signature: match required");
+		eError = PDUMPREGPOL(psDeviceNode, RGX_PDUMPREG_NAME,
+				     RGX_CR_FBCDC_STATUS, 0, 0xFFFFFFFF,
+				     ui32PDumpFlags, PDUMP_POLL_OPERATOR_EQUAL);
 
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_PDUMPREG_NAME,
-		                     RGX_CR_FBCDC_SIGNATURE_STATUS,
-		                     0,
-		                     0xFFFFFFFF,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_EQUAL);
-	}
-	else if (psDevInfo->ui32ValidationFlags & RGX_VAL_FBDC_SIG_CHECK_ERR_EN)
-	{
+		eError = PDUMPREGPOL(psDeviceNode, RGX_PDUMPREG_NAME,
+				     RGX_CR_FBCDC_SIGNATURE_STATUS, 0,
+				     0xFFFFFFFF, ui32PDumpFlags,
+				     PDUMP_POLL_OPERATOR_EQUAL);
+	} else if (psDevInfo->ui32ValidationFlags &
+		   RGX_VAL_FBDC_SIG_CHECK_ERR_EN) {
 		static char pszVar1[] = ":SYSMEM:$2";
 		static char pszVar2[] = ":SYSMEM:$3";
 		char *pszLoopCondition;
@@ -559,36 +542,34 @@ PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
 		 *  v2 = [RGX_CR_FBCDC_SIGNATURE_STATUS]
 		 * While (v1 OR v2) == 0
 		 */
-		PDUMPCOMMENT(psDeviceNode, "Verify FBCDC Signature: mismatch required");
-		eError = PDumpInternalValCondStr(&pszLoopCondition,
-		                     pszVar1,
-		                     0,
-		                     0xFFFFFFFF,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_EQUAL);
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify FBCDC Signature: mismatch required");
+		eError = PDumpInternalValCondStr(&pszLoopCondition, pszVar1, 0,
+						 0xFFFFFFFF, ui32PDumpFlags,
+						 PDUMP_POLL_OPERATOR_EQUAL);
 
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s: Unable to write pdump verification sequence (%d)", __func__, eError));
-		}
-		else
-		{
-			eError = PDumpStartDoLoopKM(psDeviceNode, ui32PDumpFlags);
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((
+				PVR_DBG_WARNING,
+				"%s: Unable to write pdump verification sequence (%d)",
+				__func__, eError));
+		} else {
+			eError = PDumpStartDoLoopKM(psDeviceNode,
+						    ui32PDumpFlags);
 
-			eError = PDumpRegRead32ToInternalVar(psDeviceNode,
-								 RGX_PDUMPREG_NAME,
-								 RGX_CR_FBCDC_STATUS,
-								 pszVar1,
-								 ui32PDumpFlags);
+			eError = PDumpRegRead32ToInternalVar(
+				psDeviceNode, RGX_PDUMPREG_NAME,
+				RGX_CR_FBCDC_STATUS, pszVar1, ui32PDumpFlags);
 
-			eError = PDumpRegRead32ToInternalVar(psDeviceNode,
-								 RGX_PDUMPREG_NAME,
-								 RGX_CR_FBCDC_SIGNATURE_STATUS,
-								 pszVar2,
-								 ui32PDumpFlags);
+			eError = PDumpRegRead32ToInternalVar(
+				psDeviceNode, RGX_PDUMPREG_NAME,
+				RGX_CR_FBCDC_SIGNATURE_STATUS, pszVar2,
+				ui32PDumpFlags);
 
-			eError = PDumpWriteVarORVarOp(psDeviceNode, pszVar1, pszVar2, ui32PDumpFlags);
-			eError = PDumpEndDoWhileLoopKM(psDeviceNode, pszLoopCondition, ui32PDumpFlags);
+			eError = PDumpWriteVarORVarOp(psDeviceNode, pszVar1,
+						      pszVar2, ui32PDumpFlags);
+			eError = PDumpEndDoWhileLoopKM(
+				psDeviceNode, pszLoopCondition, ui32PDumpFlags);
 			OSFreeMem(pszLoopCondition);
 		}
 	}
@@ -598,27 +579,23 @@ PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
 	/*
 	 * Add a PDUMP POLL on the TRP signature check status.
 	 */
-	if (psDevInfo->ui32ValidationFlags & RGX_VAL_TRP_SIG_CHECK_NOERR_EN)
-	{
-		PDUMPCOMMENT(psDeviceNode, "Verify TRP Signature: match required");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_PDUMPREG_NAME,
-							 RGXFWIF_CR_TRP_SIGNATURE_STATUS,
-							 RGXFWIF_TRP_STATUS_CHECKSUMS_OK,
-							 0xFFFFFFFF,
-							 ui32PDumpFlags,
-							 PDUMP_POLL_OPERATOR_EQUAL);
-	}
-	else if (psDevInfo->ui32ValidationFlags & RGX_VAL_TRP_SIG_CHECK_ERR_EN)
-	{
-		PDUMPCOMMENT(psDeviceNode, "Verify TRP Signature: mismatch required");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_PDUMPREG_NAME,
-							 RGXFWIF_CR_TRP_SIGNATURE_STATUS,
-							 RGXFWIF_TRP_STATUS_CHECKSUMS_ERROR,
-							 0xFFFFFFFF,
-							 ui32PDumpFlags,
-							 PDUMP_POLL_OPERATOR_EQUAL);
+	if (psDevInfo->ui32ValidationFlags & RGX_VAL_TRP_SIG_CHECK_NOERR_EN) {
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify TRP Signature: match required");
+		eError = PDUMPREGPOL(psDeviceNode, RGX_PDUMPREG_NAME,
+				     RGXFWIF_CR_TRP_SIGNATURE_STATUS,
+				     RGXFWIF_TRP_STATUS_CHECKSUMS_OK,
+				     0xFFFFFFFF, ui32PDumpFlags,
+				     PDUMP_POLL_OPERATOR_EQUAL);
+	} else if (psDevInfo->ui32ValidationFlags &
+		   RGX_VAL_TRP_SIG_CHECK_ERR_EN) {
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify TRP Signature: mismatch required");
+		eError = PDUMPREGPOL(psDeviceNode, RGX_PDUMPREG_NAME,
+				     RGXFWIF_CR_TRP_SIGNATURE_STATUS,
+				     RGXFWIF_TRP_STATUS_CHECKSUMS_ERROR,
+				     0xFFFFFFFF, ui32PDumpFlags,
+				     PDUMP_POLL_OPERATOR_EQUAL);
 	}
 #endif /* SUPPORT_TRP */
 
@@ -631,32 +608,29 @@ PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
 	return PVRSRV_OK;
 }
 
-
 /*
  * PVRSRVPDumpValCheckPreCommand
  */
-PVRSRV_ERROR PVRSRVPDumpValCheckPreCommandKM(CONNECTION_DATA * psConnection,
-                                             PVRSRV_DEVICE_NODE * psDeviceNode,
-                                             IMG_UINT32 ui32PDumpFlags)
+PVRSRV_ERROR PVRSRVPDumpValCheckPreCommandKM(CONNECTION_DATA *psConnection,
+					     PVRSRV_DEVICE_NODE *psDeviceNode,
+					     IMG_UINT32 ui32PDumpFlags)
 {
 #if defined(SUPPORT_VALIDATION)
-	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
+	PVRSRV_RGXDEV_INFO *psDevInfo =
+		(PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError;
 
 	//if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, GPU_STATE_PIN) &&
-	if    (psDevInfo->ui32ValidationFlags & RGX_VAL_GPUSTATEPIN_EN)
-	{
+	if (psDevInfo->ui32ValidationFlags & RGX_VAL_GPUSTATEPIN_EN) {
 		/*
 		 * Add a PDUMP POLL on the GPU_STATE inactive status.
 		 */
-		PDUMPCOMMENT(psDeviceNode, "Verify GPU system status: INACTIVE");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_TB_PDUMPREG_NAME,
-		                     RGX_TB_SYSTEM_STATUS,
-		                     0,
-		                     ~RGX_TB_SYSTEM_STATUS_GPU_STATE_CLRMSK,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_EQUAL);
+		PDUMPCOMMENT(psDeviceNode,
+			     "Verify GPU system status: INACTIVE");
+		eError = PDUMPREGPOL(psDeviceNode, RGX_TB_PDUMPREG_NAME,
+				     RGX_TB_SYSTEM_STATUS, 0,
+				     ~RGX_TB_SYSTEM_STATUS_GPU_STATE_CLRMSK,
+				     ui32PDumpFlags, PDUMP_POLL_OPERATOR_EQUAL);
 	}
 #else
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
@@ -670,28 +644,26 @@ PVRSRV_ERROR PVRSRVPDumpValCheckPreCommandKM(CONNECTION_DATA * psConnection,
 /*
  * PVRSRVPDumpValCheckPostCommand
  */
-PVRSRV_ERROR PVRSRVPDumpValCheckPostCommandKM(CONNECTION_DATA * psConnection,
-                                              PVRSRV_DEVICE_NODE * psDeviceNode,
-                                              IMG_UINT32 ui32PDumpFlags)
+PVRSRV_ERROR PVRSRVPDumpValCheckPostCommandKM(CONNECTION_DATA *psConnection,
+					      PVRSRV_DEVICE_NODE *psDeviceNode,
+					      IMG_UINT32 ui32PDumpFlags)
 {
 #if defined(SUPPORT_VALIDATION)
-	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
+	PVRSRV_RGXDEV_INFO *psDevInfo =
+		(PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
 	PVRSRV_ERROR eError;
 
 	//if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, GPU_STATE_PIN) &&
-	if    (psDevInfo->ui32ValidationFlags & RGX_VAL_GPUSTATEPIN_EN)
-	{
+	if (psDevInfo->ui32ValidationFlags & RGX_VAL_GPUSTATEPIN_EN) {
 		/*
 		 * Add a PDUMP POLL on the GPU_STATE active status.
 		 */
 		PDUMPCOMMENT(psDeviceNode, "Verify GPU system status: ACTIVE");
-		eError = PDUMPREGPOL(psDeviceNode,
-		                     RGX_TB_PDUMPREG_NAME,
-		                     RGX_TB_SYSTEM_STATUS,
-		                     0,
-		                     ~RGX_TB_SYSTEM_STATUS_GPU_STATE_CLRMSK,
-		                     ui32PDumpFlags,
-		                     PDUMP_POLL_OPERATOR_NOTEQUAL);
+		eError = PDUMPREGPOL(psDeviceNode, RGX_TB_PDUMPREG_NAME,
+				     RGX_TB_SYSTEM_STATUS, 0,
+				     ~RGX_TB_SYSTEM_STATUS_GPU_STATE_CLRMSK,
+				     ui32PDumpFlags,
+				     PDUMP_POLL_OPERATOR_NOTEQUAL);
 	}
 #else
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
@@ -702,50 +674,45 @@ PVRSRV_ERROR PVRSRVPDumpValCheckPostCommandKM(CONNECTION_DATA * psConnection,
 	return PVRSRV_OK;
 }
 
-
 PVRSRV_ERROR PVRSRVPDumpTraceBufferKM(CONNECTION_DATA *psConnection,
-                                      PVRSRV_DEVICE_NODE *psDeviceNode,
-                                      IMG_UINT32 ui32PDumpFlags)
+				      PVRSRV_DEVICE_NODE *psDeviceNode,
+				      IMG_UINT32 ui32PDumpFlags)
 {
-	if (psDeviceNode->pfnCheckDeviceFeature)
-	{
+	if (psDeviceNode->pfnCheckDeviceFeature) {
 #if defined(RGX_FEATURE_MIPS_BIT_MASK)
-		if (PVRSRV_IS_FEATURE_SUPPORTED(psDeviceNode, MIPS))
-		{
-			return _MipsDumpTraceBufferKM(psConnection, psDeviceNode, ui32PDumpFlags);
-		}
-		else
+		if (PVRSRV_IS_FEATURE_SUPPORTED(psDeviceNode, MIPS)) {
+			return _MipsDumpTraceBufferKM(
+				psConnection, psDeviceNode, ui32PDumpFlags);
+		} else
 #endif
 		{
-			return _FWDumpTraceBufferKM(psConnection, psDeviceNode, ui32PDumpFlags);
+			return _FWDumpTraceBufferKM(psConnection, psDeviceNode,
+						    ui32PDumpFlags);
 		}
 	}
 
 	return PVRSRV_OK;
 }
 
-PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDeviceNode,
-									IMG_UINT32 ui32HeaderSize,
-									IMG_UINT32 ui32DataSize,
-									IMG_UINT32 ui32LogicalWidth,
-									IMG_UINT32 ui32LogicalHeight,
-									IMG_UINT32 ui32PhysicalWidth,
-									IMG_UINT32 ui32PhysicalHeight,
-									PDUMP_PIXEL_FORMAT ePixFmt,
-									IMG_MEMLAYOUT eMemLayout,
-									IMG_FB_COMPRESSION eFBCompression,
-									const IMG_UINT32 *paui32FBCClearColour,
-									PDUMP_FBC_SWIZZLE eFBCSwizzle,
-									IMG_PBYTE pbyPDumpImageHdr)
+PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(
+	PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT32 ui32HeaderSize,
+	IMG_UINT32 ui32DataSize, IMG_UINT32 ui32LogicalWidth,
+	IMG_UINT32 ui32LogicalHeight, IMG_UINT32 ui32PhysicalWidth,
+	IMG_UINT32 ui32PhysicalHeight, PDUMP_PIXEL_FORMAT ePixFmt,
+	IMG_MEMLAYOUT eMemLayout, IMG_FB_COMPRESSION eFBCompression,
+	const IMG_UINT32 *paui32FBCClearColour, PDUMP_FBC_SWIZZLE eFBCSwizzle,
+	IMG_PBYTE pbyPDumpImageHdr)
 {
 	IMG_PUINT32 pui32Word;
 	IMG_UINT32 ui32HeaderDataSize;
-	PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
+	PVRSRV_RGXDEV_INFO *psDevInfo =
+		(PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
 
 	/* Validate parameters */
-	if (((IMAGE_HEADER_SIZE & ~(HEADER_WORD1_SIZE_CLRMSK >> HEADER_WORD1_SIZE_SHIFT)) != 0) ||
-		((IMAGE_HEADER_VERSION & ~(HEADER_WORD1_VERSION_CLRMSK >> HEADER_WORD1_VERSION_SHIFT)) != 0))
-	{
+	if (((IMAGE_HEADER_SIZE &
+	      ~(HEADER_WORD1_SIZE_CLRMSK >> HEADER_WORD1_SIZE_SHIFT)) != 0) ||
+	    ((IMAGE_HEADER_VERSION & ~(HEADER_WORD1_VERSION_CLRMSK >>
+				       HEADER_WORD1_VERSION_SHIFT)) != 0)) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -754,27 +721,30 @@ PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDevic
 	pui32Word = IMG_OFFSET_ADDR(pbyPDumpImageHdr, 0);
 	pui32Word[0] = (IMAGE_HEADER_TYPE << HEADER_WORD0_TYPE_SHIFT);
 	pui32Word[1] = (IMAGE_HEADER_SIZE << HEADER_WORD1_SIZE_SHIFT) |
-				   (IMAGE_HEADER_VERSION << HEADER_WORD1_VERSION_SHIFT);
+		       (IMAGE_HEADER_VERSION << HEADER_WORD1_VERSION_SHIFT);
 
 	ui32HeaderDataSize = ui32DataSize;
-	if (eFBCompression != IMG_FB_COMPRESSION_NONE)
-	{
+	if (eFBCompression != IMG_FB_COMPRESSION_NONE) {
 		ui32HeaderDataSize += ui32HeaderSize;
 	}
 	pui32Word[2] = ui32HeaderDataSize << HEADER_WORD2_DATA_SIZE_SHIFT;
 
-	pui32Word[3] = ui32LogicalWidth << IMAGE_HEADER_WORD3_LOGICAL_WIDTH_SHIFT;
-	pui32Word[4] = ui32LogicalHeight << IMAGE_HEADER_WORD4_LOGICAL_HEIGHT_SHIFT;
+	pui32Word[3] = ui32LogicalWidth
+		       << IMAGE_HEADER_WORD3_LOGICAL_WIDTH_SHIFT;
+	pui32Word[4] = ui32LogicalHeight
+		       << IMAGE_HEADER_WORD4_LOGICAL_HEIGHT_SHIFT;
 
 	pui32Word[5] = ePixFmt << IMAGE_HEADER_WORD5_FORMAT_SHIFT;
 
-	pui32Word[6] = ui32PhysicalWidth << IMAGE_HEADER_WORD6_PHYSICAL_WIDTH_SHIFT;
-	pui32Word[7] = ui32PhysicalHeight << IMAGE_HEADER_WORD7_PHYSICAL_HEIGHT_SHIFT;
+	pui32Word[6] = ui32PhysicalWidth
+		       << IMAGE_HEADER_WORD6_PHYSICAL_WIDTH_SHIFT;
+	pui32Word[7] = ui32PhysicalHeight
+		       << IMAGE_HEADER_WORD7_PHYSICAL_HEIGHT_SHIFT;
 
-	pui32Word[8] = IMAGE_HEADER_WORD8_STRIDE_POSITIVE | IMAGE_HEADER_WORD8_BIFTYPE_NONE;
+	pui32Word[8] = IMAGE_HEADER_WORD8_STRIDE_POSITIVE |
+		       IMAGE_HEADER_WORD8_BIFTYPE_NONE;
 
-	switch (eMemLayout)
-	{
+	switch (eMemLayout) {
 	case IMG_MEMLAYOUT_STRIDED:
 		pui32Word[8] |= IMAGE_HEADER_WORD8_TWIDDLING_STRIDED;
 		break;
@@ -782,12 +752,12 @@ PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDevic
 		pui32Word[8] |= IMAGE_HEADER_WORD8_TWIDDLING_ZTWIDDLE;
 		break;
 	default:
-		PVR_DPF((PVR_DBG_ERROR, "Unsupported memory layout - %d", eMemLayout));
+		PVR_DPF((PVR_DBG_ERROR, "Unsupported memory layout - %d",
+			 eMemLayout));
 		return PVRSRV_ERROR_UNSUPPORTED_MEMORY_LAYOUT;
 	}
 
-	switch (eFBCompression)
-	{
+	switch (eFBCompression) {
 	case IMG_FB_COMPRESSION_NONE:
 		break;
 	case IMG_FB_COMPRESSION_DIRECT_PACKED_8x8:
@@ -807,39 +777,42 @@ PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDevic
 		pui32Word[8] |= IMAGE_HEADER_WORD8_FBCTYPE_32x2;
 		break;
 	default:
-		PVR_DPF((PVR_DBG_ERROR, "Unsupported compression mode - %d", eFBCompression));
+		PVR_DPF((PVR_DBG_ERROR, "Unsupported compression mode - %d",
+			 eFBCompression));
 		return PVRSRV_ERROR_UNSUPPORTED_FB_COMPRESSION_MODE;
 	}
 
 	pui32Word[9] = 0;
 
-	if (eFBCompression != IMG_FB_COMPRESSION_NONE)
-	{
-		if ((RGX_GET_FEATURE_VALUE(psDevInfo, FBCDC) == 4) || (RGX_GET_FEATURE_VALUE(psDevInfo, FBCDC) == 5))
-		{
+	if (eFBCompression != IMG_FB_COMPRESSION_NONE) {
+		if ((RGX_GET_FEATURE_VALUE(psDevInfo, FBCDC) == 4) ||
+		    (RGX_GET_FEATURE_VALUE(psDevInfo, FBCDC) == 5)) {
 			pui32Word[9] |= IMAGE_HEADER_WORD9_FBCCOMPAT_V4;
 
-			if (eFBCompression == IMG_FB_COMPRESSION_DIRECT_LOSSY50_8x8  ||
-				eFBCompression == IMG_FB_COMPRESSION_DIRECT_LOSSY50_16x4 ||
-				eFBCompression == IMG_FB_COMPRESSION_DIRECT_LOSSY50_32x2)
-			{
+			if (eFBCompression ==
+				    IMG_FB_COMPRESSION_DIRECT_LOSSY50_8x8 ||
+			    eFBCompression ==
+				    IMG_FB_COMPRESSION_DIRECT_LOSSY50_16x4 ||
+			    eFBCompression ==
+				    IMG_FB_COMPRESSION_DIRECT_LOSSY50_32x2) {
 				pui32Word[9] |= IMAGE_HEADER_WORD9_LOSSY_ON;
 			}
 
-			pui32Word[9] |= (eFBCSwizzle << IMAGE_HEADER_WORD9_SWIZZLE_SHIFT) & IMAGE_HEADER_WORD9_SWIZZLE_CLRMSK;
-		}
-		else /* 3 or 3.1 */
+			pui32Word[9] |= (eFBCSwizzle
+					 << IMAGE_HEADER_WORD9_SWIZZLE_SHIFT) &
+					IMAGE_HEADER_WORD9_SWIZZLE_CLRMSK;
+		} else /* 3 or 3.1 */
 		{
-			IMG_BOOL bIsFBC31 = psDevInfo->psRGXFWIfFwSysData->
-					ui32ConfigFlags & RGXFWIF_INICFG_FBCDC_V3_1_EN;
+			IMG_BOOL bIsFBC31 =
+				psDevInfo->psRGXFWIfFwSysData->ui32ConfigFlags &
+				RGXFWIF_INICFG_FBCDC_V3_1_EN;
 
-			if (bIsFBC31)
-			{
-				pui32Word[9] |= IMAGE_HEADER_WORD9_FBCCOMPAT_V3_1_LAYOUT2;
-			}
-			else
-			{
-				pui32Word[9] |= IMAGE_HEADER_WORD9_FBCCOMPAT_V3_0_LAYOUT2;
+			if (bIsFBC31) {
+				pui32Word[9] |=
+					IMAGE_HEADER_WORD9_FBCCOMPAT_V3_1_LAYOUT2;
+			} else {
+				pui32Word[9] |=
+					IMAGE_HEADER_WORD9_FBCCOMPAT_V3_0_LAYOUT2;
 			}
 		}
 
@@ -848,45 +821,47 @@ PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDevic
 
 	pui32Word[10] = paui32FBCClearColour[0];
 	pui32Word[11] = paui32FBCClearColour[1];
-	pui32Word[12] = (IMG_UINT32) (psDeviceNode->ui64FBCClearColour & 0xFFFFFFFF);
-	pui32Word[13] = (IMG_UINT32) (psDeviceNode->ui64FBCClearColour >> 32);
+	pui32Word[12] =
+		(IMG_UINT32)(psDeviceNode->ui64FBCClearColour & 0xFFFFFFFF);
+	pui32Word[13] = (IMG_UINT32)(psDeviceNode->ui64FBCClearColour >> 32);
 
 	return PVRSRV_OK;
 }
 
-PVRSRV_ERROR RGXPDumpPrepareOutputDataDescriptorHdr(PVRSRV_DEVICE_NODE *psDeviceNode,
-									IMG_UINT32 ui32HeaderType,
-									IMG_UINT32 ui32DataSize,
-									IMG_UINT32 ui32ElementType,
-									IMG_UINT32 ui32ElementCount,
-									IMG_PBYTE pbyPDumpDataHdr)
+PVRSRV_ERROR RGXPDumpPrepareOutputDataDescriptorHdr(
+	PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT32 ui32HeaderType,
+	IMG_UINT32 ui32DataSize, IMG_UINT32 ui32ElementType,
+	IMG_UINT32 ui32ElementCount, IMG_PBYTE pbyPDumpDataHdr)
 {
 	IMG_PUINT32 pui32Word;
 
 	/* Validate parameters */
-	if (((DATA_HEADER_SIZE & ~(HEADER_WORD1_SIZE_CLRMSK >> HEADER_WORD1_SIZE_SHIFT)) != 0) ||
-		((DATA_HEADER_VERSION & ~(HEADER_WORD1_VERSION_CLRMSK >> HEADER_WORD1_VERSION_SHIFT)) != 0))
-	{
+	if (((DATA_HEADER_SIZE &
+	      ~(HEADER_WORD1_SIZE_CLRMSK >> HEADER_WORD1_SIZE_SHIFT)) != 0) ||
+	    ((DATA_HEADER_VERSION & ~(HEADER_WORD1_VERSION_CLRMSK >>
+				      HEADER_WORD1_VERSION_SHIFT)) != 0)) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	pui32Word = IMG_OFFSET_ADDR(pbyPDumpDataHdr, 0);
 
-	if (ui32HeaderType == DATA_HEADER_TYPE)
-	{
+	if (ui32HeaderType == DATA_HEADER_TYPE) {
 		pui32Word[0] = (ui32HeaderType << HEADER_WORD0_TYPE_SHIFT);
-		pui32Word[1] = (DATA_HEADER_SIZE << HEADER_WORD1_SIZE_SHIFT) |
+		pui32Word[1] =
+			(DATA_HEADER_SIZE << HEADER_WORD1_SIZE_SHIFT) |
 			(DATA_HEADER_VERSION << HEADER_WORD1_VERSION_SHIFT);
 		pui32Word[2] = ui32DataSize << HEADER_WORD2_DATA_SIZE_SHIFT;
 
-		pui32Word[3] = ui32ElementType << DATA_HEADER_WORD3_ELEMENT_TYPE_SHIFT;
-		pui32Word[4] = ui32ElementCount << DATA_HEADER_WORD4_ELEMENT_COUNT_SHIFT;
+		pui32Word[3] = ui32ElementType
+			       << DATA_HEADER_WORD3_ELEMENT_TYPE_SHIFT;
+		pui32Word[4] = ui32ElementCount
+			       << DATA_HEADER_WORD4_ELEMENT_COUNT_SHIFT;
 	}
 
-	if (ui32HeaderType == IBIN_HEADER_TYPE)
-	{
+	if (ui32HeaderType == IBIN_HEADER_TYPE) {
 		pui32Word[0] = (ui32HeaderType << HEADER_WORD0_TYPE_SHIFT);
-		pui32Word[1] = (IBIN_HEADER_SIZE << HEADER_WORD1_SIZE_SHIFT) |
+		pui32Word[1] =
+			(IBIN_HEADER_SIZE << HEADER_WORD1_SIZE_SHIFT) |
 			(IBIN_HEADER_VERSION << HEADER_WORD1_VERSION_SHIFT);
 		pui32Word[2] = ui32DataSize << HEADER_WORD2_DATA_SIZE_SHIFT;
 	}

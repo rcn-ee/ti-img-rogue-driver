@@ -52,10 +52,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sync_internal.h"
 #include "rgxfwutils.h"
 
-
 PVRSRV_ERROR RGXQueryAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_UINT32 *pui32State)
+			      const void *pvPrivateData, IMG_UINT32 *pui32State)
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo;
 
@@ -71,8 +69,7 @@ PVRSRV_ERROR RGXQueryAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
 }
 
 PVRSRV_ERROR RGXSetAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_UINT32 ui32State)
+			    const void *pvPrivateData, IMG_UINT32 ui32State)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
 #if !defined(NO_HARDWARE)
@@ -81,25 +78,23 @@ PVRSRV_ERROR RGXSetAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
 
 	PVR_UNREFERENCED_PARAMETER(pvPrivateData);
 
-	if (!psDeviceNode || !psDeviceNode->pvDevice)
-	{
+	if (!psDeviceNode || !psDeviceNode->pvDevice) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	if (RGX_ACTIVEPM_FORCE_OFF != ui32State)
-	{
+	if (RGX_ACTIVEPM_FORCE_OFF != ui32State) {
 		return PVRSRV_ERROR_NOT_SUPPORTED;
 	}
 
 #if !defined(NO_HARDWARE)
 	psDevInfo = psDeviceNode->pvDevice;
 
-	if (psDevInfo->pvAPMISRData)
-	{
+	if (psDevInfo->pvAPMISRData) {
 		psDevInfo->eActivePMConf = RGX_ACTIVEPM_FORCE_OFF;
 		psDevInfo->pvAPMISRData = NULL;
-		eError = PVRSRVSetDeviceDefaultPowerState((PPVRSRV_DEVICE_NODE)psDeviceNode,
-		                                          PVRSRV_DEV_POWER_STATE_ON);
+		eError = PVRSRVSetDeviceDefaultPowerState(
+			(PPVRSRV_DEVICE_NODE)psDeviceNode,
+			PVRSRV_DEV_POWER_STATE_ON);
 	}
 #endif
 
@@ -107,15 +102,14 @@ PVRSRV_ERROR RGXSetAPMState(const PVRSRV_DEVICE_NODE *psDeviceNode,
 }
 
 PVRSRV_ERROR RGXQueryPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_BOOL *pbDisabled)
+				       const void *pvPrivateData,
+				       IMG_BOOL *pbDisabled)
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo;
 
 	PVR_UNREFERENCED_PARAMETER(pvPrivateData);
 
-	if (!psDeviceNode || !psDeviceNode->pvDevice)
-	{
+	if (!psDeviceNode || !psDeviceNode->pvDevice) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -127,15 +121,14 @@ PVRSRV_ERROR RGXQueryPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
 }
 
 PVRSRV_ERROR RGXSetPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
-	const void *pvPrivateData,
-	IMG_BOOL bDisable)
+				     const void *pvPrivateData,
+				     IMG_BOOL bDisable)
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo;
 
 	PVR_UNREFERENCED_PARAMETER(pvPrivateData);
 
-	if (!psDeviceNode || !psDeviceNode->pvDevice)
-	{
+	if (!psDeviceNode || !psDeviceNode->pvDevice) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -147,10 +140,9 @@ PVRSRV_ERROR RGXSetPdumpPanicDisable(const PVRSRV_DEVICE_NODE *psDeviceNode,
 }
 
 PVRSRV_ERROR RGXGetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
-				IMG_UINT32 *pui32DeviceFlags)
+			       IMG_UINT32 *pui32DeviceFlags)
 {
-	if (!pui32DeviceFlags || !psDevInfo)
-	{
+	if (!pui32DeviceFlags || !psDevInfo) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -160,59 +152,54 @@ PVRSRV_ERROR RGXGetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
 }
 
 PVRSRV_ERROR RGXSetDeviceFlags(PVRSRV_RGXDEV_INFO *psDevInfo,
-				IMG_UINT32 ui32Config,
-				IMG_BOOL bSetNotClear)
+			       IMG_UINT32 ui32Config, IMG_BOOL bSetNotClear)
 {
-	if (!psDevInfo)
-	{
+	if (!psDevInfo) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	if ((ui32Config & ~RGXKM_DEVICE_STATE_MASK) != 0)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-				 "%s: Bits outside of device state mask set (input: 0x%x, mask: 0x%x)",
-				 __func__, ui32Config, RGXKM_DEVICE_STATE_MASK));
+	if ((ui32Config & ~RGXKM_DEVICE_STATE_MASK) != 0) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Bits outside of device state mask set (input: 0x%x, mask: 0x%x)",
+			__func__, ui32Config, RGXKM_DEVICE_STATE_MASK));
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	if (bSetNotClear)
-	{
+	if (bSetNotClear) {
 		psDevInfo->ui32DeviceFlags |= ui32Config;
-	}
-	else
-	{
+	} else {
 		psDevInfo->ui32DeviceFlags &= ~ui32Config;
 	}
 
 	return PVRSRV_OK;
 }
 
-inline const char * RGXStringifyKickTypeDM(RGX_KICK_TYPE_DM eKickTypeDM)
+inline const char *RGXStringifyKickTypeDM(RGX_KICK_TYPE_DM eKickTypeDM)
 {
 	PVR_ASSERT(eKickTypeDM < RGX_KICK_TYPE_DM_LAST);
 
 	switch (eKickTypeDM) {
-		case RGX_KICK_TYPE_DM_GP:
-			return "GP ";
-		case RGX_KICK_TYPE_DM_TDM_2D:
-			return "TDM/2D ";
-		case RGX_KICK_TYPE_DM_TA:
-			return "TA ";
-		case RGX_KICK_TYPE_DM_3D:
-			return "3D ";
-		case RGX_KICK_TYPE_DM_CDM:
-			return "CDM ";
-		case RGX_KICK_TYPE_DM_RTU:
-			return "RTU ";
-		case RGX_KICK_TYPE_DM_SHG:
-			return "SHG ";
-		case RGX_KICK_TYPE_DM_TQ2D:
-			return "TQ2D ";
-		case RGX_KICK_TYPE_DM_TQ3D:
-			return "TQ3D ";
-		default:
-			return "Invalid DM ";
+	case RGX_KICK_TYPE_DM_GP:
+		return "GP ";
+	case RGX_KICK_TYPE_DM_TDM_2D:
+		return "TDM/2D ";
+	case RGX_KICK_TYPE_DM_TA:
+		return "TA ";
+	case RGX_KICK_TYPE_DM_3D:
+		return "3D ";
+	case RGX_KICK_TYPE_DM_CDM:
+		return "CDM ";
+	case RGX_KICK_TYPE_DM_RTU:
+		return "RTU ";
+	case RGX_KICK_TYPE_DM_SHG:
+		return "SHG ";
+	case RGX_KICK_TYPE_DM_TQ2D:
+		return "TQ2D ";
+	case RGX_KICK_TYPE_DM_TQ3D:
+		return "TQ3D ";
+	default:
+		return "Invalid DM ";
 	}
 }
 
@@ -220,81 +207,72 @@ PHYS_HEAP_POLICY RGXPhysHeapGetLMAPolicy(PHYS_HEAP_USAGE_FLAGS ui32UsageFlags)
 {
 	PHYS_HEAP_POLICY ui32Policy;
 
-	if (OSIsMapPhysNonContigSupported())
-	{
+	if (OSIsMapPhysNonContigSupported()) {
 		ui32Policy = PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG;
 
 		if (BITMASK_ANY(ui32UsageFlags,
-			(PHYS_HEAP_USAGE_FW_SHARED    |
-			 PHYS_HEAP_USAGE_FW_PRIVATE   |
-			 PHYS_HEAP_USAGE_FW_PREMAP_PT |
-			 PHYS_HEAP_USAGE_FW_CODE      |
-			 PHYS_HEAP_USAGE_FW_PRIV_DATA)))
-		{
-			if (PVRSRV_VZ_MODE_IS(GUEST))
-			{
+				(PHYS_HEAP_USAGE_FW_SHARED |
+				 PHYS_HEAP_USAGE_FW_PRIVATE |
+				 PHYS_HEAP_USAGE_FW_PREMAP_PT |
+				 PHYS_HEAP_USAGE_FW_CODE |
+				 PHYS_HEAP_USAGE_FW_PRIV_DATA))) {
+			if (PVRSRV_VZ_MODE_IS(GUEST)) {
 				/* Guest Firmware heaps are always premepped */
 				ui32Policy = PHYS_HEAP_POLICY_DEFAULT;
 			}
 #if defined(RGX_PREMAP_FW_HEAPS)
-			else if (PVRSRV_VZ_MODE_IS(HOST))
-			{
+			else if (PVRSRV_VZ_MODE_IS(HOST)) {
 				/* All Firmware heaps are premapped under AutoVz*/
 				ui32Policy = PHYS_HEAP_POLICY_DEFAULT;
 			}
 #endif
 		}
 
-		if (BITMASK_ANY(ui32UsageFlags, PHYS_HEAP_USAGE_FW_PREMAP))
-		{
+		if (BITMASK_ANY(ui32UsageFlags, PHYS_HEAP_USAGE_FW_PREMAP)) {
 			ui32Policy = PHYS_HEAP_POLICY_DEFAULT;
 		}
-	}
-	else
-	{
+	} else {
 		ui32Policy = PHYS_HEAP_POLICY_DEFAULT;
 	}
 
 	return ui32Policy;
 }
 
-IMG_BOOL RGXIsErrorAndDeviceRecoverable(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_ERROR *peError)
+IMG_BOOL RGXIsErrorAndDeviceRecoverable(PVRSRV_DEVICE_NODE *psDeviceNode,
+					PVRSRV_ERROR *peError)
 {
 	IMG_BOOL bRecoverable = IMG_TRUE;
 
-	if (*peError == PVRSRV_OK)
-	{
+	if (*peError == PVRSRV_OK) {
 		/* No recovery required */
 		return IMG_FALSE;
 	}
 
-	if (!PVRSRVIsStatusRecoverable(OSAtomicRead(&psDeviceNode->eHealthStatus)))
-	{
+	if (!PVRSRVIsStatusRecoverable(
+		    OSAtomicRead(&psDeviceNode->eHealthStatus))) {
 		bRecoverable = IMG_FALSE;
-	}
-	else
-	{
+	} else {
 		RGXUpdateHealthStatus(psDeviceNode, IMG_FALSE);
 
-		if (!PVRSRVIsStatusRecoverable(OSAtomicRead(&psDeviceNode->eHealthStatus)))
-		{
+		if (!PVRSRVIsStatusRecoverable(
+			    OSAtomicRead(&psDeviceNode->eHealthStatus))) {
 			bRecoverable = IMG_FALSE;
 		}
 	}
 
-	if (bRecoverable && !PVRSRVIsRetryError(*peError))
-	{
-		PVR_DPF((PVR_DBG_WARNING,
-				 "%s: Device is recoverable. Changing error type (%s) to retry.",
-				 __func__, PVRSRVGetErrorString(*peError)));
+	if (bRecoverable && !PVRSRVIsRetryError(*peError)) {
+		PVR_DPF((
+			PVR_DBG_WARNING,
+			"%s: Device is recoverable. Changing error type (%s) to retry.",
+			__func__, PVRSRVGetErrorString(*peError)));
 		*peError = PVRSRV_ERROR_RETRY;
 	}
 
-	if (!bRecoverable && PVRSRVIsRetryError(*peError))
-	{
-		PVR_DPF((PVR_DBG_WARNING,
-				 "%s: Device is not recoverable. Error type should not be retry (%s).",
-				 __func__, PVRSRVGetErrorString(*peError)));
+	if (!bRecoverable && PVRSRVIsRetryError(*peError)) {
+		PVR_DPF((
+			PVR_DBG_WARNING,
+			"%s: Device is not recoverable. Error type should not be retry (%s).",
+			__func__, PVRSRVGetErrorString(*peError)));
 		*peError = PVRSRV_ERROR_INVALID_PARAMS;
 	}
 

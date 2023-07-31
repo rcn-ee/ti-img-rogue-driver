@@ -52,7 +52,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "device.h"
 #include "pvr_notifier.h"
 
-
 /**************************************************************************/ /*!
  @Function     SOPvrDbgRequestNotifyRegister
  @Description  SO Interface function called from the OS layer implementation.
@@ -73,11 +72,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
                                     the callback function
 @Return        PVRSRV_ERROR         PVRSRV_OK on success and an error otherwise
 */ /******************************************************************** ******/
-PVRSRV_ERROR SOPvrDbgRequestNotifyRegister(IMG_HANDLE *phNotify,
-							  PVRSRV_DEVICE_NODE *psDevNode,
-							  PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-							  IMG_UINT32 ui32RequesterID,
-							  PVRSRV_DBGREQ_HANDLE hDbgRequestHandle);
+PVRSRV_ERROR SOPvrDbgRequestNotifyRegister(
+	IMG_HANDLE *phNotify, PVRSRV_DEVICE_NODE *psDevNode,
+	PFN_DBGREQ_NOTIFY pfnDbgRequestNotify, IMG_UINT32 ui32RequesterID,
+	PVRSRV_DBGREQ_HANDLE hDbgRequestHandle);
 
 /**************************************************************************/ /*!
  @Function     SOPvrDbgRequestNotifyUnregister
@@ -89,6 +87,5 @@ PVRSRV_ERROR SOPvrDbgRequestNotifyRegister(IMG_HANDLE *phNotify,
  @Return       PVRSRV_ERROR
 */ /***************************************************************************/
 PVRSRV_ERROR SOPvrDbgRequestNotifyUnregister(IMG_HANDLE hNotify);
-
 
 #endif /* SOFUNC_PVR_H_ */

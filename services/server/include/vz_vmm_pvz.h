@@ -69,7 +69,7 @@ void PvzConnectionDeInit(void);
                 or make a VM manager to host pvzbridge call
 @Return         VMM_PVZ_CONNECTION* on success. Otherwise NULL
 ******************************************************************************/
-VMM_PVZ_CONNECTION* PvzConnectionAcquire(void);
+VMM_PVZ_CONNECTION *PvzConnectionAcquire(void);
 void PvzConnectionRelease(VMM_PVZ_CONNECTION *psPvzConnection);
 
 #endif /* VZ_VMM_PVZ_H */

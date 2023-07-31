@@ -46,15 +46,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
 #if defined(__linux__) && defined(__KERNEL__)
- #include <linux/version.h>
+#include <linux/version.h>
 
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
-  #include <linux/stdarg.h>
- #else
-  #include <stdarg.h>
- #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+#include <linux/stdarg.h>
 #else
- #include <stdarg.h>
+#include <stdarg.h>
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#else
+#include <stdarg.h>
 #endif /* __linux__ */
 
 #include "htbuffer.h"
@@ -64,8 +64,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* The group flags array of ints large enough to store all the group flags
  * NB: This will only work while all logging is in the kernel
  */
-IMG_INTERNAL HTB_FLAG_EL_T g_auiHTBGroupEnable[HTB_FLAG_NUM_EL] = {0};
-
+IMG_INTERNAL HTB_FLAG_EL_T g_auiHTBGroupEnable[HTB_FLAG_NUM_EL] = { 0 };
 
 /*************************************************************************/ /*!
  @Function      HTBControl
@@ -81,26 +80,17 @@ IMG_INTERNAL HTB_FLAG_EL_T g_auiHTBGroupEnable[HTB_FLAG_NUM_EL] = {0};
  @Return        eError          Internal services call returned eError error
                                 number
 */ /**************************************************************************/
-IMG_INTERNAL PVRSRV_ERROR
-HTBControl(
-	IMG_HANDLE hSrvHandle,
-	IMG_UINT32 ui32NumFlagGroups,
-	IMG_UINT32 * aui32GroupEnable,
-	IMG_UINT32 ui32LogLevel,
-	IMG_UINT32 ui32EnablePID,
-	HTB_LOGMODE_CTRL eLogPidMode,
-	HTB_OPMODE_CTRL eOpMode
-)
+IMG_INTERNAL PVRSRV_ERROR HTBControl(IMG_HANDLE hSrvHandle,
+				     IMG_UINT32 ui32NumFlagGroups,
+				     IMG_UINT32 *aui32GroupEnable,
+				     IMG_UINT32 ui32LogLevel,
+				     IMG_UINT32 ui32EnablePID,
+				     HTB_LOGMODE_CTRL eLogPidMode,
+				     HTB_OPMODE_CTRL eOpMode)
 {
-	return BridgeHTBControl(
-			hSrvHandle,
-			ui32NumFlagGroups,
-			aui32GroupEnable,
-			ui32LogLevel,
-			ui32EnablePID,
-			eLogPidMode,
-			eOpMode
-			);
+	return BridgeHTBControl(hSrvHandle, ui32NumFlagGroups, aui32GroupEnable,
+				ui32LogLevel, ui32EnablePID, eLogPidMode,
+				eOpMode);
 }
 
 /* EOF */

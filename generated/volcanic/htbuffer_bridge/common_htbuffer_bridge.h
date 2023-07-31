@@ -54,17 +54,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "devicemem_typedefs.h"
 #include "htbuffer_types.h"
 
-#define PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST			0
-#define PVRSRV_BRIDGE_HTBUFFER_HTBCONTROL			PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST+0
-#define PVRSRV_BRIDGE_HTBUFFER_CMD_LAST			(PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST+0)
+#define PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST 0
+#define PVRSRV_BRIDGE_HTBUFFER_HTBCONTROL PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST + 0
+#define PVRSRV_BRIDGE_HTBUFFER_CMD_LAST (PVRSRV_BRIDGE_HTBUFFER_CMD_FIRST + 0)
 
 /*******************************************
             HTBControl
  *******************************************/
 
 /* Bridge in structure for HTBControl */
-typedef struct PVRSRV_BRIDGE_IN_HTBCONTROL_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_HTBCONTROL_TAG {
 	IMG_UINT32 *pui32GroupEnable;
 	IMG_UINT32 ui32EnablePID;
 	IMG_UINT32 ui32LogLevel;
@@ -74,8 +73,7 @@ typedef struct PVRSRV_BRIDGE_IN_HTBCONTROL_TAG
 } __packed PVRSRV_BRIDGE_IN_HTBCONTROL;
 
 /* Bridge out structure for HTBControl */
-typedef struct PVRSRV_BRIDGE_OUT_HTBCONTROL_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_HTBCONTROL_TAG {
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_HTBCONTROL;
 

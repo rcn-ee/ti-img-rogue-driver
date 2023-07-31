@@ -75,9 +75,8 @@ PVRSRV_ERROR PVRGpuTraceInitStream(PVRSRV_RGXDEV_INFO *psDevInfo);
 void PVRGpuTraceDeInitDevice(PVRSRV_DEVICE_NODE *psDeviceNode);
 
 /* Enables the gpu trace sub-system for a given device. */
-PVRSRV_ERROR PVRGpuTraceSetEnabled(
-		PVRSRV_DEVICE_NODE *psDeviceNode,
-		IMG_BOOL bNewValue);
+PVRSRV_ERROR PVRGpuTraceSetEnabled(PVRSRV_DEVICE_NODE *psDeviceNode,
+				   IMG_BOOL bNewValue);
 
 /* Performs some initialisation steps if the feature was enabled
  * on driver startup. */
@@ -93,28 +92,31 @@ void PVRGpuTraceDisableFirmwareActivityCallback(void);
 
 #if defined(PVRSRV_ANDROID_TRACE_GPU_WORK_PERIOD)
 PVRSRV_ERROR
-PVRSRVGpuTraceWorkPeriodEventStatsRegister(IMG_HANDLE*
-		phGpuWorkPeriodEventStats);
+PVRSRVGpuTraceWorkPeriodEventStatsRegister(
+	IMG_HANDLE *phGpuWorkPeriodEventStats);
 void PVRSRVGpuTraceWorkPeriodEventStatsUnregister(
-		IMG_HANDLE hGpuWorkPeriodEventStats);
+	IMG_HANDLE hGpuWorkPeriodEventStats);
 #endif /* defined(PVRSRV_ANDROID_TRACE_GPU_WORK_PERIOD) */
 
 #else /* defined(__linux__) && defined(CONFIG_EVENT_TRACING) */
 
-static inline PVRSRV_ERROR PVRGpuTraceSupportInit(void) {
+static inline PVRSRV_ERROR PVRGpuTraceSupportInit(void)
+{
 	return PVRSRV_OK;
 }
 
-static inline void PVRGpuTraceSupportDeInit(void) {}
+static inline void PVRGpuTraceSupportDeInit(void)
+{
+}
 
-static inline void PVRGpuTraceInitAppHintCallbacks(
-		const PVRSRV_DEVICE_NODE *psDeviceNode)
+static inline void
+PVRGpuTraceInitAppHintCallbacks(const PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
 }
 
-static inline PVRSRV_ERROR PVRGpuTraceInitDevice(
-		PVRSRV_DEVICE_NODE *psDeviceNode)
+static inline PVRSRV_ERROR
+PVRGpuTraceInitDevice(PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
 	return PVRSRV_OK;
@@ -131,9 +133,8 @@ static inline void PVRGpuTraceDeInitDevice(PVRSRV_DEVICE_NODE *psDeviceNode)
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
 }
 
-static inline PVRSRV_ERROR PVRGpuTraceSetEnabled(
-		PVRSRV_DEVICE_NODE *psDeviceNode,
-		IMG_BOOL bNewValue)
+static inline PVRSRV_ERROR
+PVRGpuTraceSetEnabled(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_BOOL bNewValue)
 {
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
 	PVR_UNREFERENCED_PARAMETER(bNewValue);
@@ -145,31 +146,38 @@ static inline void PVRGpuTraceInitIfEnabled(PVRSRV_DEVICE_NODE *psDeviceNode)
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
 }
 
-static inline void PVRGpuTraceEnableUfoCallback(void) {}
-static inline void PVRGpuTraceDisableUfoCallback(void) {}
+static inline void PVRGpuTraceEnableUfoCallback(void)
+{
+}
+static inline void PVRGpuTraceDisableUfoCallback(void)
+{
+}
 
-static inline void PVRGpuTraceEnableFirmwareActivityCallback(void) {}
-static inline void PVRGpuTraceDisableFirmwareActivityCallback(void) {}
+static inline void PVRGpuTraceEnableFirmwareActivityCallback(void)
+{
+}
+static inline void PVRGpuTraceDisableFirmwareActivityCallback(void)
+{
+}
 
 #endif /* defined(__linux__) && defined(CONFIG_EVENT_TRACING) */
 
-#if defined(__linux__) && defined(CONFIG_EVENT_TRACING) && defined(PVRSRV_TRACE_ROGUE_EVENTS)
+#if defined(__linux__) && defined(CONFIG_EVENT_TRACING) && \
+	defined(PVRSRV_TRACE_ROGUE_EVENTS)
 
-void PVRGpuTraceEnqueueEvent(
-		PVRSRV_DEVICE_NODE *psDevNode,
-		IMG_UINT32 ui32FirmwareCtx,
-		IMG_UINT32 ui32ExternalJobRef,
-		IMG_UINT32 ui32InternalJobRef,
-		RGX_HWPERF_KICK_TYPE eKickType);
+void PVRGpuTraceEnqueueEvent(PVRSRV_DEVICE_NODE *psDevNode,
+			     IMG_UINT32 ui32FirmwareCtx,
+			     IMG_UINT32 ui32ExternalJobRef,
+			     IMG_UINT32 ui32InternalJobRef,
+			     RGX_HWPERF_KICK_TYPE eKickType);
 
 #else
 
-static inline void PVRGpuTraceEnqueueEvent(
-		PVRSRV_DEVICE_NODE *psDevNode,
-		IMG_UINT32 ui32FirmwareCtx,
-		IMG_UINT32 ui32ExternalJobRef,
-		IMG_UINT32 ui32InternalJobRef,
-		RGX_HWPERF_KICK_TYPE eKickType)
+static inline void PVRGpuTraceEnqueueEvent(PVRSRV_DEVICE_NODE *psDevNode,
+					   IMG_UINT32 ui32FirmwareCtx,
+					   IMG_UINT32 ui32ExternalJobRef,
+					   IMG_UINT32 ui32InternalJobRef,
+					   RGX_HWPERF_KICK_TYPE eKickType)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	PVR_UNREFERENCED_PARAMETER(ui32FirmwareCtx);

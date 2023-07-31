@@ -53,14 +53,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "osfunc.h"
 #include "sofunc_pvr.h"
 
-#define PVR_DUMP_DRIVER_INFO(x, y)														\
-	PVR_DUMPDEBUG_LOG("%s info: %d.%d @ %8d (%s) build options: 0x%08x",				\
-					   (x),																\
-					   PVRVERSION_UNPACK_MAJ((y).ui32BuildVersion),						\
-					   PVRVERSION_UNPACK_MIN((y).ui32BuildVersion),						\
-					   (y).ui32BuildRevision,											\
-					   (BUILD_TYPE_DEBUG == (y).ui32BuildType) ? "debug":"release",		\
-					   (y).ui32BuildOptions);
+#define PVR_DUMP_DRIVER_INFO(x, y)                                             \
+	PVR_DUMPDEBUG_LOG("%s info: %d.%d @ %8d (%s) build options: 0x%08x",   \
+			  (x), PVRVERSION_UNPACK_MAJ((y).ui32BuildVersion),    \
+			  PVRVERSION_UNPACK_MIN((y).ui32BuildVersion),         \
+			  (y).ui32BuildRevision,                               \
+			  (BUILD_TYPE_DEBUG == (y).ui32BuildType) ? "debug" :  \
+								    "release", \
+			  (y).ui32BuildOptions);
 
 #if !defined(WINDOW_SYSTEM)
 #define WINDOW_SYSTEM "Unknown"
@@ -72,11 +72,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Command Complete Notifier Interface
 */ /**************************************************************************/
 
-typedef struct PVRSRV_CMDCOMP_NOTIFY_TAG
-{
-	PVRSRV_CMDCOMP_HANDLE	hCmdCompHandle;
-	PFN_CMDCOMP_NOTIFY		pfnCmdCompleteNotify;
-	DLLIST_NODE				sListNode;
+typedef struct PVRSRV_CMDCOMP_NOTIFY_TAG {
+	PVRSRV_CMDCOMP_HANDLE hCmdCompHandle;
+	PFN_CMDCOMP_NOTIFY pfnCmdCompleteNotify;
+	DLLIST_NODE sListNode;
 } PVRSRV_CMDCOMP_NOTIFY;
 
 /* Head of the list of callbacks called when command complete happens */
@@ -96,47 +95,46 @@ PVRSRVCmdCompleteInit(void)
 	return PVRSRV_OK;
 }
 
-void
-PVRSRVCmdCompleteDeinit(void)
+void PVRSRVCmdCompleteDeinit(void)
 {
 	/* Check that all notify function have been unregistered */
-	if (!dllist_is_empty(&g_sCmdCompNotifyHead))
-	{
+	if (!dllist_is_empty(&g_sCmdCompNotifyHead)) {
 		PDLLIST_NODE psNode;
 
 		PVR_DPF((PVR_DBG_ERROR,
-				"%s: Command complete notify list is not empty!", __func__));
+			 "%s: Command complete notify list is not empty!",
+			 __func__));
 
 		/* Clean up any stragglers */
 		psNode = dllist_get_next_node(&g_sCmdCompNotifyHead);
-		while (psNode)
-		{
+		while (psNode) {
 			PVRSRV_CMDCOMP_NOTIFY *psNotify;
 
 			dllist_remove_node(psNode);
 
-			psNotify = IMG_CONTAINER_OF(psNode, PVRSRV_CMDCOMP_NOTIFY, sListNode);
+			psNotify = IMG_CONTAINER_OF(
+				psNode, PVRSRV_CMDCOMP_NOTIFY, sListNode);
 			OSFreeMem(psNotify);
 
 			psNode = dllist_get_next_node(&g_sCmdCompNotifyHead);
 		}
 	}
 
-	if (g_hCmdCompNotifyLock)
-	{
+	if (g_hCmdCompNotifyLock) {
 		OSWRLockDestroy(g_hCmdCompNotifyLock);
 	}
 }
 
 PVRSRV_ERROR
 PVRSRVRegisterCmdCompleteNotify(IMG_HANDLE *phNotify,
-								PFN_CMDCOMP_NOTIFY pfnCmdCompleteNotify,
-								PVRSRV_CMDCOMP_HANDLE hCmdCompHandle)
+				PFN_CMDCOMP_NOTIFY pfnCmdCompleteNotify,
+				PVRSRV_CMDCOMP_HANDLE hCmdCompHandle)
 {
 	PVRSRV_CMDCOMP_NOTIFY *psNotify;
 
 	PVR_LOG_RETURN_IF_INVALID_PARAM(phNotify, "phNotify");
-	PVR_LOG_RETURN_IF_INVALID_PARAM(pfnCmdCompleteNotify, "pfnCmdCompleteNotify");
+	PVR_LOG_RETURN_IF_INVALID_PARAM(pfnCmdCompleteNotify,
+					"pfnCmdCompleteNotify");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(hCmdCompHandle, "hCmdCompHandle");
 
 	psNotify = OSAllocMem(sizeof(*psNotify));
@@ -161,7 +159,7 @@ PVRSRVUnregisterCmdCompleteNotify(IMG_HANDLE hNotify)
 {
 	PVRSRV_CMDCOMP_NOTIFY *psNotify;
 
-	psNotify = (PVRSRV_CMDCOMP_NOTIFY *) hNotify;
+	psNotify = (PVRSRV_CMDCOMP_NOTIFY *)hNotify;
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psNotify, "hNotify");
 
 	OSWRLockAcquireWrite(g_hCmdCompNotifyLock);
@@ -173,8 +171,7 @@ PVRSRVUnregisterCmdCompleteNotify(IMG_HANDLE hNotify)
 	return PVRSRV_OK;
 }
 
-void
-PVRSRVNotifyCommandCompletion(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle)
+void PVRSRVNotifyCommandCompletion(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle)
 {
 #if !defined(NO_HARDWARE)
 	DLLIST_NODE *psNode, *psNext;
@@ -183,38 +180,34 @@ PVRSRVNotifyCommandCompletion(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle)
 	OSWRLockAcquireRead(g_hCmdCompNotifyLock);
 	dllist_foreach_node(&g_sCmdCompNotifyHead, psNode, psNext)
 	{
-		PVRSRV_CMDCOMP_NOTIFY *psNotify =
-			IMG_CONTAINER_OF(psNode, PVRSRV_CMDCOMP_NOTIFY, sListNode);
+		PVRSRV_CMDCOMP_NOTIFY *psNotify = IMG_CONTAINER_OF(
+			psNode, PVRSRV_CMDCOMP_NOTIFY, sListNode);
 
-		if (hCmdCompCallerHandle != psNotify->hCmdCompHandle)
-		{
-			psNotify->pfnCmdCompleteNotify(psNotify->hCmdCompHandle);
+		if (hCmdCompCallerHandle != psNotify->hCmdCompHandle) {
+			psNotify->pfnCmdCompleteNotify(
+				psNotify->hCmdCompHandle);
 		}
 	}
 	OSWRLockReleaseRead(g_hCmdCompNotifyLock);
 #endif
 }
 
-inline void
-PVRSRVSignalDriverWideEO(void)
+inline void PVRSRVSignalDriverWideEO(void)
 {
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 
-	if (psPVRSRVData->hGlobalEventObject)
-	{
+	if (psPVRSRVData->hGlobalEventObject) {
 		OSEventObjectSignal(psPVRSRVData->hGlobalEventObject);
 	}
 	/* Cleanup Thread could be waiting on Cleanup event object,
 	 * signal it as well to ensure work is processed
 	 */
-	if (psPVRSRVData->hCleanupEventObject)
-	{
+	if (psPVRSRVData->hCleanupEventObject) {
 		OSEventObjectSignal(psPVRSRVData->hCleanupEventObject);
 	}
 }
 
-inline void
-PVRSRVCheckStatus(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle)
+inline void PVRSRVCheckStatus(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle)
 {
 	PVRSRVNotifyCommandCompletion(hCmdCompCallerHandle);
 	PVRSRVSignalDriverWideEO();
@@ -231,25 +224,22 @@ Debug Notifier Interface
 #define DN_LOCKCLASS_DRIVER 0
 #define DN_LOCKCLASS_DEVICE 1
 
-typedef struct DEBUG_REQUEST_ENTRY_TAG
-{
-	IMG_UINT32      ui32RequesterID;
-	DLLIST_NODE     sListHead;
+typedef struct DEBUG_REQUEST_ENTRY_TAG {
+	IMG_UINT32 ui32RequesterID;
+	DLLIST_NODE sListHead;
 } DEBUG_REQUEST_ENTRY;
 
-typedef struct DEBUG_REQUEST_TABLE_TAG
-{
-	POSWR_LOCK              hLock;
-	DEBUG_REQUEST_ENTRY     asEntry[1];
+typedef struct DEBUG_REQUEST_TABLE_TAG {
+	POSWR_LOCK hLock;
+	DEBUG_REQUEST_ENTRY asEntry[1];
 } DEBUG_REQUEST_TABLE;
 
-typedef struct DEBUG_REQUEST_NOTIFY_TAG
-{
-	IMG_HANDLE              hDebugTable;
-	PVRSRV_DBGREQ_HANDLE    hDbgRequestHandle;
-	PFN_DBGREQ_NOTIFY       pfnDbgRequestNotify;
-	IMG_UINT32              ui32RequesterID;
-	DLLIST_NODE             sListNode;
+typedef struct DEBUG_REQUEST_NOTIFY_TAG {
+	IMG_HANDLE hDebugTable;
+	PVRSRV_DBGREQ_HANDLE hDbgRequestHandle;
+	PFN_DBGREQ_NOTIFY pfnDbgRequestNotify;
+	IMG_UINT32 ui32RequesterID;
+	DLLIST_NODE sListNode;
 } DEBUG_REQUEST_NOTIFY;
 
 static DEBUG_REQUEST_TABLE *g_psDriverDebugTable;
@@ -267,31 +257,31 @@ static const IMG_UINT32 g_aui32DebugOrderTable[] = {
 	DEBUG_REQUEST_FALLBACKSYNC,
 	DEBUG_REQUEST_LINUXFENCE
 };
-static const IMG_UINT32 g_ui32DebugOrderTableReqCount = ARRAY_SIZE(g_aui32DebugOrderTable);
+static const IMG_UINT32 g_ui32DebugOrderTableReqCount =
+	ARRAY_SIZE(g_aui32DebugOrderTable);
 
-static PVRSRV_ERROR
-_RegisterDebugTableI(DEBUG_REQUEST_TABLE **ppsDebugTable)
+static PVRSRV_ERROR _RegisterDebugTableI(DEBUG_REQUEST_TABLE **ppsDebugTable)
 {
 	DEBUG_REQUEST_TABLE *psDebugTable;
 	IMG_UINT32 i;
 	PVRSRV_ERROR eError;
 
-	if (*ppsDebugTable)
-	{
+	if (*ppsDebugTable) {
 		return PVRSRV_ERROR_DBGTABLE_ALREADY_REGISTERED;
 	}
 
 	psDebugTable = OSAllocMem(sizeof(DEBUG_REQUEST_TABLE) +
-							  (sizeof(DEBUG_REQUEST_ENTRY) * (g_ui32DebugOrderTableReqCount-1)));
+				  (sizeof(DEBUG_REQUEST_ENTRY) *
+				   (g_ui32DebugOrderTableReqCount - 1)));
 	PVR_RETURN_IF_NOMEM(psDebugTable);
 
 	eError = OSWRLockCreate(&psDebugTable->hLock);
 	PVR_GOTO_IF_ERROR(eError, ErrorFreeDebugTable);
 
 	/* Init the list heads */
-	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++)
-	{
-		psDebugTable->asEntry[i].ui32RequesterID = g_aui32DebugOrderTable[i];
+	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++) {
+		psDebugTable->asEntry[i].ui32RequesterID =
+			g_aui32DebugOrderTable[i];
 		dllist_init(&psDebugTable->asEntry[i].sListHead);
 	}
 
@@ -308,7 +298,8 @@ ErrorFreeDebugTable:
 PVRSRV_ERROR
 PVRSRVRegisterDeviceDbgTable(PVRSRV_DEVICE_NODE *psDevNode)
 {
-	return _RegisterDebugTableI((DEBUG_REQUEST_TABLE**)&psDevNode->hDebugTable);
+	return _RegisterDebugTableI(
+		(DEBUG_REQUEST_TABLE **)&psDevNode->hDebugTable);
 }
 
 PVRSRV_ERROR
@@ -326,12 +317,11 @@ static void _UnregisterDbgTableI(DEBUG_REQUEST_TABLE **ppsDebugTable)
 	psDebugTable = *ppsDebugTable;
 	*ppsDebugTable = NULL;
 
-	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++)
-	{
-		if (!dllist_is_empty(&psDebugTable->asEntry[i].sListHead))
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Found registered callback(s) on %d",
-					 __func__, i));
+	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++) {
+		if (!dllist_is_empty(&psDebugTable->asEntry[i].sListHead)) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Found registered callback(s) on %d",
+				 __func__, i));
 		}
 	}
 
@@ -341,26 +331,22 @@ static void _UnregisterDbgTableI(DEBUG_REQUEST_TABLE **ppsDebugTable)
 	OSFreeMem(psDebugTable);
 }
 
-void
-PVRSRVUnregisterDeviceDbgTable(PVRSRV_DEVICE_NODE *psDevNode)
+void PVRSRVUnregisterDeviceDbgTable(PVRSRV_DEVICE_NODE *psDevNode)
 {
-	_UnregisterDbgTableI((DEBUG_REQUEST_TABLE**)&psDevNode->hDebugTable);
+	_UnregisterDbgTableI((DEBUG_REQUEST_TABLE **)&psDevNode->hDebugTable);
 	PVR_ASSERT(!psDevNode->hDebugTable);
 }
 
-void
-PVRSRVUnregisterDriverDbgTable(void)
+void PVRSRVUnregisterDriverDbgTable(void)
 {
 	_UnregisterDbgTableI(&g_psDriverDebugTable);
 	PVR_ASSERT(!g_psDriverDebugTable);
 }
 
-static PVRSRV_ERROR
-_RegisterDbgRequestNotifyI(IMG_HANDLE *phNotify,
-		                   DEBUG_REQUEST_TABLE *psDebugTable,
-		                   PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-		                   IMG_UINT32 ui32RequesterID,
-		                   PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
+static PVRSRV_ERROR _RegisterDbgRequestNotifyI(
+	IMG_HANDLE *phNotify, DEBUG_REQUEST_TABLE *psDebugTable,
+	PFN_DBGREQ_NOTIFY pfnDbgRequestNotify, IMG_UINT32 ui32RequesterID,
+	PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
 {
 	DEBUG_REQUEST_NOTIFY *psNotify;
 	PDLLIST_NODE psHead = NULL;
@@ -369,7 +355,8 @@ _RegisterDbgRequestNotifyI(IMG_HANDLE *phNotify,
 
 	PVR_LOG_RETURN_IF_INVALID_PARAM(phNotify, "phNotify");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psDebugTable, "psDebugTable");
-	PVR_LOG_RETURN_IF_INVALID_PARAM(pfnDbgRequestNotify, "pfnDbRequestNotify");
+	PVR_LOG_RETURN_IF_INVALID_PARAM(pfnDbgRequestNotify,
+					"pfnDbRequestNotify");
 
 	/* NoStats used since this may be called outside of the register/de-register
 	 * process calls which track memory use. */
@@ -386,10 +373,9 @@ _RegisterDbgRequestNotifyI(IMG_HANDLE *phNotify,
 	OSWRLockAcquireWrite(psDebugTable->hLock);
 
 	/* Find which list to add it to */
-	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++)
-	{
-		if (psDebugTable->asEntry[i].ui32RequesterID == ui32RequesterID)
-		{
+	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++) {
+		if (psDebugTable->asEntry[i].ui32RequesterID ==
+		    ui32RequesterID) {
 			psHead = &psDebugTable->asEntry[i].sListHead;
 		}
 	}
@@ -416,69 +402,63 @@ ErrorReleaseLock:
 
 PVRSRV_ERROR
 PVRSRVRegisterDeviceDbgRequestNotify(IMG_HANDLE *phNotify,
-	                                 PVRSRV_DEVICE_NODE *psDevNode,
-	                                 PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-	                                 IMG_UINT32 ui32RequesterID,
-	                                 PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
+				     PVRSRV_DEVICE_NODE *psDevNode,
+				     PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
+				     IMG_UINT32 ui32RequesterID,
+				     PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
 {
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psDevNode, "psDevNode");
-	if (!psDevNode->hDebugTable)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: psDevNode->hDebugTable not yet initialised!",
-				 __func__));
+	if (!psDevNode->hDebugTable) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: psDevNode->hDebugTable not yet initialised!",
+			 __func__));
 		return PVRSRV_ERROR_NOT_INITIALISED;
 	}
 
-	return _RegisterDbgRequestNotifyI(phNotify,
-			                          (DEBUG_REQUEST_TABLE *)psDevNode->hDebugTable,
-			                          pfnDbgRequestNotify,
-			                          ui32RequesterID,
-			                          hDbgRequestHandle);
+	return _RegisterDbgRequestNotifyI(
+		phNotify, (DEBUG_REQUEST_TABLE *)psDevNode->hDebugTable,
+		pfnDbgRequestNotify, ui32RequesterID, hDbgRequestHandle);
 }
 
 PVRSRV_ERROR
 PVRSRVRegisterDriverDbgRequestNotify(IMG_HANDLE *phNotify,
-	                                 PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-	                                 IMG_UINT32 ui32RequesterID,
-	                                 PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
+				     PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
+				     IMG_UINT32 ui32RequesterID,
+				     PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
 {
-	if (!g_psDriverDebugTable)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: g_psDriverDebugTable not yet initialised!",
-				 __func__));
+	if (!g_psDriverDebugTable) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: g_psDriverDebugTable not yet initialised!",
+			 __func__));
 		return PVRSRV_ERROR_NOT_INITIALISED;
 	}
 
-	return _RegisterDbgRequestNotifyI(phNotify,
-			                          g_psDriverDebugTable,
-			                          pfnDbgRequestNotify,
-			                          ui32RequesterID,
-			                          hDbgRequestHandle);
+	return _RegisterDbgRequestNotifyI(phNotify, g_psDriverDebugTable,
+					  pfnDbgRequestNotify, ui32RequesterID,
+					  hDbgRequestHandle);
 }
 
 PVRSRV_ERROR
 SOPvrDbgRequestNotifyRegister(IMG_HANDLE *phNotify,
-							  PVRSRV_DEVICE_NODE *psDevNode,
-							  PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-							  IMG_UINT32 ui32RequesterID,
-							  PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
+			      PVRSRV_DEVICE_NODE *psDevNode,
+			      PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
+			      IMG_UINT32 ui32RequesterID,
+			      PVRSRV_DBGREQ_HANDLE hDbgRequestHandle)
 {
-	return PVRSRVRegisterDeviceDbgRequestNotify(phNotify,
-			psDevNode,
-			pfnDbgRequestNotify,
-			ui32RequesterID,
-			hDbgRequestHandle);
+	return PVRSRVRegisterDeviceDbgRequestNotify(phNotify, psDevNode,
+						    pfnDbgRequestNotify,
+						    ui32RequesterID,
+						    hDbgRequestHandle);
 }
 
-static PVRSRV_ERROR
-_UnregisterDbgRequestNotify(IMG_HANDLE hNotify)
+static PVRSRV_ERROR _UnregisterDbgRequestNotify(IMG_HANDLE hNotify)
 {
-	DEBUG_REQUEST_NOTIFY *psNotify = (DEBUG_REQUEST_NOTIFY *) hNotify;
+	DEBUG_REQUEST_NOTIFY *psNotify = (DEBUG_REQUEST_NOTIFY *)hNotify;
 	DEBUG_REQUEST_TABLE *psDebugTable;
 
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psNotify, "psNotify");
 
-	psDebugTable = (DEBUG_REQUEST_TABLE *) psNotify->hDebugTable;
+	psDebugTable = (DEBUG_REQUEST_TABLE *)psNotify->hDebugTable;
 
 	OSWRLockAcquireWrite(psDebugTable->hLock);
 	dllist_remove_node(&psNotify->sListNode);
@@ -507,40 +487,37 @@ SOPvrDbgRequestNotifyUnregister(IMG_HANDLE hNotify)
 	return _UnregisterDbgRequestNotify(hNotify);
 }
 
-void
-PVRSRVDebugRequest(PVRSRV_DEVICE_NODE *psDevNode,
-				   IMG_UINT32 ui32VerbLevel,
-				   DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				   void *pvDumpDebugFile)
+void PVRSRVDebugRequest(PVRSRV_DEVICE_NODE *psDevNode, IMG_UINT32 ui32VerbLevel,
+			DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			void *pvDumpDebugFile)
 {
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 	DEBUG_REQUEST_TABLE *psDebugTable =
-		(DEBUG_REQUEST_TABLE *) psDevNode->hDebugTable;
+		(DEBUG_REQUEST_TABLE *)psDevNode->hDebugTable;
 	DEBUG_REQUEST_TABLE *psDriverDebugTable =
-		(DEBUG_REQUEST_TABLE *) g_psDriverDebugTable;
-	static const IMG_CHAR *apszVerbosityTable[] = { "Low", "Medium", "High" };
+		(DEBUG_REQUEST_TABLE *)g_psDriverDebugTable;
+	static const IMG_CHAR *apszVerbosityTable[] = { "Low", "Medium",
+							"High" };
 	const IMG_CHAR *szVerbosityLevel;
 	const IMG_CHAR *Bit32 = "32 Bit", *Bit64 = "64 Bit";
 	IMG_UINT32 i;
 
-	static_assert(ARRAY_SIZE(apszVerbosityTable) == DEBUG_REQUEST_VERBOSITY_MAX+1,
-	              "Incorrect number of verbosity levels");
+	static_assert(ARRAY_SIZE(apszVerbosityTable) ==
+			      DEBUG_REQUEST_VERBOSITY_MAX + 1,
+		      "Incorrect number of verbosity levels");
 
 	PVR_ASSERT(psDebugTable);
 	PVR_ASSERT(psDriverDebugTable);
 
-	if (ui32VerbLevel < ARRAY_SIZE(apszVerbosityTable))
-	{
+	if (ui32VerbLevel < ARRAY_SIZE(apszVerbosityTable)) {
 		szVerbosityLevel = apszVerbosityTable[ui32VerbLevel];
-	}
-	else
-	{
+	} else {
 		szVerbosityLevel = "unknown";
 		PVR_ASSERT(!"Invalid verbosity level received");
 	}
 
 	PVR_DUMPDEBUG_LOG("------------[ PVR DBG: START (%s) ]------------",
-	                  szVerbosityLevel);
+			  szVerbosityLevel);
 
 #if defined(RGX_IRQ_HYPERV_HANDLER)
 	if (!PVRSRV_VZ_MODE_IS(GUEST))
@@ -549,98 +526,108 @@ PVRSRVDebugRequest(PVRSRV_DEVICE_NODE *psDevNode,
 		OSDumpVersionInfo(pfnDumpDebugPrintf, pvDumpDebugFile);
 	}
 
-	PVR_DUMPDEBUG_LOG("DDK info: %s (%s) %s",
-	                  PVRVERSION_STRING, PVR_BUILD_TYPE, PVR_BUILD_DIR);
+	PVR_DUMPDEBUG_LOG("DDK info: %s (%s) %s", PVRVERSION_STRING,
+			  PVR_BUILD_TYPE, PVR_BUILD_DIR);
 
-	PVR_DUMPDEBUG_LOG("Time now: %" IMG_UINT64_FMTSPEC "us",
-	                  OSClockus64());
+	PVR_DUMPDEBUG_LOG("Time now: %" IMG_UINT64_FMTSPEC "us", OSClockus64());
 
-	switch (psPVRSRVData->eServicesState)
-	{
-		case PVRSRV_SERVICES_STATE_OK:
-			PVR_DUMPDEBUG_LOG("Services State: OK");
-			break;
-		case PVRSRV_SERVICES_STATE_BAD:
-			PVR_DUMPDEBUG_LOG("Services State: BAD");
-			break;
-		case PVRSRV_SERVICES_STATE_UNDEFINED:
-			PVR_DUMPDEBUG_LOG("Services State: UNDEFINED");
-			break;
-		default:
-			PVR_DUMPDEBUG_LOG("Services State: UNKNOWN (%d)",
-			                  psPVRSRVData->eServicesState);
-			break;
+	switch (psPVRSRVData->eServicesState) {
+	case PVRSRV_SERVICES_STATE_OK:
+		PVR_DUMPDEBUG_LOG("Services State: OK");
+		break;
+	case PVRSRV_SERVICES_STATE_BAD:
+		PVR_DUMPDEBUG_LOG("Services State: BAD");
+		break;
+	case PVRSRV_SERVICES_STATE_UNDEFINED:
+		PVR_DUMPDEBUG_LOG("Services State: UNDEFINED");
+		break;
+	default:
+		PVR_DUMPDEBUG_LOG("Services State: UNKNOWN (%d)",
+				  psPVRSRVData->eServicesState);
+		break;
 	}
 
-	PVR_DUMPDEBUG_LOG("Server Errors: %d",
-	          PVRSRV_KM_ERRORS);
+	PVR_DUMPDEBUG_LOG("Server Errors: %d", PVRSRV_KM_ERRORS);
 
-	PVRSRVConnectionDebugNotify(psDevNode, pfnDumpDebugPrintf, pvDumpDebugFile);
+	PVRSRVConnectionDebugNotify(psDevNode, pfnDumpDebugPrintf,
+				    pvDumpDebugFile);
 
 	PVR_DUMPDEBUG_LOG("------[ Driver Info ]------");
 
 	PVR_DUMPDEBUG_LOG("Comparison of UM/KM components: %s",
-	                 (psPVRSRVData->sDriverInfo.bIsNoMatch) ? "MISMATCH" : "MATCHING");
+			  (psPVRSRVData->sDriverInfo.bIsNoMatch) ? "MISMATCH" :
+								   "MATCHING");
 
-	if (psPVRSRVData->sDriverInfo.ui8KMBitArch)
-	{
-		PVR_DUMPDEBUG_LOG("KM Arch: %s",(psPVRSRVData->sDriverInfo.ui8KMBitArch & BUILD_ARCH_64BIT) ? Bit64 : Bit32);
-	}
-	else
-	{
+	if (psPVRSRVData->sDriverInfo.ui8KMBitArch) {
+		PVR_DUMPDEBUG_LOG("KM Arch: %s",
+				  (psPVRSRVData->sDriverInfo.ui8KMBitArch &
+				   BUILD_ARCH_64BIT) ?
+					  Bit64 :
+					  Bit32);
+	} else {
 		PVR_DUMPDEBUG_LOG("KM Arch is undefined");
 	}
 
 	PVR_DUMPDEBUG_LOG("Driver Mode: %s",
-	                  PVRSRV_VZ_MODE_IS(NATIVE) ? "Native" : (PVRSRV_VZ_MODE_IS(HOST)) ? "Host":"Guest");
+			  PVRSRV_VZ_MODE_IS(NATIVE) ? "Native" :
+			  (PVRSRV_VZ_MODE_IS(HOST)) ? "Host" :
+						      "Guest");
 
-	if (psPVRSRVData->sDriverInfo.ui8UMSupportedArch)
-	{
-		if ((psPVRSRVData->sDriverInfo.ui8UMSupportedArch & BUILD_ARCH_BOTH) ==
-			BUILD_ARCH_BOTH)
-		{
-			PVR_DUMPDEBUG_LOG("UM Connected Clients Arch: %s and %s", Bit64, Bit32);
+	if (psPVRSRVData->sDriverInfo.ui8UMSupportedArch) {
+		if ((psPVRSRVData->sDriverInfo.ui8UMSupportedArch &
+		     BUILD_ARCH_BOTH) == BUILD_ARCH_BOTH) {
+			PVR_DUMPDEBUG_LOG(
+				"UM Connected Clients Arch: %s and %s", Bit64,
+				Bit32);
 
-		}
-		else
-		{
-			PVR_DUMPDEBUG_LOG("UM Connected Clients: %s",
-			                 (psPVRSRVData->sDriverInfo.ui8UMSupportedArch & BUILD_ARCH_64BIT) ? Bit64 : Bit32);
+		} else {
+			PVR_DUMPDEBUG_LOG(
+				"UM Connected Clients: %s",
+				(psPVRSRVData->sDriverInfo.ui8UMSupportedArch &
+				 BUILD_ARCH_64BIT) ?
+					Bit64 :
+					Bit32);
 		}
 	}
 
 	PVR_DUMP_DRIVER_INFO("UM", psPVRSRVData->sDriverInfo.sUMBuildInfo);
 	PVR_DUMP_DRIVER_INFO("KM", psPVRSRVData->sDriverInfo.sKMBuildInfo);
 
-	PVR_DUMPDEBUG_LOG("Window system: %s", (IS_DECLARED(WINDOW_SYSTEM)) ? (WINDOW_SYSTEM) : "Not declared");
+	PVR_DUMPDEBUG_LOG("Window system: %s", (IS_DECLARED(WINDOW_SYSTEM)) ?
+						       (WINDOW_SYSTEM) :
+						       "Not declared");
 
 	/* Driver debug table */
-	OSWRLockAcquireReadNested(psDriverDebugTable->hLock, DN_LOCKCLASS_DRIVER);
+	OSWRLockAcquireReadNested(psDriverDebugTable->hLock,
+				  DN_LOCKCLASS_DRIVER);
 	/* Device debug table*/
 	OSWRLockAcquireReadNested(psDebugTable->hLock, DN_LOCKCLASS_DEVICE);
 
 	/* For each requester in Driver and Device table */
-	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++)
-	{
+	for (i = 0; i < g_ui32DebugOrderTableReqCount; i++) {
 		DLLIST_NODE *psNode;
 		DLLIST_NODE *psNext;
 
 		/* For each notifier on this requestor */
-		dllist_foreach_node(&psDriverDebugTable->asEntry[i].sListHead, psNode, psNext)
+		dllist_foreach_node(&psDriverDebugTable->asEntry[i].sListHead,
+				    psNode, psNext)
 		{
-			DEBUG_REQUEST_NOTIFY *psNotify =
-				IMG_CONTAINER_OF(psNode, DEBUG_REQUEST_NOTIFY, sListNode);
-			psNotify->pfnDbgRequestNotify(psNotify->hDbgRequestHandle, ui32VerbLevel,
-				                          pfnDumpDebugPrintf, pvDumpDebugFile);
+			DEBUG_REQUEST_NOTIFY *psNotify = IMG_CONTAINER_OF(
+				psNode, DEBUG_REQUEST_NOTIFY, sListNode);
+			psNotify->pfnDbgRequestNotify(
+				psNotify->hDbgRequestHandle, ui32VerbLevel,
+				pfnDumpDebugPrintf, pvDumpDebugFile);
 		}
 
 		/* For each notifier on this requestor */
-		dllist_foreach_node(&psDebugTable->asEntry[i].sListHead, psNode, psNext)
+		dllist_foreach_node(&psDebugTable->asEntry[i].sListHead, psNode,
+				    psNext)
 		{
-			DEBUG_REQUEST_NOTIFY *psNotify =
-				IMG_CONTAINER_OF(psNode, DEBUG_REQUEST_NOTIFY, sListNode);
-			psNotify->pfnDbgRequestNotify(psNotify->hDbgRequestHandle, ui32VerbLevel,
-							pfnDumpDebugPrintf, pvDumpDebugFile);
+			DEBUG_REQUEST_NOTIFY *psNotify = IMG_CONTAINER_OF(
+				psNode, DEBUG_REQUEST_NOTIFY, sListNode);
+			psNotify->pfnDbgRequestNotify(
+				psNotify->hDbgRequestHandle, ui32VerbLevel,
+				pfnDumpDebugPrintf, pvDumpDebugFile);
 		}
 	}
 
@@ -649,8 +636,7 @@ PVRSRVDebugRequest(PVRSRV_DEVICE_NODE *psDevNode,
 
 	PVR_DUMPDEBUG_LOG("------------[ PVR DBG: END ]------------");
 
-	if (!pfnDumpDebugPrintf)
-	{
+	if (!pfnDumpDebugPrintf) {
 		/* Only notify OS of an issue if the debug dump has gone there */
 		OSWarnOn(IMG_TRUE);
 	}

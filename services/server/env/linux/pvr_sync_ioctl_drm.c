@@ -81,8 +81,7 @@ pvr_sync_connection_private_data(void *connection_data)
 	return NULL;
 }
 
-struct pvr_sync_file_data *
-pvr_sync_get_private_data(struct file *file)
+struct pvr_sync_file_data *pvr_sync_get_private_data(struct file *file)
 {
 	CONNECTION_DATA *connection_data = LinuxSyncConnectionFromFile(file);
 
@@ -129,19 +128,17 @@ void pvr_sync_close(void *connection_data)
 		       __func__, iErr);
 }
 
-
-int pvr_sync_rename_ioctl(struct drm_device __maybe_unused *dev,
-			  void *arg, struct drm_file *file)
+int pvr_sync_rename_ioctl(struct drm_device __maybe_unused *dev, void *arg,
+			  struct drm_file *file)
 {
-	return pvr_sync_ioctl_common(file->filp,
-				     DRM_PVR_SYNC_RENAME_CMD, arg);
+	return pvr_sync_ioctl_common(file->filp, DRM_PVR_SYNC_RENAME_CMD, arg);
 }
 
 int pvr_sync_force_sw_only_ioctl(struct drm_device __maybe_unused *dev,
 				 void *arg, struct drm_file *file)
 {
-	return pvr_sync_ioctl_common(file->filp,
-				     DRM_PVR_SYNC_FORCE_SW_ONLY_CMD, arg);
+	return pvr_sync_ioctl_common(file->filp, DRM_PVR_SYNC_FORCE_SW_ONLY_CMD,
+				     arg);
 }
 
 int pvr_sw_sync_create_fence_ioctl(struct drm_device __maybe_unused *dev,
@@ -151,11 +148,10 @@ int pvr_sw_sync_create_fence_ioctl(struct drm_device __maybe_unused *dev,
 				     DRM_PVR_SW_SYNC_CREATE_FENCE_CMD, arg);
 }
 
-int pvr_sw_sync_inc_ioctl(struct drm_device __maybe_unused *dev,
-			  void *arg, struct drm_file *file)
+int pvr_sw_sync_inc_ioctl(struct drm_device __maybe_unused *dev, void *arg,
+			  struct drm_file *file)
 {
-	return pvr_sync_ioctl_common(file->filp,
-				     DRM_PVR_SW_SYNC_INC_CMD, arg);
+	return pvr_sync_ioctl_common(file->filp, DRM_PVR_SW_SYNC_INC_CMD, arg);
 }
 
 int pvr_sync_ioctl_init(void)

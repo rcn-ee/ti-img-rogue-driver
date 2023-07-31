@@ -51,19 +51,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 #endif
 
-
 /******************************************************************************
  * *DO*NOT* rearrange or delete lines in SFIDLIST or SFGROUPLIST or you
  *          WILL BREAK host tracing message compatibility with previous
  *          driver versions. Only add new ones, if so required.
  *****************************************************************************/
 
-
 /* String used in pvrdebug -h output */
-#define HTB_LOG_GROUPS_STRING_LIST   "ctrl,mmu,sync,main,brg"
+#define HTB_LOG_GROUPS_STRING_LIST "ctrl,mmu,sync,main,brg"
 
 /* Used in print statements to display log group state, one %s per group defined */
-#define HTB_LOG_ENABLED_GROUPS_LIST_PFSPEC  "%s%s%s%s%s"
+#define HTB_LOG_ENABLED_GROUPS_LIST_PFSPEC "%s%s%s%s%s"
 
 /* Available log groups - Master template
  *
@@ -75,17 +73,16 @@ extern "C" {
  *    DBG   - Temporary debugging group, logs not to be left in the driver
  *
  */
-#define HTB_LOG_SFGROUPLIST                               \
-	X( HTB_GROUP_NONE,     NONE  )                        \
-/*     gid,                group flag / apphint name */   \
-	X( HTB_GROUP_CTRL,     CTRL  )                        \
-	X( HTB_GROUP_MMU,      MMU   )                        \
-	X( HTB_GROUP_SYNC,     SYNC  )                        \
-	X( HTB_GROUP_MAIN,     MAIN  )                        \
-	X( HTB_GROUP_BRG,      BRG  )                         \
-/* Debug group HTB_GROUP_DBG must always be last */       \
-	X( HTB_GROUP_DBG,      DBG   )
-
+#define HTB_LOG_SFGROUPLIST                                     \
+	X(HTB_GROUP_NONE, NONE)                                 \
+	/*     gid,                group flag / apphint name */ \
+	X(HTB_GROUP_CTRL, CTRL)                                 \
+	X(HTB_GROUP_MMU, MMU)                                   \
+	X(HTB_GROUP_SYNC, SYNC)                                 \
+	X(HTB_GROUP_MAIN, MAIN)                                 \
+	X(HTB_GROUP_BRG, BRG)                                   \
+	/* Debug group HTB_GROUP_DBG must always be last */     \
+	X(HTB_GROUP_DBG, DBG)
 
 /* Table of String Format specifiers, the group they belong and the number of
  * arguments each expects. Xmacro styled macros are used to generate what is
@@ -97,80 +94,126 @@ extern "C" {
  * string	: Actual string
  * #args	: number of arguments the string format requires
  */
-#define HTB_LOG_SFIDLIST \
-/*id,  gid,             sym name,                       string,                           # arguments */ \
-X( 0,  HTB_GROUP_NONE,  HTB_SF_FIRST,                   "You should not use this string", 0) \
-\
-X( 1,  HTB_GROUP_CTRL,  HTB_SF_CTRL_LOGMODE,            "HTB log mode set to %d (1- all PID, 2 - restricted PID)\n", 1) \
-X( 2,  HTB_GROUP_CTRL,  HTB_SF_CTRL_ENABLE_PID,         "HTB enable logging for PID %d\n", 1) \
-X( 3,  HTB_GROUP_CTRL,  HTB_SF_CTRL_ENABLE_GROUP,       "HTB enable logging groups 0x%08x\n", 1) \
-X( 4,  HTB_GROUP_CTRL,  HTB_SF_CTRL_LOG_LEVEL,          "HTB log level set to %d\n", 1) \
-X( 5,  HTB_GROUP_CTRL,  HTB_SF_CTRL_OPMODE,             "HTB operating mode set to %d (1 - droplatest, 2 - drop oldest, 3 - block)\n", 1) \
-X( 6,  HTB_GROUP_CTRL,  HTB_SF_CTRL_FWSYNC_SCALE,       "HTBFWSync OSTS=%08x%08x CRTS=%08x%08x CalcClkSpd=%d\n", 5) \
-X( 7,  HTB_GROUP_CTRL,  HTB_SF_CTRL_FWSYNC_SCALE_RPT,   "FW Sync scale info OSTS=%08x%08x CRTS=%08x%08x CalcClkSpd=%d\n", 5) \
-X( 8,  HTB_GROUP_CTRL,  HTB_SF_CTRL_FWSYNC_MARK,        "FW Sync Partition marker: %d\n", 1) \
-X( 9,  HTB_GROUP_CTRL,  HTB_SF_CTRL_FWSYNC_MARK_RPT,    "FW Sync Partition repeat: %d\n", 1) \
-X( 10, HTB_GROUP_CTRL,  HTB_SF_CTRL_FWSYNC_MARK_SCALE,  "Text not used", 6)\
-\
-X( 1,  HTB_GROUP_MMU,   HTB_SF_MMU_PAGE_OP_TABLE,       "MMU page op table entry page_id=%08x%08x index=%d level=%d val=%08x%08x map=%d\n", 7) \
-X( 2,  HTB_GROUP_MMU,   HTB_SF_MMU_PAGE_OP_ALLOC,       "MMU allocating DevVAddr from %08x%08x to %08x%08x\n", 4) \
-X( 3,  HTB_GROUP_MMU,   HTB_SF_MMU_PAGE_OP_FREE,        "MMU freeing DevVAddr from %08x%08x to %08x%08x\n", 4) \
-X( 4,  HTB_GROUP_MMU,   HTB_SF_MMU_PAGE_OP_MAP,         "MMU mapping DevVAddr %08x%08x to DevPAddr %08x%08x\n", 4) \
-X( 5,  HTB_GROUP_MMU,   HTB_SF_MMU_PAGE_OP_PMRMAP,      "MMU mapping PMR DevVAddr %08x%08x to DevPAddr %08x%08x\n", 4) \
-X( 6,  HTB_GROUP_MMU,   HTB_SF_MMU_PAGE_OP_UNMAP,       "MMU unmapping DevVAddr %08x%08x\n", 2) \
-\
-X( 1,  HTB_GROUP_SYNC,  HTB_SF_SYNC_SERVER_ALLOC,       "Server sync allocation [%08X]\n", 1) \
-X( 2,  HTB_GROUP_SYNC,  HTB_SF_SYNC_SERVER_UNREF,       "Server sync unreferenced [%08X]\n", 1) \
-X( 3,  HTB_GROUP_SYNC,  HTB_SF_SYNC_PRIM_OP_CREATE,     "Sync OP create 0x%08x, block count=%d, server syncs=%d, client syncs=%d\n", 4) \
-X( 4,  HTB_GROUP_SYNC,  HTB_SF_SYNC_PRIM_OP_TAKE,       "Sync OP take 0x%08x server syncs=%d, client syncs=%d\n", 3) \
-X( 5,  HTB_GROUP_SYNC,  HTB_SF_SYNC_PRIM_OP_COMPLETE,   "Sync OP complete 0x%08x\n", 1) \
-X( 6,  HTB_GROUP_SYNC,  HTB_SF_SYNC_PRIM_OP_DESTROY,    "Sync OP destroy 0x%08x\n", 1) \
-\
-X( 1,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_TA_DEPRECATED, "Kick TA: FWCtx %08X @ %d\n", 2) \
-X( 2,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_3D_DEPRECATED, "Kick 3D: FWCtx %08X @ %d\n", 2) \
-X( 3,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_CDM_DEPRECATED,"Kick CDM: FWCtx %08X @ %d\n", 2) \
-X( 4,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_RTU,           "Kick RTU: FWCtx %08X @ %d\n", 2) \
-X( 5,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_SHG,           "Kick SHG: FWCtx %08X @ %d\n", 2) \
-X( 6,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_2D_DEPRECATED, "Kick 2D: FWCtx %08X @ %d\n", 2) \
-X( 7,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_UNCOUNTED,     "Kick (uncounted) for all DMs\n", 0) \
-X( 8,  HTB_GROUP_MAIN,  HTB_SF_MAIN_FWCCB_CMD,          "FW CCB Cmd: %d\n", 1) \
-X( 9,  HTB_GROUP_MAIN,  HTB_SF_MAIN_PRE_POWER,          "Pre-power duration @ phase [%d] (0-shutdown,1-startup) RGX: %llu ns SYS: %llu ns\n", 3) \
-X(10,  HTB_GROUP_MAIN,  HTB_SF_MAIN_POST_POWER,         "Post-power duration @ phase [%d] (0-shutdown,1-startup) SYS: %llu ns RGX: %llu ns\n", 3) \
-X(11,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_TA,            "Kick TA: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5) \
-X(12,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_3D,            "Kick 3D: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5) \
-X(13,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_CDM,           "Kick CDM: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5) \
-X(14,  HTB_GROUP_MAIN,  HTB_SF_MAIN_KICK_2D,            "Kick 2D: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5) \
-X(15,  HTB_GROUP_MAIN,  HTB_SF_MAIN_DBG_ERROR,          "Error: (%u) @ line: %u\n", 2) \
-X(16,  HTB_GROUP_MAIN,  HTB_SF_MAIN_DBG_COND_ERROR_T,   "Error: (%u) Conditional is unexpectedly true @ line: %u\n", 2) \
-X(17,  HTB_GROUP_MAIN,  HTB_SF_MAIN_DBG_COND_ERROR_F,   "Error: (%u) Conditional is unexpectedly false @ line: %u\n", 2) \
-X(18,  HTB_GROUP_MAIN,  HTB_SF_MAIN_DBG_WARNING,        "Warning: (%u) in file: @ line: %u\n", 2) \
-\
-X( 1,  HTB_GROUP_BRG,   HTB_SF_BRG_BRIDGE_CALL,         "Bridge call: start: %010u: bid %03d fid %d\n", 3) \
-X( 2,  HTB_GROUP_BRG,   HTB_SF_BRG_BRIDGE_CALL_ERR,     "Bridge call: start: %010u: bid %03d fid %d error %d\n", 4) \
-\
-X( 1,  HTB_GROUP_DBG,   HTB_SF_DBG_INTPAIR,             "0x%8.8x 0x%8.8x\n", 2) \
-\
-X( 65535, HTB_GROUP_NONE, HTB_SF_LAST,                  "You should not use this string\n", 15)
-
-
+#define HTB_LOG_SFIDLIST                                                                                         \
+	/*id,  gid,             sym name,                       string,                           # arguments */ \
+	X(0, HTB_GROUP_NONE, HTB_SF_FIRST, "You should not use this string",                                     \
+	  0)                                                                                                     \
+                                                                                                                 \
+	X(1, HTB_GROUP_CTRL, HTB_SF_CTRL_LOGMODE,                                                                \
+	  "HTB log mode set to %d (1- all PID, 2 - restricted PID)\n", 1)                                        \
+	X(2, HTB_GROUP_CTRL, HTB_SF_CTRL_ENABLE_PID,                                                             \
+	  "HTB enable logging for PID %d\n", 1)                                                                  \
+	X(3, HTB_GROUP_CTRL, HTB_SF_CTRL_ENABLE_GROUP,                                                           \
+	  "HTB enable logging groups 0x%08x\n", 1)                                                               \
+	X(4, HTB_GROUP_CTRL, HTB_SF_CTRL_LOG_LEVEL,                                                              \
+	  "HTB log level set to %d\n", 1)                                                                        \
+	X(5, HTB_GROUP_CTRL, HTB_SF_CTRL_OPMODE,                                                                 \
+	  "HTB operating mode set to %d (1 - droplatest, 2 - drop oldest, 3 - block)\n",                         \
+	  1)                                                                                                     \
+	X(6, HTB_GROUP_CTRL, HTB_SF_CTRL_FWSYNC_SCALE,                                                           \
+	  "HTBFWSync OSTS=%08x%08x CRTS=%08x%08x CalcClkSpd=%d\n", 5)                                            \
+	X(7, HTB_GROUP_CTRL, HTB_SF_CTRL_FWSYNC_SCALE_RPT,                                                       \
+	  "FW Sync scale info OSTS=%08x%08x CRTS=%08x%08x CalcClkSpd=%d\n", 5)                                   \
+	X(8, HTB_GROUP_CTRL, HTB_SF_CTRL_FWSYNC_MARK,                                                            \
+	  "FW Sync Partition marker: %d\n", 1)                                                                   \
+	X(9, HTB_GROUP_CTRL, HTB_SF_CTRL_FWSYNC_MARK_RPT,                                                        \
+	  "FW Sync Partition repeat: %d\n", 1)                                                                   \
+	X(10, HTB_GROUP_CTRL, HTB_SF_CTRL_FWSYNC_MARK_SCALE, "Text not used",                                    \
+	  6)                                                                                                     \
+                                                                                                                 \
+	X(1, HTB_GROUP_MMU, HTB_SF_MMU_PAGE_OP_TABLE,                                                            \
+	  "MMU page op table entry page_id=%08x%08x index=%d level=%d val=%08x%08x map=%d\n",                    \
+	  7)                                                                                                     \
+	X(2, HTB_GROUP_MMU, HTB_SF_MMU_PAGE_OP_ALLOC,                                                            \
+	  "MMU allocating DevVAddr from %08x%08x to %08x%08x\n", 4)                                              \
+	X(3, HTB_GROUP_MMU, HTB_SF_MMU_PAGE_OP_FREE,                                                             \
+	  "MMU freeing DevVAddr from %08x%08x to %08x%08x\n", 4)                                                 \
+	X(4, HTB_GROUP_MMU, HTB_SF_MMU_PAGE_OP_MAP,                                                              \
+	  "MMU mapping DevVAddr %08x%08x to DevPAddr %08x%08x\n", 4)                                             \
+	X(5, HTB_GROUP_MMU, HTB_SF_MMU_PAGE_OP_PMRMAP,                                                           \
+	  "MMU mapping PMR DevVAddr %08x%08x to DevPAddr %08x%08x\n", 4)                                         \
+	X(6, HTB_GROUP_MMU, HTB_SF_MMU_PAGE_OP_UNMAP,                                                            \
+	  "MMU unmapping DevVAddr %08x%08x\n", 2)                                                                \
+                                                                                                                 \
+	X(1, HTB_GROUP_SYNC, HTB_SF_SYNC_SERVER_ALLOC,                                                           \
+	  "Server sync allocation [%08X]\n", 1)                                                                  \
+	X(2, HTB_GROUP_SYNC, HTB_SF_SYNC_SERVER_UNREF,                                                           \
+	  "Server sync unreferenced [%08X]\n", 1)                                                                \
+	X(3, HTB_GROUP_SYNC, HTB_SF_SYNC_PRIM_OP_CREATE,                                                         \
+	  "Sync OP create 0x%08x, block count=%d, server syncs=%d, client syncs=%d\n",                           \
+	  4)                                                                                                     \
+	X(4, HTB_GROUP_SYNC, HTB_SF_SYNC_PRIM_OP_TAKE,                                                           \
+	  "Sync OP take 0x%08x server syncs=%d, client syncs=%d\n", 3)                                           \
+	X(5, HTB_GROUP_SYNC, HTB_SF_SYNC_PRIM_OP_COMPLETE,                                                       \
+	  "Sync OP complete 0x%08x\n", 1)                                                                        \
+	X(6, HTB_GROUP_SYNC, HTB_SF_SYNC_PRIM_OP_DESTROY,                                                        \
+	  "Sync OP destroy 0x%08x\n", 1)                                                                         \
+                                                                                                                 \
+	X(1, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_TA_DEPRECATED,                                                     \
+	  "Kick TA: FWCtx %08X @ %d\n", 2)                                                                       \
+	X(2, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_3D_DEPRECATED,                                                     \
+	  "Kick 3D: FWCtx %08X @ %d\n", 2)                                                                       \
+	X(3, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_CDM_DEPRECATED,                                                    \
+	  "Kick CDM: FWCtx %08X @ %d\n", 2)                                                                      \
+	X(4, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_RTU,                                                               \
+	  "Kick RTU: FWCtx %08X @ %d\n", 2)                                                                      \
+	X(5, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_SHG,                                                               \
+	  "Kick SHG: FWCtx %08X @ %d\n", 2)                                                                      \
+	X(6, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_2D_DEPRECATED,                                                     \
+	  "Kick 2D: FWCtx %08X @ %d\n", 2)                                                                       \
+	X(7, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_UNCOUNTED,                                                         \
+	  "Kick (uncounted) for all DMs\n", 0)                                                                   \
+	X(8, HTB_GROUP_MAIN, HTB_SF_MAIN_FWCCB_CMD, "FW CCB Cmd: %d\n", 1)                                       \
+	X(9, HTB_GROUP_MAIN, HTB_SF_MAIN_PRE_POWER,                                                              \
+	  "Pre-power duration @ phase [%d] (0-shutdown,1-startup) RGX: %llu ns SYS: %llu ns\n",                  \
+	  3)                                                                                                     \
+	X(10, HTB_GROUP_MAIN, HTB_SF_MAIN_POST_POWER,                                                            \
+	  "Post-power duration @ phase [%d] (0-shutdown,1-startup) SYS: %llu ns RGX: %llu ns\n",                 \
+	  3)                                                                                                     \
+	X(11, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_TA,                                                               \
+	  "Kick TA: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5)                                    \
+	X(12, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_3D,                                                               \
+	  "Kick 3D: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5)                                    \
+	X(13, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_CDM,                                                              \
+	  "Kick CDM: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5)                                   \
+	X(14, HTB_GROUP_MAIN, HTB_SF_MAIN_KICK_2D,                                                               \
+	  "Kick 2D: FWCtx %08x @ %d (frame:%d, ext:0x%08x, int:0x%08x)\n", 5)                                    \
+	X(15, HTB_GROUP_MAIN, HTB_SF_MAIN_DBG_ERROR,                                                             \
+	  "Error: (%u) @ line: %u\n", 2)                                                                         \
+	X(16, HTB_GROUP_MAIN, HTB_SF_MAIN_DBG_COND_ERROR_T,                                                      \
+	  "Error: (%u) Conditional is unexpectedly true @ line: %u\n", 2)                                        \
+	X(17, HTB_GROUP_MAIN, HTB_SF_MAIN_DBG_COND_ERROR_F,                                                      \
+	  "Error: (%u) Conditional is unexpectedly false @ line: %u\n", 2)                                       \
+	X(18, HTB_GROUP_MAIN, HTB_SF_MAIN_DBG_WARNING,                                                           \
+	  "Warning: (%u) in file: @ line: %u\n", 2)                                                              \
+                                                                                                                 \
+	X(1, HTB_GROUP_BRG, HTB_SF_BRG_BRIDGE_CALL,                                                              \
+	  "Bridge call: start: %010u: bid %03d fid %d\n", 3)                                                     \
+	X(2, HTB_GROUP_BRG, HTB_SF_BRG_BRIDGE_CALL_ERR,                                                          \
+	  "Bridge call: start: %010u: bid %03d fid %d error %d\n", 4)                                            \
+                                                                                                                 \
+	X(1, HTB_GROUP_DBG, HTB_SF_DBG_INTPAIR, "0x%8.8x 0x%8.8x\n", 2)                                          \
+                                                                                                                 \
+	X(65535, HTB_GROUP_NONE, HTB_SF_LAST,                                                                    \
+	  "You should not use this string\n", 15)
 
 /* gid - Group numbers */
 typedef enum _HTB_LOG_SFGROUPS {
-#define X(A,B) A,
+#define X(A, B) A,
 	HTB_LOG_SFGROUPLIST
 #undef X
 } HTB_LOG_SFGROUPS;
 
-
 /* Group flags are stored in an array of elements.
  * Each of which have a certain number of bits.
  */
-#define HTB_FLAG_EL_T                   IMG_UINT32
-#define HTB_FLAG_NUM_BITS_IN_EL         (sizeof(HTB_FLAG_EL_T) * 8)
+#define HTB_FLAG_EL_T IMG_UINT32
+#define HTB_FLAG_NUM_BITS_IN_EL (sizeof(HTB_FLAG_EL_T) * 8)
 
-#define HTB_LOG_GROUP_FLAG_GROUP(gid)   ((gid-1) / HTB_FLAG_NUM_BITS_IN_EL)
-#define HTB_LOG_GROUP_FLAG(gid)         (gid ? (0x1 << ((gid-1)%HTB_FLAG_NUM_BITS_IN_EL)) : 0)
-#define HTB_LOG_GROUP_FLAG_NAME(gid)    HTB_LOG_TYPE_ ## gid
+#define HTB_LOG_GROUP_FLAG_GROUP(gid) ((gid - 1) / HTB_FLAG_NUM_BITS_IN_EL)
+#define HTB_LOG_GROUP_FLAG(gid) \
+	(gid ? (0x1 << ((gid - 1) % HTB_FLAG_NUM_BITS_IN_EL)) : 0)
+#define HTB_LOG_GROUP_FLAG_NAME(gid) HTB_LOG_TYPE_##gid
 
 /* Group enable flags */
 typedef enum _HTB_LOG_TYPE {
@@ -178,8 +221,6 @@ typedef enum _HTB_LOG_TYPE {
 	HTB_LOG_SFGROUPLIST
 #undef X
 } HTB_LOG_TYPE;
-
-
 
 /* The symbolic names found in the table above are assigned an ui32 value of
  * the following format:
@@ -194,33 +235,34 @@ typedef enum _HTB_LOG_TYPE {
  *
  * The following macro assigns those values to the enum generated SF ids list.
  */
-#define HTB_LOG_IDMARKER            (0x70000000)
-#define HTB_LOG_CREATESFID(a,b,e)   (((a) | (b << 12) | (e << 16)) | HTB_LOG_IDMARKER)
+#define HTB_LOG_IDMARKER (0x70000000)
+#define HTB_LOG_CREATESFID(a, b, e) \
+	(((a) | (b << 12) | (e << 16)) | HTB_LOG_IDMARKER)
 
-#define HTB_LOG_IDMASK              (0xFFF00000)
-#define HTB_LOG_VALIDID(I)          ( ((I) & HTB_LOG_IDMASK) == HTB_LOG_IDMARKER )
+#define HTB_LOG_IDMASK (0xFFF00000)
+#define HTB_LOG_VALIDID(I) (((I)&HTB_LOG_IDMASK) == HTB_LOG_IDMARKER)
 
 typedef enum HTB_LOG_SFids {
-#define X(a, b, c, d, e) c = HTB_LOG_CREATESFID(a,b,e),
+#define X(a, b, c, d, e) c = HTB_LOG_CREATESFID(a, b, e),
 	HTB_LOG_SFIDLIST
 #undef X
 } HTB_LOG_SFids;
 
 /* Return the group id that the given (enum generated) id belongs to */
-#define HTB_SF_GID(x) (((x)>>12) & 0xf)
+#define HTB_SF_GID(x) (((x) >> 12) & 0xf)
 /* Future improvement to support log levels */
 #define HTB_SF_LVL(x) (0)
 /* Returns how many arguments the SF(string format) for the given
  * (enum generated) id requires.
  */
-#define HTB_SF_PARAMNUM(x) (((x)>>16) & 0xf)
+#define HTB_SF_PARAMNUM(x) (((x) >> 16) & 0xf)
 /* Returns the id of given enum */
 #define HTB_SF_ID(x) (x & 0xfff)
 
 /* Format of messages is: SF:PID:TID:TIMEPT1:TIMEPT2:[PARn]*
  */
-#define HTB_LOG_HEADER_SIZE         5
-#define HTB_LOG_MAX_PARAMS          15
+#define HTB_LOG_HEADER_SIZE 5
+#define HTB_LOG_MAX_PARAMS 15
 
 #if defined(__cplusplus)
 }
@@ -237,7 +279,7 @@ typedef enum HTB_LOG_SFids {
 #define HTB_ARG_OSTS_PT2 2
 #define HTB_ARG_CRTS_PT1 3
 #define HTB_ARG_CRTS_PT2 4
-#define HTB_ARG_CLKSPD   5
+#define HTB_ARG_CLKSPD 5
 
 #endif /* HTBUFFER_SF_H */
 /*****************************************************************************

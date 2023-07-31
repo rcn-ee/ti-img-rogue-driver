@@ -46,24 +46,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "info_page_defs.h"
 
-#define PVRSRV_CACHE_OP_TIMELINE			0x8 /*!< Request SW_SYNC timeline notification when executed */
-#define PVRSRV_CACHE_OP_FORCE_SYNCHRONOUS	0x10 /*!< Force all batch members to be executed synchronously */
+#define PVRSRV_CACHE_OP_TIMELINE \
+	0x8 /*!< Request SW_SYNC timeline notification when executed */
+#define PVRSRV_CACHE_OP_FORCE_SYNCHRONOUS \
+	0x10 /*!< Force all batch members to be executed synchronously */
 
-#define CACHEFLUSH_ISA_X86					0x1	/*!< x86/x64 specific UM range-based cache flush */
-#define CACHEFLUSH_ISA_ARM64				0x2	/*!< Aarch64 specific UM range-based cache flush */
-#define CACHEFLUSH_ISA_GENERIC				0x3	/*!< Other ISA's without UM range-based cache flush */
+#define CACHEFLUSH_ISA_X86 \
+	0x1 /*!< x86/x64 specific UM range-based cache flush */
+#define CACHEFLUSH_ISA_ARM64 \
+	0x2 /*!< Aarch64 specific UM range-based cache flush */
+#define CACHEFLUSH_ISA_GENERIC \
+	0x3 /*!< Other ISA's without UM range-based cache flush */
 #ifndef CACHEFLUSH_ISA_TYPE
-	#if defined(__i386__) || defined(__x86_64__)
-		#define CACHEFLUSH_ISA_TYPE CACHEFLUSH_ISA_X86
-	#elif defined(__arm64__) || defined(__aarch64__)
-		#define CACHEFLUSH_ISA_TYPE CACHEFLUSH_ISA_ARM64
-	#else
-		#define CACHEFLUSH_ISA_TYPE CACHEFLUSH_ISA_GENERIC
-	#endif
+#if defined(__i386__) || defined(__x86_64__)
+#define CACHEFLUSH_ISA_TYPE CACHEFLUSH_ISA_X86
+#elif defined(__arm64__) || defined(__aarch64__)
+#define CACHEFLUSH_ISA_TYPE CACHEFLUSH_ISA_ARM64
+#else
+#define CACHEFLUSH_ISA_TYPE CACHEFLUSH_ISA_GENERIC
+#endif
 #endif
 
-#if (CACHEFLUSH_ISA_TYPE == CACHEFLUSH_ISA_X86) || (CACHEFLUSH_ISA_TYPE == CACHEFLUSH_ISA_ARM64)
-#define CACHEFLUSH_ISA_SUPPORTS_UM_FLUSH		/*!< x86/x86_64/ARM64 supports user-mode d-cache flush */
+#if (CACHEFLUSH_ISA_TYPE == CACHEFLUSH_ISA_X86) || \
+	(CACHEFLUSH_ISA_TYPE == CACHEFLUSH_ISA_ARM64)
+#define CACHEFLUSH_ISA_SUPPORTS_UM_FLUSH /*!< x86/x86_64/ARM64 supports user-mode d-cache flush */
 #endif
 
-#endif	/* OS_CPU_CACHE_H */
+#endif /* OS_CPU_CACHE_H */

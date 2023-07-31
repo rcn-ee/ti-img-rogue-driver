@@ -59,22 +59,19 @@ PVRSRV_ERROR DeviceDepBridgeInit(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	PVRSRV_ERROR eError;
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))
-	{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE)) {
 		eError = InitRGXCMPBridge();
 		PVR_LOG_RETURN_IF_ERROR(eError, "InitRGXCMPBridge");
 	}
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM))
-	{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM)) {
 		eError = InitRGXTQ2Bridge();
 		PVR_LOG_RETURN_IF_ERROR(eError, "InitRGXTQ2Bridge");
 	}
 
 #if defined(SUPPORT_RGXRAY_BRIDGE)
 	if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, RAY_TRACING_ARCH) &&
-		RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0)
-	{
+	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0) {
 		eError = InitRGXRAYBridge();
 		PVR_LOG_RETURN_IF_ERROR(eError, "InitRGXRAYBridge");
 	}
@@ -85,20 +82,17 @@ PVRSRV_ERROR DeviceDepBridgeInit(PVRSRV_RGXDEV_INFO *psDevInfo)
 
 void DeviceDepBridgeDeInit(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))
-	{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE)) {
 		DeinitRGXCMPBridge();
 	}
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM))
-	{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM)) {
 		DeinitRGXTQ2Bridge();
 	}
 
 #if defined(SUPPORT_RGXRAY_BRIDGE)
 	if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, RAY_TRACING_ARCH) &&
-		RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0)
-	{
+	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0) {
 		DeinitRGXRAYBridge();
 	}
 #endif

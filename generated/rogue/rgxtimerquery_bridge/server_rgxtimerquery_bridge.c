@@ -67,56 +67,60 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 static IMG_INT
 PVRSRVBridgeRGXBeginTimerQuery(IMG_UINT32 ui32DispatchTableEntry,
-			       IMG_UINT8 * psRGXBeginTimerQueryIN_UI8,
-			       IMG_UINT8 * psRGXBeginTimerQueryOUT_UI8,
-			       CONNECTION_DATA * psConnection)
+			       IMG_UINT8 *psRGXBeginTimerQueryIN_UI8,
+			       IMG_UINT8 *psRGXBeginTimerQueryOUT_UI8,
+			       CONNECTION_DATA *psConnection)
 {
 	PVRSRV_BRIDGE_IN_RGXBEGINTIMERQUERY *psRGXBeginTimerQueryIN =
-	    (PVRSRV_BRIDGE_IN_RGXBEGINTIMERQUERY *) IMG_OFFSET_ADDR(psRGXBeginTimerQueryIN_UI8, 0);
+		(PVRSRV_BRIDGE_IN_RGXBEGINTIMERQUERY *)IMG_OFFSET_ADDR(
+			psRGXBeginTimerQueryIN_UI8, 0);
 	PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY *psRGXBeginTimerQueryOUT =
-	    (PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY *) IMG_OFFSET_ADDR(psRGXBeginTimerQueryOUT_UI8,
-								     0);
+		(PVRSRV_BRIDGE_OUT_RGXBEGINTIMERQUERY *)IMG_OFFSET_ADDR(
+			psRGXBeginTimerQueryOUT_UI8, 0);
 
-	psRGXBeginTimerQueryOUT->eError =
-	    PVRSRVRGXBeginTimerQueryKM(psConnection, OSGetDevNode(psConnection),
-				       psRGXBeginTimerQueryIN->ui32QueryId);
+	psRGXBeginTimerQueryOUT->eError = PVRSRVRGXBeginTimerQueryKM(
+		psConnection, OSGetDevNode(psConnection),
+		psRGXBeginTimerQueryIN->ui32QueryId);
 
 	return 0;
 }
 
-static IMG_INT
-PVRSRVBridgeRGXEndTimerQuery(IMG_UINT32 ui32DispatchTableEntry,
-			     IMG_UINT8 * psRGXEndTimerQueryIN_UI8,
-			     IMG_UINT8 * psRGXEndTimerQueryOUT_UI8, CONNECTION_DATA * psConnection)
+static IMG_INT PVRSRVBridgeRGXEndTimerQuery(
+	IMG_UINT32 ui32DispatchTableEntry, IMG_UINT8 *psRGXEndTimerQueryIN_UI8,
+	IMG_UINT8 *psRGXEndTimerQueryOUT_UI8, CONNECTION_DATA *psConnection)
 {
 	PVRSRV_BRIDGE_IN_RGXENDTIMERQUERY *psRGXEndTimerQueryIN =
-	    (PVRSRV_BRIDGE_IN_RGXENDTIMERQUERY *) IMG_OFFSET_ADDR(psRGXEndTimerQueryIN_UI8, 0);
+		(PVRSRV_BRIDGE_IN_RGXENDTIMERQUERY *)IMG_OFFSET_ADDR(
+			psRGXEndTimerQueryIN_UI8, 0);
 	PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY *psRGXEndTimerQueryOUT =
-	    (PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY *) IMG_OFFSET_ADDR(psRGXEndTimerQueryOUT_UI8, 0);
+		(PVRSRV_BRIDGE_OUT_RGXENDTIMERQUERY *)IMG_OFFSET_ADDR(
+			psRGXEndTimerQueryOUT_UI8, 0);
 
 	PVR_UNREFERENCED_PARAMETER(psRGXEndTimerQueryIN);
 
-	psRGXEndTimerQueryOUT->eError =
-	    PVRSRVRGXEndTimerQueryKM(psConnection, OSGetDevNode(psConnection));
+	psRGXEndTimerQueryOUT->eError = PVRSRVRGXEndTimerQueryKM(
+		psConnection, OSGetDevNode(psConnection));
 
 	return 0;
 }
 
-static IMG_INT
-PVRSRVBridgeRGXQueryTimer(IMG_UINT32 ui32DispatchTableEntry,
-			  IMG_UINT8 * psRGXQueryTimerIN_UI8,
-			  IMG_UINT8 * psRGXQueryTimerOUT_UI8, CONNECTION_DATA * psConnection)
+static IMG_INT PVRSRVBridgeRGXQueryTimer(IMG_UINT32 ui32DispatchTableEntry,
+					 IMG_UINT8 *psRGXQueryTimerIN_UI8,
+					 IMG_UINT8 *psRGXQueryTimerOUT_UI8,
+					 CONNECTION_DATA *psConnection)
 {
 	PVRSRV_BRIDGE_IN_RGXQUERYTIMER *psRGXQueryTimerIN =
-	    (PVRSRV_BRIDGE_IN_RGXQUERYTIMER *) IMG_OFFSET_ADDR(psRGXQueryTimerIN_UI8, 0);
+		(PVRSRV_BRIDGE_IN_RGXQUERYTIMER *)IMG_OFFSET_ADDR(
+			psRGXQueryTimerIN_UI8, 0);
 	PVRSRV_BRIDGE_OUT_RGXQUERYTIMER *psRGXQueryTimerOUT =
-	    (PVRSRV_BRIDGE_OUT_RGXQUERYTIMER *) IMG_OFFSET_ADDR(psRGXQueryTimerOUT_UI8, 0);
+		(PVRSRV_BRIDGE_OUT_RGXQUERYTIMER *)IMG_OFFSET_ADDR(
+			psRGXQueryTimerOUT_UI8, 0);
 
 	psRGXQueryTimerOUT->eError =
-	    PVRSRVRGXQueryTimerKM(psConnection, OSGetDevNode(psConnection),
-				  psRGXQueryTimerIN->ui32QueryId,
-				  &psRGXQueryTimerOUT->ui64StartTime,
-				  &psRGXQueryTimerOUT->ui64EndTime);
+		PVRSRVRGXQueryTimerKM(psConnection, OSGetDevNode(psConnection),
+				      psRGXQueryTimerIN->ui32QueryId,
+				      &psRGXQueryTimerOUT->ui64StartTime,
+				      &psRGXQueryTimerOUT->ui64EndTime);
 
 	return 0;
 }
@@ -133,7 +137,6 @@ void DeinitRGXTIMERQUERYBridge(void);
  */
 PVRSRV_ERROR InitRGXTIMERQUERYBridge(void)
 {
-
 	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXTIMERQUERY,
 			      PVRSRV_BRIDGE_RGXTIMERQUERY_RGXBEGINTIMERQUERY,
 			      PVRSRVBridgeRGXBeginTimerQuery, NULL);
@@ -143,8 +146,8 @@ PVRSRV_ERROR InitRGXTIMERQUERYBridge(void)
 			      PVRSRVBridgeRGXEndTimerQuery, NULL);
 
 	SetDispatchTableEntry(PVRSRV_BRIDGE_RGXTIMERQUERY,
-			      PVRSRV_BRIDGE_RGXTIMERQUERY_RGXQUERYTIMER, PVRSRVBridgeRGXQueryTimer,
-			      NULL);
+			      PVRSRV_BRIDGE_RGXTIMERQUERY_RGXQUERYTIMER,
+			      PVRSRVBridgeRGXQueryTimer, NULL);
 
 	return PVRSRV_OK;
 }
@@ -154,7 +157,6 @@ PVRSRV_ERROR InitRGXTIMERQUERYBridge(void)
  */
 void DeinitRGXTIMERQUERYBridge(void)
 {
-
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXTIMERQUERY,
 				PVRSRV_BRIDGE_RGXTIMERQUERY_RGXBEGINTIMERQUERY);
 
@@ -163,5 +165,4 @@ void DeinitRGXTIMERQUERYBridge(void)
 
 	UnsetDispatchTableEntry(PVRSRV_BRIDGE_RGXTIMERQUERY,
 				PVRSRV_BRIDGE_RGXTIMERQUERY_RGXQUERYTIMER);
-
 }

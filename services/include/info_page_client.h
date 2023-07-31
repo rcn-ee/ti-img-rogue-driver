@@ -67,7 +67,7 @@ static INLINE IMG_PUINT32 GetInfoPage(SHARED_DEV_CONNECTION hDevConnection)
 #if defined(__KERNEL__)
 	return (PVRSRVGetPVRSRVData())->pui32InfoPage;
 #else
-    return hDevConnection->pui32InfoPage;
+	return hDevConnection->pui32InfoPage;
 #endif
 }
 
@@ -81,7 +81,8 @@ static INLINE IMG_PUINT32 GetInfoPage(SHARED_DEV_CONNECTION hDevConnection)
 @Return        Info Page debug flags
 */
 /*****************************************************************************/
-static INLINE IMG_UINT32 GetInfoPageDebugFlags(SHARED_DEV_CONNECTION hDevConnection)
+static INLINE IMG_UINT32
+GetInfoPageDebugFlags(SHARED_DEV_CONNECTION hDevConnection)
 {
 	return GetInfoPage(hDevConnection)[DEBUG_FEATURE_FLAGS];
 }

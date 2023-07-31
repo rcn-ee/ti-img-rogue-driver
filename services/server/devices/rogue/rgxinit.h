@@ -72,18 +72,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR RGXInitDevPart2 (PVRSRV_DEVICE_NODE	*psDeviceNode,
-							  IMG_UINT32			ui32DeviceFlags,
-							  IMG_UINT32			ui32HWPerfHostFilter,
-							  RGX_ACTIVEPM_CONF		eActivePMConf,
-							  RGX_FWT_LOGTYPE		eDebugDumpFWTLogType);
+PVRSRV_ERROR RGXInitDevPart2(PVRSRV_DEVICE_NODE *psDeviceNode,
+			     IMG_UINT32 ui32DeviceFlags,
+			     IMG_UINT32 ui32HWPerfHostFilter,
+			     RGX_ACTIVEPM_CONF eActivePMConf,
+			     RGX_FWT_LOGTYPE eDebugDumpFWTLogType);
 
-PVRSRV_ERROR RGXInitAllocFWImgMem(PVRSRV_DEVICE_NODE   *psDeviceNode,
-                                  IMG_DEVMEM_SIZE_T    ui32FWCodeLen,
-                                  IMG_DEVMEM_SIZE_T    ui32FWDataLen,
-                                  IMG_DEVMEM_SIZE_T    uiFWCorememCodeLen,
-                                  IMG_DEVMEM_SIZE_T    uiFWCorememDataLen);
-
+PVRSRV_ERROR RGXInitAllocFWImgMem(PVRSRV_DEVICE_NODE *psDeviceNode,
+				  IMG_DEVMEM_SIZE_T ui32FWCodeLen,
+				  IMG_DEVMEM_SIZE_T ui32FWDataLen,
+				  IMG_DEVMEM_SIZE_T uiFWCorememCodeLen,
+				  IMG_DEVMEM_SIZE_T uiFWCorememDataLen);
 
 /*!
 *******************************************************************************
@@ -100,24 +99,18 @@ PVRSRV_ERROR RGXInitAllocFWImgMem(PVRSRV_DEVICE_NODE   *psDeviceNode,
 
 ******************************************************************************/
 PVRSRV_ERROR
-RGXInitFirmware(PVRSRV_DEVICE_NODE       *psDeviceNode,
-                IMG_BOOL                 bEnableSignatureChecks,
-                IMG_UINT32               ui32SignatureChecksBufSize,
-                IMG_UINT32               ui32HWPerfFWBufSizeKB,
-                IMG_UINT64               ui64HWPerfFilter,
-                IMG_UINT32               ui32ConfigFlags,
-                IMG_UINT32               ui32LogType,
-                IMG_UINT32               ui32FilterFlags,
-                IMG_UINT32               ui32JonesDisableMask,
-                IMG_UINT32               ui32HWRDebugDumpLimit,
-                IMG_UINT32               ui32HWPerfCountersDataSize,
-                IMG_UINT32               *pui32TPUTrilinearFracMask,
-                RGX_RD_POWER_ISLAND_CONF eRGXRDPowerIslandingConf,
-                FW_PERF_CONF             eFirmwarePerf,
-                IMG_UINT32               ui32KCCBSizeLog2,
-                IMG_UINT32               ui32ConfigFlagsExt,
-                IMG_UINT32               ui32FwOsCfgFlags);
-
+RGXInitFirmware(PVRSRV_DEVICE_NODE *psDeviceNode,
+		IMG_BOOL bEnableSignatureChecks,
+		IMG_UINT32 ui32SignatureChecksBufSize,
+		IMG_UINT32 ui32HWPerfFWBufSizeKB, IMG_UINT64 ui64HWPerfFilter,
+		IMG_UINT32 ui32ConfigFlags, IMG_UINT32 ui32LogType,
+		IMG_UINT32 ui32FilterFlags, IMG_UINT32 ui32JonesDisableMask,
+		IMG_UINT32 ui32HWRDebugDumpLimit,
+		IMG_UINT32 ui32HWPerfCountersDataSize,
+		IMG_UINT32 *pui32TPUTrilinearFracMask,
+		RGX_RD_POWER_ISLAND_CONF eRGXRDPowerIslandingConf,
+		FW_PERF_CONF eFirmwarePerf, IMG_UINT32 ui32KCCBSizeLog2,
+		IMG_UINT32 ui32ConfigFlagsExt, IMG_UINT32 ui32FwOsCfgFlags);
 
 /*!
 *******************************************************************************
@@ -142,8 +135,8 @@ RGXInitFirmware(PVRSRV_DEVICE_NODE       *psDeviceNode,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXLoadAndGetFWData(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                 OS_FW_IMAGE **ppsRGXFW,
-                                 const IMG_BYTE **ppbFWData);
+				 OS_FW_IMAGE **ppsRGXFW,
+				 const IMG_BYTE **ppbFWData);
 
 #if defined(PDUMP)
 /*!
@@ -160,7 +153,7 @@ PVRSRV_ERROR RGXLoadAndGetFWData(PVRSRV_DEVICE_NODE *psDeviceNode,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR RGXInitHWPerfCounters(PVRSRV_DEVICE_NODE	*psDeviceNode);
+PVRSRV_ERROR RGXInitHWPerfCounters(PVRSRV_DEVICE_NODE *psDeviceNode);
 #endif
 
 /*!
@@ -211,7 +204,6 @@ IMG_PCHAR RGXDevBVNCString(PVRSRV_RGXDEV_INFO *psDevInfo);
 ******************************************************************************/
 PVRSRV_ERROR DevDeInitRGX(PVRSRV_DEVICE_NODE *psDeviceNode);
 
-
 #if !defined(NO_HARDWARE)
 
 void RGX_WaitForInterruptsTimeout(PVRSRV_RGXDEV_INFO *psDevInfo);
@@ -234,7 +226,6 @@ void RGX_WaitForInterruptsTimeout(PVRSRV_RGXDEV_INFO *psDevInfo);
 
 ******************************************************************************/
 PVRSRV_ERROR SORgxGpuUtilStatsRegister(IMG_HANDLE *phGpuUtilUser);
-
 
 /*!
 *******************************************************************************
@@ -265,7 +256,8 @@ PVRSRV_ERROR SORgxGpuUtilStatsUnregister(IMG_HANDLE hGpuUtilUser);
 
  @Input         psDeviceNode  device node
  ******************************************************************************/
-PVRSRV_ERROR RGXInitCreateFWKernelMemoryContext(PVRSRV_DEVICE_NODE *psDeviceNode);
+PVRSRV_ERROR
+RGXInitCreateFWKernelMemoryContext(PVRSRV_DEVICE_NODE *psDeviceNode);
 
 /*!
  *******************************************************************************

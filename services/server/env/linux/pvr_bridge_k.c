@@ -115,15 +115,15 @@ static DI_ENTRY *gpsDIBridgeStatsEntry;
 
 static void *BridgeStatsDIStart(OSDI_IMPL_ENTRY *psEntry, IMG_UINT64 *pui64Pos)
 {
-	PVRSRV_BRIDGE_DISPATCH_TABLE_ENTRY *psDispatchTable = DIGetPrivData(psEntry);
+	PVRSRV_BRIDGE_DISPATCH_TABLE_ENTRY *psDispatchTable =
+		DIGetPrivData(psEntry);
 
-	if (psDispatchTable == NULL || *pui64Pos > BRIDGE_DISPATCH_TABLE_ENTRY_COUNT)
-	{
+	if (psDispatchTable == NULL ||
+	    *pui64Pos > BRIDGE_DISPATCH_TABLE_ENTRY_COUNT) {
 		return NULL;
 	}
 
-	if (*pui64Pos == 0)
-	{
+	if (*pui64Pos == 0) {
 		return DI_START_TOKEN;
 	}
 
@@ -137,16 +137,17 @@ static void BridgeStatsDIStop(OSDI_IMPL_ENTRY *psEntry, void *pvData)
 }
 
 static void *BridgeStatsDINext(OSDI_IMPL_ENTRY *psEntry, void *pvData,
-                               IMG_UINT64 *pui64Pos)
+			       IMG_UINT64 *pui64Pos)
 {
-	PVRSRV_BRIDGE_DISPATCH_TABLE_ENTRY *psDispatchTable = DIGetPrivData(psEntry);
-	IMG_UINT64 uiItemAskedFor = *pui64Pos; /* pui64Pos on entry is the index to return */
+	PVRSRV_BRIDGE_DISPATCH_TABLE_ENTRY *psDispatchTable =
+		DIGetPrivData(psEntry);
+	IMG_UINT64 uiItemAskedFor =
+		*pui64Pos; /* pui64Pos on entry is the index to return */
 
 	PVR_UNREFERENCED_PARAMETER(pvData);
 
 	/* Is the item asked for (starts at 0) a valid table index? */
-	if (uiItemAskedFor < BRIDGE_DISPATCH_TABLE_ENTRY_COUNT)
-	{
+	if (uiItemAskedFor < BRIDGE_DISPATCH_TABLE_ENTRY_COUNT) {
 		(*pui64Pos)++; /* on exit it is the next DI index to ask for */
 		return &(psDispatchTable[uiItemAskedFor]);
 	}
@@ -157,46 +158,47 @@ static void *BridgeStatsDINext(OSDI_IMPL_ENTRY *psEntry, void *pvData,
 
 static int BridgeStatsDIShow(OSDI_IMPL_ENTRY *psEntry, void *pvData)
 {
-	if (pvData == DI_START_TOKEN)
-	{
+	if (pvData == DI_START_TOKEN) {
 		BridgeGlobalStatsLock();
-		DIPrintf(psEntry,
-		         "Total ioctl call count = %u\n"
-		         "Total number of bytes copied via copy_from_user = %u\n"
-		         "Total number of bytes copied via copy_to_user = %u\n"
-		         "Total number of bytes copied via copy_*_user = %u\n\n"
-		         "%3s: %-60s | %-48s | %10s | %20s | %20s | %20s | %20s\n",
-		         g_BridgeGlobalStats.ui32IOCTLCount,
-		         g_BridgeGlobalStats.ui32TotalCopyFromUserBytes,
-		         g_BridgeGlobalStats.ui32TotalCopyToUserBytes,
-		         g_BridgeGlobalStats.ui32TotalCopyFromUserBytes +
-		             g_BridgeGlobalStats.ui32TotalCopyToUserBytes,
-		         "#",
-		         "Bridge Name",
-		         "Wrapper Function",
-		         "Call Count",
-		         "copy_from_user (B)",
-		         "copy_to_user (B)",
-		         "Total Time (us)",
-		         "Max Time (us)");
+		DIPrintf(
+			psEntry,
+			"Total ioctl call count = %u\n"
+			"Total number of bytes copied via copy_from_user = %u\n"
+			"Total number of bytes copied via copy_to_user = %u\n"
+			"Total number of bytes copied via copy_*_user = %u\n\n"
+			"%3s: %-60s | %-48s | %10s | %20s | %20s | %20s | %20s\n",
+			g_BridgeGlobalStats.ui32IOCTLCount,
+			g_BridgeGlobalStats.ui32TotalCopyFromUserBytes,
+			g_BridgeGlobalStats.ui32TotalCopyToUserBytes,
+			g_BridgeGlobalStats.ui32TotalCopyFromUserBytes +
+				g_BridgeGlobalStats.ui32TotalCopyToUserBytes,
+			"#", "Bridge Name", "Wrapper Function", "Call Count",
+			"copy_from_user (B)", "copy_to_user (B)",
+			"Total Time (us)", "Max Time (us)");
 		BridgeGlobalStatsUnlock();
-	}
-	else if (pvData != NULL)
-	{
+	} else if (pvData != NULL) {
 		PVRSRV_BRIDGE_DISPATCH_TABLE_ENTRY *psTableEntry = pvData;
 		IMG_UINT32 ui32Remainder;
 
 		BridgeGlobalStatsLock();
-		DIPrintf(psEntry,
-		         "%3d: %-60s   %-48s   %-10u   %-20u   %-20u   %-20" IMG_UINT64_FMTSPEC "   %-20" IMG_UINT64_FMTSPEC "\n",
-		         (IMG_UINT32)(((size_t)psTableEntry-(size_t)g_BridgeDispatchTable)/sizeof(*g_BridgeDispatchTable)),
-		         psTableEntry->pszIOCName,
-		         (psTableEntry->pfFunction != NULL) ? psTableEntry->pszFunctionName : "(null)",
-		         psTableEntry->ui32CallCount,
-		         psTableEntry->ui32CopyFromUserTotalBytes,
-		         psTableEntry->ui32CopyToUserTotalBytes,
-		         OSDivide64r64(psTableEntry->ui64TotalTimeNS, 1000, &ui32Remainder),
-		         OSDivide64r64(psTableEntry->ui64MaxTimeNS, 1000, &ui32Remainder));
+		DIPrintf(
+			psEntry,
+			"%3d: %-60s   %-48s   %-10u   %-20u   %-20u   %-20" IMG_UINT64_FMTSPEC
+			"   %-20" IMG_UINT64_FMTSPEC "\n",
+			(IMG_UINT32)(((size_t)psTableEntry -
+				      (size_t)g_BridgeDispatchTable) /
+				     sizeof(*g_BridgeDispatchTable)),
+			psTableEntry->pszIOCName,
+			(psTableEntry->pfFunction != NULL) ?
+				psTableEntry->pszFunctionName :
+				"(null)",
+			psTableEntry->ui32CallCount,
+			psTableEntry->ui32CopyFromUserTotalBytes,
+			psTableEntry->ui32CopyToUserTotalBytes,
+			OSDivide64r64(psTableEntry->ui64TotalTimeNS, 1000,
+				      &ui32Remainder),
+			OSDivide64r64(psTableEntry->ui64MaxTimeNS, 1000,
+				      &ui32Remainder));
 		BridgeGlobalStatsUnlock();
 	}
 
@@ -204,8 +206,8 @@ static int BridgeStatsDIShow(OSDI_IMPL_ENTRY *psEntry, void *pvData)
 }
 
 static IMG_INT64 BridgeStatsWrite(const IMG_CHAR *pcBuffer,
-                                  IMG_UINT64 ui64Count, IMG_UINT64 *pui64Pos,
-                                  void *pvData)
+				  IMG_UINT64 ui64Count, IMG_UINT64 *pui64Pos,
+				  void *pvData)
 {
 	IMG_UINT32 i;
 
@@ -223,8 +225,7 @@ static IMG_INT64 BridgeStatsWrite(const IMG_CHAR *pcBuffer,
 	g_BridgeGlobalStats.ui32TotalCopyFromUserBytes = 0;
 	g_BridgeGlobalStats.ui32TotalCopyToUserBytes = 0;
 
-	for (i = 0; i < ARRAY_SIZE(g_BridgeDispatchTable); i++)
-	{
+	for (i = 0; i < ARRAY_SIZE(g_BridgeDispatchTable); i++) {
 		g_BridgeDispatchTable[i].ui32CallCount = 0;
 		g_BridgeDispatchTable[i].ui32CopyFromUserTotalBytes = 0;
 		g_BridgeDispatchTable[i].ui32CopyToUserTotalBytes = 0;
@@ -251,26 +252,24 @@ PVRSRV_ERROR OSPlatformBridgeInit(void)
 	OSAtomicWrite(&g_iNumActiveKernelThreads, 0);
 
 	eError = OSEventObjectCreate("Global driver thread event object",
-	                             &g_hDriverThreadEventObject);
+				     &g_hDriverThreadEventObject);
 	PVR_LOG_GOTO_IF_ERROR(eError, "OSEventObjectCreate", error_);
 
 #if defined(DEBUG_BRIDGE_KM)
 	{
-		DI_ITERATOR_CB sIter = {
-			.pfnStart = BridgeStatsDIStart,
-			.pfnStop = BridgeStatsDIStop,
-			.pfnNext = BridgeStatsDINext,
-			.pfnShow = BridgeStatsDIShow,
-			.pfnWrite = BridgeStatsWrite,
+		DI_ITERATOR_CB sIter = { .pfnStart = BridgeStatsDIStart,
+					 .pfnStop = BridgeStatsDIStop,
+					 .pfnNext = BridgeStatsDINext,
+					 .pfnShow = BridgeStatsDIShow,
+					 .pfnWrite = BridgeStatsWrite,
 
-			//Expects '0' + Null terminator
-			.ui32WriteLenMax = ((1U)+1U)
-		};
+					 //Expects '0' + Null terminator
+					 .ui32WriteLenMax = ((1U) + 1U) };
 
 		eError = DICreateEntry("bridge_stats", NULL, &sIter,
-		                       &g_BridgeDispatchTable[0],
-		                       DI_ENTRY_TYPE_GENERIC,
-		                       &gpsDIBridgeStatsEntry);
+				       &g_BridgeDispatchTable[0],
+				       DI_ENTRY_TYPE_GENERIC,
+				       &gpsDIBridgeStatsEntry);
 		PVR_LOG_GOTO_IF_ERROR(eError, "DICreateEntry", error_);
 	}
 #endif
@@ -289,8 +288,7 @@ error_:
 void OSPlatformBridgeDeInit(void)
 {
 #if defined(DEBUG_BRIDGE_KM)
-	if (gpsDIBridgeStatsEntry != NULL)
-	{
+	if (gpsDIBridgeStatsEntry != NULL) {
 		DIDestroyEntry(gpsDIBridgeStatsEntry);
 	}
 #endif
@@ -304,46 +302,43 @@ void OSPlatformBridgeDeInit(void)
 }
 
 PVRSRV_ERROR LinuxBridgeBlockClientsAccess(struct pvr_drm_private *psDevPriv,
-                                           IMG_BOOL bShutdown)
+					   IMG_BOOL bShutdown)
 {
 	PVRSRV_ERROR eError;
 	IMG_HANDLE hEvent;
 	IMG_INT iSuspendCount;
 
 	eError = OSEventObjectOpen(g_hDriverThreadEventObject, &hEvent);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to open event object", __func__));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to open event object",
+			 __func__));
 		return eError;
 	}
 
 	iSuspendCount = OSAtomicIncrement(&g_iDriverSuspendCount);
 	PVR_DPF((PVR_DBG_MESSAGE, "%s: Driver suspended %d times.", __func__,
-	         iSuspendCount));
+		 iSuspendCount));
 
 	if (OSAtomicCompareExchange(&psDevPriv->suspended, _NOT_SUSPENDED,
-	                            _SUSPENDED) == _SUSPENDED)
-	{
+				    _SUSPENDED) == _SUSPENDED) {
 		OSAtomicDecrement(&g_iDriverSuspendCount);
-		PVR_DPF((PVR_DBG_ERROR, "%s: Device %p already suspended", __func__,
-		        psDevPriv->dev_node));
+		PVR_DPF((PVR_DBG_ERROR, "%s: Device %p already suspended",
+			 __func__, psDevPriv->dev_node));
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
 		goto CloseEventObject;
 	}
 
 	/* now wait for any threads currently in the server to exit */
 	while (OSAtomicRead(&g_iNumActiveDriverThreads) != 0 ||
-		   (OSAtomicRead(&g_iNumActiveKernelThreads) != 0 && !bShutdown))
-	{
-		if (OSAtomicRead(&g_iNumActiveDriverThreads) != 0)
-		{
+	       (OSAtomicRead(&g_iNumActiveKernelThreads) != 0 && !bShutdown)) {
+		if (OSAtomicRead(&g_iNumActiveDriverThreads) != 0) {
 			PVR_LOG(("%s: waiting for user threads (%d)", __func__,
-			        OSAtomicRead(&g_iNumActiveDriverThreads)));
+				 OSAtomicRead(&g_iNumActiveDriverThreads)));
 		}
-		if (OSAtomicRead(&g_iNumActiveKernelThreads) != 0)
-		{
-			PVR_LOG(("%s: waiting for kernel threads (%d)", __func__,
-			        OSAtomicRead(&g_iNumActiveKernelThreads)));
+		if (OSAtomicRead(&g_iNumActiveKernelThreads) != 0) {
+			PVR_LOG(("%s: waiting for kernel threads (%d)",
+				 __func__,
+				 OSAtomicRead(&g_iNumActiveKernelThreads)));
 		}
 		/* Regular wait is called here (and not OSEventObjectWaitKernel) because
 		 * this code is executed by the caller of .suspend/.shutdown callbacks
@@ -366,21 +361,20 @@ PVRSRV_ERROR LinuxBridgeUnblockClientsAccess(struct pvr_drm_private *psDevPriv)
 
 	/* resume the driver and then signal so any waiting threads wake up */
 	if (OSAtomicCompareExchange(&psDevPriv->suspended, _SUSPENDED,
-	                            _NOT_SUSPENDED) == _NOT_SUSPENDED)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Device is not suspended", __func__));
+				    _NOT_SUSPENDED) == _NOT_SUSPENDED) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Device is not suspended",
+			 __func__));
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	iSuspendCount = OSAtomicDecrement(&g_iDriverSuspendCount);
 	PVR_DPF((PVR_DBG_MESSAGE, "%s: Driver suspended %d times.", __func__,
-	         iSuspendCount));
+		 iSuspendCount));
 
 	eError = OSEventObjectSignal(g_hDriverThreadEventObject);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: OSEventObjectSignal failed: %s",
-		        __func__, PVRSRVGetErrorString(eError)));
+			 __func__, PVRSRVGetErrorString(eError)));
 	}
 
 	return eError;
@@ -390,13 +384,14 @@ static PVRSRV_ERROR LinuxBridgeSignalIfSuspended(void)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
-	if (OSAtomicRead(&g_iDriverSuspendCount) > 0)
-	{
-		PVRSRV_ERROR eError = OSEventObjectSignal(g_hDriverThreadEventObject);
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Failed to signal driver thread event"
-			        " object: %s", __func__, PVRSRVGetErrorString(eError)));
+	if (OSAtomicRead(&g_iDriverSuspendCount) > 0) {
+		PVRSRV_ERROR eError =
+			OSEventObjectSignal(g_hDriverThreadEventObject);
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Failed to signal driver thread event"
+				 " object: %s",
+				 __func__, PVRSRVGetErrorString(eError)));
 		}
 	}
 
@@ -417,7 +412,7 @@ void LinuxBridgeNumActiveKernelThreadsDecrement(void)
 	 * waiting for the threads to freeze.
 	 * (error is logged in called function so ignore, we can't do much with
 	 * it anyway) */
-	(void) LinuxBridgeSignalIfSuspended();
+	(void)LinuxBridgeSignalIfSuspended();
 }
 
 static PVRSRV_ERROR _WaitForDriverUnsuspend(void)
@@ -426,14 +421,13 @@ static PVRSRV_ERROR _WaitForDriverUnsuspend(void)
 	IMG_HANDLE hEvent;
 
 	eError = OSEventObjectOpen(g_hDriverThreadEventObject, &hEvent);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to open event object", __func__));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to open event object",
+			 __func__));
 		return eError;
 	}
 
-	while (OSAtomicRead(&g_iDriverSuspendCount) == 0)
-	{
+	while (OSAtomicRead(&g_iDriverSuspendCount) == 0) {
 		/* we should be able to use normal (not kernel) wait here since
 		 * we were just unfrozen and most likely we're not going to
 		 * be frozen again (?) */
@@ -454,26 +448,23 @@ PVRSRV_ERROR PVRSRVDriverThreadEnter(void *pvData)
 	 * In this case we must await a PVRSRVDeviceThaw() completion request.
 	 * Device is obtained from the incoming psConnection if pvData is non-NULL.
 	 */
-	if (likely(pvData != NULL))
-	{
+	if (likely(pvData != NULL)) {
 		PVRSRV_DEVICE_NODE *psDevNode = OSGetDevNode(psConnection);
 		PVRSRVBlockIfFrozen(psDevNode);
 		OSAtomicIncrement(&psDevNode->iThreadsActive);
 	}
 #if defined(PVR_TESTING_UTILS)
-	else
-	{
+	else {
 		PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 		OSAtomicIncrement(&psPVRSRVData->iNumDriverTasksActive);
 	}
-#endif	/* defined(PVR_TESTING_UTILS) */
+#endif /* defined(PVR_TESTING_UTILS) */
 
 	/* increment first so there is no race between this value and
 	 * g_iDriverSuspendCount in LinuxBridgeBlockClientsAccess() */
 	OSAtomicIncrement(&g_iNumActiveDriverThreads);
 
-	if (OSAtomicRead(&g_iDriverSuspendCount) > 0)
-	{
+	if (OSAtomicRead(&g_iDriverSuspendCount) > 0) {
 		/* decrement here because the driver is going to be suspended and
 		 * this thread is going to be frozen so we don't want to wait for
 		 * it in LinuxBridgeBlockClientsAccess() */
@@ -495,11 +486,11 @@ PVRSRV_ERROR PVRSRVDriverThreadEnter(void *pvData)
 		 * driver */
 		OSAtomicIncrement(&g_iNumActiveDriverThreads);
 
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Failed to wait for driver"
-			        " unsuspend: %s", __func__,
-			        PVRSRVGetErrorString(eError)));
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Failed to wait for driver"
+				 " unsuspend: %s",
+				 __func__, PVRSRVGetErrorString(eError)));
 			return eError;
 		}
 	}
@@ -515,8 +506,7 @@ void PVRSRVDriverThreadExit(void *pvData)
 	/* Decrement the number of threads active on this device if the
 	 * connection is known.
 	 */
-	if (psConnection != NULL)
-	{
+	if (psConnection != NULL) {
 		PVRSRV_DEVICE_NODE *psDevNode = OSGetDevNode(psConnection);
 		OSAtomicDecrement(&psDevNode->iThreadsActive);
 	}
@@ -525,19 +515,19 @@ void PVRSRVDriverThreadExit(void *pvData)
 	 * for active threads to exit
 	 * error is logged in called function so ignore returned error
 	 */
-	(void) LinuxBridgeSignalIfSuspended();
+	(void)LinuxBridgeSignalIfSuspended();
 }
 
-int
-PVRSRV_BridgeDispatchKM(struct drm_device __maybe_unused *dev, void *arg, struct drm_file *pDRMFile)
+int PVRSRV_BridgeDispatchKM(struct drm_device __maybe_unused *dev, void *arg,
+			    struct drm_file *pDRMFile)
 {
-	struct drm_pvr_srvkm_cmd *psSrvkmCmd = (struct drm_pvr_srvkm_cmd *) arg;
+	struct drm_pvr_srvkm_cmd *psSrvkmCmd = (struct drm_pvr_srvkm_cmd *)arg;
 	PVRSRV_BRIDGE_PACKAGE sBridgePackageKM = { 0 };
-	CONNECTION_DATA *psConnection = LinuxServicesConnectionFromFile(pDRMFile->filp);
+	CONNECTION_DATA *psConnection =
+		LinuxServicesConnectionFromFile(pDRMFile->filp);
 	PVRSRV_ERROR error;
 
-	if (psConnection == NULL)
-	{
+	if (psConnection == NULL) {
 		PVR_DPF((PVR_DBG_ERROR, "Invalid connection data"));
 		return -EFAULT;
 	}
@@ -545,10 +535,11 @@ PVRSRV_BridgeDispatchKM(struct drm_device __maybe_unused *dev, void *arg, struct
 	PVR_ASSERT(psSrvkmCmd != NULL);
 
 	DRM_DEBUG("tgid=%d, tgid_connection=%d, bridge_id=%d, func_id=%d",
-			  task_tgid_nr(current),
-			  ((ENV_CONNECTION_DATA *)PVRSRVConnectionPrivateData(psConnection))->owner,
-			  psSrvkmCmd->bridge_id,
-			  psSrvkmCmd->bridge_func_id);
+		  task_tgid_nr(current),
+		  ((ENV_CONNECTION_DATA *)PVRSRVConnectionPrivateData(
+			   psConnection))
+			  ->owner,
+		  psSrvkmCmd->bridge_id, psSrvkmCmd->bridge_func_id);
 
 	error = PVRSRVDriverThreadEnter(psConnection);
 	PVR_LOG_GOTO_IF_ERROR(error, "PVRSRVDriverThreadEnter", e0);
@@ -556,9 +547,11 @@ PVRSRV_BridgeDispatchKM(struct drm_device __maybe_unused *dev, void *arg, struct
 	sBridgePackageKM.ui32BridgeID = psSrvkmCmd->bridge_id;
 	sBridgePackageKM.ui32FunctionID = psSrvkmCmd->bridge_func_id;
 	sBridgePackageKM.ui32Size = sizeof(sBridgePackageKM);
-	sBridgePackageKM.pvParamIn = (void __user *)(uintptr_t)psSrvkmCmd->in_data_ptr;
+	sBridgePackageKM.pvParamIn =
+		(void __user *)(uintptr_t)psSrvkmCmd->in_data_ptr;
 	sBridgePackageKM.ui32InBufferSize = psSrvkmCmd->in_data_size;
-	sBridgePackageKM.pvParamOut = (void __user *)(uintptr_t)psSrvkmCmd->out_data_ptr;
+	sBridgePackageKM.pvParamOut =
+		(void __user *)(uintptr_t)psSrvkmCmd->out_data_ptr;
 	sBridgePackageKM.ui32OutBufferSize = psSrvkmCmd->out_data_size;
 
 	error = BridgedDispatchKM(psConnection, &sBridgePackageKM);
@@ -569,19 +562,21 @@ e0:
 	return OSPVRSRVToNativeError(error);
 }
 
-int
-PVRSRV_MMap(struct file *pFile, struct vm_area_struct *ps_vma)
+int PVRSRV_MMap(struct file *pFile, struct vm_area_struct *ps_vma)
 {
 	CONNECTION_DATA *psConnection = LinuxServicesConnectionFromFile(pFile);
 	IMG_HANDLE hSecurePMRHandle = (IMG_HANDLE)((uintptr_t)ps_vma->vm_pgoff);
 	PMR *psPMR;
 	PVRSRV_ERROR eError;
 	PVRSRV_MEMALLOCFLAGS_T uiProtFlags =
-	    (BITMASK_HAS(ps_vma->vm_flags, VM_READ) ? PVRSRV_MEMALLOCFLAG_CPU_READABLE : 0) |
-	    (BITMASK_HAS(ps_vma->vm_flags, VM_WRITE) ? PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE : 0);
+		(BITMASK_HAS(ps_vma->vm_flags, VM_READ) ?
+			 PVRSRV_MEMALLOCFLAG_CPU_READABLE :
+			 0) |
+		(BITMASK_HAS(ps_vma->vm_flags, VM_WRITE) ?
+			 PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE :
+			 0);
 
-	if (psConnection == NULL)
-	{
+	if (psConnection == NULL) {
 		PVR_DPF((PVR_DBG_ERROR, "Invalid connection data"));
 		return -ENOENT;
 	}
@@ -596,13 +591,10 @@ PVRSRV_MMap(struct file *pFile, struct vm_area_struct *ps_vma)
 	 * related with the PVRSRV_MMap.
 	 */
 
-	eError = PVRSRVLookupHandle(psConnection->psHandleBase,
-								(void **)&psPMR,
-								hSecurePMRHandle,
-								PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-								IMG_TRUE);
-	if (eError != PVRSRV_OK)
-	{
+	eError = PVRSRVLookupHandle(psConnection->psHandleBase, (void **)&psPMR,
+				    hSecurePMRHandle,
+				    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR, IMG_TRUE);
+	if (eError != PVRSRV_OK) {
 		goto e0;
 	}
 
@@ -613,11 +605,11 @@ PVRSRV_MMap(struct file *pFile, struct vm_area_struct *ps_vma)
 	 */
 	eError = PMRMMapPMR(psPMR, ps_vma, uiProtFlags);
 	mutex_unlock(&g_sMMapMutex);
-	PVRSRVReleaseHandle(psConnection->psHandleBase, hSecurePMRHandle, PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: PMRMMapPMR failed (%s)",
-				__func__, PVRSRVGetErrorString(eError)));
+	PVRSRVReleaseHandle(psConnection->psHandleBase, hSecurePMRHandle,
+			    PVRSRV_HANDLE_TYPE_PHYSMEM_PMR);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: PMRMMapPMR failed (%s)", __func__,
+			 PVRSRVGetErrorString(eError)));
 		goto e0;
 	}
 
@@ -628,7 +620,8 @@ PVRSRV_MMap(struct file *pFile, struct vm_area_struct *ps_vma)
 e0:
 	PVRSRVDriverThreadExit(psConnection);
 
-	PVR_DPF((PVR_DBG_ERROR, "Failed with error: %s", PVRSRVGetErrorString(eError)));
+	PVR_DPF((PVR_DBG_ERROR, "Failed with error: %s",
+		 PVRSRVGetErrorString(eError)));
 	PVR_ASSERT(eError != PVRSRV_OK);
 
 	return OSPVRSRVToNativeError(eError);

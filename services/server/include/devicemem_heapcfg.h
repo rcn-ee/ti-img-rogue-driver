@@ -52,12 +52,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
  *  Supported log2 page size values for RGX_GENERAL_NON_4K_HEAP_ID
  */
-#define RGX_HEAP_4KB_PAGE_SHIFT					(12U)
-#define RGX_HEAP_16KB_PAGE_SHIFT				(14U)
-#define RGX_HEAP_64KB_PAGE_SHIFT				(16U)
-#define RGX_HEAP_256KB_PAGE_SHIFT				(18U)
-#define RGX_HEAP_1MB_PAGE_SHIFT					(20U)
-#define RGX_HEAP_2MB_PAGE_SHIFT					(21U)
+#define RGX_HEAP_4KB_PAGE_SHIFT (12U)
+#define RGX_HEAP_16KB_PAGE_SHIFT (14U)
+#define RGX_HEAP_64KB_PAGE_SHIFT (16U)
+#define RGX_HEAP_256KB_PAGE_SHIFT (18U)
+#define RGX_HEAP_1MB_PAGE_SHIFT (20U)
+#define RGX_HEAP_2MB_PAGE_SHIFT (21U)
 
 struct _PVRSRV_DEVICE_NODE_;
 struct _CONNECTION_DATA_;
@@ -75,8 +75,8 @@ struct _DEVMEMINT_HEAP_;
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
 typedef PVRSRV_ERROR (*PFN_HEAP_INIT)(struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-                                      struct _DEVMEMINT_HEAP_ *psDevmemHeap,
-                                      IMG_HANDLE *phPrivData);
+				      struct _DEVMEMINT_HEAP_ *psDevmemHeap,
+				      IMG_HANDLE *phPrivData);
 
 /*************************************************************************/ /*!
 @Function       Callback function PFN_HEAP_DEINIT
@@ -98,8 +98,7 @@ typedef void (*PFN_HEAP_DEINIT)(IMG_HANDLE hPrivData);
 */
 
 /* Blueprint for a single heap */
-typedef struct _DEVMEM_HEAP_BLUEPRINT_
-{
+typedef struct _DEVMEM_HEAP_BLUEPRINT_ {
 	/* Name of this heap - for debug purposes, and perhaps for lookup
 	by name */
 	const IMG_CHAR *pszName;
@@ -154,70 +153,57 @@ typedef struct _DEVMEM_HEAP_BLUEPRINT_
 
 } DEVMEM_HEAP_BLUEPRINT;
 
-void HeapCfgBlueprintInit(const IMG_CHAR        *pszName,
-	                      IMG_UINT64             ui64HeapBaseAddr,
-	                      IMG_DEVMEM_SIZE_T      uiHeapLength,
-	                      IMG_DEVMEM_SIZE_T      uiReservedRegionLength,
-	                      IMG_UINT32             ui32Log2DataPageSize,
-	                      IMG_UINT32             uiLog2ImportAlignment,
-	                      PFN_HEAP_INIT          pfnInit,
-	                      PFN_HEAP_DEINIT        pfnDeInit,
-	                      DEVMEM_HEAP_BLUEPRINT *psHeapBlueprint);
+void HeapCfgBlueprintInit(const IMG_CHAR *pszName, IMG_UINT64 ui64HeapBaseAddr,
+			  IMG_DEVMEM_SIZE_T uiHeapLength,
+			  IMG_DEVMEM_SIZE_T uiReservedRegionLength,
+			  IMG_UINT32 ui32Log2DataPageSize,
+			  IMG_UINT32 uiLog2ImportAlignment,
+			  PFN_HEAP_INIT pfnInit, PFN_HEAP_DEINIT pfnDeInit,
+			  DEVMEM_HEAP_BLUEPRINT *psHeapBlueprint);
 
 /* Entire named heap config */
-typedef struct _DEVMEM_HEAP_CONFIG_
-{
-    /* Name of this heap config - for debug and maybe lookup */
-    const IMG_CHAR *pszName;
+typedef struct _DEVMEM_HEAP_CONFIG_ {
+	/* Name of this heap config - for debug and maybe lookup */
+	const IMG_CHAR *pszName;
 
-    /* Number of heaps in this config */
-    IMG_UINT32 uiNumHeaps;
+	/* Number of heaps in this config */
+	IMG_UINT32 uiNumHeaps;
 
-    /* Array of individual heap blueprints as defined above */
-    DEVMEM_HEAP_BLUEPRINT *psHeapBlueprintArray;
+	/* Array of individual heap blueprints as defined above */
+	DEVMEM_HEAP_BLUEPRINT *psHeapBlueprintArray;
 } DEVMEM_HEAP_CONFIG;
-
 
 PVRSRV_ERROR
 HeapCfgHeapConfigCount(struct _CONNECTION_DATA_ *psConnection,
-    const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-    IMG_UINT32 *puiNumHeapConfigsOut
-);
+		       const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
+		       IMG_UINT32 *puiNumHeapConfigsOut);
 
 PVRSRV_ERROR
 HeapCfgHeapCount(struct _CONNECTION_DATA_ *psConnection,
-    const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-    IMG_UINT32 uiHeapConfigIndex,
-    IMG_UINT32 *puiNumHeapsOut
-);
+		 const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
+		 IMG_UINT32 uiHeapConfigIndex, IMG_UINT32 *puiNumHeapsOut);
 
 PVRSRV_ERROR
 HeapCfgHeapConfigName(struct _CONNECTION_DATA_ *psConnection,
-    const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-    IMG_UINT32 uiHeapConfigIndex,
-    IMG_UINT32 uiHeapConfigNameBufSz,
-    IMG_CHAR *pszHeapConfigNameOut
-);
+		      const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
+		      IMG_UINT32 uiHeapConfigIndex,
+		      IMG_UINT32 uiHeapConfigNameBufSz,
+		      IMG_CHAR *pszHeapConfigNameOut);
 
 PVRSRV_ERROR
 HeapCfgHeapDetails(struct _CONNECTION_DATA_ *psConnection,
-    const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-    IMG_UINT32 uiHeapConfigIndex,
-    IMG_UINT32 uiHeapIndex,
-    IMG_UINT32 uiHeapNameBufSz,
-    IMG_CHAR *pszHeapNameOut,
-    IMG_DEV_VIRTADDR *psDevVAddrBaseOut,
-    IMG_DEVMEM_SIZE_T *puiHeapLengthOut,
-    IMG_DEVMEM_SIZE_T *puiReservedRegionLengthOut,
-    IMG_UINT32 *puiLog2DataPageSizeOut,
-    IMG_UINT32 *puiLog2ImportAlignmentOut
-);
+		   const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
+		   IMG_UINT32 uiHeapConfigIndex, IMG_UINT32 uiHeapIndex,
+		   IMG_UINT32 uiHeapNameBufSz, IMG_CHAR *pszHeapNameOut,
+		   IMG_DEV_VIRTADDR *psDevVAddrBaseOut,
+		   IMG_DEVMEM_SIZE_T *puiHeapLengthOut,
+		   IMG_DEVMEM_SIZE_T *puiReservedRegionLengthOut,
+		   IMG_UINT32 *puiLog2DataPageSizeOut,
+		   IMG_UINT32 *puiLog2ImportAlignmentOut);
 
 PVRSRV_ERROR
 HeapCfgGetCallbacks(const struct _PVRSRV_DEVICE_NODE_ *psDeviceNode,
-                    IMG_UINT32 uiHeapConfigIndex,
-                    IMG_UINT32 uiHeapIndex,
-                    PFN_HEAP_INIT *ppfnInit,
-                    PFN_HEAP_DEINIT *ppfnDeinit);
+		    IMG_UINT32 uiHeapConfigIndex, IMG_UINT32 uiHeapIndex,
+		    PFN_HEAP_INIT *ppfnInit, PFN_HEAP_DEINIT *ppfnDeinit);
 
 #endif

@@ -59,43 +59,40 @@
 #if LINUX_VERSION_CODE >= KERNEL_VERSION(4, 19, 0)
 #include <linux/stringify.h>
 
-#define	PLATO_MULTI_DEVICE
+#define PLATO_MULTI_DEVICE
 #endif
 
 // Debug output:
 // Sometimes will want to always output info or error even in release mode.
 // In that case use dev_info, dev_err directly.
 #if defined(PLATO_DRM_DEBUG)
-	#define plato_dev_info(dev, fmt, ...) \
-		dev_info(dev, fmt, ##__VA_ARGS__)
-	#define plato_dev_warn(dev, fmt, ...) \
-		dev_warn(dev, fmt, ##__VA_ARGS__)
-	#define plato_dev_error(dev, fmt, ...) \
-		dev_err(dev, fmt, ##__VA_ARGS__)
-	#define PLATO_DRM_CHECKPOINT            pr_info("line %d\n", __LINE__)
+#define plato_dev_info(dev, fmt, ...) dev_info(dev, fmt, ##__VA_ARGS__)
+#define plato_dev_warn(dev, fmt, ...) dev_warn(dev, fmt, ##__VA_ARGS__)
+#define plato_dev_error(dev, fmt, ...) dev_err(dev, fmt, ##__VA_ARGS__)
+#define PLATO_DRM_CHECKPOINT pr_info("line %d\n", __LINE__)
 #else
-	#define plato_dev_info(dev, fmt, ...)
-	#define plato_dev_warn(dev, fmt, ...)
-	#define plato_dev_error(dev, fmt, ...)
-	#define PLATO_DRM_CHECKPOINT
+#define plato_dev_info(dev, fmt, ...)
+#define plato_dev_warn(dev, fmt, ...)
+#define plato_dev_error(dev, fmt, ...)
+#define PLATO_DRM_CHECKPOINT
 #endif
 
-#define PLATO_INIT_SUCCESS	0
-#define PLATO_INIT_FAILURE	1
-#define PLATO_INIT_RETRY	2
+#define PLATO_INIT_SUCCESS 0
+#define PLATO_INIT_FAILURE 1
+#define PLATO_INIT_RETRY 2
 
-#define PCI_VENDOR_ID_PLATO				(0x1AEE)
-#define PCI_DEVICE_ID_PLATO				(0x0003)
+#define PCI_VENDOR_ID_PLATO (0x1AEE)
+#define PCI_DEVICE_ID_PLATO (0x0003)
 
-#define PLATO_SYSTEM_NAME				"Plato"
+#define PLATO_SYSTEM_NAME "Plato"
 
-#define PLATO_MAX_CARDS					4
+#define PLATO_MAX_CARDS 4
 
-#define	PLATO_MAX_DEVICE_NAME_LEN			32
+#define PLATO_MAX_DEVICE_NAME_LEN 32
 
 #if defined(PLATO_MULTI_DEVICE)
-#define	PLATO_MAKE_DEVICE_TEMPLATE(p)			(p "_%u")
-#define	PLATO_MAKE_DEVICE_NAME(p, i)			(p "_" __stringify(i))
+#define PLATO_MAKE_DEVICE_TEMPLATE(p) (p "_%u")
+#define PLATO_MAKE_DEVICE_NAME(p, i) (p "_" __stringify(i))
 #endif
 
 /* Interrupt defines */
@@ -106,12 +103,11 @@ enum PLATO_INTERRUPT {
 	PLATO_INTERRUPT_MAX,
 };
 
-#define PLATO_INT_SHIFT_GPU				(0)
-#define PLATO_INT_SHIFT_PDP				(8)
-#define PLATO_INT_SHIFT_HDMI			(9)
-#define PLATO_INT_SHIFT_HDMI_WAKEUP		(11)
-#define PLATO_INT_SHIFT_TEMP_A			(12)
-
+#define PLATO_INT_SHIFT_GPU (0)
+#define PLATO_INT_SHIFT_PDP (8)
+#define PLATO_INT_SHIFT_HDMI (9)
+#define PLATO_INT_SHIFT_HDMI_WAKEUP (11)
+#define PLATO_INT_SHIFT_TEMP_A (12)
 
 struct plato_region {
 	resource_size_t base;
@@ -127,28 +123,27 @@ struct plato_io_region {
  * driver to the respective sub-drivers
  */
 
-#define PLATO_DEVICE_NAME_PDP_PREFIX		"plato_pdp"
+#define PLATO_DEVICE_NAME_PDP_PREFIX "plato_pdp"
 
 #if defined(PLATO_MULTI_DEVICE)
-#define PLATO_DEVICE_NAME_PDP_TEMPLATE		PLATO_MAKE_DEVICE_TEMPLATE( \
-						PLATO_DEVICE_NAME_PDP_PREFIX)
+#define PLATO_DEVICE_NAME_PDP_TEMPLATE \
+	PLATO_MAKE_DEVICE_TEMPLATE(PLATO_DEVICE_NAME_PDP_PREFIX)
 
-#define	PLATO_DEVICE_NAME_PDP_PRINTF_ARGS(i)	PLATO_DEVICE_NAME_PDP_TEMPLATE, i
+#define PLATO_DEVICE_NAME_PDP_PRINTF_ARGS(i) PLATO_DEVICE_NAME_PDP_TEMPLATE, i
 
-#define	PLATO_MAKE_DEVICE_NAME_PDP(i)		PLATO_MAKE_DEVICE_NAME( \
-						PLATO_DEVICE_NAME_PDP_PREFIX, \
-						i)
+#define PLATO_MAKE_DEVICE_NAME_PDP(i) \
+	PLATO_MAKE_DEVICE_NAME(PLATO_DEVICE_NAME_PDP_PREFIX, i)
 #else
-#define PLATO_DEVICE_NAME_PDP_TEMPLATE		PLATO_DEVICE_NAME_PDP_PREFIX
-#define	PLATO_DEVICE_NAME_PDP_PRINTF_ARGS(i)	PLATO_DEVICE_NAME_PDP_TEMPLATE
-#define PLATO_DEVICE_NAME_PDP			PLATO_DEVICE_NAME_PDP_PREFIX
+#define PLATO_DEVICE_NAME_PDP_TEMPLATE PLATO_DEVICE_NAME_PDP_PREFIX
+#define PLATO_DEVICE_NAME_PDP_PRINTF_ARGS(i) PLATO_DEVICE_NAME_PDP_TEMPLATE
+#define PLATO_DEVICE_NAME_PDP PLATO_DEVICE_NAME_PDP_PREFIX
 #endif
 
-#define PLATO_PDP_RESOURCE_REGS			"pdp-regs"
-#define PLATO_PDP_RESOURCE_BIF_REGS		"pdp-bif-regs"
+#define PLATO_PDP_RESOURCE_REGS "pdp-regs"
+#define PLATO_PDP_RESOURCE_BIF_REGS "pdp-bif-regs"
 
-#define PLATO_DEVICE_NAME_HDMI			"plato_hdmi"
-#define PLATO_HDMI_RESOURCE_REGS		"hdmi-regs"
+#define PLATO_DEVICE_NAME_HDMI "plato_hdmi"
+#define PLATO_HDMI_RESOURCE_REGS "hdmi-regs"
 
 struct plato_pdp_platform_data {
 	resource_size_t memory_base;
@@ -169,28 +164,26 @@ struct plato_hdmi_platform_data {
 	resource_size_t plato_memory_base;
 };
 
-
-#define PLATO_DEVICE_NAME_ROGUE_PREFIX	"plato_rogue"
+#define PLATO_DEVICE_NAME_ROGUE_PREFIX "plato_rogue"
 
 #if defined(PLATO_MULTI_DEVICE)
-#define PLATO_DEVICE_NAME_ROGUE_TEMPLATE	PLATO_MAKE_DEVICE_TEMPLATE( \
-						PLATO_DEVICE_NAME_ROGUE_PREFIX)
+#define PLATO_DEVICE_NAME_ROGUE_TEMPLATE \
+	PLATO_MAKE_DEVICE_TEMPLATE(PLATO_DEVICE_NAME_ROGUE_PREFIX)
 
-#define	PLATO_DEVICE_NAME_ROGUE_PRINTF_ARGS(i)	PLATO_DEVICE_NAME_ROGUE_TEMPLATE, i
+#define PLATO_DEVICE_NAME_ROGUE_PRINTF_ARGS(i) \
+	PLATO_DEVICE_NAME_ROGUE_TEMPLATE, i
 
-#define	PLATO_MAKE_DEVICE_NAME_ROGUE(i)		PLATO_MAKE_DEVICE_NAME( \
-						PLATO_DEVICE_NAME_ROGUE_PREFIX, \
-						i)
+#define PLATO_MAKE_DEVICE_NAME_ROGUE(i) \
+	PLATO_MAKE_DEVICE_NAME(PLATO_DEVICE_NAME_ROGUE_PREFIX, i)
 #else
-#define PLATO_DEVICE_NAME_ROGUE_TEMPLATE	PLATO_DEVICE_NAME_ROGUE_PREFIX
-#define	PLATO_DEVICE_NAME_ROGUE_PRINTF_ARGS(i)	PLATO_DEVICE_NAME_ROGUE_TEMPLATE
-#define PLATO_DEVICE_NAME_ROGUE			PLATO_DEVICE_NAME_ROGUE_PREFIX
+#define PLATO_DEVICE_NAME_ROGUE_TEMPLATE PLATO_DEVICE_NAME_ROGUE_PREFIX
+#define PLATO_DEVICE_NAME_ROGUE_PRINTF_ARGS(i) PLATO_DEVICE_NAME_ROGUE_TEMPLATE
+#define PLATO_DEVICE_NAME_ROGUE PLATO_DEVICE_NAME_ROGUE_PREFIX
 #endif
 
-#define PLATO_ROGUE_RESOURCE_REGS		"rogue-regs"
+#define PLATO_ROGUE_RESOURCE_REGS "rogue-regs"
 
 struct plato_rogue_platform_data {
-
 	/* The base address of the plato memory (CPU physical address) -
 	 * used to convert from CPU-Physical to device-physical addresses
 	 */
@@ -246,8 +239,8 @@ struct plato_device {
 };
 
 #if defined(PLATO_LOG_CHECKPOINTS)
-#define PLATO_CHECKPOINT(p) dev_info(&p->pdev->dev, \
-					"- %s: %d", __func__, __LINE__)
+#define PLATO_CHECKPOINT(p) \
+	dev_info(&p->pdev->dev, "- %s: %d", __func__, __LINE__)
 #else
 #define PLATO_CHECKPOINT(p)
 #endif
@@ -256,12 +249,12 @@ struct plato_device {
 	iowrite32(value, (base) + (offset))
 #define plato_read_reg32(base, offset) ioread32(base + offset)
 #define plato_sleep_ms(x) msleep(x)
-#define plato_sleep_us(x) msleep(x/1000)
+#define plato_sleep_us(x) msleep(x / 1000)
 
 /* Valid values for the PLATO_MEMORY_CONFIG configuration option */
-#define PLATO_MEMORY_LOCAL			(1)
-#define PLATO_MEMORY_HOST			(2)
-#define PLATO_MEMORY_HYBRID			(3)
+#define PLATO_MEMORY_LOCAL (1)
+#define PLATO_MEMORY_HOST (2)
+#define PLATO_MEMORY_HYBRID (3)
 
 #if defined(PLATO_MEMORY_CONFIG)
 #if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
@@ -273,46 +266,46 @@ struct plato_device {
 
 #define DCPDP_PHYS_HEAP_ID PVRSRV_PHYS_HEAP_CONFIG_PDP_LOCAL_ID
 
-#define PLATO_PDP_MEM_SIZE			(384 * 1024 * 1024)
+#define PLATO_PDP_MEM_SIZE (384 * 1024 * 1024)
 
-#define SYS_PLATO_REG_PCI_BASENUM	(1)
-#define SYS_PLATO_REG_REGION_SIZE	(4 * 1024 * 1024)
+#define SYS_PLATO_REG_PCI_BASENUM (1)
+#define SYS_PLATO_REG_REGION_SIZE (4 * 1024 * 1024)
 
 /*
  * Give system region a whole span of the reg space including
  * RGX registers. That's because there are sys register segments
  * both before and after the RGX segment.
  */
-#define SYS_PLATO_REG_SYS_OFFSET			(0x0)
-#define SYS_PLATO_REG_SYS_SIZE				(4 * 1024 * 1024)
+#define SYS_PLATO_REG_SYS_OFFSET (0x0)
+#define SYS_PLATO_REG_SYS_SIZE (4 * 1024 * 1024)
 
 /* Entire Peripheral region */
-#define SYS_PLATO_REG_PERIP_OFFSET			(0x20000)
-#define SYS_PLATO_REG_PERIP_SIZE			(164 * 1024)
+#define SYS_PLATO_REG_PERIP_OFFSET (0x20000)
+#define SYS_PLATO_REG_PERIP_SIZE (164 * 1024)
 
 /* Chip level registers */
-#define SYS_PLATO_REG_CHIP_LEVEL_OFFSET		(SYS_PLATO_REG_PERIP_OFFSET)
-#define SYS_PLATO_REG_CHIP_LEVEL_SIZE		(64 * 1024)
+#define SYS_PLATO_REG_CHIP_LEVEL_OFFSET (SYS_PLATO_REG_PERIP_OFFSET)
+#define SYS_PLATO_REG_CHIP_LEVEL_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_TEMPA_OFFSET			(0x80000)
-#define SYS_PLATO_REG_TEMPA_SIZE			(64 * 1024)
+#define SYS_PLATO_REG_TEMPA_OFFSET (0x80000)
+#define SYS_PLATO_REG_TEMPA_SIZE (64 * 1024)
 
 /* USB, DMA not included */
 
-#define SYS_PLATO_REG_DDR_A_CTRL_OFFSET		(0x120000)
-#define SYS_PLATO_REG_DDR_A_CTRL_SIZE		(64 * 1024)
+#define SYS_PLATO_REG_DDR_A_CTRL_OFFSET (0x120000)
+#define SYS_PLATO_REG_DDR_A_CTRL_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_DDR_B_CTRL_OFFSET		(0x130000)
-#define SYS_PLATO_REG_DDR_B_CTRL_SIZE		(64 * 1024)
+#define SYS_PLATO_REG_DDR_B_CTRL_OFFSET (0x130000)
+#define SYS_PLATO_REG_DDR_B_CTRL_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_DDR_A_PUBL_OFFSET		(0x140000)
-#define SYS_PLATO_REG_DDR_A_PUBL_SIZE		(64 * 1024)
+#define SYS_PLATO_REG_DDR_A_PUBL_OFFSET (0x140000)
+#define SYS_PLATO_REG_DDR_A_PUBL_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_DDR_B_PUBL_OFFSET		(0x150000)
-#define SYS_PLATO_REG_DDR_B_PUBL_SIZE		(64 * 1024)
+#define SYS_PLATO_REG_DDR_B_PUBL_OFFSET (0x150000)
+#define SYS_PLATO_REG_DDR_B_PUBL_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_NOC_OFFSET			(0x160000)
-#define SYS_PLATO_REG_NOC_SIZE		        (64 * 1024)
+#define SYS_PLATO_REG_NOC_OFFSET (0x160000)
+#define SYS_PLATO_REG_NOC_SIZE (64 * 1024)
 
 /* Debug NOC registers */
 #define SYS_PLATO_REG_NOC_DBG_DDR_A_CTRL_OFFSET (0x1500)
@@ -321,47 +314,45 @@ struct plato_device {
 #define SYS_PLATO_REG_NOC_DBG_DDR_B_CTRL_OFFSET (0x1680)
 #define SYS_PLATO_REG_NOC_DBG_DDR_B_DATA_OFFSET (0x1700)
 #define SYS_PLATO_REG_NOC_DBG_DDR_B_PUBL_OFFSET (0x1780)
-#define SYS_PLATO_REG_NOC_DBG_DISPLAY_S_OFFSET  (0x1800)
-#define SYS_PLATO_REG_NOC_DBG_GPIO_0_S_OFFSET   (0x1900)
-#define SYS_PLATO_REG_NOC_DBG_GPIO_1_S_OFFSET   (0x1980)
-#define SYS_PLATO_REG_NOC_DBG_GPU_S_OFFSET      (0x1A00)
-#define SYS_PLATO_REG_NOC_DBG_PCI_PHY_OFFSET    (0x1A80)
-#define SYS_PLATO_REG_NOC_DBG_PCI_REG_OFFSET    (0x1B00)
-#define SYS_PLATO_REG_NOC_DBG_PCI_S_OFFSET      (0x1B80)
-#define SYS_PLATO_REG_NOC_DBG_PERIPH_S_OFFSET   (0x1c00)
-#define SYS_PLATO_REG_NOC_DBG_RET_REG_OFFSET    (0x1D00)
-#define SYS_PLATO_REG_NOC_DBG_SERVICE_OFFSET    (0x1E00)
+#define SYS_PLATO_REG_NOC_DBG_DISPLAY_S_OFFSET (0x1800)
+#define SYS_PLATO_REG_NOC_DBG_GPIO_0_S_OFFSET (0x1900)
+#define SYS_PLATO_REG_NOC_DBG_GPIO_1_S_OFFSET (0x1980)
+#define SYS_PLATO_REG_NOC_DBG_GPU_S_OFFSET (0x1A00)
+#define SYS_PLATO_REG_NOC_DBG_PCI_PHY_OFFSET (0x1A80)
+#define SYS_PLATO_REG_NOC_DBG_PCI_REG_OFFSET (0x1B00)
+#define SYS_PLATO_REG_NOC_DBG_PCI_S_OFFSET (0x1B80)
+#define SYS_PLATO_REG_NOC_DBG_PERIPH_S_OFFSET (0x1c00)
+#define SYS_PLATO_REG_NOC_DBG_RET_REG_OFFSET (0x1D00)
+#define SYS_PLATO_REG_NOC_DBG_SERVICE_OFFSET (0x1E00)
 
-#define SYS_PLATO_REG_RGX_OFFSET			(0x170000)
-#define SYS_PLATO_REG_RGX_SIZE				(64 * 1024)
+#define SYS_PLATO_REG_RGX_OFFSET (0x170000)
+#define SYS_PLATO_REG_RGX_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_AON_OFFSET			(0x180000)
-#define SYS_PLATO_REG_AON_SIZE				(64 * 1024)
+#define SYS_PLATO_REG_AON_OFFSET (0x180000)
+#define SYS_PLATO_REG_AON_SIZE (64 * 1024)
 
-#define SYS_PLATO_REG_PDP_OFFSET			(0x200000)
-#define SYS_PLATO_REG_PDP_SIZE				(0x1000)
+#define SYS_PLATO_REG_PDP_OFFSET (0x200000)
+#define SYS_PLATO_REG_PDP_SIZE (0x1000)
 
 #define SYS_PLATO_REG_PDP_BIF_OFFSET \
 	(SYS_PLATO_REG_PDP_OFFSET + SYS_PLATO_REG_PDP_SIZE)
-#define SYS_PLATO_REG_PDP_BIF_SIZE          (0x200)
+#define SYS_PLATO_REG_PDP_BIF_SIZE (0x200)
 
-#define SYS_PLATO_REG_HDMI_OFFSET \
-	(SYS_PLATO_REG_PDP_OFFSET + 0x20000)
-#define SYS_PLATO_REG_HDMI_SIZE             (128 * 1024)
+#define SYS_PLATO_REG_HDMI_OFFSET (SYS_PLATO_REG_PDP_OFFSET + 0x20000)
+#define SYS_PLATO_REG_HDMI_SIZE (128 * 1024)
 
 /* Device memory (including HP mapping) on base register 4 */
-#define SYS_DEV_MEM_PCI_BASENUM		(4)
+#define SYS_DEV_MEM_PCI_BASENUM (4)
 
 /* Device memory size */
-#define ONE_GB_IN_BYTES					(0x40000000ULL)
-#define SYS_DEV_MEM_REGION_SIZE \
-	(PLATO_MEMORY_SIZE_GIGABYTES * ONE_GB_IN_BYTES)
+#define ONE_GB_IN_BYTES (0x40000000ULL)
+#define SYS_DEV_MEM_REGION_SIZE (PLATO_MEMORY_SIZE_GIGABYTES * ONE_GB_IN_BYTES)
 
 /* Plato DDR offset in device memory map at 32GB */
-#define PLATO_DDR_DEV_PHYSICAL_BASE		(0x800000000)
+#define PLATO_DDR_DEV_PHYSICAL_BASE (0x800000000)
 
 /* DRAM is split at 48GB */
-#define PLATO_DRAM_SPLIT_ADDR			(0xc00000000)
+#define PLATO_DRAM_SPLIT_ADDR (0xc00000000)
 
 /*
  * Plato DDR region is aliased if less than 32GB memory is present.
@@ -381,35 +372,35 @@ struct plato_device {
 #define PLATO_HOSTRAM_DEV_PHYSICAL_BASE (0x8000000000)
 
 /* Plato PLL, DDR/GPU, PDP and HDMI-SFR/CEC clocks */
-#define PLATO_PLL_REF_CLOCK_SPEED	(19200000)
+#define PLATO_PLL_REF_CLOCK_SPEED (19200000)
 
 /* 600 MHz */
-#define PLATO_MEM_CLOCK_SPEED		(600000000)
-#define PLATO_MIN_MEM_CLOCK_SPEED	(600000000)
-#define PLATO_MAX_MEM_CLOCK_SPEED	(800000000)
+#define PLATO_MEM_CLOCK_SPEED (600000000)
+#define PLATO_MIN_MEM_CLOCK_SPEED (600000000)
+#define PLATO_MAX_MEM_CLOCK_SPEED (800000000)
 
 /* 396 MHz (~400 MHz) on HW, around 1MHz on the emulator */
 #if defined(EMULATOR) || defined(VIRTUAL_PLATFORM)
-#define	PLATO_RGX_CORE_CLOCK_SPEED	(1000000)
-#define	PLATO_RGX_MIN_CORE_CLOCK_SPEED	(1000000)
-#define	PLATO_RGX_MAX_CORE_CLOCK_SPEED	(1000000)
+#define PLATO_RGX_CORE_CLOCK_SPEED (1000000)
+#define PLATO_RGX_MIN_CORE_CLOCK_SPEED (1000000)
+#define PLATO_RGX_MAX_CORE_CLOCK_SPEED (1000000)
 #else
 
-#define	PLATO_RGX_CORE_CLOCK_SPEED	(396000000)
-#define	PLATO_RGX_MIN_CORE_CLOCK_SPEED	(396000000)
-#define	PLATO_RGX_MAX_CORE_CLOCK_SPEED	(742500000)
+#define PLATO_RGX_CORE_CLOCK_SPEED (396000000)
+#define PLATO_RGX_MIN_CORE_CLOCK_SPEED (396000000)
+#define PLATO_RGX_MAX_CORE_CLOCK_SPEED (742500000)
 #endif
 
-#define PLATO_MIN_PDP_CLOCK_SPEED		(165000000)
-#define PLATO_TARGET_HDMI_SFR_CLOCK_SPEED	(27000000)
-#define PLATO_TARGET_HDMI_CEC_CLOCK_SPEED	(32768)
+#define PLATO_MIN_PDP_CLOCK_SPEED (165000000)
+#define PLATO_TARGET_HDMI_SFR_CLOCK_SPEED (27000000)
+#define PLATO_TARGET_HDMI_CEC_CLOCK_SPEED (32768)
 
-#define REG_TO_CELSIUS(reg)			(((reg) * 352/4096) - 109)
-#define CELSIUS_TO_REG(temp)		((((temp) + 109) * 4096) / 352)
-#define PLATO_MAX_TEMP_CELSIUS		(100)
+#define REG_TO_CELSIUS(reg) (((reg)*352 / 4096) - 109)
+#define CELSIUS_TO_REG(temp) ((((temp) + 109) * 4096) / 352)
+#define PLATO_MAX_TEMP_CELSIUS (100)
 
-#define PLATO_LMA_HEAP_REGION_MAPPABLE			0
-#define PLATO_LMA_HEAP_REGION_NONMAPPABLE		1
+#define PLATO_LMA_HEAP_REGION_MAPPABLE 0
+#define PLATO_LMA_HEAP_REGION_NONMAPPABLE 1
 
 struct plato_debug_register {
 	char *description;
@@ -421,9 +412,9 @@ struct plato_debug_register {
 
 #if defined(HDMI_PDUMP)
 /* Hard coded video formats for pdump type run only */
-#define VIDEO_FORMAT_1280_720p          0
-#define VIDEO_FORMAT_1920_1080p         1
-#define DC_DEFAULT_VIDEO_FORMAT     (VIDEO_FORMAT_1920_1080p)
+#define VIDEO_FORMAT_1280_720p 0
+#define VIDEO_FORMAT_1920_1080p 1
+#define DC_DEFAULT_VIDEO_FORMAT (VIDEO_FORMAT_1920_1080p)
 #endif
 
 #endif /* ENABLE_PLATO_HDMI */
@@ -435,7 +426,7 @@ void plato_disable(struct device *dev);
 int plato_enable_interrupt(struct device *dev,
 			   enum PLATO_INTERRUPT interrupt_id);
 int plato_disable_interrupt(struct device *dev,
-			   enum PLATO_INTERRUPT interrupt_id);
+			    enum PLATO_INTERRUPT interrupt_id);
 
 int plato_set_interrupt_handler(struct device *dev,
 				enum PLATO_INTERRUPT interrupt_id,
@@ -456,9 +447,9 @@ int plato_debug_info(struct device *dev,
 int plato_memory_init(struct plato_device *plato);
 void plato_memory_deinit(struct plato_device *plato);
 int plato_cfg_init(struct plato_device *plato);
-int request_pci_io_addr(struct pci_dev *pdev, u32 index,
-			resource_size_t offset, resource_size_t length);
-void release_pci_io_addr(struct pci_dev *pdev, u32 index,
-			resource_size_t start, resource_size_t length);
+int request_pci_io_addr(struct pci_dev *pdev, u32 index, resource_size_t offset,
+			resource_size_t length);
+void release_pci_io_addr(struct pci_dev *pdev, u32 index, resource_size_t start,
+			 resource_size_t length);
 
 #endif /* _PLATO_DRV_H */

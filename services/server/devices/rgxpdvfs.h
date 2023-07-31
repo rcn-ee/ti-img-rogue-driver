@@ -48,17 +48,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "rgxdevice.h"
 
+PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo,
+				    IMG_UINT32 ui32MaxOPPPoint);
 
-PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32MaxOPPPoint);
-
-PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32MinOPPPoint);
+PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo,
+				    IMG_UINT32 ui32MinOPPPoint);
 
 #if (PDVFS_COM == PDVFS_COM_HOST)
-PVRSRV_ERROR PDVFSProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CoreClockRate);
-#define PDVFS_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk)  PDVFSProcessCoreClkChangeRequest(devinfo, clk)
+PVRSRV_ERROR PDVFSProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo,
+					      IMG_UINT32 ui32CoreClockRate);
+#define PDVFS_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk) \
+	PDVFSProcessCoreClkChangeRequest(devinfo, clk)
 #else
-PVRSRV_ERROR PDVFSProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CoreClockRate);
-#define PDVFS_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk)  PDVFSProcessCoreClkChangeNotification(devinfo, clk)
+PVRSRV_ERROR
+PDVFSProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo,
+				      IMG_UINT32 ui32CoreClockRate);
+#define PDVFS_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk) \
+	PDVFSProcessCoreClkChangeNotification(devinfo, clk)
 #endif
 
 #if defined(RGXFW_META_SUPPORT_2ND_THREAD)

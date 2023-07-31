@@ -55,7 +55,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sync_internal.h"
 #include "connection_server.h"
 
-
 typedef struct _RGX_SERVER_COMPUTE_CONTEXT_ RGX_SERVER_COMPUTE_CONTEXT;
 
 /*************************************************************************/ /*!
@@ -83,19 +82,15 @@ typedef struct _RGX_SERVER_COMPUTE_CONTEXT_ RGX_SERVER_COMPUTE_CONTEXT;
 @Output         ppsComputeContext     Cleanup data
 @Return         PVRSRV_ERROR          Returns PVRSRV_OK or an error.
 */ /**************************************************************************/
-PVRSRV_ERROR PVRSRVRGXCreateComputeContextKM(CONNECTION_DATA			*psConnection,
-											 PVRSRV_DEVICE_NODE			*psDeviceNode,
-											 IMG_INT32					i32Priority,
-											 IMG_UINT32					ui32FrameworkCommandSize,
-											 IMG_PBYTE					pabyFrameworkCommand,
-											 IMG_HANDLE					hMemCtxPrivData,
-											 IMG_UINT32					ui32StaticComputeContextStateSize,
-											 IMG_PBYTE					pStaticComputeContextState,
-											 IMG_UINT32					ui32PackedCCBSizeU88,
-											 IMG_UINT32					ui32ContextFlags,
-											 IMG_UINT64					ui64RobustnessAddress,
-											 IMG_UINT32					ui32MaxDeadlineMS,
-											 RGX_SERVER_COMPUTE_CONTEXT	**ppsComputeContext);
+PVRSRV_ERROR PVRSRVRGXCreateComputeContextKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_INT32 i32Priority, IMG_UINT32 ui32FrameworkCommandSize,
+	IMG_PBYTE pabyFrameworkCommand, IMG_HANDLE hMemCtxPrivData,
+	IMG_UINT32 ui32StaticComputeContextStateSize,
+	IMG_PBYTE pStaticComputeContextState, IMG_UINT32 ui32PackedCCBSizeU88,
+	IMG_UINT32 ui32ContextFlags, IMG_UINT64 ui64RobustnessAddress,
+	IMG_UINT32 ui32MaxDeadlineMS,
+	RGX_SERVER_COMPUTE_CONTEXT **ppsComputeContext);
 
 /*!
 *******************************************************************************
@@ -106,8 +101,8 @@ PVRSRV_ERROR PVRSRVRGXCreateComputeContextKM(CONNECTION_DATA			*psConnection,
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXDestroyComputeContextKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext);
-
+PVRSRV_ERROR
+PVRSRVRGXDestroyComputeContextKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext);
 
 /*!
 *******************************************************************************
@@ -118,25 +113,20 @@ PVRSRV_ERROR PVRSRVRGXDestroyComputeContextKM(RGX_SERVER_COMPUTE_CONTEXT *psComp
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXKickCDMKM(RGX_SERVER_COMPUTE_CONTEXT	*psComputeContext,
-								IMG_UINT32					ui32ClientUpdateCount,
-								SYNC_PRIMITIVE_BLOCK		**pauiClientUpdateUFODevVarBlock,
-								IMG_UINT32					*paui32ClientUpdateSyncOffset,
-								IMG_UINT32					*paui32ClientUpdateValue,
-								PVRSRV_FENCE				iCheckFence,
-								PVRSRV_TIMELINE				iUpdateTimeline,
-								PVRSRV_FENCE				*piUpdateFence,
-								IMG_CHAR					pcszUpdateFenceName[PVRSRV_SYNC_NAME_LENGTH],
-								IMG_UINT32					ui32CmdSize,
-								IMG_PBYTE					pui8DMCmd,
-								IMG_UINT32					ui32PDumpFlags,
-								IMG_UINT32					ui32ExtJobRef,
-								IMG_UINT32					ui32SyncPMRCount,
-								IMG_UINT32					*paui32SyncPMRFlags,
-								PMR							**ppsSyncPMRs,
-								IMG_UINT32					ui32NumWorkgroups,
-								IMG_UINT32					ui32NumWorkitems,
-								IMG_UINT64					ui64DeadlineInus);
+PVRSRV_ERROR
+PVRSRVRGXKickCDMKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext,
+		   IMG_UINT32 ui32ClientUpdateCount,
+		   SYNC_PRIMITIVE_BLOCK **pauiClientUpdateUFODevVarBlock,
+		   IMG_UINT32 *paui32ClientUpdateSyncOffset,
+		   IMG_UINT32 *paui32ClientUpdateValue,
+		   PVRSRV_FENCE iCheckFence, PVRSRV_TIMELINE iUpdateTimeline,
+		   PVRSRV_FENCE *piUpdateFence,
+		   IMG_CHAR pcszUpdateFenceName[PVRSRV_SYNC_NAME_LENGTH],
+		   IMG_UINT32 ui32CmdSize, IMG_PBYTE pui8DMCmd,
+		   IMG_UINT32 ui32PDumpFlags, IMG_UINT32 ui32ExtJobRef,
+		   IMG_UINT32 ui32SyncPMRCount, IMG_UINT32 *paui32SyncPMRFlags,
+		   PMR **ppsSyncPMRs, IMG_UINT32 ui32NumWorkgroups,
+		   IMG_UINT32 ui32NumWorkitems, IMG_UINT64 ui64DeadlineInus);
 
 /*!
 *******************************************************************************
@@ -149,7 +139,8 @@ PVRSRV_ERROR PVRSRVRGXKickCDMKM(RGX_SERVER_COMPUTE_CONTEXT	*psComputeContext,
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXFlushComputeDataKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext);
+PVRSRV_ERROR
+PVRSRVRGXFlushComputeDataKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext);
 
 /*!
 *******************************************************************************
@@ -162,33 +153,31 @@ PVRSRV_ERROR PVRSRVRGXFlushComputeDataKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeCo
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXNotifyComputeWriteOffsetUpdateKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext);
+PVRSRV_ERROR PVRSRVRGXNotifyComputeWriteOffsetUpdateKM(
+	RGX_SERVER_COMPUTE_CONTEXT *psComputeContext);
 
-PVRSRV_ERROR PVRSRVRGXSetComputeContextPriorityKM(CONNECTION_DATA *psConnection,
-												  PVRSRV_DEVICE_NODE *psDeviceNode,
-												  RGX_SERVER_COMPUTE_CONTEXT *psComputeContext,
-												  IMG_INT32 i32Priority);
+PVRSRV_ERROR PVRSRVRGXSetComputeContextPriorityKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	RGX_SERVER_COMPUTE_CONTEXT *psComputeContext, IMG_INT32 i32Priority);
 
-PVRSRV_ERROR PVRSRVRGXSetComputeContextPropertyKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext,
-												  RGX_CONTEXT_PROPERTY eContextProperty,
-												  IMG_UINT64 ui64Input,
-												  IMG_UINT64 *pui64Output);
+PVRSRV_ERROR PVRSRVRGXSetComputeContextPropertyKM(
+	RGX_SERVER_COMPUTE_CONTEXT *psComputeContext,
+	RGX_CONTEXT_PROPERTY eContextProperty, IMG_UINT64 ui64Input,
+	IMG_UINT64 *pui64Output);
 
-PVRSRV_ERROR PVRSRVRGXGetLastDeviceErrorKM(CONNECTION_DATA    *psConnection,
-                                           PVRSRV_DEVICE_NODE *psDeviceNode,
-                                           IMG_UINT32         *ui32Error);
+PVRSRV_ERROR PVRSRVRGXGetLastDeviceErrorKM(CONNECTION_DATA *psConnection,
+					   PVRSRV_DEVICE_NODE *psDeviceNode,
+					   IMG_UINT32 *ui32Error);
 
-PVRSRV_ERROR PVRSRVRGXKickTimestampQueryKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext,
-                                           PVRSRV_FENCE iCheckFence,
-                                           IMG_UINT32 ui32CmdSize,
-                                           IMG_PBYTE pui8DMCmd,
-                                           IMG_UINT32 ui32ExtJobRef);
+PVRSRV_ERROR
+PVRSRVRGXKickTimestampQueryKM(RGX_SERVER_COMPUTE_CONTEXT *psComputeContext,
+			      PVRSRV_FENCE iCheckFence, IMG_UINT32 ui32CmdSize,
+			      IMG_PBYTE pui8DMCmd, IMG_UINT32 ui32ExtJobRef);
 
 /* Debug - Dump debug info of compute contexts on this device */
 void DumpComputeCtxtsInfo(PVRSRV_RGXDEV_INFO *psDevInfo,
-                          DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                          void *pvDumpDebugFile,
-                          IMG_UINT32 ui32VerbLevel);
+			  DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			  void *pvDumpDebugFile, IMG_UINT32 ui32VerbLevel);
 
 /* Debug/Watchdog - check if client compute contexts are stalled */
 IMG_UINT32 CheckForStalledClientComputeCtxt(PVRSRV_RGXDEV_INFO *psDevInfo);

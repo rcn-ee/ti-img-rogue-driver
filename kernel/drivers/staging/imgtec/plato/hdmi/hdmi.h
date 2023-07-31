@@ -93,13 +93,13 @@ DAMAGE.
 #include <linux/i2c.h>
 #endif
 
-#define HDMI_EDID_LEN                   512
+#define HDMI_EDID_LEN 512
 
-#define ENCODING_RGB                    0
-#define ENCODING_YCC444                 1
-#define ENCODING_YCC422_16BITS          2
-#define ENCODING_YCC422_8BITS           3
-#define ENCODING_XVYCC444               4
+#define ENCODING_RGB 0
+#define ENCODING_YCC444 1
+#define ENCODING_YCC422_16BITS 2
+#define ENCODING_YCC422_8BITS 3
+#define ENCODING_XVYCC444 4
 
 struct hdmi_device_vmode {
 	bool dvi;
@@ -158,11 +158,12 @@ struct hdmi_device {
 	void __iomem *top_regs;
 };
 
-#define connector_to_hdmi(c) \
-	struct hdmi_device *hdmi = container_of((c), struct hdmi_device, connector)
-#define encoder_to_hdmi(e) \
-	struct hdmi_device *hdmi = container_of((e), struct hdmi_device, encoder)
-
+#define connector_to_hdmi(c)       \
+	struct hdmi_device *hdmi = \
+		container_of((c), struct hdmi_device, connector)
+#define encoder_to_hdmi(e)         \
+	struct hdmi_device *hdmi = \
+		container_of((e), struct hdmi_device, encoder)
 
 enum HDMI_STATUS {
 	HDMI_INIT_SUCCESS = 0,
@@ -175,7 +176,8 @@ enum HDMI_STATUS {
 /* Core APIs */
 inline void hdmi_write_reg32(struct hdmi_device *hdmi, int offset, u32 val);
 inline u32 hdmi_read_reg32(struct hdmi_device *hdmi, int offset);
-inline void hdmi_mod_reg32(struct hdmi_device *hdmi, u32 offset, u32 data, u32 mask);
+inline void hdmi_mod_reg32(struct hdmi_device *hdmi, u32 offset, u32 data,
+			   u32 mask);
 
 /* I2C APIs */
 int hdmi_i2c_init(struct hdmi_device *hdmi);
@@ -188,13 +190,13 @@ void PrintVideoRegisters(struct hdmi_device *hdmi);
 #define IS_BIT_SET(value, bit) ((value) & (1 << (bit)))
 
 #if defined(HDMI_DEBUG)
-	#define hdmi_info(hdmi, fmt, ...)   dev_info(hdmi->dev, fmt, ##__VA_ARGS__)
-	#define hdmi_error(hdmi, fmt, ...)  dev_err(hdmi->dev, fmt, ##__VA_ARGS__)
-	#define HDMI_CHECKPOINT pr_debug("%s: line %d\n", __func__, __LINE__)
+#define hdmi_info(hdmi, fmt, ...) dev_info(hdmi->dev, fmt, ##__VA_ARGS__)
+#define hdmi_error(hdmi, fmt, ...) dev_err(hdmi->dev, fmt, ##__VA_ARGS__)
+#define HDMI_CHECKPOINT pr_debug("%s: line %d\n", __func__, __LINE__)
 #else
-	#define hdmi_info(hdmi, fmt, ...)
-	#define hdmi_error(hdmi, fmt, ...)
-	#define HDMI_CHECKPOINT
+#define hdmi_info(hdmi, fmt, ...)
+#define hdmi_error(hdmi, fmt, ...)
+#define HDMI_CHECKPOINT
 #endif
 
 #endif

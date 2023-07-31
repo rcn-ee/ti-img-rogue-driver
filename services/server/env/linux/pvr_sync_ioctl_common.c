@@ -120,7 +120,8 @@ static inline void pvr_sync_reset_in_setup(struct pvr_sync_file_data *fdata)
 void *pvr_sync_get_api_priv_common(struct file *file)
 {
 	if (file != NULL && pvr_sync_is_timeline(file)) {
-		struct pvr_sync_file_data *fdata = pvr_sync_get_private_data(file);
+		struct pvr_sync_file_data *fdata =
+			pvr_sync_get_private_data(file);
 
 		if (fdata != NULL && pvr_sync_set_in_use(fdata))
 			return fdata->api_private;
@@ -258,8 +259,8 @@ int pvr_sync_ioctl_common(struct file *file, unsigned int cmd, void *arg)
 		else
 			switch (cmd) {
 			case DRM_PVR_SW_SYNC_CREATE_FENCE_CMD:
-				err = pvr_sync_ioctl_sw_create_fence(fdata->api_private,
-								     arg);
+				err = pvr_sync_ioctl_sw_create_fence(
+					fdata->api_private, arg);
 				break;
 			case DRM_PVR_SW_SYNC_INC_CMD:
 				err = pvr_sync_ioctl_sw_inc(fdata->api_private,

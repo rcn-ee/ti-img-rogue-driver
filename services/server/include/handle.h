@@ -119,75 +119,104 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_defs.h"
 #include "hash.h"
 
-typedef enum
-{
-	#define HANDLETYPE(x) PVRSRV_HANDLE_TYPE_##x,
-	#include "handle_types.h"
-	#undef HANDLETYPE
+typedef enum {
+#define HANDLETYPE(x) PVRSRV_HANDLE_TYPE_##x,
+#include "handle_types.h"
+#undef HANDLETYPE
 } PVRSRV_HANDLE_TYPE;
 
-static_assert(PVRSRV_HANDLE_TYPE_NONE == 0, "PVRSRV_HANDLE_TYPE_NONE must be zero");
+static_assert(PVRSRV_HANDLE_TYPE_NONE == 0,
+	      "PVRSRV_HANDLE_TYPE_NONE must be zero");
 
-typedef enum
-{
+typedef enum {
 	PVRSRV_HANDLE_BASE_TYPE_CONNECTION,
 	PVRSRV_HANDLE_BASE_TYPE_PROCESS,
 	PVRSRV_HANDLE_BASE_TYPE_GLOBAL
 } PVRSRV_HANDLE_BASE_TYPE;
 
-
-typedef enum
-{
+typedef enum {
 	/* No flags */
-	PVRSRV_HANDLE_ALLOC_FLAG_NONE =    0,
+	PVRSRV_HANDLE_ALLOC_FLAG_NONE = 0,
 	/* Multiple handles can point at the given data pointer */
-	PVRSRV_HANDLE_ALLOC_FLAG_MULTI =   0x01,
+	PVRSRV_HANDLE_ALLOC_FLAG_MULTI = 0x01,
 	/* Subhandles are allocated in a private handle space */
 	PVRSRV_HANDLE_ALLOC_FLAG_PRIVATE = 0x02
 } PVRSRV_HANDLE_ALLOC_FLAG;
 
 typedef struct _HANDLE_BASE_ PVRSRV_HANDLE_BASE;
 
-typedef struct _PROCESS_HANDLE_BASE_
-{
+typedef struct _PROCESS_HANDLE_BASE_ {
 	PVRSRV_HANDLE_BASE *psHandleBase;
 	ATOMIC_T iRefCount;
 } PROCESS_HANDLE_BASE;
 
 extern PVRSRV_HANDLE_BASE *gpsKernelHandleBase;
-#define	KERNEL_HANDLE_BASE (gpsKernelHandleBase)
+#define KERNEL_HANDLE_BASE (gpsKernelHandleBase)
 
 #define HANDLE_DEBUG_LISTING_MAX_NUM 20
 
 typedef PVRSRV_ERROR (*PFN_HANDLE_RELEASE)(void *pvData);
 
-PVRSRV_ERROR PVRSRVAllocHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle, void *pvData, PVRSRV_HANDLE_TYPE eType, PVRSRV_HANDLE_ALLOC_FLAG eFlag, PFN_HANDLE_RELEASE pfnReleaseData);
-PVRSRV_ERROR PVRSRVAllocHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle, void *pvData, PVRSRV_HANDLE_TYPE eType, PVRSRV_HANDLE_ALLOC_FLAG eFlag, PFN_HANDLE_RELEASE pfnReleaseData);
+PVRSRV_ERROR PVRSRVAllocHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle,
+			       void *pvData, PVRSRV_HANDLE_TYPE eType,
+			       PVRSRV_HANDLE_ALLOC_FLAG eFlag,
+			       PFN_HANDLE_RELEASE pfnReleaseData);
+PVRSRV_ERROR PVRSRVAllocHandleUnlocked(PVRSRV_HANDLE_BASE *psBase,
+				       IMG_HANDLE *phHandle, void *pvData,
+				       PVRSRV_HANDLE_TYPE eType,
+				       PVRSRV_HANDLE_ALLOC_FLAG eFlag,
+				       PFN_HANDLE_RELEASE pfnReleaseData);
 
-PVRSRV_ERROR PVRSRVAllocSubHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle, void *pvData, PVRSRV_HANDLE_TYPE eType, PVRSRV_HANDLE_ALLOC_FLAG eFlag, IMG_HANDLE hParent);
-PVRSRV_ERROR PVRSRVAllocSubHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle, void *pvData, PVRSRV_HANDLE_TYPE eType, PVRSRV_HANDLE_ALLOC_FLAG eFlag, IMG_HANDLE hParent);
+PVRSRV_ERROR PVRSRVAllocSubHandle(PVRSRV_HANDLE_BASE *psBase,
+				  IMG_HANDLE *phHandle, void *pvData,
+				  PVRSRV_HANDLE_TYPE eType,
+				  PVRSRV_HANDLE_ALLOC_FLAG eFlag,
+				  IMG_HANDLE hParent);
+PVRSRV_ERROR PVRSRVAllocSubHandleUnlocked(PVRSRV_HANDLE_BASE *psBase,
+					  IMG_HANDLE *phHandle, void *pvData,
+					  PVRSRV_HANDLE_TYPE eType,
+					  PVRSRV_HANDLE_ALLOC_FLAG eFlag,
+					  IMG_HANDLE hParent);
 
-PVRSRV_ERROR PVRSRVFindHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle, void *pvData, PVRSRV_HANDLE_TYPE eType);
-PVRSRV_ERROR PVRSRVFindHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle, void *pvData, PVRSRV_HANDLE_TYPE eType);
+PVRSRV_ERROR PVRSRVFindHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE *phHandle,
+			      void *pvData, PVRSRV_HANDLE_TYPE eType);
+PVRSRV_ERROR PVRSRVFindHandleUnlocked(PVRSRV_HANDLE_BASE *psBase,
+				      IMG_HANDLE *phHandle, void *pvData,
+				      PVRSRV_HANDLE_TYPE eType);
 
-PVRSRV_ERROR PVRSRVLookupHandle(PVRSRV_HANDLE_BASE *psBase, void **ppvData, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType, IMG_BOOL bRef);
-PVRSRV_ERROR PVRSRVLookupHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, void **ppvData, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType, IMG_BOOL bRef);
+PVRSRV_ERROR PVRSRVLookupHandle(PVRSRV_HANDLE_BASE *psBase, void **ppvData,
+				IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType,
+				IMG_BOOL bRef);
+PVRSRV_ERROR PVRSRVLookupHandleUnlocked(PVRSRV_HANDLE_BASE *psBase,
+					void **ppvData, IMG_HANDLE hHandle,
+					PVRSRV_HANDLE_TYPE eType,
+					IMG_BOOL bRef);
 
-PVRSRV_ERROR PVRSRVLookupSubHandle(PVRSRV_HANDLE_BASE *psBase, void **ppvData, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType, IMG_HANDLE hAncestor);
+PVRSRV_ERROR PVRSRVLookupSubHandle(PVRSRV_HANDLE_BASE *psBase, void **ppvData,
+				   IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType,
+				   IMG_HANDLE hAncestor);
 
-void PVRSRVReleaseHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType);
-void PVRSRVReleaseHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType);
+void PVRSRVReleaseHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle,
+			 PVRSRV_HANDLE_TYPE eType);
+void PVRSRVReleaseHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle,
+				 PVRSRV_HANDLE_TYPE eType);
 
-PVRSRV_ERROR PVRSRVDestroyHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType);
-PVRSRV_ERROR PVRSRVDestroyHandleUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType);
-PVRSRV_ERROR PVRSRVDestroyHandleStagedUnlocked(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle, PVRSRV_HANDLE_TYPE eType);
+PVRSRV_ERROR PVRSRVDestroyHandle(PVRSRV_HANDLE_BASE *psBase, IMG_HANDLE hHandle,
+				 PVRSRV_HANDLE_TYPE eType);
+PVRSRV_ERROR PVRSRVDestroyHandleUnlocked(PVRSRV_HANDLE_BASE *psBase,
+					 IMG_HANDLE hHandle,
+					 PVRSRV_HANDLE_TYPE eType);
+PVRSRV_ERROR PVRSRVDestroyHandleStagedUnlocked(PVRSRV_HANDLE_BASE *psBase,
+					       IMG_HANDLE hHandle,
+					       PVRSRV_HANDLE_TYPE eType);
 
 PVRSRV_ERROR PVRSRVPurgeHandles(PVRSRV_HANDLE_BASE *psBase);
 
 PVRSRV_ERROR PVRSRVAllocHandleBase(PVRSRV_HANDLE_BASE **ppsBase,
-                                   PVRSRV_HANDLE_BASE_TYPE eType);
+				   PVRSRV_HANDLE_BASE_TYPE eType);
 
-PVRSRV_ERROR PVRSRVFreeHandleBase(PVRSRV_HANDLE_BASE *psBase, IMG_UINT64 ui64MaxBridgeTime);
+PVRSRV_ERROR PVRSRVFreeHandleBase(PVRSRV_HANDLE_BASE *psBase,
+				  IMG_UINT64 ui64MaxBridgeTime);
 
 PVRSRV_ERROR PVRSRVFreeKernelHandles(PVRSRV_HANDLE_BASE *psBase);
 
@@ -197,8 +226,11 @@ PVRSRV_ERROR PVRSRVHandleDeInit(void);
 
 PVRSRV_HANDLE_BASE *PVRSRVRetrieveProcessHandleBase(void);
 
-PVRSRV_ERROR PVRSRVAcquireProcessHandleBase(IMG_PID uiPid, PROCESS_HANDLE_BASE **ppsBase);
-PVRSRV_ERROR PVRSRVReleaseProcessHandleBase(PROCESS_HANDLE_BASE *psBase, IMG_PID uiPid, IMG_UINT64 ui64MaxBridgeTime);
+PVRSRV_ERROR PVRSRVAcquireProcessHandleBase(IMG_PID uiPid,
+					    PROCESS_HANDLE_BASE **ppsBase);
+PVRSRV_ERROR PVRSRVReleaseProcessHandleBase(PROCESS_HANDLE_BASE *psBase,
+					    IMG_PID uiPid,
+					    IMG_UINT64 ui64MaxBridgeTime);
 
 void LockHandle(PVRSRV_HANDLE_BASE *psBase);
 void UnlockHandle(PVRSRV_HANDLE_BASE *psBase);

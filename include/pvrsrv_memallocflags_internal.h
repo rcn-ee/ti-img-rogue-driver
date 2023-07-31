@@ -54,25 +54,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
    allocated with this flag are written straight to memory and thus are
    coherent for any device in the system.
 */
-#define PVRSRV_MEMALLOCFLAG_CPU_UNCACHED (1ULL<<11)
+#define PVRSRV_MEMALLOCFLAG_CPU_UNCACHED (1ULL << 11)
 
 /*!
   @Description    Macro checking whether the PVRSRV_MEMALLOCFLAG_CPU_UNCACHED mode is set.
   @Input  uiFlags Allocation flags.
   @Return         True if the mode is set, false otherwise
  */
-#define PVRSRV_CHECK_CPU_UNCACHED(uiFlags) (PVRSRV_CPU_CACHE_MODE(uiFlags) == PVRSRV_MEMALLOCFLAG_CPU_UNCACHED)
+#define PVRSRV_CHECK_CPU_UNCACHED(uiFlags) \
+	(PVRSRV_CPU_CACHE_MODE(uiFlags) == PVRSRV_MEMALLOCFLAG_CPU_UNCACHED)
 
 /*!
  * Memory will be uncached on CPU and GPU
  */
-#define PVRSRV_MEMALLOCFLAG_UNCACHED (PVRSRV_MEMALLOCFLAG_GPU_UNCACHED | PVRSRV_MEMALLOCFLAG_CPU_UNCACHED)
+#define PVRSRV_MEMALLOCFLAG_UNCACHED \
+	(PVRSRV_MEMALLOCFLAG_GPU_UNCACHED | PVRSRV_MEMALLOCFLAG_CPU_UNCACHED)
 
 /*!
   @Description    Macro checking whether the PVRSRV_MEMALLOCFLAG_UNCACHED mode is set.
   @Input  uiFlags Allocation flags.
   @Return         True if the mode is set, false otherwise
  */
-#define PVRSRV_CHECK_UNCACHED(uiFlags) (PVRSRV_CACHE_MODE(uiFlags) == PVRSRV_MEMALLOCFLAG_UNCACHED)
+#define PVRSRV_CHECK_UNCACHED(uiFlags) \
+	(PVRSRV_CACHE_MODE(uiFlags) == PVRSRV_MEMALLOCFLAG_UNCACHED)
 
 #endif /* PVRSRV_MEMALLOCFLAGS_INTERNAL_H */

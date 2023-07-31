@@ -60,28 +60,21 @@ void RILockReleaseKM(void);
 
 PVRSRV_ERROR RIWritePMREntryKM(PMR *psPMR);
 
-PVRSRV_ERROR RIWritePMREntryWithOwnerKM(PMR *psPMR,
-                                        IMG_PID ui32Owner);
+PVRSRV_ERROR RIWritePMREntryWithOwnerKM(PMR *psPMR, IMG_PID ui32Owner);
 
-PVRSRV_ERROR RIWriteMEMDESCEntryKM(PMR *psPMR,
-                                   IMG_UINT32 ui32TextBSize,
-                                   const IMG_CHAR *psz8TextB,
-                                   IMG_UINT64 uiOffset,
-                                   IMG_UINT64 uiSize,
-                                   IMG_BOOL bIsImport,
-                                   IMG_BOOL bIsSuballoc,
-                                   RI_HANDLE *phRIHandle);
+PVRSRV_ERROR RIWriteMEMDESCEntryKM(PMR *psPMR, IMG_UINT32 ui32TextBSize,
+				   const IMG_CHAR *psz8TextB,
+				   IMG_UINT64 uiOffset, IMG_UINT64 uiSize,
+				   IMG_BOOL bIsImport, IMG_BOOL bIsSuballoc,
+				   RI_HANDLE *phRIHandle);
 
-PVRSRV_ERROR RIWriteProcListEntryKM(CONNECTION_DATA *psConnection,
-                                    PVRSRV_DEVICE_NODE *psDeviceNode,
-                                    IMG_UINT32 ui32TextBSize,
-                                    const IMG_CHAR *psz8TextB,
-                                    IMG_UINT64 ui64Size,
-                                    IMG_UINT64 ui64DevVAddr,
-                                    RI_HANDLE *phRIHandle);
+PVRSRV_ERROR RIWriteProcListEntryKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_UINT32 ui32TextBSize, const IMG_CHAR *psz8TextB,
+	IMG_UINT64 ui64Size, IMG_UINT64 ui64DevVAddr, RI_HANDLE *phRIHandle);
 
 PVRSRV_ERROR RIUpdateMEMDESCAddrKM(RI_HANDLE hRIHandle,
-                                   IMG_DEV_VIRTADDR sVAddr);
+				   IMG_DEV_VIRTADDR sVAddr);
 
 PVRSRV_ERROR RIDeletePMREntryKM(RI_HANDLE hRIHandle);
 PVRSRV_ERROR RIDeleteMEMDESCEntryKM(RI_HANDLE hRIHandle);
@@ -95,15 +88,12 @@ PVRSRV_ERROR RIDumpAllKM(void);
 PVRSRV_ERROR RIDumpProcessKM(IMG_PID pid);
 
 #if defined(DEBUG)
-PVRSRV_ERROR RIDumpProcessListKM(PMR *psPMR,
-                                 IMG_PID pid,
-                                 IMG_UINT64 ui64Offset,
-                                 IMG_DEV_VIRTADDR *psDevVAddr);
+PVRSRV_ERROR RIDumpProcessListKM(PMR *psPMR, IMG_PID pid, IMG_UINT64 ui64Offset,
+				 IMG_DEV_VIRTADDR *psDevVAddr);
 #endif
 
-IMG_BOOL RIGetListEntryKM(IMG_PID pid,
-                          IMG_HANDLE **ppHandle,
-                          IMG_CHAR **ppszEntryString);
+IMG_BOOL RIGetListEntryKM(IMG_PID pid, IMG_HANDLE **ppHandle,
+			  IMG_CHAR **ppszEntryString);
 
 IMG_INT32 RITotalAllocProcessKM(IMG_PID pid, PHYS_HEAP_TYPE ePhysHeapType);
 

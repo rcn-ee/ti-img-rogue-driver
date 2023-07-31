@@ -49,11 +49,9 @@
 #include "odin_pdp_regs.h"
 #include "pdp_common.h"
 
-bool pdp_odin_clocks_set(struct device *dev,
-			 void __iomem *pdp_reg, void __iomem *pll_reg,
-			 u32 clock_freq, u32 dev_num,
-			 void __iomem *odn_core_reg,
-			 u32 hdisplay, u32 vdisplay,
+bool pdp_odin_clocks_set(struct device *dev, void __iomem *pdp_reg,
+			 void __iomem *pll_reg, u32 clock_freq, u32 dev_num,
+			 void __iomem *odn_core_reg, u32 hdisplay, u32 vdisplay,
 			 enum pdp_odin_subversion);
 
 void pdp_odin_set_updates_enabled(struct device *dev, void __iomem *pdp_reg,
@@ -68,28 +66,23 @@ void pdp_odin_set_powerdwn_enabled(struct device *dev, void __iomem *pdp_reg,
 void pdp_odin_set_vblank_enabled(struct device *dev, void __iomem *pdp_reg,
 				 bool enable);
 
-bool pdp_odin_check_and_clear_vblank(struct device *dev,
-				     void __iomem *pdp_reg);
+bool pdp_odin_check_and_clear_vblank(struct device *dev, void __iomem *pdp_reg);
 
 void pdp_odin_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 				u32 plane, bool enable);
 
 void pdp_odin_reset_planes(struct device *dev, void __iomem *pdp_reg);
 
-void pdp_odin_set_surface(struct device *dev, void __iomem *pdp_reg,
-			  u32 plane, u32 address, u32 offset,
-			  u32 posx, u32 posy,
-			  u32 width, u32 height, u32 stride,
-			  u32 format, u32 alpha, bool blend,
-			  void __iomem *pfim_reg, u32 fbcf);
+void pdp_odin_set_surface(struct device *dev, void __iomem *pdp_reg, u32 plane,
+			  u32 address, u32 offset, u32 posx, u32 posy,
+			  u32 width, u32 height, u32 stride, u32 format,
+			  u32 alpha, bool blend, void __iomem *pfim_reg,
+			  u32 fbcf);
 
-void pdp_odin_mode_set(struct device *dev, void __iomem *pdp_reg,
-		       u32 h_display, u32 v_display,
-		       u32 hbps, u32 ht, u32 has,
-		       u32 hlbs, u32 hfps, u32 hrbs,
-		       u32 vbps, u32 vt, u32 vas,
-		       u32 vtbs, u32 vfps, u32 vbbs,
-		       bool nhsync, bool nvsync,
+void pdp_odin_mode_set(struct device *dev, void __iomem *pdp_reg, u32 h_display,
+		       u32 v_display, u32 hbps, u32 ht, u32 has, u32 hlbs,
+		       u32 hfps, u32 hrbs, u32 vbps, u32 vt, u32 vas, u32 vtbs,
+		       u32 vfps, u32 vbbs, bool nhsync, bool nvsync,
 		       void __iomem *pfim_reg);
 
 #endif /* __PDP_ODIN_H__ */
