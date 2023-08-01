@@ -237,101 +237,127 @@ static INLINE IMG_UINT32 RGXHostSafetyEvents(PVRSRV_RGXDEV_INFO *psDevInfo)
  */ /**************************************************************************/
 static void RGXSafetyEventHandler(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
-	IMG_UINT32 ui32HostSafetyStatus = RGXHostSafetyEvents(psDevInfo);
-	RGX_CONTEXT_RESET_REASON eResetReason = RGX_CONTEXT_RESET_REASON_NONE;
+	PVRSRV_DEVICE_NODE *psDeviceNode = psDevInfo->psDeviceNode;
+	PVRSRV_ERROR eError;
 
-	if (ui32HostSafetyStatus != 0) {
-		/* clear the safety bus events handled by the Host */
-		OSWriteHWReg32(psDevInfo->pvRegsBaseKM, RGX_CR_EVENT_CLEAR,
-			       ui32HostSafetyStatus);
+	eError = PVRSRVPowerLock(psDeviceNode);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Failed to acquire PowerLock (device: %p, error: %s)",
+			__func__, psDeviceNode, PVRSRVGetErrorString(eError)));
+		return;
+	}
 
-		if (BIT_ISSET(ui32HostSafetyStatus,
-			      RGX_CR_EVENT_STATUS_FAULT_FW_SHIFT)) {
-			IMG_UINT32 ui32FaultFlag;
-			IMG_UINT32 ui32FaultFW =
-				OSReadHWReg32(psDevInfo->pvRegsBaseKM,
-					      RGX_CR_FAULT_FW_STATUS);
-			IMG_UINT32 ui32CorrectedBitOffset =
-				RGX_CR_FAULT_FW_STATUS_MMU_CORRECT_SHIFT -
-				RGX_CR_FAULT_FW_STATUS_MMU_DETECT_SHIFT;
+	if (psDevInfo->bRGXPowered) {
+		IMG_UINT32 ui32HostSafetyStatus =
+			RGXHostSafetyEvents(psDevInfo);
+		RGX_CONTEXT_RESET_REASON eResetReason =
+			RGX_CONTEXT_RESET_REASON_NONE;
 
-			PVR_DPF((PVR_DBG_ERROR,
-				 "%s: Firmware safety fault status: 0x%X",
-				 __func__, ui32FaultFW));
+		if (ui32HostSafetyStatus != 0) {
+			/* clear the safety bus events handled by the Host */
+			OSWriteHWReg32(psDevInfo->pvRegsBaseKM,
+				       RGX_CR_EVENT_CLEAR,
+				       ui32HostSafetyStatus);
 
-			for (ui32FaultFlag = 0;
-			     ui32FaultFlag < ui32CorrectedBitOffset;
-			     ui32FaultFlag++) {
-				if (BIT_ISSET(ui32FaultFW, ui32FaultFlag)) {
-					PVR_DPF((
-						PVR_DBG_ERROR,
-						"%s: Firmware safety hardware fault detected (0x%lX).",
-						__func__, BIT(ui32FaultFlag)));
-					eResetReason =
-						RGX_CONTEXT_RESET_REASON_FW_ECC_ERR;
-				} else if BIT_ISSET (
-					ui32FaultFW,
-					ui32FaultFlag +
-						ui32CorrectedBitOffset) {
-					PVR_DPF((
-						PVR_DBG_WARNING,
-						"%s: Firmware safety hardware fault corrected.(0x%lX).",
-						__func__, BIT(ui32FaultFlag)));
+			if (BIT_ISSET(ui32HostSafetyStatus,
+				      RGX_CR_EVENT_STATUS_FAULT_FW_SHIFT)) {
+				IMG_UINT32 ui32FaultFlag;
+				IMG_UINT32 ui32FaultFW =
+					OSReadHWReg32(psDevInfo->pvRegsBaseKM,
+						      RGX_CR_FAULT_FW_STATUS);
+				IMG_UINT32 ui32CorrectedBitOffset =
+					RGX_CR_FAULT_FW_STATUS_MMU_CORRECT_SHIFT -
+					RGX_CR_FAULT_FW_STATUS_MMU_DETECT_SHIFT;
+
+				PVR_DPF((
+					PVR_DBG_ERROR,
+					"%s: Firmware safety fault status: 0x%X",
+					__func__, ui32FaultFW));
+
+				for (ui32FaultFlag = 0;
+				     ui32FaultFlag < ui32CorrectedBitOffset;
+				     ui32FaultFlag++) {
+					if (BIT_ISSET(ui32FaultFW,
+						      ui32FaultFlag)) {
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"%s: Firmware safety hardware fault detected (0x%lX).",
+							__func__,
+							BIT(ui32FaultFlag)));
+						eResetReason =
+							RGX_CONTEXT_RESET_REASON_FW_ECC_ERR;
+					} else if BIT_ISSET (
+						ui32FaultFW,
+						ui32FaultFlag +
+							ui32CorrectedBitOffset) {
+						PVR_DPF((
+							PVR_DBG_WARNING,
+							"%s: Firmware safety hardware fault corrected.(0x%lX).",
+							__func__,
+							BIT(ui32FaultFlag)));
+
+						/* Only report this if we haven't detected a more serious error */
+						if (eResetReason !=
+						    RGX_CONTEXT_RESET_REASON_FW_ECC_ERR) {
+							eResetReason =
+								RGX_CONTEXT_RESET_REASON_FW_ECC_OK;
+						}
+					}
+				}
+
+				OSWriteHWReg32(psDevInfo->pvRegsBaseKM,
+					       RGX_CR_FAULT_FW_CLEAR,
+					       ui32FaultFW);
+			}
+
+			if (BIT_ISSET(
+				    ui32HostSafetyStatus,
+				    RGX_CR_EVENT_STATUS__AXT_IF_EQ2_AND_PIPEDM_EQ0__WDT_TIMEOUT_SHIFT)) {
+				volatile RGXFWIF_POW_STATE ePowState =
+					psDevInfo->psRGXFWIfFwSysData->ePowState;
+
+				if (ePowState != RGXFWIF_POW_OFF) {
+					PVR_DPF((PVR_DBG_ERROR,
+						 "%s: Safety Watchdog Trigger !",
+						 __func__));
 
 					/* Only report this if we haven't detected a more serious error */
 					if (eResetReason !=
 					    RGX_CONTEXT_RESET_REASON_FW_ECC_ERR) {
 						eResetReason =
-							RGX_CONTEXT_RESET_REASON_FW_ECC_OK;
+							RGX_CONTEXT_RESET_REASON_FW_WATCHDOG;
 					}
 				}
 			}
 
-			OSWriteHWReg32(psDevInfo->pvRegsBaseKM,
-				       RGX_CR_FAULT_FW_CLEAR, ui32FaultFW);
-		}
+			/* Notify client and system layer of any error */
+			if (eResetReason != RGX_CONTEXT_RESET_REASON_NONE) {
+				PVRSRV_DEVICE_NODE *psDevNode =
+					psDevInfo->psDeviceNode;
+				PVRSRV_DEVICE_CONFIG *psDevConfig =
+					psDevNode->psDevConfig;
 
-		if (BIT_ISSET(
-			    ui32HostSafetyStatus,
-			    RGX_CR_EVENT_STATUS__AXT_IF_EQ2_AND_PIPEDM_EQ0__WDT_TIMEOUT_SHIFT)) {
-			volatile RGXFWIF_POW_STATE ePowState =
-				psDevInfo->psRGXFWIfFwSysData->ePowState;
+				/* Client notification of device error will be achieved by
+			 * clients calling UM function RGXGetLastDeviceError() */
+				psDevInfo->eLastDeviceError = eResetReason;
 
-			if (ePowState != RGXFWIF_POW_OFF) {
-				PVR_DPF((PVR_DBG_ERROR,
-					 "%s: Safety Watchdog Trigger !",
-					 __func__));
+				/* Notify system layer of any error */
+				if (psDevConfig->pfnSysDevErrorNotify) {
+					PVRSRV_ROBUSTNESS_NOTIFY_DATA
+						sErrorData = { 0 };
 
-				/* Only report this if we haven't detected a more serious error */
-				if (eResetReason !=
-				    RGX_CONTEXT_RESET_REASON_FW_ECC_ERR) {
-					eResetReason =
-						RGX_CONTEXT_RESET_REASON_FW_WATCHDOG;
+					sErrorData.eResetReason = eResetReason;
+
+					psDevConfig->pfnSysDevErrorNotify(
+						psDevConfig, &sErrorData);
 				}
 			}
 		}
-
-		/* Notify client and system layer of any error */
-		if (eResetReason != RGX_CONTEXT_RESET_REASON_NONE) {
-			PVRSRV_DEVICE_NODE *psDevNode = psDevInfo->psDeviceNode;
-			PVRSRV_DEVICE_CONFIG *psDevConfig =
-				psDevNode->psDevConfig;
-
-			/* Client notification of device error will be achieved by
-			 * clients calling UM function RGXGetLastDeviceError() */
-			psDevInfo->eLastDeviceError = eResetReason;
-
-			/* Notify system layer of any error */
-			if (psDevConfig->pfnSysDevErrorNotify) {
-				PVRSRV_ROBUSTNESS_NOTIFY_DATA sErrorData = { 0 };
-
-				sErrorData.eResetReason = eResetReason;
-
-				psDevConfig->pfnSysDevErrorNotify(psDevConfig,
-								  &sErrorData);
-			}
-		}
 	}
+
+	PVRSRVPowerUnlock(psDeviceNode);
 }
 
 static IMG_BOOL _WaitForInterruptsTimeoutCheck(PVRSRV_RGXDEV_INFO *psDevInfo)
