@@ -382,6 +382,10 @@ static void RGXDumpFirmwareTraceLines(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 	RGXFwSharedMemCacheOpValue(psRGXFWIfTraceBufCtl->sTraceBuf[ui32TID],
 				   INVALIDATE);
+	RGXFwSharedMemCacheOpExec(psDevInfo->apui32TraceBuffer[ui32TID],
+				  psDevInfo->ui32TraceBufSizeInDWords *
+					  sizeof(IMG_UINT32),
+				  PVRSRV_CACHE_OP_INVALIDATE);
 
 	pui32FWWrapCount =
 		&(psRGXFWIfTraceBufCtl->sTraceBuf[ui32TID].ui32WrapCount);

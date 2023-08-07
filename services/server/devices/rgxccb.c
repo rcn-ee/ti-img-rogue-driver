@@ -1442,6 +1442,8 @@ e_retry:
 void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32CmdSize,
 		   IMG_UINT32 ui32PDumpFlags)
 {
+	IMG_UINT32 ui32NewWriteOffset;
+
 #if defined(PDUMP)
 	PVRSRV_RGXDEV_INFO *psDevInfo = FWCommonContextGetRGXDevInfo(
 		psClientCCB->psServerCommonContext);
@@ -1636,18 +1638,22 @@ void RGXReleaseCCB(RGX_CLIENT_CCB *psClientCCB, IMG_UINT32 ui32CmdSize,
 			       PVRSRV_CACHE_OP_FLUSH);
 	}
 #endif
-	/* Flush the CCB data */
-	RGXFwSharedMemFlushCCB(psClientCCB->pvClientCCB,
-			       psClientCCB->psClientCCBCtrl->ui32ReadOffset,
-			       psClientCCB->ui32HostWriteOffset,
-			       psClientCCB->psClientCCBCtrl->ui32WrapMask + 1);
 
+	ui32NewWriteOffset = psClientCCB->ui32HostWriteOffset;
 	/*
 	 * Update the CCB write offset.
 	 */
-	UPDATE_CCB_OFFSET(psClientCCB->ui32HostWriteOffset, ui32CmdSize,
+	UPDATE_CCB_OFFSET(ui32NewWriteOffset, ui32CmdSize,
 			  psClientCCB->ui32Size);
 	psClientCCB->ui32ByteCount += ui32CmdSize;
+
+	/* Flush the CCB data */
+	RGXFwSharedMemFlushCCB(psClientCCB->pvClientCCB,
+			       psClientCCB->ui32HostWriteOffset,
+			       ui32NewWriteOffset,
+			       psClientCCB->psClientCCBCtrl->ui32WrapMask + 1);
+
+	psClientCCB->ui32HostWriteOffset = ui32NewWriteOffset;
 
 #if defined(PVRSRV_ENABLE_CCCB_UTILISATION_INFO)
 	_RGXUpdateCCBUtilisation(psClientCCB);

@@ -71,16 +71,11 @@ static INLINE void RGXFwSharedMemCPUCacheMode(PVRSRV_DEVICE_NODE *psDeviceNode,
 		return;
 	}
 
-	if (PVRSRV_CHECK_UNCACHED(*puiFlags)) {
-		/* We don't need to upgrade uncached allocations */
-		return;
-	}
-
 	/* Clear the existing CPU cache flags */
 	*puiFlags &= ~(PVRSRV_MEMALLOCFLAG_CPU_CACHE_MODE_MASK);
 
 	if (PVRSRVSystemSnoopingOfCPUCache(psDeviceNode->psDevConfig)) {
-		*puiFlags |= PVRSRV_MEMALLOCFLAG_CPU_CACHED;
+		*puiFlags |= PVRSRV_MEMALLOCFLAG_CPU_CACHE_INCOHERENT;
 	} else {
 		*puiFlags |= PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
 	}
