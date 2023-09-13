@@ -58,6 +58,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SYS_RGX_ACTIVE_POWER_LATENCY_MS 100
 #define RGX_HW_CORE_CLOCK_SPEED (800 * 1000 * 1000)
 
+struct pvr_power_data {
+	struct device *dev;
+	struct device *firmware_pd;
+	struct device *dust_pd;
+	struct device_link *firmware_link;
+	struct device_link *dust_link;
+};
+
 /* Setup RGX specific timing data */
 static RGX_TIMING_INFORMATION gsRGXTimingInfo = {
 	.ui32CoreClockSpeed = RGX_HW_CORE_CLOCK_SPEED,
@@ -129,22 +137,59 @@ static PHYS_HEAP_CONFIG gsPhysHeapConfig = {
 	.ui32UsageFlags = PHYS_HEAP_USAGE_GPU_LOCAL,
 };
 
-static void SysDevPowerDomainsDeinit(struct device *dev)
+static void SysDevPowerDomainsDeinit(struct pvr_power_data *pd_data)
 {
-	pm_runtime_disable(dev);
-	dev_pm_domain_detach(dev, false);
+	if (pd_data->dust_link)
+		device_link_del(pd_data->dust_link);
+	if (!IS_ERR_OR_NULL(pd_data->dust_pd))
+		dev_pm_domain_detach(pd_data->dust_pd, true);
+	if (pd_data->firmware_link)
+		device_link_del(pd_data->firmware_link);
+	if (!IS_ERR_OR_NULL(pd_data->firmware_pd))
+		dev_pm_domain_detach(pd_data->firmware_pd, true);
 }
 
-static int SysDevPowerDomainsInit(struct device *dev)
+static int SysDevPowerDomainsInit(struct pvr_power_data *pd_data)
 {
 	int err = 0;
 
-	err = dev_pm_domain_attach(dev, false);
-	if (err) {
-		err = PTR_ERR(dev);
-		dev_err(dev, "failed to get pm-domain: %d\n", err);
+	/*
+	 * Temporary power initialization routine until firmware apm component
+	 * is re-evaluated and second domain is dropped from dt.
+	 */
+
+	pd_data->firmware_pd =
+		dev_pm_domain_attach_by_name(pd_data->dev, "firmware");
+	if (IS_ERR_OR_NULL(pd_data->firmware_pd)) {
+		err = PTR_ERR(pd_data->firmware_pd);
+		goto failed_attach;
 	}
-	pm_runtime_enable(dev);
+
+	pd_data->firmware_link =
+		device_link_add(pd_data->dev, pd_data->firmware_pd,
+				DL_FLAG_PM_RUNTIME | DL_FLAG_STATELESS);
+	if (!pd_data->firmware_link) {
+		err = PTR_ERR(pd_data->firmware_link);
+		goto failed_attach;
+	}
+
+	pd_data->dust_pd = dev_pm_domain_attach_by_name(pd_data->dev, "dust");
+	if (IS_ERR_OR_NULL(pd_data->dust_pd)) {
+		err = PTR_ERR(pd_data->dust_pd);
+		goto failed_attach;
+	}
+
+	pd_data->dust_link =
+		device_link_add(pd_data->dev, pd_data->dust_pd,
+				DL_FLAG_PM_RUNTIME | DL_FLAG_STATELESS);
+	if (!pd_data->dust_link) {
+		err = PTR_ERR(pd_data->dust_link);
+		goto failed_attach;
+	}
+
+	pm_runtime_enable(pd_data->dev);
+
+failed_attach:
 
 	return err;
 }
@@ -154,14 +199,14 @@ SysDevPrePowerState(IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
 		    PVRSRV_SYS_POWER_STATE eCurrentPowerState,
 		    PVRSRV_POWER_FLAGS ePwrFlags)
 {
-	struct platform_device *psDev = hSysData;
+	struct pvr_power_data *pd_data = hSysData;
 
 	if ((PVRSRV_SYS_POWER_STATE_OFF == eNewPowerState) &&
 	    (PVRSRV_SYS_POWER_STATE_ON == eCurrentPowerState)) {
 #if defined(DEBUG)
 		PVR_LOG(("%s: attempting to suspend", __func__));
 #endif
-		if (pm_runtime_put_sync_autosuspend(&psDev->dev))
+		if (pm_runtime_put_sync_autosuspend(pd_data->dev))
 			PVR_LOG(("%s: failed to suspend", __func__));
 	}
 	return PVRSRV_OK;
@@ -173,14 +218,14 @@ SysDevPostPowerState(IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
 		     PVRSRV_POWER_FLAGS ePwrFlags)
 {
 	PVRSRV_ERROR ret;
-	struct platform_device *psDev = hSysData;
+	struct pvr_power_data *pd_data = hSysData;
 
 	if ((PVRSRV_SYS_POWER_STATE_ON == eNewPowerState) &&
 	    (PVRSRV_SYS_POWER_STATE_OFF == eCurrentPowerState)) {
 #if defined(DEBUG)
 		PVR_LOG(("%s: attempting to resume", __func__));
 #endif
-		if (pm_runtime_resume_and_get(&psDev->dev)) {
+		if (pm_runtime_resume_and_get(pd_data->dev)) {
 			PVR_LOG(("%s: failed to resume", __func__));
 			ret = PVRSRV_ERROR_DEVICE_POWER_CHANGE_FAILURE;
 			goto done;
@@ -197,10 +242,18 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 {
 	struct platform_device *psDev;
 	struct resource *dev_res = NULL;
+	struct pvr_power_data *pd_data;
 	int dev_irq;
 
 	psDev = to_platform_device((struct device *)pvOSDevice);
 	PVR_LOG(("Device: %s", psDev->name));
+
+	pd_data = devm_kzalloc(&psDev->dev, sizeof(struct pvr_power_data),
+			       GFP_KERNEL);
+	if (!pd_data)
+		return -ENOMEM;
+	pd_data->dev = &psDev->dev;
+	SysDevPowerDomainsInit(pd_data);
 
 	dma_set_mask(pvOSDevice, DMA_BIT_MASK(40));
 
@@ -240,7 +293,7 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	gsDevice.hDevData = &gsRGXData;
 
 	/* device info for power management */
-	gsDevice.hSysData = to_platform_device((struct device *)pvOSDevice);
+	gsDevice.hSysData = pd_data;
 
 	gsDevice.bHasFBCDCVersion31 = IMG_FALSE;
 	gsDevice.bDevicePA0IsValid = IMG_FALSE;
@@ -260,16 +313,13 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 
 	*ppsDevConfig = &gsDevice;
 
-	SysDevPowerDomainsInit(&psDev->dev);
-
 	return PVRSRV_OK;
 }
 
 void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
-	struct platform_device *psDev;
-	psDev = psDevConfig->hSysData;
-	SysDevPowerDomainsDeinit(&psDev->dev);
+	struct pvr_power_data *pd_data = psDevConfig->hSysData;
+	SysDevPowerDomainsDeinit(pd_data);
 	psDevConfig->pvOSDevice = NULL;
 }
 
