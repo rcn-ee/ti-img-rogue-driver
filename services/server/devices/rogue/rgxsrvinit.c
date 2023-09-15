@@ -625,6 +625,12 @@ static INLINE void GetFWConfigFlags(PVRSRV_DEVICE_NODE *psDeviceNode,
 		ui32FWConfigFlags |= psHints->bDisableDMOverlap ?
 					     RGXFWIF_INICFG_DISABLE_DM_OVERLAP :
 					     0;
+
+		if ((RGX_GET_FEATURE_VALUE(psDevInfo, SLC_SIZE_IN_KILOBYTES) <=
+		     2)) {
+			ui32FWConfigFlags |= RGXFWIF_INICFG_DISABLE_DM_OVERLAP;
+		}
+
 		ui32FWConfigFlags |= psHints->bDisablePDP ?
 					     RGXFWIF_INICFG_DISABLE_PDP_EN :
 					     0;
