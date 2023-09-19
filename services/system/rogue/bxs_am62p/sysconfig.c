@@ -41,9 +41,10 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
+#include <linux/clk.h>
 #include <linux/dma-mapping.h>
-#include <linux/platform_device.h>
 #include <linux/of.h>
+#include <linux/platform_device.h>
 #include <linux/pm.h>
 #include <linux/pm_domain.h>
 #include <linux/pm_runtime.h>
@@ -243,7 +244,9 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	struct platform_device *psDev;
 	struct resource *dev_res = NULL;
 	struct pvr_power_data *pd_data;
+	struct clk *dev_clk;
 	int dev_irq;
+	int dev_freq;
 
 	psDev = to_platform_device((struct device *)pvOSDevice);
 	PVR_LOG(("Device: %s", psDev->name));
@@ -266,6 +269,25 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 
 	dev_res = platform_get_resource(psDev, IORESOURCE_MEM, 0);
 	if (dev_res == NULL) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_resource failed",
+			 __func__));
+		return PVRSRV_ERROR_INVALID_DEVICE;
+	}
+
+	if (of_property_read_u32(psDev->dev.of_node, "clock-frequency", &dev_freq)) {
+		PVR_DPF((PVR_DBG_VERBOSE, "%s: failed to get clock from dt, falling back to %i",
+			 __func__, RGX_HW_CORE_CLOCK_SPEED));
+		dev_freq = RGX_HW_CORE_CLOCK_SPEED;
+	}
+	gsRGXData.psRGXTimingInfo->ui32CoreClockSpeed = dev_freq;
+
+	dev_clk = clk_get(&psDev->dev, NULL);
+	if (IS_ERR(dev_clk)) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_resource failed",
+			 __func__));
+		return PVRSRV_ERROR_INVALID_DEVICE;
+	}
+	if (clk_set_rate(dev_clk, dev_freq)) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_resource failed",
 			 __func__));
 		return PVRSRV_ERROR_INVALID_DEVICE;
