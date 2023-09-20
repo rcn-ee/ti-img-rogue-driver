@@ -42,6 +42,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
 #include <linux/clk.h>
+#include <linux/clk/clk-conf.h>
 #include <linux/dma-mapping.h>
 #include <linux/of.h>
 #include <linux/platform_device.h>
@@ -57,7 +58,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "interrupt_support.h"
 
 #define SYS_RGX_ACTIVE_POWER_LATENCY_MS 100
-#define RGX_HW_CORE_CLOCK_SPEED (800 * 1000 * 1000)
 
 struct pvr_power_data {
 	struct device *dev;
@@ -65,17 +65,14 @@ struct pvr_power_data {
 	struct device *dust_pd;
 	struct device_link *firmware_link;
 	struct device_link *dust_link;
+	struct clk *core_clk;
 };
 
 /* Setup RGX specific timing data */
 static RGX_TIMING_INFORMATION gsRGXTimingInfo = {
-	.ui32CoreClockSpeed = RGX_HW_CORE_CLOCK_SPEED,
+	.ui32CoreClockSpeed = 800000000,
 	.bEnableActivePM = IMG_TRUE,
 	.ui32ActivePMLatencyms = SYS_RGX_ACTIVE_POWER_LATENCY_MS,
-
-	/* Power Island is enabled but this must be false as the core is not
-	 * informed of power events*/
-
 	.bEnableRDPowIsland = IMG_FALSE,
 };
 
@@ -140,6 +137,7 @@ static PHYS_HEAP_CONFIG gsPhysHeapConfig = {
 
 static void SysDevPowerDomainsDeinit(struct pvr_power_data *pd_data)
 {
+	pm_runtime_disable(pd_data->dev);
 	if (pd_data->dust_link)
 		device_link_del(pd_data->dust_link);
 	if (!IS_ERR_OR_NULL(pd_data->dust_pd))
@@ -207,6 +205,7 @@ SysDevPrePowerState(IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
 #if defined(DEBUG)
 		PVR_LOG(("%s: attempting to suspend", __func__));
 #endif
+		clk_disable(pd_data->core_clk);
 		if (pm_runtime_put_sync_autosuspend(pd_data->dev))
 			PVR_LOG(("%s: failed to suspend", __func__));
 	}
@@ -226,6 +225,11 @@ SysDevPostPowerState(IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
 #if defined(DEBUG)
 		PVR_LOG(("%s: attempting to resume", __func__));
 #endif
+		if (clk_enable(pd_data->core_clk)) {
+			PVR_LOG(("%s: failed to enable core clock", __func__));
+			ret = PVRSRV_ERROR_DEVICE_POWER_CHANGE_FAILURE;
+			goto done;
+		}
 		if (pm_runtime_resume_and_get(pd_data->dev)) {
 			PVR_LOG(("%s: failed to resume", __func__));
 			ret = PVRSRV_ERROR_DEVICE_POWER_CHANGE_FAILURE;
@@ -244,9 +248,7 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	struct platform_device *psDev;
 	struct resource *dev_res = NULL;
 	struct pvr_power_data *pd_data;
-	struct clk *dev_clk;
 	int dev_irq;
-	int dev_freq;
 
 	psDev = to_platform_device((struct device *)pvOSDevice);
 	PVR_LOG(("Device: %s", psDev->name));
@@ -274,24 +276,38 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 		return PVRSRV_ERROR_INVALID_DEVICE;
 	}
 
-	if (of_property_read_u32(psDev->dev.of_node, "clock-frequency", &dev_freq)) {
-		PVR_DPF((PVR_DBG_VERBOSE, "%s: failed to get clock from dt, falling back to %i",
-			 __func__, RGX_HW_CORE_CLOCK_SPEED));
-		dev_freq = RGX_HW_CORE_CLOCK_SPEED;
-	}
-	gsRGXData.psRGXTimingInfo->ui32CoreClockSpeed = dev_freq;
+	/* Power on the device for the following helpers to run properly */
+	if (pm_runtime_resume_and_get(pd_data->dev))
+		PVR_LOG(("%s: failed to resume", __func__));
 
-	dev_clk = clk_get(&psDev->dev, NULL);
-	if (IS_ERR(dev_clk)) {
-		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_resource failed",
+	/* Set clock values from dt */
+	if (of_clk_set_defaults(psDev->dev.of_node, true)) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: failed to set clock rates",
 			 __func__));
 		return PVRSRV_ERROR_INVALID_DEVICE;
 	}
-	if (clk_set_rate(dev_clk, dev_freq)) {
-		PVR_DPF((PVR_DBG_ERROR, "%s: platform_get_resource failed",
+
+	/* Prepare core clock and get reference for later power management */
+	pd_data->core_clk = devm_clk_get_prepared(pd_data->dev, "core");
+	if (IS_ERR(pd_data->core_clk)) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: failed to lookup core clock",
 			 __func__));
 		return PVRSRV_ERROR_INVALID_DEVICE;
 	}
+
+	/* Enable clock here instead of using devm_clk_get_enabled because
+	 * devm_clk_get_enabled makes the cleanup call an unbalanced disable
+	 */
+	clk_enable(pd_data->core_clk);
+
+	/* Update internal clock speed with measured value */
+	gsRGXData.psRGXTimingInfo->ui32CoreClockSpeed =
+		(IMG_UINT32)clk_get_rate(pd_data->core_clk);
+
+	/* Power off the device now that clocks are initialized */
+	if (pm_runtime_put_sync_autosuspend(pd_data->dev))
+		PVR_LOG(("%s: failed to suspend", __func__));
+	clk_disable(pd_data->core_clk);
 
 	/* Make sure everything we don't care about is set to 0 */
 	memset(&gsDevice, 0, sizeof(gsDevice));
@@ -342,6 +358,7 @@ void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 	struct pvr_power_data *pd_data = psDevConfig->hSysData;
 	SysDevPowerDomainsDeinit(pd_data);
+	devm_clk_put(pd_data->dev, pd_data->core_clk);
 	psDevConfig->pvOSDevice = NULL;
 }
 
