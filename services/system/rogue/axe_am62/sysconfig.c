@@ -118,11 +118,12 @@ static PHYS_HEAP_FUNCTIONS gsPhysHeapFuncs = {
 };
 
 static PHYS_HEAP_CONFIG gsPhysHeapConfig = {
-	.pszPDumpMemspaceName = "SYSMEM",
 	.eType = PHYS_HEAP_TYPE_UMA,
-	.psMemFuncs = &gsPhysHeapFuncs,
-	.hPrivData = NULL,
 	.ui32UsageFlags = PHYS_HEAP_USAGE_GPU_LOCAL,
+	.uConfig.sUMA.psMemFuncs = &gsPhysHeapFuncs,
+	.uConfig.sUMA.pszPDumpMemspaceName = "SYSMEM",
+	.uConfig.sUMA.pszHeapName = "uma_gpu_local",
+	.uConfig.sUMA.hPrivData = NULL,
 };
 
 static void SysDevPowerDomainsDeinit(struct device *dev)
