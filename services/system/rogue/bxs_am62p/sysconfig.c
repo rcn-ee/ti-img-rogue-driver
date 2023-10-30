@@ -261,7 +261,8 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	pd_data->dev = &psDev->dev;
 	SysDevPowerDomainsInit(pd_data);
 
-	dma_set_mask(pvOSDevice, DMA_BIT_MASK(40));
+	if (dma_set_mask(pvOSDevice, DMA_BIT_MASK(36)))
+		PVR_DPF((PVR_DBG_ERROR, "%s: dma_set_mask failed", __func__));
 
 	dev_irq = platform_get_irq(psDev, 0);
 	if (dev_irq < 0) {
