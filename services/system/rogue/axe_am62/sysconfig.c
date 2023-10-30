@@ -198,7 +198,9 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	psDev = to_platform_device((struct device *)pvOSDevice);
 	PVR_LOG(("Device: %s", psDev->name));
 
-	dma_set_mask(pvOSDevice, DMA_BIT_MASK(40));
+	/* REQUIRED DUE TO FIX_HW_BRN_63553 */
+	if (dma_set_mask(pvOSDevice, DMA_BIT_MASK(36)))
+		PVR_DPF((PVR_DBG_ERROR, "%s: dma_set_mask failed", __func__));
 
 	dev_irq = platform_get_irq(psDev, 0);
 	if (dev_irq < 0) {
