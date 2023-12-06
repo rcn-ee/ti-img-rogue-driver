@@ -58,51 +58,47 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_HWPERF_NUM_PBE ((RGX_FEATURE_PBE_PER_SPU) * (RGX_FEATURE_NUM_SPU))
 #define RGX_HWPERF_NUM_MERCER ((RGX_FEATURE_NUM_CLUSTERS))
 #define RGX_HWPERF_NUM_PBE_SHARED ((RGX_FEATURE_NUM_SPU))
-#define RGX_HWPERF_NUM_SWIFT ((RGX_FEATURE_NUM_SPU * RGX_FEATURE_MAX_TPU_PER_SPU))
+#define RGX_HWPERF_NUM_SWIFT \
+	((RGX_FEATURE_NUM_SPU * RGX_FEATURE_MAX_TPU_PER_SPU))
 #define RGX_HWPERF_NUM_TEXAS ((RGX_FEATURE_NUM_SPU))
 #if (RGX_FEATURE_RAY_TRACING_ARCH > 2) && (RGX_FEATURE_SPU0_RAC_PRESENT > 0)
-#define RGX_HWPERF_NUM_RAC   ((RGX_NUM_RAC))
+#define RGX_HWPERF_NUM_RAC ((RGX_NUM_RAC))
 #else
-#define RGX_HWPERF_NUM_RAC   ((0))
+#define RGX_HWPERF_NUM_RAC ((0))
 #endif
-#define RGX_HWPERF_NUM_TPU   ((RGX_FEATURE_NUM_SPU * RGX_FEATURE_MAX_TPU_PER_SPU))
-#define RGX_HWPERF_NUM_ISP   ((RGX_FEATURE_NUM_CLUSTERS))
+#define RGX_HWPERF_NUM_TPU ((RGX_FEATURE_NUM_SPU * RGX_FEATURE_MAX_TPU_PER_SPU))
+#define RGX_HWPERF_NUM_ISP ((RGX_FEATURE_NUM_CLUSTERS))
 
-#define RGX_CNTBLK_INDIRECT_COUNT(_class) ((RGX_HWPERF_NUM_ ## _class))
+#define RGX_CNTBLK_INDIRECT_COUNT(_class) ((RGX_HWPERF_NUM_##_class))
 
 /*! The number of layout blocks defined with configurable
  * performance counters. Compile time constants.
  * This is for the Series 8XT+ layout.
  */
-#define RGX_HWPERF_MAX_DEFINED_BLKS (\
-	(IMG_UINT32)RGX_CNTBLK_ID_DIRECT_LAST  +\
-	RGX_CNTBLK_INDIRECT_COUNT(ISP)         +\
-	RGX_CNTBLK_INDIRECT_COUNT(MERCER)      +\
-	RGX_CNTBLK_INDIRECT_COUNT(PBE)         +\
-	RGX_CNTBLK_INDIRECT_COUNT(PBE_SHARED)  +\
-	RGX_CNTBLK_INDIRECT_COUNT(USC)         +\
-	RGX_CNTBLK_INDIRECT_COUNT(TPU)         +\
-	RGX_CNTBLK_INDIRECT_COUNT(SWIFT)       +\
-	RGX_CNTBLK_INDIRECT_COUNT(TEXAS)       +\
-	RGX_CNTBLK_INDIRECT_COUNT(RAC))
+#define RGX_HWPERF_MAX_DEFINED_BLKS                                            \
+	((IMG_UINT32)RGX_CNTBLK_ID_DIRECT_LAST +                               \
+	 RGX_CNTBLK_INDIRECT_COUNT(ISP) + RGX_CNTBLK_INDIRECT_COUNT(MERCER) +  \
+	 RGX_CNTBLK_INDIRECT_COUNT(PBE) +                                      \
+	 RGX_CNTBLK_INDIRECT_COUNT(PBE_SHARED) +                               \
+	 RGX_CNTBLK_INDIRECT_COUNT(USC) + RGX_CNTBLK_INDIRECT_COUNT(TPU) +     \
+	 RGX_CNTBLK_INDIRECT_COUNT(SWIFT) + RGX_CNTBLK_INDIRECT_COUNT(TEXAS) + \
+	 RGX_CNTBLK_INDIRECT_COUNT(RAC))
 
-#endif	/* RGX_FIRMWARE */
+#endif /* RGX_FIRMWARE */
 
 /*****************************************************************************/
 
 /* Structure used in the FW's global control data to hold the performance
  * counters provisioned for a given block. */
-typedef struct
-{
-	IMG_UINT32           uiBlockID;
-	IMG_UINT32           uiNumCounters;    // Number of counters held
-	                                       // in aui32CounterCfg
-	                                       // [0..RGX_CNTBLK_COUNTERS_MAX)
-	IMG_UINT32           uiEnabled;        // 1 => enabled, 0=> disabled
-	RGXFWIF_DEV_VIRTADDR psModel;          // link to model table for uiBlockID
-	IMG_UINT32           aui32CounterCfg[RGX_CNTBLK_COUNTERS_MAX];
+typedef struct {
+	IMG_UINT32 uiBlockID;
+	IMG_UINT32 uiNumCounters; // Number of counters held
+		// in aui32CounterCfg
+		// [0..RGX_CNTBLK_COUNTERS_MAX)
+	IMG_UINT32 uiEnabled; // 1 => enabled, 0=> disabled
+	RGXFWIF_DEV_VIRTADDR psModel; // link to model table for uiBlockID
+	IMG_UINT32 aui32CounterCfg[RGX_CNTBLK_COUNTERS_MAX];
 } RGXFWIF_HWPERF_CTL_BLK;
-
 
 /*!
  *****************************************************************************
@@ -114,12 +110,11 @@ typedef struct
  * FW will ASSERT if the sizes are different
  * (ui32NumBlocks != RGX_HWPERF_MAX_DEFINED_BLKS)
  ****************************************************************************/
-typedef struct
-{
-	IMG_UINT32                         ui32Reserved;
-	IMG_UINT32                         ui32CtrlWord;
-	IMG_UINT32                         ui32EnabledBlksCount;
-	IMG_UINT32                         ui32NumBlocks;
-	RGXFWIF_HWPERF_CTL_BLK RGXFW_ALIGN sBlkCfg[1];	// First array entry
+typedef struct {
+	IMG_UINT32 ui32Reserved;
+	IMG_UINT32 ui32CtrlWord;
+	IMG_UINT32 ui32EnabledBlksCount;
+	IMG_UINT32 ui32NumBlocks;
+	RGXFWIF_HWPERF_CTL_BLK RGXFW_ALIGN sBlkCfg[1]; // First array entry
 } UNCACHED_ALIGN RGXFWIF_HWPERF_CTL;
 #endif

@@ -49,7 +49,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "pvrsrv_error.h"
 
-
 #if !defined(NO_HARDWARE)
 /*!
 *******************************************************************************
@@ -70,7 +69,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ******************************************************************************/
 PVRSRV_ERROR SORgxGpuUtilStatsRegister(IMG_HANDLE *phGpuUtilUser);
 
-
 /*!
 *******************************************************************************
 
@@ -89,7 +87,5 @@ PVRSRV_ERROR SORgxGpuUtilStatsRegister(IMG_HANDLE *phGpuUtilUser);
 ******************************************************************************/
 PVRSRV_ERROR SORgxGpuUtilStatsUnregister(IMG_HANDLE hGpuUtilUser);
 #endif /* !defined(NO_HARDWARE) */
-
-
 
 #endif /* SOFUNC_RGX_H_ */

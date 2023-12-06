@@ -47,8 +47,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxlayer.h"
 #include "device_connection.h"
 
-typedef struct _RGX_LAYER_PARAMS_
-{
+typedef struct _RGX_LAYER_PARAMS_ {
 	void *psDevInfo;
 	void *psDevConfig;
 #if defined(PDUMP)

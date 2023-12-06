@@ -60,34 +60,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sync_fallback_server.h"
 #include "sync_checkpoint.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgeAllocSyncPrimitiveBlock(IMG_HANDLE hBridge,
-							IMG_HANDLE * phSyncHandle,
-							IMG_UINT32 * pui32SyncPrimVAddr,
-							IMG_UINT32 * pui32SyncPrimBlockSize,
-							IMG_HANDLE * phhSyncPMR)
+IMG_INTERNAL PVRSRV_ERROR BridgeAllocSyncPrimitiveBlock(
+	IMG_HANDLE hBridge, IMG_HANDLE *phSyncHandle,
+	IMG_UINT32 *pui32SyncPrimVAddr, IMG_UINT32 *pui32SyncPrimBlockSize,
+	IMG_HANDLE *phhSyncPMR)
 {
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt = NULL;
 	PMR *pshSyncPMRInt = NULL;
 
-	eError =
-	    PVRSRVAllocSyncPrimitiveBlockKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-					    &psSyncHandleInt,
-					    pui32SyncPrimVAddr,
-					    pui32SyncPrimBlockSize, &pshSyncPMRInt);
+	eError = PVRSRVAllocSyncPrimitiveBlockKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), &psSyncHandleInt,
+		pui32SyncPrimVAddr, pui32SyncPrimBlockSize, &pshSyncPMRInt);
 
 	*phSyncHandle = psSyncHandleInt;
 	*phhSyncPMR = pshSyncPMRInt;
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeFreeSyncPrimitiveBlock(IMG_HANDLE hBridge, IMG_HANDLE hSyncHandle)
+IMG_INTERNAL PVRSRV_ERROR BridgeFreeSyncPrimitiveBlock(IMG_HANDLE hBridge,
+						       IMG_HANDLE hSyncHandle)
 {
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *) hSyncHandle;
+	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *)hSyncHandle;
 
 	eError = PVRSRVFreeSyncPrimitiveBlockKM(psSyncHandleInt);
 
@@ -96,13 +94,14 @@ IMG_INTERNAL PVRSRV_ERROR BridgeFreeSyncPrimitiveBlock(IMG_HANDLE hBridge, IMG_H
 
 IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimSet(IMG_HANDLE hBridge,
 					    IMG_HANDLE hSyncHandle,
-					    IMG_UINT32 ui32Index, IMG_UINT32 ui32Value)
+					    IMG_UINT32 ui32Index,
+					    IMG_UINT32 ui32Value)
 {
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *) hSyncHandle;
+	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *)hSyncHandle;
 
 	eError = PVRSRVSyncPrimSetKM(psSyncHandleInt, ui32Index, ui32Value);
 
@@ -110,14 +109,15 @@ IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimSet(IMG_HANDLE hBridge,
 }
 
 IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDump(IMG_HANDLE hBridge,
-					      IMG_HANDLE hSyncHandle, IMG_UINT32 ui32Offset)
+					      IMG_HANDLE hSyncHandle,
+					      IMG_UINT32 ui32Offset)
 {
 #if defined(PDUMP)
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *) hSyncHandle;
+	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *)hSyncHandle;
 
 	eError = PVRSRVSyncPrimPDumpKM(psSyncHandleInt, ui32Offset);
 
@@ -133,16 +133,18 @@ IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDump(IMG_HANDLE hBridge,
 
 IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpValue(IMG_HANDLE hBridge,
 						   IMG_HANDLE hSyncHandle,
-						   IMG_UINT32 ui32Offset, IMG_UINT32 ui32Value)
+						   IMG_UINT32 ui32Offset,
+						   IMG_UINT32 ui32Value)
 {
 #if defined(PDUMP)
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *) hSyncHandle;
+	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *)hSyncHandle;
 
-	eError = PVRSRVSyncPrimPDumpValueKM(psSyncHandleInt, ui32Offset, ui32Value);
+	eError = PVRSRVSyncPrimPDumpValueKM(psSyncHandleInt, ui32Offset,
+					    ui32Value);
 
 	return eError;
 #else
@@ -155,24 +157,21 @@ IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpValue(IMG_HANDLE hBridge,
 #endif
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpPol(IMG_HANDLE hBridge,
-						 IMG_HANDLE hSyncHandle,
-						 IMG_UINT32 ui32Offset,
-						 IMG_UINT32 ui32Value,
-						 IMG_UINT32 ui32Mask,
-						 PDUMP_POLL_OPERATOR eOperator,
-						 PDUMP_FLAGS_T uiPDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpPol(
+	IMG_HANDLE hBridge, IMG_HANDLE hSyncHandle, IMG_UINT32 ui32Offset,
+	IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+	PDUMP_POLL_OPERATOR eOperator, PDUMP_FLAGS_T uiPDumpFlags)
 {
 #if defined(PDUMP)
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *) hSyncHandle;
+	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *)hSyncHandle;
 
-	eError =
-	    PVRSRVSyncPrimPDumpPolKM(psSyncHandleInt,
-				     ui32Offset, ui32Value, ui32Mask, eOperator, uiPDumpFlags);
+	eError = PVRSRVSyncPrimPDumpPolKM(psSyncHandleInt, ui32Offset,
+					  ui32Value, ui32Mask, eOperator,
+					  uiPDumpFlags);
 
 	return eError;
 #else
@@ -188,23 +187,21 @@ IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpPol(IMG_HANDLE hBridge,
 #endif
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpCBP(IMG_HANDLE hBridge,
-						 IMG_HANDLE hSyncHandle,
-						 IMG_UINT32 ui32Offset,
-						 IMG_DEVMEM_OFFSET_T uiWriteOffset,
-						 IMG_DEVMEM_SIZE_T uiPacketSize,
-						 IMG_DEVMEM_SIZE_T uiBufferSize)
+IMG_INTERNAL PVRSRV_ERROR BridgeSyncPrimPDumpCBP(
+	IMG_HANDLE hBridge, IMG_HANDLE hSyncHandle, IMG_UINT32 ui32Offset,
+	IMG_DEVMEM_OFFSET_T uiWriteOffset, IMG_DEVMEM_SIZE_T uiPacketSize,
+	IMG_DEVMEM_SIZE_T uiBufferSize)
 {
 #if defined(PDUMP)
 	PVRSRV_ERROR eError;
 	SYNC_PRIMITIVE_BLOCK *psSyncHandleInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *) hSyncHandle;
+	psSyncHandleInt = (SYNC_PRIMITIVE_BLOCK *)hSyncHandle;
 
-	eError =
-	    PVRSRVSyncPrimPDumpCBPKM(psSyncHandleInt,
-				     ui32Offset, uiWriteOffset, uiPacketSize, uiBufferSize);
+	eError = PVRSRVSyncPrimPDumpCBPKM(psSyncHandleInt, ui32Offset,
+					  uiWriteOffset, uiPacketSize,
+					  uiBufferSize);
 
 	return eError;
 #else
@@ -223,28 +220,31 @@ IMG_INTERNAL PVRSRV_ERROR BridgeSyncAllocEvent(IMG_HANDLE hBridge,
 					       IMG_BOOL bServerSync,
 					       IMG_UINT32 ui32FWAddr,
 					       IMG_UINT32 ui32ClassNameSize,
-					       const IMG_CHAR * puiClassName)
+					       const IMG_CHAR *puiClassName)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PVRSRVSyncAllocEventKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-				   bServerSync, ui32FWAddr, ui32ClassNameSize, puiClassName);
+	eError = PVRSRVSyncAllocEventKM(NULL,
+					(PVRSRV_DEVICE_NODE *)((void *)hBridge),
+					bServerSync, ui32FWAddr,
+					ui32ClassNameSize, puiClassName);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeSyncFreeEvent(IMG_HANDLE hBridge, IMG_UINT32 ui32FWAddr)
+IMG_INTERNAL PVRSRV_ERROR BridgeSyncFreeEvent(IMG_HANDLE hBridge,
+					      IMG_UINT32 ui32FWAddr)
 {
 	PVRSRV_ERROR eError;
 
-	eError = PVRSRVSyncFreeEventKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge), ui32FWAddr);
+	eError = PVRSRVSyncFreeEventKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32FWAddr);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeSyncCheckpointSignalledPDumpPol(IMG_HANDLE hBridge,
-								PVRSRV_FENCE hFence)
+IMG_INTERNAL PVRSRV_ERROR
+BridgeSyncCheckpointSignalledPDumpPol(IMG_HANDLE hBridge, PVRSRV_FENCE hFence)
 {
 #if defined(PDUMP)
 	PVRSRV_ERROR eError;

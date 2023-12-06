@@ -63,22 +63,23 @@
 /* This header must always be included last */
 #include "kernel_compatibility.h"
 
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0)) && !defined(CHROMIUMOS_KERNEL)
-#define sync_file_user_name(s)	((s)->name)
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 13, 0)) && \
+	!defined(CHROMIUMOS_KERNEL)
+#define sync_file_user_name(s) ((s)->name)
 #else
-#define sync_file_user_name(s)	((s)->user_name)
+#define sync_file_user_name(s) ((s)->user_name)
 #endif
 
 #define PVR_DUMPDEBUG_LOG(pfnDumpDebugPrintf, pvDumpDebugFile, fmt, ...) \
 	do {                                                             \
 		if (pfnDumpDebugPrintf)                                  \
 			pfnDumpDebugPrintf(pvDumpDebugFile, fmt,         \
-					   ## __VA_ARGS__);              \
+					   ##__VA_ARGS__);               \
 		else                                                     \
-			pr_err(fmt "\n", ## __VA_ARGS__);                \
+			pr_err(fmt "\n", ##__VA_ARGS__);                 \
 	} while (0)
 
-#define	FILE_NAME "pvr_sync_file"
+#define FILE_NAME "pvr_sync_file"
 
 struct sw_sync_create_fence_data {
 	__u32 value;
@@ -122,22 +123,21 @@ struct pvr_sync_timeline {
 #endif
 };
 
-static
-void pvr_sync_free_checkpoint_list_mem(void *mem_ptr)
+static void pvr_sync_free_checkpoint_list_mem(void *mem_ptr)
 {
 	kfree(mem_ptr);
 }
 
 #if defined(NO_HARDWARE)
 /* function used to signal pvr fence in nohw builds */
-static
-void pvr_sync_nohw_signal_fence(void *fence_data_to_signal)
+static void pvr_sync_nohw_signal_fence(void *fence_data_to_signal)
 {
 	struct pvr_sync_timeline *this_timeline;
 
 	mutex_lock(&pvr_timeline_active_list_lock);
 	list_for_each_entry(this_timeline, &pvr_timeline_active_list, list) {
-		pvr_fence_context_signal_fences_nohw(this_timeline->hw_fence_context);
+		pvr_fence_context_signal_fences_nohw(
+			this_timeline->hw_fence_context);
 	}
 	mutex_unlock(&pvr_timeline_active_list_lock);
 }
@@ -237,8 +237,8 @@ int pvr_sync_api_deinit(void *api_priv, bool is_sw)
  * Input: finalise_data       The finalise data returned by an earlier call
  *                            to pvr_sync_create_fence().
  */
-static enum PVRSRV_ERROR_TAG
-pvr_sync_finalise_fence(PVRSRV_FENCE fence_fd, void *finalise_data)
+static enum PVRSRV_ERROR_TAG pvr_sync_finalise_fence(PVRSRV_FENCE fence_fd,
+						     void *finalise_data)
 {
 	struct sync_file *sync_file = finalise_data;
 	struct pvr_fence *pvr_fence;
@@ -280,17 +280,13 @@ pvr_sync_finalise_fence(PVRSRV_FENCE fence_fd, void *finalise_data)
  * Output: fence_finalise_data     Pointer to data needed to finalise the fence.
  * Output: new_checkpoint_handle   The PSYNC_CHECKPOINT used by the new fence.
  */
-static enum PVRSRV_ERROR_TAG
-pvr_sync_create_fence(
-		      struct _PVRSRV_DEVICE_NODE_ *device,
-		      const char *fence_name,
-		      PVRSRV_TIMELINE new_fence_timeline,
-		      PSYNC_CHECKPOINT_CONTEXT psSyncCheckpointContext,
-		      PVRSRV_FENCE *new_fence, u64 *fence_uid,
-		      void **fence_finalise_data,
-		      PSYNC_CHECKPOINT *new_checkpoint_handle,
-		      void **timeline_update_sync,
-		      __u32 *timeline_update_value)
+static enum PVRSRV_ERROR_TAG pvr_sync_create_fence(
+	struct _PVRSRV_DEVICE_NODE_ *device, const char *fence_name,
+	PVRSRV_TIMELINE new_fence_timeline,
+	PSYNC_CHECKPOINT_CONTEXT psSyncCheckpointContext,
+	PVRSRV_FENCE *new_fence, u64 *fence_uid, void **fence_finalise_data,
+	PSYNC_CHECKPOINT *new_checkpoint_handle, void **timeline_update_sync,
+	__u32 *timeline_update_value)
 {
 	PVRSRV_ERROR err = PVRSRV_OK;
 	PVRSRV_FENCE new_fence_fd = -1;
@@ -299,10 +295,10 @@ pvr_sync_create_fence(
 	PSYNC_CHECKPOINT checkpoint;
 	struct sync_file *sync_file;
 
-	if (new_fence_timeline < 0 || !new_fence || !new_checkpoint_handle
-		|| !fence_finalise_data) {
+	if (new_fence_timeline < 0 || !new_fence || !new_checkpoint_handle ||
+	    !fence_finalise_data) {
 		pr_err(FILE_NAME ": %s: Invalid input params\n", __func__);
-		err =  PVRSRV_ERROR_INVALID_PARAMS;
+		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_out;
 	}
 
@@ -318,29 +314,29 @@ pvr_sync_create_fence(
 
 	timeline = pvr_sync_timeline_fget(new_fence_timeline);
 	if (!timeline) {
-		pr_err(FILE_NAME ": %s: Failed to open supplied timeline fd (%d)\n",
-			__func__, new_fence_timeline);
+		pr_err(FILE_NAME
+		       ": %s: Failed to open supplied timeline fd (%d)\n",
+		       __func__, new_fence_timeline);
 		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_put_fd;
 	}
 
 	if (timeline->is_sw) {
 		/* This should never happen! */
-		pr_err(FILE_NAME ": %s: Request to create a pvr fence on sw timeline (%d)\n",
-			__func__, new_fence_timeline);
+		pr_err(FILE_NAME
+		       ": %s: Request to create a pvr fence on sw timeline (%d)\n",
+		       __func__, new_fence_timeline);
 		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_put_timeline;
 	}
 
 	if (!timeline->hw_fence_context) {
 		/* First time we use this timeline, so create a context. */
-		timeline->hw_fence_context =
-			pvr_fence_context_create(
-				device,
-				NativeSyncGetFenceStatusWq(),
-				timeline->name);
+		timeline->hw_fence_context = pvr_fence_context_create(
+			device, NativeSyncGetFenceStatusWq(), timeline->name);
 		if (!timeline->hw_fence_context) {
-			pr_err(FILE_NAME ": %s: Failed to create fence context (%d)\n",
+			pr_err(FILE_NAME
+			       ": %s: Failed to create fence context (%d)\n",
 			       __func__, new_fence_timeline);
 			err = PVRSRV_ERROR_OUT_OF_MEMORY;
 			goto err_put_timeline;
@@ -355,12 +351,11 @@ pvr_sync_create_fence(
 	}
 
 	pvr_fence = pvr_fence_create(timeline->hw_fence_context,
-								 psSyncCheckpointContext,
-								 new_fence_timeline,
-								 fence_name);
+				     psSyncCheckpointContext,
+				     new_fence_timeline, fence_name);
 	if (!pvr_fence) {
 		pr_err(FILE_NAME ": %s: Failed to create new pvr_fence\n",
-			__func__);
+		       __func__);
 		err = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_put_timeline;
 	}
@@ -368,7 +363,7 @@ pvr_sync_create_fence(
 	checkpoint = pvr_fence_get_checkpoint(pvr_fence);
 	if (!checkpoint) {
 		pr_err(FILE_NAME ": %s: Failed to get fence checkpoint\n",
-			__func__);
+		       __func__);
 		err = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_destroy_fence;
 	}
@@ -376,12 +371,11 @@ pvr_sync_create_fence(
 	sync_file = sync_file_create(&pvr_fence->base);
 	if (!sync_file) {
 		pr_err(FILE_NAME ": %s: Failed to create sync_file\n",
-			__func__);
+		       __func__);
 		err = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_destroy_fence;
 	}
-	strlcpy(sync_file_user_name(sync_file),
-		pvr_fence->name,
+	strlcpy(sync_file_user_name(sync_file), pvr_fence->name,
 		sizeof(sync_file_user_name(sync_file)));
 	dma_fence_put(&pvr_fence->base);
 
@@ -429,15 +423,14 @@ pvr_sync_rollback_fence_data(PVRSRV_FENCE fence_to_rollback,
 
 	if (!sync_file || fence_to_rollback < 0) {
 		pr_err(FILE_NAME ": %s: Invalid fence (%d)\n", __func__,
-			fence_to_rollback);
+		       fence_to_rollback);
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	pvr_fence = to_pvr_fence(sync_file->fence);
 	if (!pvr_fence) {
-		pr_err(FILE_NAME
-			": %s: Non-PVR fence (%p)\n",
-			__func__, sync_file->fence);
+		pr_err(FILE_NAME ": %s: Non-PVR fence (%p)\n", __func__,
+		       sync_file->fence);
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -475,8 +468,8 @@ pvr_sync_resolve_fence(PSYNC_CHECKPOINT_CONTEXT psSyncCheckpointContext,
 
 	if (!nr_checkpoints || !checkpoint_handles || !fence_uid) {
 		pr_err(FILE_NAME ": %s: Invalid input checkpoint pointer\n",
-			__func__);
-		err =  PVRSRV_ERROR_INVALID_PARAMS;
+		       __func__);
+		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_out;
 	}
 
@@ -489,8 +482,9 @@ pvr_sync_resolve_fence(PSYNC_CHECKPOINT_CONTEXT psSyncCheckpointContext,
 
 	fence = sync_file_get_fence(fence_to_resolve);
 	if (!fence) {
-		pr_err(FILE_NAME ": %s: Failed to read sync private data for fd %d\n",
-			__func__, fence_to_resolve);
+		pr_err(FILE_NAME
+		       ": %s: Failed to read sync private data for fd %d\n",
+		       __func__, fence_to_resolve);
 		err = PVRSRV_ERROR_HANDLE_NOT_FOUND;
 		goto err_out;
 	}
@@ -507,8 +501,8 @@ pvr_sync_resolve_fence(PSYNC_CHECKPOINT_CONTEXT psSyncCheckpointContext,
 		num_fences = 1;
 	}
 
-	checkpoints = kmalloc_array(num_fences, sizeof(PSYNC_CHECKPOINT),
-			      GFP_KERNEL);
+	checkpoints =
+		kmalloc_array(num_fences, sizeof(PSYNC_CHECKPOINT), GFP_KERNEL);
 	if (!checkpoints) {
 		err = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_put_fence;
@@ -520,19 +514,17 @@ pvr_sync_resolve_fence(PSYNC_CHECKPOINT_CONTEXT psSyncCheckpointContext,
 		 * to make sure that all fences make it to the pdump.
 		 */
 #if !defined(PDUMP)
-		if (!test_bit(DMA_FENCE_FLAG_SIGNALED_BIT,
-			      &fences[i]->flags))
+		if (!test_bit(DMA_FENCE_FLAG_SIGNALED_BIT, &fences[i]->flags))
 #endif
 		{
 			struct pvr_fence *pvr_fence =
 				pvr_fence_create_from_fence(
 					pvr_sync_data.foreign_fence_context,
-					psSyncCheckpointContext,
-					fences[i],
-					fence_to_resolve,
-					"foreign");
+					psSyncCheckpointContext, fences[i],
+					fence_to_resolve, "foreign");
 			if (!pvr_fence) {
-				pr_err(FILE_NAME ": %s: Failed to create fence\n",
+				pr_err(FILE_NAME
+				       ": %s: Failed to create fence\n",
 				       __func__);
 				err = PVRSRV_ERROR_OUT_OF_MEMORY;
 				goto err_free_checkpoints;
@@ -586,18 +578,16 @@ err_free_checkpoints:
  *                            pertaining to the native/fallback sync with
  *                            which it is associated.
  */
-static u32
-pvr_sync_dump_info_on_stalled_ufos(u32 nr_ufos, u32 *vaddrs)
+static u32 pvr_sync_dump_info_on_stalled_ufos(u32 nr_ufos, u32 *vaddrs)
 {
-	return pvr_fence_dump_info_on_stalled_ufos(pvr_sync_data.foreign_fence_context,
-						   nr_ufos,
-						   vaddrs);
+	return pvr_fence_dump_info_on_stalled_ufos(
+		pvr_sync_data.foreign_fence_context, nr_ufos, vaddrs);
 }
 
 #if defined(PDUMP)
 static enum PVRSRV_ERROR_TAG
 pvr_sync_fence_get_checkpoints(PVRSRV_FENCE fence_to_pdump, u32 *nr_checkpoints,
-				struct SYNC_CHECKPOINT_TAG ***checkpoint_handles)
+			       struct SYNC_CHECKPOINT_TAG ***checkpoint_handles)
 {
 	struct dma_fence **fences = NULL;
 	struct dma_fence *fence;
@@ -607,21 +597,22 @@ pvr_sync_fence_get_checkpoints(PVRSRV_FENCE fence_to_pdump, u32 *nr_checkpoints,
 	enum PVRSRV_ERROR_TAG err;
 
 	if (fence_to_pdump < 0) {
-		err =  PVRSRV_ERROR_INVALID_PARAMS;
+		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_out;
 	}
 
 	if (!nr_checkpoints || !checkpoint_handles) {
 		pr_err(FILE_NAME ": %s: Invalid input checkpoint pointer\n",
-			__func__);
-		err =  PVRSRV_ERROR_INVALID_PARAMS;
+		       __func__);
+		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_out;
 	}
 
 	fence = sync_file_get_fence(fence_to_pdump);
 	if (!fence) {
-		pr_err(FILE_NAME ": %s: Failed to read sync private data for fd %d\n",
-			__func__, fence_to_pdump);
+		pr_err(FILE_NAME
+		       ": %s: Failed to read sync private data for fd %d\n",
+		       __func__, fence_to_pdump);
 		err = PVRSRV_ERROR_HANDLE_NOT_FOUND;
 		goto err_out;
 	}
@@ -636,11 +627,11 @@ pvr_sync_fence_get_checkpoints(PVRSRV_FENCE fence_to_pdump, u32 *nr_checkpoints,
 		num_fences = 1;
 	}
 
-	checkpoints = kmalloc_array(num_fences, sizeof(*checkpoints),
-			      GFP_KERNEL);
+	checkpoints =
+		kmalloc_array(num_fences, sizeof(*checkpoints), GFP_KERNEL);
 	if (!checkpoints) {
 		pr_err("pvr_sync_file: %s: Failed to alloc memory for returned list of sync checkpoints\n",
-			__func__);
+		       __func__);
 		err = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_put_fence;
 	}
@@ -649,13 +640,14 @@ pvr_sync_fence_get_checkpoints(PVRSRV_FENCE fence_to_pdump, u32 *nr_checkpoints,
 		pvr_fence = to_pvr_fence(fences[i]);
 		if (!pvr_fence)
 			continue;
-		checkpoints[num_used_fences] = pvr_fence_get_checkpoint(pvr_fence);
+		checkpoints[num_used_fences] =
+			pvr_fence_get_checkpoint(pvr_fence);
 		++num_used_fences;
 	}
 
 	*checkpoint_handles = checkpoints;
 	*nr_checkpoints = num_used_fences;
-	err =  PVRSRV_OK;
+	err = PVRSRV_OK;
 
 err_put_fence:
 	dma_fence_put(fence);
@@ -687,15 +679,15 @@ int pvr_sync_api_force_sw_only(void *api_priv, void **api_priv_new)
 		return 0;
 
 	/* Create a sw_sync timeline with the old GPU timeline's name */
-	timeline->sw_fence_timeline = pvr_counting_fence_timeline_create(
-		timeline->name);
+	timeline->sw_fence_timeline =
+		pvr_counting_fence_timeline_create(timeline->name);
 	if (!timeline->sw_fence_timeline)
 		return -ENOMEM;
 
 	timeline->is_sw = true;
 
 	/* CHECK THIS !!! */
-	*api_priv_new = (void *)timeline;	/* Compare to pvr_sync2.c code */
+	*api_priv_new = (void *)timeline; /* Compare to pvr_sync2.c code */
 
 	return 0;
 }
@@ -708,7 +700,8 @@ int pvr_sync_api_force_exp_only(void *api_priv, void *api_data)
 	struct pvr_sync_timeline *timeline = api_priv;
 
 	if (timeline->is_export) {
-		pr_err(FILE_NAME ": %s: Already marked export timeline\n", __func__);
+		pr_err(FILE_NAME ": %s: Already marked export timeline\n",
+		       __func__);
 		return 0;
 	}
 
@@ -740,7 +733,8 @@ int pvr_sync_api_create_export_fence(void *api_priv, void *user_data)
 	}
 
 	if (!timeline->is_export) {
-		pr_err(FILE_NAME ": %s: Invalid timeline contents for fd (%d)\n",
+		pr_err(FILE_NAME
+		       ": %s: Invalid timeline contents for fd (%d)\n",
 		       __func__, fd);
 		err = -EINVAL;
 		goto err_put_fd;
@@ -758,7 +752,7 @@ int pvr_sync_api_create_export_fence(void *api_priv, void *user_data)
 	dma_fence_put(fence);
 	if (!sync_file) {
 		pr_err(FILE_NAME ": %s: Failed to create a sync point (%d)\n",
-			__func__, fd);
+		       __func__, fd);
 		err = -ENOMEM;
 		goto err_put_fd;
 	}
@@ -791,7 +785,8 @@ int pvr_sync_api_sw_create_fence(void *api_priv, void *user_data)
 		goto err_out;
 	}
 
-	fence = pvr_counting_fence_create(timeline->sw_fence_timeline, &data->sync_pt_idx);
+	fence = pvr_counting_fence_create(timeline->sw_fence_timeline,
+					  &data->sync_pt_idx);
 	if (!fence) {
 		pr_err(FILE_NAME ": %s: Failed to create a sync point (%d)\n",
 		       __func__, fd);
@@ -803,7 +798,7 @@ int pvr_sync_api_sw_create_fence(void *api_priv, void *user_data)
 	dma_fence_put(fence);
 	if (!sync_file) {
 		pr_err(FILE_NAME ": %s: Failed to create a sync point (%d)\n",
-			__func__, fd);
+		       __func__, fd);
 		err = -ENOMEM;
 		goto err_put_fd;
 	}
@@ -826,7 +821,8 @@ int pvr_sync_api_sw_inc(void *api_priv, void *user_data)
 	struct pvr_sw_timeline_advance_data *data = user_data;
 	bool res;
 
-	res = pvr_counting_fence_timeline_inc(timeline->sw_fence_timeline, &data->sync_pt_idx);
+	res = pvr_counting_fence_timeline_inc(timeline->sw_fence_timeline,
+					      &data->sync_pt_idx);
 
 	/* pvr_counting_fence_timeline_inc won't allow sw timeline to be
 	 * advanced beyond the last defined point
@@ -841,12 +837,13 @@ int pvr_sync_api_sw_inc(void *api_priv, void *user_data)
 
 static void
 pvr_sync_debug_request_heading(void *data, u32 verbosity,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile)
+			       DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			       void *pvDumpDebugFile)
 {
 	if (DD_VERB_LVL_ENABLED(verbosity, DEBUG_REQUEST_VERBOSITY_MEDIUM))
-		PVR_DUMPDEBUG_LOG(pfnDumpDebugPrintf, pvDumpDebugFile,
-				  "------[ Native Fence Sync: timelines ]------");
+		PVR_DUMPDEBUG_LOG(
+			pfnDumpDebugPrintf, pvDumpDebugFile,
+			"------[ Native Fence Sync: timelines ]------");
 }
 
 enum PVRSRV_ERROR_TAG pvr_sync_register_functions(void)
@@ -857,12 +854,17 @@ enum PVRSRV_ERROR_TAG pvr_sync_register_functions(void)
 	 * update sync status
 	 */
 	/* Initialise struct and register with sync_checkpoint.c */
-	pvr_sync_data.sync_checkpoint_ops.pfnFenceResolve = pvr_sync_resolve_fence;
-	pvr_sync_data.sync_checkpoint_ops.pfnFenceCreate = pvr_sync_create_fence;
-	pvr_sync_data.sync_checkpoint_ops.pfnFenceDataRollback = pvr_sync_rollback_fence_data;
-	pvr_sync_data.sync_checkpoint_ops.pfnFenceFinalise = pvr_sync_finalise_fence;
+	pvr_sync_data.sync_checkpoint_ops.pfnFenceResolve =
+		pvr_sync_resolve_fence;
+	pvr_sync_data.sync_checkpoint_ops.pfnFenceCreate =
+		pvr_sync_create_fence;
+	pvr_sync_data.sync_checkpoint_ops.pfnFenceDataRollback =
+		pvr_sync_rollback_fence_data;
+	pvr_sync_data.sync_checkpoint_ops.pfnFenceFinalise =
+		pvr_sync_finalise_fence;
 #if defined(NO_HARDWARE)
-	pvr_sync_data.sync_checkpoint_ops.pfnNoHWUpdateTimelines = pvr_sync_nohw_signal_fence;
+	pvr_sync_data.sync_checkpoint_ops.pfnNoHWUpdateTimelines =
+		pvr_sync_nohw_signal_fence;
 #else
 	pvr_sync_data.sync_checkpoint_ops.pfnNoHWUpdateTimelines = NULL;
 #endif
@@ -877,20 +879,20 @@ enum PVRSRV_ERROR_TAG pvr_sync_register_functions(void)
 		pvr_sync_fence_get_checkpoints;
 #endif
 
-	return SyncCheckpointRegisterFunctions(&pvr_sync_data.sync_checkpoint_ops);
+	return SyncCheckpointRegisterFunctions(
+		&pvr_sync_data.sync_checkpoint_ops);
 }
 
 int pvr_sync_init(void)
 {
 	int err;
 
-	pvr_sync_data.foreign_fence_context =
-			pvr_fence_foreign_context_create(
-					NativeSyncGetFenceStatusWq(),
-					"foreign_sync");
+	pvr_sync_data.foreign_fence_context = pvr_fence_foreign_context_create(
+		NativeSyncGetFenceStatusWq(), "foreign_sync");
 	if (!pvr_sync_data.foreign_fence_context) {
-		pr_err(FILE_NAME ": %s: Failed to create foreign sync context\n",
-			__func__);
+		pr_err(FILE_NAME
+		       ": %s: Failed to create foreign sync context\n",
+		       __func__);
 		err = -ENOMEM;
 		goto err_out;
 	}
@@ -901,7 +903,8 @@ int pvr_sync_init(void)
 
 	err = pvr_sync_ioctl_init();
 	if (err) {
-		pr_err(FILE_NAME ": %s: Failed to register pvr_sync device (%d)\n",
+		pr_err(FILE_NAME
+		       ": %s: Failed to register pvr_sync device (%d)\n",
 		       __func__, err);
 		goto err_ioctl_init;
 	}
@@ -929,11 +932,8 @@ enum PVRSRV_ERROR_TAG pvr_sync_device_init(struct device *dev)
 	enum PVRSRV_ERROR_TAG error;
 
 	error = PVRSRVRegisterDeviceDbgRequestNotify(
-				&priv->sync_debug_notify_handle,
-				priv->dev_node,
-				pvr_sync_debug_request_heading,
-				DEBUG_REQUEST_LINUXFENCE,
-				NULL);
+		&priv->sync_debug_notify_handle, priv->dev_node,
+		pvr_sync_debug_request_heading, DEBUG_REQUEST_LINUXFENCE, NULL);
 	if (error != PVRSRV_OK) {
 		pr_err("%s: failed to register debug request callback (%s)\n",
 		       __func__, PVRSRVGetErrorString(error));
@@ -942,9 +942,8 @@ enum PVRSRV_ERROR_TAG pvr_sync_device_init(struct device *dev)
 
 	/* Register the foreign sync context debug notifier on each device */
 	error = pvr_fence_context_register_dbg(
-				&priv->sync_foreign_debug_notify_handle,
-				priv->dev_node,
-				pvr_sync_data.foreign_fence_context);
+		&priv->sync_foreign_debug_notify_handle, priv->dev_node,
+		pvr_sync_data.foreign_fence_context);
 	if (error != PVRSRV_OK) {
 		pr_err("%s: failed to register fence debug request callback (%s)\n",
 		       __func__, PVRSRVGetErrorString(error));
@@ -968,7 +967,8 @@ void pvr_sync_device_deinit(struct device *dev)
 	struct drm_device *ddev = dev_get_drvdata(dev);
 	struct pvr_drm_private *priv = ddev->dev_private;
 
-	PVRSRVUnregisterDeviceDbgRequestNotify(priv->sync_foreign_debug_notify_handle);
+	PVRSRVUnregisterDeviceDbgRequestNotify(
+		priv->sync_foreign_debug_notify_handle);
 	PVRSRVUnregisterDeviceDbgRequestNotify(priv->sync_debug_notify_handle);
 }
 
@@ -1014,10 +1014,8 @@ enum PVRSRV_ERROR_TAG pvr_sync_fence_get(int fence_fd, void **fence_out)
 
 enum PVRSRV_ERROR_TAG
 pvr_sync_sw_timeline_fence_create(struct _PVRSRV_DEVICE_NODE_ *pvrsrv_dev_node,
-				  int timeline_fd,
-				  const char *fence_name,
-				  int *fence_fd_out,
-				  u64 *sync_pt_idx)
+				  int timeline_fd, const char *fence_name,
+				  int *fence_fd_out, u64 *sync_pt_idx)
 {
 	enum PVRSRV_ERROR_TAG srv_err;
 	struct pvr_sync_timeline *timeline;
@@ -1043,7 +1041,8 @@ pvr_sync_sw_timeline_fence_create(struct _PVRSRV_DEVICE_NODE_ *pvrsrv_dev_node,
 		goto err_put_fd;
 	}
 
-	fence = pvr_counting_fence_create(timeline->sw_fence_timeline, sync_pt_idx);
+	fence = pvr_counting_fence_create(timeline->sw_fence_timeline,
+					  sync_pt_idx);
 	pvr_sync_timeline_fput(timeline);
 	if (!fence) {
 		srv_err = PVRSRV_ERROR_OUT_OF_MEMORY;
@@ -1068,7 +1067,8 @@ err_put_fd:
 	return srv_err;
 }
 
-enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_advance(void *timeline, u64 *sync_pt_idx)
+enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_advance(void *timeline,
+						   u64 *sync_pt_idx)
 {
 	if (timeline == NULL)
 		return PVRSRV_ERROR_INVALID_PARAMS;
@@ -1089,7 +1089,7 @@ enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_release(void *timeline)
 }
 
 enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_get(int timeline_fd,
-					   void **timeline_out)
+					       void **timeline_out)
 {
 	struct pvr_counting_fence_timeline *sw_timeline;
 	struct pvr_sync_timeline *timeline;
@@ -1109,8 +1109,8 @@ enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_get(int timeline_fd,
 	return PVRSRV_OK;
 }
 static void _dump_sync_point(struct dma_fence *fence,
-							  DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
-							  void *dump_debug_file)
+			     DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
+			     void *dump_debug_file)
 {
 	const struct dma_fence_ops *fence_ops = fence->ops;
 	bool signaled = dma_fence_is_signaled(fence);
@@ -1118,14 +1118,11 @@ static void _dump_sync_point(struct dma_fence *fence,
 
 	fence_ops->timeline_value_str(fence, time, sizeof(time));
 
-	PVR_DUMPDEBUG_LOG(dump_debug_printf,
-					  dump_debug_file,
-					  "<%p> Seq#=%llu TS=%s State=%s TLN=%s",
-					  fence,
-					  (u64) fence->seqno,
-					  time,
-					  (signaled) ? "Signalled" : "Active",
-					  fence_ops->get_timeline_name(fence));
+	PVR_DUMPDEBUG_LOG(dump_debug_printf, dump_debug_file,
+			  "<%p> Seq#=%llu TS=%s State=%s TLN=%s", fence,
+			  (u64)fence->seqno, time,
+			  (signaled) ? "Signalled" : "Active",
+			  fence_ops->get_timeline_name(fence));
 }
 
 static void _dump_fence(struct dma_fence *fence,
@@ -1137,8 +1134,7 @@ static void _dump_fence(struct dma_fence *fence,
 		int i;
 
 		if (fence_array) {
-			PVR_DUMPDEBUG_LOG(dump_debug_printf,
-					  dump_debug_file,
+			PVR_DUMPDEBUG_LOG(dump_debug_printf, dump_debug_file,
 					  "Fence: [%p] Sync Points:\n",
 					  fence_array);
 
@@ -1153,12 +1149,11 @@ static void _dump_fence(struct dma_fence *fence,
 	}
 }
 
-enum PVRSRV_ERROR_TAG
-sync_dump_fence(void *sw_fence_obj,
-		DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
-		void *dump_debug_file)
+enum PVRSRV_ERROR_TAG sync_dump_fence(void *sw_fence_obj,
+				      DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
+				      void *dump_debug_file)
 {
-	struct dma_fence *fence = (struct dma_fence *) sw_fence_obj;
+	struct dma_fence *fence = (struct dma_fence *)sw_fence_obj;
 
 	_dump_fence(fence, dump_debug_printf, dump_debug_file);
 
@@ -1170,9 +1165,8 @@ sync_sw_dump_timeline(void *sw_timeline_obj,
 		      DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
 		      void *dump_debug_file)
 {
-	pvr_counting_fence_timeline_dump_timeline(sw_timeline_obj,
-						  dump_debug_printf,
-						  dump_debug_file);
+	pvr_counting_fence_timeline_dump_timeline(
+		sw_timeline_obj, dump_debug_printf, dump_debug_file);
 
 	return PVRSRV_OK;
 }

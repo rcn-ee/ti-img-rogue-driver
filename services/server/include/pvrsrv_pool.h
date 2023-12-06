@@ -63,7 +63,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Output       pvOut           Allocated object.
  @Return       PVRSRV_ERROR    PVRSRV_OK on success and an error otherwise
 */ /***************************************************************************/
-typedef PVRSRV_ERROR (PVRSRV_POOL_ALLOC_FUNC)(void *pvPrivData, void **pvOut);
+typedef PVRSRV_ERROR(PVRSRV_POOL_ALLOC_FUNC)(void *pvPrivData, void **pvOut);
 
 /**************************************************************************/ /*!
  @Description  Callback function called to free the object allocated by
@@ -71,7 +71,7 @@ typedef PVRSRV_ERROR (PVRSRV_POOL_ALLOC_FUNC)(void *pvPrivData, void **pvOut);
  @Input        pvPrivData      Private data passed to the free function.
  @Output       pvFreeData      Object allocated by PVRSRV_POOL_ALLOC_FUNC.
 */ /***************************************************************************/
-typedef void (PVRSRV_POOL_FREE_FUNC)(void *pvPrivData, void *pvFreeData);
+typedef void(PVRSRV_POOL_FREE_FUNC)(void *pvPrivData, void *pvFreeData);
 
 typedef IMG_HANDLE PVRSRV_POOL_TOKEN;
 
@@ -93,11 +93,10 @@ typedef struct _PVRSRV_POOL_ PVRSRV_POOL;
  @Return       PVRSRV_ERROR    PVRSRV_OK on success and an error otherwise
 */ /***************************************************************************/
 PVRSRV_ERROR PVRSRVPoolCreate(PVRSRV_POOL_ALLOC_FUNC *pfnAlloc,
-					PVRSRV_POOL_FREE_FUNC *pfnFree,
-					IMG_UINT32 ui32MaxEntries,
-					const IMG_CHAR *pszName,
-					void *pvPrivData,
-					PVRSRV_POOL **ppsPool);
+			      PVRSRV_POOL_FREE_FUNC *pfnFree,
+			      IMG_UINT32 ui32MaxEntries,
+			      const IMG_CHAR *pszName, void *pvPrivData,
+			      PVRSRV_POOL **ppsPool);
 
 /**************************************************************************/ /*!
  @Function     PVRSRVPoolDestroy
@@ -116,9 +115,8 @@ void PVRSRVPoolDestroy(PVRSRV_POOL *psPool);
                                allocated by the pfnAlloc function).
  @Return       PVRSRV_ERROR    PVRSRV_OK on success and an error otherwise
 */ /***************************************************************************/
-PVRSRV_ERROR PVRSRVPoolGet(PVRSRV_POOL *psPool,
-						PVRSRV_POOL_TOKEN *hToken,
-						void **ppvDataOut);
+PVRSRV_ERROR PVRSRVPoolGet(PVRSRV_POOL *psPool, PVRSRV_POOL_TOKEN *hToken,
+			   void **ppvDataOut);
 
 /**************************************************************************/ /*!
  @Function     PVRSRVPoolPut
@@ -129,7 +127,6 @@ PVRSRV_ERROR PVRSRVPoolGet(PVRSRV_POOL *psPool,
  @Input        hToken          Entry handle.
  @Return       PVRSRV_ERROR    PVRSRV_OK on success and an error otherwise
 */ /***************************************************************************/
-PVRSRV_ERROR PVRSRVPoolPut(PVRSRV_POOL *psPool,
-						PVRSRV_POOL_TOKEN hToken);
+PVRSRV_ERROR PVRSRVPoolPut(PVRSRV_POOL *psPool, PVRSRV_POOL_TOKEN hToken);
 
 #endif /* PVRSRVPOOL_H */

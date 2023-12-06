@@ -56,63 +56,62 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *
  * NOTE: Enum order important, table in physheap.c must change if order changed.
  */
-#define PHYS_HEAP_LIST                                                                                                                           \
-	X(DEFAULT)       /* Client: default phys heap for device memory allocations */                                                               \
-	X(CPU_LOCAL)     /* Client: used for buffers with more CPU access than GPU */                                                                \
-	X(GPU_LOCAL)     /* Client: used for buffers with more GPU access than CPU */                                                                \
-	X(GPU_PRIVATE)   /* Client: used for buffers that only required GPU read/write access, not visible to the CPU. */                            \
-	X(FW_MAIN)       /* Internal: runtime data, e.g. CCBs, sync objects */                                                                       \
-	X(EXTERNAL)      /* Internal: used by some PMR import/export factories where the physical memory heap is not managed by the pvrsrv driver */ \
-	X(GPU_COHERENT)  /* Internal: used for a cache coherent region */                                                                            \
-	X(GPU_SECURE)    /* Internal: used by security validation */                                                                                 \
-	X(FW_CONFIG)     /* Internal: subheap of FW_MAIN, configuration data for FW init */                                                          \
-	X(FW_CODE)       /* Internal: used by security validation or dedicated fw */                                                                 \
-	X(FW_PRIV_DATA)  /* Internal: internal FW data (like the stack, FW control data structures, etc.) */                                         \
-	X(FW_PREMAP_PT)  /* Internal: page tables for premapped firmware memory */                                                                   \
-	X(FW_PREMAP0)    /* Internal: Host OS premap fw heap */                                                                                      \
-	X(FW_PREMAP1)    /* Internal: Guest OS 1 premap fw heap */                                                                                   \
-	X(FW_PREMAP2)    /* Internal: Guest OS 2 premap fw heap */                                                                                   \
-	X(FW_PREMAP3)    /* Internal: Guest OS 3 premap fw heap */                                                                                   \
-	X(FW_PREMAP4)    /* Internal: Guest OS 4 premap fw heap */                                                                                   \
-	X(FW_PREMAP5)    /* Internal: Guest OS 5 premap fw heap */                                                                                   \
-	X(FW_PREMAP6)    /* Internal: Guest OS 6 premap fw heap */                                                                                   \
-	X(FW_PREMAP7)    /* Internal: Guest OS 7 premap fw heap */                                                                                   \
-	X(WRAP)          /* External: Wrap memory */                                                                                                 \
-	X(DISPLAY)       /* External: Display memory */                                                                                              \
+#define PHYS_HEAP_LIST                                                                                                                          \
+	X(DEFAULT) /* Client: default phys heap for device memory allocations */                                                                \
+	X(CPU_LOCAL) /* Client: used for buffers with more CPU access than GPU */                                                               \
+	X(GPU_LOCAL) /* Client: used for buffers with more GPU access than CPU */                                                               \
+	X(GPU_PRIVATE) /* Client: used for buffers that only required GPU read/write access, not visible to the CPU. */                         \
+	X(FW_MAIN) /* Internal: runtime data, e.g. CCBs, sync objects */                                                                        \
+	X(EXTERNAL) /* Internal: used by some PMR import/export factories where the physical memory heap is not managed by the pvrsrv driver */ \
+	X(GPU_COHERENT) /* Internal: used for a cache coherent region */                                                                        \
+	X(GPU_SECURE) /* Internal: used by security validation */                                                                               \
+	X(FW_CONFIG) /* Internal: subheap of FW_MAIN, configuration data for FW init */                                                         \
+	X(FW_CODE) /* Internal: used by security validation or dedicated fw */                                                                  \
+	X(FW_PRIV_DATA) /* Internal: internal FW data (like the stack, FW control data structures, etc.) */                                     \
+	X(FW_PREMAP_PT) /* Internal: page tables for premapped firmware memory */                                                               \
+	X(FW_PREMAP0) /* Internal: Host OS premap fw heap */                                                                                    \
+	X(FW_PREMAP1) /* Internal: Guest OS 1 premap fw heap */                                                                                 \
+	X(FW_PREMAP2) /* Internal: Guest OS 2 premap fw heap */                                                                                 \
+	X(FW_PREMAP3) /* Internal: Guest OS 3 premap fw heap */                                                                                 \
+	X(FW_PREMAP4) /* Internal: Guest OS 4 premap fw heap */                                                                                 \
+	X(FW_PREMAP5) /* Internal: Guest OS 5 premap fw heap */                                                                                 \
+	X(FW_PREMAP6) /* Internal: Guest OS 6 premap fw heap */                                                                                 \
+	X(FW_PREMAP7) /* Internal: Guest OS 7 premap fw heap */                                                                                 \
+	X(WRAP) /* External: Wrap memory */                                                                                                     \
+	X(DISPLAY) /* External: Display memory */                                                                                               \
 	X(LAST)
 
-typedef enum _PVRSRV_PHYS_HEAP_
-{
-#define X(_name) PVRSRV_PHYS_HEAP_ ## _name,
+typedef enum _PVRSRV_PHYS_HEAP_ {
+#define X(_name) PVRSRV_PHYS_HEAP_##_name,
 	PHYS_HEAP_LIST
 #undef X
 
-	PVRSRV_PHYS_HEAP_INVALID = 0x7FFFFFFF
+		PVRSRV_PHYS_HEAP_INVALID = 0x7FFFFFFF
 } PVRSRV_PHYS_HEAP;
 
 /* Defines the number of user mode physheaps. These physheaps are: DEFAULT, GPU_LOCAL,
  * CPU_LOCAL, GPU_PRIVATE, GPU_SECURE. */
 #define MAX_USER_MODE_ALLOC_PHYS_HEAPS 5
 
-static_assert(PVRSRV_PHYS_HEAP_LAST <= (0x1FU + 1U), "Ensure enum fits in memalloc flags bitfield.");
+static_assert(PVRSRV_PHYS_HEAP_LAST <= (0x1FU + 1U),
+	      "Ensure enum fits in memalloc flags bitfield.");
 
 /*! Type conveys the class of physical heap to instantiate within Services
  * for the physical pool of memory. */
-#define PHYS_HEAP_TYPE_LIST                                                                                                                                                                                                                                           \
-	X(UNKNOWN)              /* Not a valid value for any config */                                                                                                                                                                                                    \
-	X(UMA)                  /* Heap represents OS managed physical memory heap i.e. system RAM. Unified Memory Architecture physmem_osmem PMR factory */                                                                                                              \
-	X(LMA)                  /* Heap represents physical memory pool managed by Services i.e. carve out from system RAM or local card memory. Local Memory Architecture physmem_lma PMR factory */                                                                     \
-	X(DLM_BAR)              /* Heap represents local card memory accessible to the CPU via the PCIE memory BAR. Used in a DLM heap (Dedicated Local Memory) system. */                                                                                                \
-	X(DLM_PRIV)             /* Heap represents local card memory not accessible to the CPU. Used in a DLM heap (Dedicated Local Memory) system. */                                                                                                                    \
-	X(IMA_BAR)              /* Heap represents phys heap that imports PMBs from the DLM_BAR heap.*/                                                                                                                                                                   \
-	X(IMA_PRIV)             /* Heap represents phys heap that imports PMBs from the DLM_PRIV heap.*/                                                                                                                                                                  \
-	X(DMA)                  /* Heap represents a physical memory pool managed by Services, alias of LMA and is only used on VZ non-native system configurations for a heap used for allocations tagged with PVRSRV_PHYS_HEAP_FW_MAIN or PVRSRV_PHYS_HEAP_FW_CONFIG */ \
-	X(WRAP)                 /* Heap used to group UM buffers given to Services. Integrity OS port only. */                                                                                                                                                            \
-	X(LAST)                                                                                                                                                                                                                                                           \
+#define PHYS_HEAP_TYPE_LIST                                                                                                                                                                                                                              \
+	X(UNKNOWN) /* Not a valid value for any config */                                                                                                                                                                                                \
+	X(UMA) /* Heap represents OS managed physical memory heap i.e. system RAM. Unified Memory Architecture physmem_osmem PMR factory */                                                                                                              \
+	X(LMA) /* Heap represents physical memory pool managed by Services i.e. carve out from system RAM or local card memory. Local Memory Architecture physmem_lma PMR factory */                                                                     \
+	X(DLM_BAR) /* Heap represents local card memory accessible to the CPU via the PCIE memory BAR. Used in a DLM heap (Dedicated Local Memory) system. */                                                                                            \
+	X(DLM_PRIV) /* Heap represents local card memory not accessible to the CPU. Used in a DLM heap (Dedicated Local Memory) system. */                                                                                                               \
+	X(IMA_BAR) /* Heap represents phys heap that imports PMBs from the DLM_BAR heap.*/                                                                                                                                                               \
+	X(IMA_PRIV) /* Heap represents phys heap that imports PMBs from the DLM_PRIV heap.*/                                                                                                                                                             \
+	X(DMA) /* Heap represents a physical memory pool managed by Services, alias of LMA and is only used on VZ non-native system configurations for a heap used for allocations tagged with PVRSRV_PHYS_HEAP_FW_MAIN or PVRSRV_PHYS_HEAP_FW_CONFIG */ \
+	X(WRAP) /* Heap used to group UM buffers given to Services. Integrity OS port only. */                                                                                                                                                           \
+	X(LAST)
 
-typedef enum _PHYS_HEAP_TYPE_
-{
-#define X(_name) PHYS_HEAP_TYPE_ ## _name,
+typedef enum _PHYS_HEAP_TYPE_ {
+#define X(_name) PHYS_HEAP_TYPE_##_name,
 	PHYS_HEAP_TYPE_LIST
 #undef X
 
@@ -127,13 +126,12 @@ typedef enum _PHYS_HEAP_TYPE_
 /* Force PHYS_HEAP_MEM_STATS size to be a multiple of 8 bytes
  * (as type is a parameter in bridge calls)
  */
-typedef struct PHYS_HEAP_MEM_STATS_TAG
-{
-	IMG_UINT64	ui64TotalSize;
-	IMG_UINT64	ui64FreeSize;
-	IMG_UINT32	ui32PhysHeapFlags;
-	PHYS_HEAP_TYPE	ePhysHeapType;
-}PHYS_HEAP_MEM_STATS, *PHYS_HEAP_MEM_STATS_PTR;
+typedef struct PHYS_HEAP_MEM_STATS_TAG {
+	IMG_UINT64 ui64TotalSize;
+	IMG_UINT64 ui64FreeSize;
+	IMG_UINT32 ui32PhysHeapFlags;
+	PHYS_HEAP_TYPE ePhysHeapType;
+} PHYS_HEAP_MEM_STATS, *PHYS_HEAP_MEM_STATS_PTR;
 
 #if defined(PHYSHEAP_STRINGS)
 
@@ -151,17 +149,17 @@ static const char *const _pszPhysHeapStrings[] = {
 
 @Return         const IMG_CHAR pointer.
 */ /**************************************************************************/
-static inline const IMG_CHAR *PVRSRVGetClientPhysHeapTypeName(PHYS_HEAP_TYPE ePhysHeapType)
+static inline const IMG_CHAR *
+PVRSRVGetClientPhysHeapTypeName(PHYS_HEAP_TYPE ePhysHeapType)
 {
 #define HEAPSTR(x) #x
-	switch (ePhysHeapType)
-	{
-		case PHYS_HEAP_TYPE_UMA:
-			return HEAPSTR(PHYS_HEAP_TYPE_UMA);
-		case PHYS_HEAP_TYPE_LMA:
-			return HEAPSTR(PHYS_HEAP_TYPE_LMA);
-		default:
-			return "Unknown Heap Type";
+	switch (ePhysHeapType) {
+	case PHYS_HEAP_TYPE_UMA:
+		return HEAPSTR(PHYS_HEAP_TYPE_UMA);
+	case PHYS_HEAP_TYPE_LMA:
+		return HEAPSTR(PHYS_HEAP_TYPE_LMA);
+	default:
+		return "Unknown Heap Type";
 	}
 #undef HEAPSTR
 }
@@ -176,8 +174,7 @@ static inline const IMG_CHAR *PVRSRVGetClientPhysHeapTypeName(PHYS_HEAP_TYPE ePh
 */ /**************************************************************************/
 static inline const IMG_CHAR *PVRSRVGetPhysHeapName(PVRSRV_PHYS_HEAP ePhysHeap)
 {
-	if (ePhysHeap < 0 || ePhysHeap >= PVRSRV_PHYS_HEAP_LAST)
-	{
+	if (ePhysHeap < 0 || ePhysHeap >= PVRSRV_PHYS_HEAP_LAST) {
 		return "Undefined";
 	}
 
@@ -192,14 +189,14 @@ static inline const IMG_CHAR *PVRSRVGetPhysHeapName(PVRSRV_PHYS_HEAP ePhysHeap)
 
 @Return         const IMG_CHAR pointer.
 */ /**************************************************************************/
-static inline const IMG_CHAR *PVRSRVGetClientPhysHeapName(PVRSRV_PHYS_HEAP ePhysHeap)
+static inline const IMG_CHAR *
+PVRSRVGetClientPhysHeapName(PVRSRV_PHYS_HEAP ePhysHeap)
 {
-    if (ePhysHeap > PVRSRV_PHYS_HEAP_GPU_PRIVATE)
-    {
-        return "Unknown Heap";
-    }
+	if (ePhysHeap > PVRSRV_PHYS_HEAP_GPU_PRIVATE) {
+		return "Unknown Heap";
+	}
 
-    return PVRSRVGetPhysHeapName(ePhysHeap);
+	return PVRSRVGetPhysHeapName(ePhysHeap);
 }
 #endif /* PHYSHEAP_STRINGS */
 

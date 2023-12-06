@@ -57,10 +57,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Return        PVRSRV_OK on success. Otherwise, a PVRSRV error code
 ******************************************************************************/
 PVRSRV_ERROR
-PvzServerMapDevPhysHeap(IMG_UINT32 ui32DriverID,
-						IMG_UINT32 ui32DevID,
-						IMG_UINT64 ui64Size,
-						IMG_UINT64 ui64PAddr);
+PvzServerMapDevPhysHeap(IMG_UINT32 ui32DriverID, IMG_UINT32 ui32DevID,
+			IMG_UINT64 ui64Size, IMG_UINT64 ui64PAddr);
 
 /*!
 *******************************************************************************
@@ -70,8 +68,7 @@ PvzServerMapDevPhysHeap(IMG_UINT32 ui32DriverID,
  @Return        PVRSRV_OK on success. Otherwise, a PVRSRV error code
 ******************************************************************************/
 PVRSRV_ERROR
-PvzServerUnmapDevPhysHeap(IMG_UINT32 ui32DriverID,
-						  IMG_UINT32 ui32DevID);
+PvzServerUnmapDevPhysHeap(IMG_UINT32 ui32DriverID, IMG_UINT32 ui32DevID);
 
 /*!
 *******************************************************************************
@@ -82,8 +79,7 @@ PvzServerUnmapDevPhysHeap(IMG_UINT32 ui32DriverID,
  @Return        PVRSRV_OK on success. Otherwise, a PVRSRV error code
 ******************************************************************************/
 PVRSRV_ERROR
-PvzServerOnVmOnline(IMG_UINT32 ui32DriverID,
-					IMG_UINT32 ui32DevID);
+PvzServerOnVmOnline(IMG_UINT32 ui32DriverID, IMG_UINT32 ui32DevID);
 
 /*!
 *******************************************************************************
@@ -99,8 +95,7 @@ PvzServerOnVmOnline(IMG_UINT32 ui32DriverID,
                 DriverID. Otherwise, a PVRSRV_ERROR code.
 ******************************************************************************/
 PVRSRV_ERROR
-PvzServerOnVmOffline(IMG_UINT32 ui32DriverID,
-					 IMG_UINT32 ui32DevID);
+PvzServerOnVmOffline(IMG_UINT32 ui32DriverID, IMG_UINT32 ui32DevID);
 
 /*!
 *******************************************************************************
@@ -110,9 +105,8 @@ PvzServerOnVmOffline(IMG_UINT32 ui32DriverID,
  @Return        PVRSRV_OK on success. Otherwise, a PVRSRV error code
 ******************************************************************************/
 PVRSRV_ERROR
-PvzServerVMMConfigure(VMM_CONF_PARAM eVMMParamType,
-					  IMG_UINT32 ui32ParamValue,
-					  IMG_UINT32 ui32DevID);
+PvzServerVMMConfigure(VMM_CONF_PARAM eVMMParamType, IMG_UINT32 ui32ParamValue,
+		      IMG_UINT32 ui32DevID);
 
 #endif /* VMM_PVZ_SERVER_H */
 

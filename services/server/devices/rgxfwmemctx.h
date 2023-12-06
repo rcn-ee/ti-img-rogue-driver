@@ -51,7 +51,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "cache_km.h"
 #include "pvr_debug.h"
 
-#if defined(CONFIG_ARM64) && defined(__linux__) && defined(SUPPORT_CPUCACHED_FWMEMCTX)
+#if defined(CONFIG_ARM64) && defined(__linux__) && \
+	defined(SUPPORT_CPUCACHED_FWMEMCTX)
 /*
  * RGXFwSharedMemCPUCacheMode()
  * We upgrade allocations on ARM64 Linux when CPU Cache snooping is enabled.
@@ -61,12 +62,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * values but in turn we require flushing.
  */
 static INLINE void RGXFwSharedMemCPUCacheMode(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                              PVRSRV_MEMALLOCFLAGS_T *puiFlags)
+					      PVRSRV_MEMALLOCFLAGS_T *puiFlags)
 {
 	if ((*puiFlags & (PVRSRV_MEMALLOCFLAG_CPU_READABLE |
-	                  PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
-	                  PVRSRV_MEMALLOCFLAG_KERNEL_CPU_MAPPABLE)) == 0)
-	{
+			  PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
+			  PVRSRV_MEMALLOCFLAG_KERNEL_CPU_MAPPABLE)) == 0) {
 		/* We don't need to upgrade if we don't map into the CPU */
 		return;
 	}
@@ -74,17 +74,15 @@ static INLINE void RGXFwSharedMemCPUCacheMode(PVRSRV_DEVICE_NODE *psDeviceNode,
 	/* Clear the existing CPU cache flags */
 	*puiFlags &= ~(PVRSRV_MEMALLOCFLAG_CPU_CACHE_MODE_MASK);
 
-	if (PVRSRVSystemSnoopingOfCPUCache(psDeviceNode->psDevConfig))
-	{
+	if (PVRSRVSystemSnoopingOfCPUCache(psDeviceNode->psDevConfig)) {
 		*puiFlags |= PVRSRV_MEMALLOCFLAG_CPU_CACHE_INCOHERENT;
-	}
-	else
-	{
+	} else {
 		*puiFlags |= PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
 	}
 }
 
-#define RGXFwSharedMemCheckSnoopMode(psDeviceConfig) PVR_ASSERT(PVRSRVSystemSnoopingOfCPUCache(psDeviceConfig))
+#define RGXFwSharedMemCheckSnoopMode(psDeviceConfig) \
+	PVR_ASSERT(PVRSRVSystemSnoopingOfCPUCache(psDeviceConfig))
 
 /*
  * FWSharedMemCacheOpExec()
@@ -93,52 +91,47 @@ static INLINE void RGXFwSharedMemCPUCacheMode(PVRSRV_DEVICE_NODE *psDeviceNode,
  * sensible as to not cause a kernel oops. Given that this should only be
  * used for allocations used for the FW this should be guaranteed.
  */
-static INLINE PVRSRV_ERROR RGXFwSharedMemCacheOpExec(const volatile void *pvVirtStart,
-                                                     IMG_UINT64 uiSize,
-                                                     PVRSRV_CACHE_OP uiCacheOp)
+static INLINE PVRSRV_ERROR
+RGXFwSharedMemCacheOpExec(const volatile void *pvVirtStart, IMG_UINT64 uiSize,
+			  PVRSRV_CACHE_OP uiCacheOp)
 {
-	IMG_UINT64 uiEndAddr = (IMG_UINT64) pvVirtStart + uiSize;
-	IMG_CPU_PHYADDR uiUnusedPhysAddr = {.uiAddr = 0};
+	IMG_UINT64 uiEndAddr = (IMG_UINT64)pvVirtStart + uiSize;
+	IMG_CPU_PHYADDR uiUnusedPhysAddr = { .uiAddr = 0 };
 
-	if (!pvVirtStart || uiSize == 0)
-	{
+	if (!pvVirtStart || uiSize == 0) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	return CacheOpExec(NULL,
-					   (void*) pvVirtStart,
-					   (void*) uiEndAddr,
-					   uiUnusedPhysAddr,
-					   uiUnusedPhysAddr,
-					   uiCacheOp);
+	return CacheOpExec(NULL, (void *)pvVirtStart, (void *)uiEndAddr,
+			   uiUnusedPhysAddr, uiUnusedPhysAddr, uiCacheOp);
 }
 
-#define RGXFwSharedMemCacheOpValue(value, cacheop) (RGXFwSharedMemCacheOpExec(&value, sizeof(value), PVRSRV_CACHE_OP_##cacheop))
-#define RGXFwSharedMemCacheOpPtr(ptr, cacheop) (RGXFwSharedMemCacheOpExec(ptr, sizeof(*ptr), PVRSRV_CACHE_OP_##cacheop))
+#define RGXFwSharedMemCacheOpValue(value, cacheop)        \
+	(RGXFwSharedMemCacheOpExec(&value, sizeof(value), \
+				   PVRSRV_CACHE_OP_##cacheop))
+#define RGXFwSharedMemCacheOpPtr(ptr, cacheop)        \
+	(RGXFwSharedMemCacheOpExec(ptr, sizeof(*ptr), \
+				   PVRSRV_CACHE_OP_##cacheop))
 #define RGXFwSharedMemCacheOpExecPfn RGXFwSharedMemCacheOpExec
 
 static INLINE void RGXFwSharedMemFlushCCB(void *pvCCBVirtAddr,
-                                          IMG_UINT64 uiStart,
-                                          IMG_UINT64 uiFinish,
-                                          IMG_UINT64 uiLimit)
+					  IMG_UINT64 uiStart,
+					  IMG_UINT64 uiFinish,
+					  IMG_UINT64 uiLimit)
 {
-	if (uiFinish >= uiStart)
-	{
+	if (uiFinish >= uiStart) {
 		/* Flush the CCB data */
-		RGXFwSharedMemCacheOpExec(IMG_OFFSET_ADDR(pvCCBVirtAddr, uiStart),
-		                          uiFinish - uiStart,
-		                          PVRSRV_CACHE_OP_FLUSH);
-	}
-	else
-	{
+		RGXFwSharedMemCacheOpExec(
+			IMG_OFFSET_ADDR(pvCCBVirtAddr, uiStart),
+			uiFinish - uiStart, PVRSRV_CACHE_OP_FLUSH);
+	} else {
 		/* CCCB wrapped around - flush the pre and post wrap boundary separately */
-		RGXFwSharedMemCacheOpExec(IMG_OFFSET_ADDR(pvCCBVirtAddr, uiStart),
-		                          uiLimit - uiStart,
-		                          PVRSRV_CACHE_OP_FLUSH);
+		RGXFwSharedMemCacheOpExec(
+			IMG_OFFSET_ADDR(pvCCBVirtAddr, uiStart),
+			uiLimit - uiStart, PVRSRV_CACHE_OP_FLUSH);
 
 		RGXFwSharedMemCacheOpExec(IMG_OFFSET_ADDR(pvCCBVirtAddr, 0),
-		                          uiFinish,
-		                          PVRSRV_CACHE_OP_FLUSH);
+					  uiFinish, PVRSRV_CACHE_OP_FLUSH);
 	}
 }
 #else
@@ -151,6 +144,5 @@ static INLINE void RGXFwSharedMemFlushCCB(void *pvCCBVirtAddr,
 #define RGXFwSharedMemCacheOpExecPfn NULL
 #define RGXFwSharedMemFlushCCB(...)
 #endif
-
 
 #endif /* RGXFWMEMCTX_H */

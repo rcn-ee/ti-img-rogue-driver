@@ -51,18 +51,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
 /*! HWPerf device identification structure */
-typedef struct _RGX_HWPERF_DEVICE_
-{
-	IMG_CHAR pszName[20];	/*!< Helps identify this device uniquely */
-	IMG_HANDLE hDevData;	/*!< Handle for the server */
+typedef struct _RGX_HWPERF_DEVICE_ {
+	IMG_CHAR pszName[20]; /*!< Helps identify this device uniquely */
+	IMG_HANDLE hDevData; /*!< Handle for the server */
 
-	struct _RGX_HWPERF_DEVICE_ *psNext;	/*!< Next device if any */
+	struct _RGX_HWPERF_DEVICE_ *psNext; /*!< Next device if any */
 } RGX_HWPERF_DEVICE;
 
 /*! HWPerf connection structure */
-typedef struct
-{
-	RGX_HWPERF_DEVICE *psHWPerfDevList;	/*!< Pointer to list of devices */
+typedef struct {
+	RGX_HWPERF_DEVICE *psHWPerfDevList; /*!< Pointer to list of devices */
 } RGX_HWPERF_CONNECTION;
 
 /*************************************************************************/ /*!
@@ -74,8 +72,7 @@ typedef struct
 @Output         ppsHWPerfConnection Address of a HWPerf connection object
 @Return         PVRSRV_ERROR        System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfLazyConnect(RGX_HWPERF_CONNECTION** ppsHWPerfConnection);
-
+PVRSRV_ERROR RGXHWPerfLazyConnect(RGX_HWPERF_CONNECTION **ppsHWPerfConnection);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfOpen
@@ -87,8 +84,7 @@ PVRSRV_ERROR RGXHWPerfLazyConnect(RGX_HWPERF_CONNECTION** ppsHWPerfConnection);
 @Input          psHWPerfConnection HWPerf connection object
 @Return         PVRSRV_ERROR       System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfOpen(RGX_HWPERF_CONNECTION* psHWPerfConnection);
-
+PVRSRV_ERROR RGXHWPerfOpen(RGX_HWPERF_CONNECTION *psHWPerfConnection);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfConnect
@@ -101,8 +97,7 @@ PVRSRV_ERROR RGXHWPerfOpen(RGX_HWPERF_CONNECTION* psHWPerfConnection);
 @Output         ppsHWPerfConnection Address of HWPerf connection object
 @Return         PVRSRV_ERROR        System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfConnect(RGX_HWPERF_CONNECTION** ppsHWPerfConnection);
-
+PVRSRV_ERROR RGXHWPerfConnect(RGX_HWPERF_CONNECTION **ppsHWPerfConnection);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfFreeConnection
@@ -112,8 +107,8 @@ PVRSRV_ERROR RGXHWPerfConnect(RGX_HWPERF_CONNECTION** ppsHWPerfConnection);
                                     from RGXHWPerfLazyConnect()
 @Return         PVRSRV_ERROR       System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfFreeConnection(RGX_HWPERF_CONNECTION** psHWPerfConnection);
-
+PVRSRV_ERROR
+RGXHWPerfFreeConnection(RGX_HWPERF_CONNECTION **psHWPerfConnection);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfClose
@@ -126,7 +121,6 @@ PVRSRV_ERROR RGXHWPerfFreeConnection(RGX_HWPERF_CONNECTION** psHWPerfConnection)
 */ /**************************************************************************/
 PVRSRV_ERROR RGXHWPerfClose(RGX_HWPERF_CONNECTION *psHWPerfConnection);
 
-
 /*************************************************************************/ /*!
 @Function       RGXHWPerfDisconnect
 @Description    Disconnect from the RGX device
@@ -138,8 +132,7 @@ PVRSRV_ERROR RGXHWPerfClose(RGX_HWPERF_CONNECTION *psHWPerfConnection);
                                      and RGXHWPerfFreeConnection().
 @Return         PVRSRV_ERROR        System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfDisconnect(RGX_HWPERF_CONNECTION** ppsHWPerfConnection);
-
+PVRSRV_ERROR RGXHWPerfDisconnect(RGX_HWPERF_CONNECTION **ppsHWPerfConnection);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfControl
@@ -152,12 +145,9 @@ PVRSRV_ERROR RGXHWPerfDisconnect(RGX_HWPERF_CONNECTION** ppsHWPerfConnection);
 @Input          ui64Mask           Mask of events to control.
 @Return         PVRSRV_ERROR       System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfControl(
-		RGX_HWPERF_CONNECTION *psHWPerfConnection,
-		RGX_HWPERF_STREAM_ID eStreamId,
-		IMG_BOOL             bToggle,
-		IMG_UINT64           ui64Mask);
-
+PVRSRV_ERROR RGXHWPerfControl(RGX_HWPERF_CONNECTION *psHWPerfConnection,
+			      RGX_HWPERF_STREAM_ID eStreamId, IMG_BOOL bToggle,
+			      IMG_UINT64 ui64Mask);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfGetFilter
@@ -169,12 +159,9 @@ PVRSRV_ERROR RGXHWPerfControl(
 @Output         ui64Filter   HWPerf filter value
 @Return         PVRSRV_ERROR System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfGetFilter(
-		IMG_HANDLE  hDevData,
-		RGX_HWPERF_STREAM_ID eStreamId,
-		IMG_UINT64 *ui64Filter
-);
-
+PVRSRV_ERROR RGXHWPerfGetFilter(IMG_HANDLE hDevData,
+				RGX_HWPERF_STREAM_ID eStreamId,
+				IMG_UINT64 *ui64Filter);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfConfigMuxCounters
@@ -187,10 +174,10 @@ PVRSRV_ERROR RGXHWPerfGetFilter(
 @Input          asBlockConfigs     Address of the array of configuration blocks
 @Return         PVRSRV_ERROR       System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfConfigMuxCounters(
-		RGX_HWPERF_CONNECTION         *psHWPerfConnection,
-		IMG_UINT32                     ui32NumBlocks,
-		RGX_HWPERF_CONFIG_MUX_CNTBLK  *asBlockConfigs);
+PVRSRV_ERROR
+RGXHWPerfConfigMuxCounters(RGX_HWPERF_CONNECTION *psHWPerfConnection,
+			   IMG_UINT32 ui32NumBlocks,
+			   RGX_HWPERF_CONFIG_MUX_CNTBLK *asBlockConfigs);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfConfigureAndEnableCustomCounters
@@ -204,10 +191,8 @@ PVRSRV_ERROR RGXHWPerfConfigMuxCounters(
 @Return         PVRSRV_ERROR          System error code
 */ /**************************************************************************/
 PVRSRV_ERROR RGXHWPerfConfigureAndEnableCustomCounters(
-		RGX_HWPERF_CONNECTION *psHWPerfConnection,
-		IMG_UINT16             ui16CustomBlockID,
-		IMG_UINT16             ui16NumCustomCounters,
-		IMG_UINT32            *pui32CustomCounterIDs);
+	RGX_HWPERF_CONNECTION *psHWPerfConnection, IMG_UINT16 ui16CustomBlockID,
+	IMG_UINT16 ui16NumCustomCounters, IMG_UINT32 *pui32CustomCounterIDs);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfDisableCounters
@@ -221,10 +206,9 @@ PVRSRV_ERROR RGXHWPerfConfigureAndEnableCustomCounters(
                                     enumeration.
 @Return         PVRSRV_ERROR       System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfDisableCounters(
-		RGX_HWPERF_CONNECTION *psHWPerfConnection,
-		IMG_UINT32   ui32NumBlocks,
-		IMG_UINT16*  aeBlockIDs);
+PVRSRV_ERROR RGXHWPerfDisableCounters(RGX_HWPERF_CONNECTION *psHWPerfConnection,
+				      IMG_UINT32 ui32NumBlocks,
+				      IMG_UINT16 *aeBlockIDs);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfEnableCounters
@@ -237,10 +221,9 @@ PVRSRV_ERROR RGXHWPerfDisableCounters(
                                     <tt>RGX_HWPERF_CNTBLK_ID</tt> enumeration.
 @Return         PVRSRV_ERROR  System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfEnableCounters(
-		RGX_HWPERF_CONNECTION *psHWPerfConnection,
-		IMG_UINT32   ui32NumBlocks,
-		IMG_UINT16*  aeBlockIDs);
+PVRSRV_ERROR RGXHWPerfEnableCounters(RGX_HWPERF_CONNECTION *psHWPerfConnection,
+				     IMG_UINT32 ui32NumBlocks,
+				     IMG_UINT16 *aeBlockIDs);
 
 /******************************************************************************
  * RGX HW Performance Profiling Retrieval API(s)
@@ -273,12 +256,9 @@ PVRSRV_ERROR RGXHWPerfEnableCounters(
                               the data to read from the buffer
 @Return         PVRSRV_ERROR System error code
 */ /**************************************************************************/
-PVRSRV_ERROR RGXHWPerfAcquireEvents(
-		IMG_HANDLE  hDevData,
-		RGX_HWPERF_STREAM_ID eStreamId,
-		IMG_PBYTE*  ppBuf,
-		IMG_UINT32* pui32BufLen);
-
+PVRSRV_ERROR RGXHWPerfAcquireEvents(IMG_HANDLE hDevData,
+				    RGX_HWPERF_STREAM_ID eStreamId,
+				    IMG_PBYTE *ppBuf, IMG_UINT32 *pui32BufLen);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfReleaseEvents
@@ -290,10 +270,8 @@ PVRSRV_ERROR RGXHWPerfAcquireEvents(
 @Return         PVRSRV_ERROR System error code
 */ /**************************************************************************/
 IMG_INTERNAL
-PVRSRV_ERROR RGXHWPerfReleaseEvents(
-		IMG_HANDLE hDevData,
-		RGX_HWPERF_STREAM_ID eStreamId);
-
+PVRSRV_ERROR RGXHWPerfReleaseEvents(IMG_HANDLE hDevData,
+				    RGX_HWPERF_STREAM_ID eStreamId);
 
 /*************************************************************************/ /*!
 @Function       RGXHWPerfConvertCRTimeStamp
@@ -309,11 +287,10 @@ PVRSRV_ERROR RGXHWPerfReleaseEvents(
 @Input          ui64CRTimeStamp     CR Timestamp to convert
 @Return         IMG_UINT64          Calculated OS Timestamp
 */ /**************************************************************************/
-IMG_UINT64 RGXHWPerfConvertCRTimeStamp(
-		IMG_UINT32 ui32ClkSpeed,
-		IMG_UINT64 ui64CorrCRTimeStamp,
-		IMG_UINT64 ui64CorrOSTimeStamp,
-		IMG_UINT64 ui64CRTimeStamp);
+IMG_UINT64 RGXHWPerfConvertCRTimeStamp(IMG_UINT32 ui32ClkSpeed,
+				       IMG_UINT64 ui64CorrCRTimeStamp,
+				       IMG_UINT64 ui64CorrOSTimeStamp,
+				       IMG_UINT64 ui64CRTimeStamp);
 
 #endif /* RGXAPI_KM_H */
 

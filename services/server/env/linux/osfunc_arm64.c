@@ -43,9 +43,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/version.h>
 #include <linux/cpumask.h>
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0))
- #include <linux/dma-map-ops.h>
+#include <linux/dma-map-ops.h>
 #else
- #include <linux/dma-mapping.h>
+#include <linux/dma-mapping.h>
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 10, 0) */
 #include <asm/cacheflush.h>
 #include <linux/uaccess.h>
@@ -59,11 +59,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "kernel_compatibility.h"
 
 #if defined(CONFIG_OUTER_CACHE)
-  /* If you encounter a 64-bit ARM system with an outer cache, you'll need
+/* If you encounter a 64-bit ARM system with an outer cache, you'll need
    * to add the necessary code to manage that cache. See osfunc_arm.c
    * for an example of how to do so.
    */
-	#error "CONFIG_OUTER_CACHE not supported on arm64."
+#error "CONFIG_OUTER_CACHE not supported on arm64."
 #endif
 
 static inline void begin_user_mode_access(void)
@@ -80,11 +80,11 @@ static inline void end_user_mode_access(void)
 #endif
 }
 
-static inline void FlushRange(void *pvRangeAddrStart,
-							  void *pvRangeAddrEnd,
-							  PVRSRV_CACHE_OP eCacheOp)
+static inline void FlushRange(void *pvRangeAddrStart, void *pvRangeAddrEnd,
+			      PVRSRV_CACHE_OP eCacheOp)
 {
-	IMG_UINT32 ui32CacheLineSize = OSCPUCacheAttributeSize(OS_CPU_CACHE_ATTRIBUTE_LINE_SIZE);
+	IMG_UINT32 ui32CacheLineSize =
+		OSCPUCacheAttributeSize(OS_CPU_CACHE_ATTRIBUTE_LINE_SIZE);
 	IMG_BYTE *pbStart = pvRangeAddrStart;
 	IMG_BYTE *pbEnd = pvRangeAddrEnd;
 	IMG_BYTE *pbBase;
@@ -100,36 +100,36 @@ static inline void FlushRange(void *pvRangeAddrStart,
 
 	begin_user_mode_access();
 
-	pbEnd = (IMG_BYTE *) PVR_ALIGN((uintptr_t)pbEnd, (uintptr_t)ui32CacheLineSize);
+	pbEnd = (IMG_BYTE *)PVR_ALIGN((uintptr_t)pbEnd,
+				      (uintptr_t)ui32CacheLineSize);
 
 	/* Memory-barrier */
 	asm volatile("dsb sy" : : : "memory");
 
-	switch (eCacheOp)
-	{
-		case PVRSRV_CACHE_OP_CLEAN:
-			for (pbBase = pbStart; pbBase < pbEnd; pbBase += ui32CacheLineSize)
-			{
-				asm volatile ("dc cvac, %0" :: "r" (pbBase));
-			}
-			break;
-		case PVRSRV_CACHE_OP_INVALIDATE:
-			for (pbBase = pbStart; pbBase < pbEnd; pbBase += ui32CacheLineSize)
-			{
-				asm volatile ("dc ivac, %0" :: "r" (pbBase));
-			}
-			break;
-		case PVRSRV_CACHE_OP_FLUSH:
-			for (pbBase = pbStart; pbBase < pbEnd; pbBase += ui32CacheLineSize)
-			{
-				asm volatile ("dc civac, %0" :: "r" (pbBase));
-			}
-			break;
-		default:
-			PVR_DPF((PVR_DBG_ERROR,
-					"%s: Cache maintenance operation type %d is invalid",
-					__func__, eCacheOp));
-			break;
+	switch (eCacheOp) {
+	case PVRSRV_CACHE_OP_CLEAN:
+		for (pbBase = pbStart; pbBase < pbEnd;
+		     pbBase += ui32CacheLineSize) {
+			asm volatile("dc cvac, %0" ::"r"(pbBase));
+		}
+		break;
+	case PVRSRV_CACHE_OP_INVALIDATE:
+		for (pbBase = pbStart; pbBase < pbEnd;
+		     pbBase += ui32CacheLineSize) {
+			asm volatile("dc ivac, %0" ::"r"(pbBase));
+		}
+		break;
+	case PVRSRV_CACHE_OP_FLUSH:
+		for (pbBase = pbStart; pbBase < pbEnd;
+		     pbBase += ui32CacheLineSize) {
+			asm volatile("dc civac, %0" ::"r"(pbBase));
+		}
+		break;
+	default:
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Cache maintenance operation type %d is invalid",
+			 __func__, eCacheOp));
+		break;
 	}
 
 	/* Memory-barrier */
@@ -138,17 +138,14 @@ static inline void FlushRange(void *pvRangeAddrStart,
 	end_user_mode_access();
 }
 
-void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-							void *pvVirtStart,
-							void *pvVirtEnd,
-							IMG_CPU_PHYADDR sCPUPhysStart,
-							IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	struct device *dev;
 	PVR_UNREFERENCED_PARAMETER(dev);
 
-	if (pvVirtStart == NULL)
-	{
+	if (pvVirtStart == NULL) {
 		/*
 		 * Converting the physical addresses to virtual addresses allows us to
 		 * utilize the assembly instruction that makes the Flush + Invalidate
@@ -161,71 +158,60 @@ void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
 
 	FlushRange(pvVirtStart, pvVirtEnd, PVRSRV_CACHE_OP_FLUSH);
 	return;
-
 }
 
-void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-							void *pvVirtStart,
-							void *pvVirtEnd,
-							IMG_CPU_PHYADDR sCPUPhysStart,
-							IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	struct device *dev;
 
-	if (pvVirtStart)
-	{
+	if (pvVirtStart) {
 		FlushRange(pvVirtStart, pvVirtEnd, PVRSRV_CACHE_OP_CLEAN);
 		return;
 	}
 
 	dev = psDevNode->psDevConfig->pvOSDevice;
 
-	if (dev)
-	{
+	if (dev) {
 		dma_sync_single_for_device(dev, sCPUPhysStart.uiAddr,
-								   sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr,
-								   DMA_TO_DEVICE);
+					   sCPUPhysEnd.uiAddr -
+						   sCPUPhysStart.uiAddr,
+					   DMA_TO_DEVICE);
+	} else {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Cache operation cannot be completed!"));
 	}
-	else
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Cache operation cannot be completed!"));
-	}
-
 }
 
 void OSCPUCacheInvalidateRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-								 void *pvVirtStart,
-								 void *pvVirtEnd,
-								 IMG_CPU_PHYADDR sCPUPhysStart,
-								 IMG_CPU_PHYADDR sCPUPhysEnd)
+				 void *pvVirtStart, void *pvVirtEnd,
+				 IMG_CPU_PHYADDR sCPUPhysStart,
+				 IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	struct device *dev;
 
-	if (pvVirtStart)
-	{
+	if (pvVirtStart) {
 		FlushRange(pvVirtStart, pvVirtEnd, PVRSRV_CACHE_OP_INVALIDATE);
 		return;
 	}
 
 	dev = psDevNode->psDevConfig->pvOSDevice;
 
-	if (dev)
-	{
+	if (dev) {
 		dma_sync_single_for_cpu(dev, sCPUPhysStart.uiAddr,
-								sCPUPhysEnd.uiAddr - sCPUPhysStart.uiAddr,
-								DMA_FROM_DEVICE);
-	}
-	else
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Cache operation cannot be completed!"));
+					sCPUPhysEnd.uiAddr -
+						sCPUPhysStart.uiAddr,
+					DMA_FROM_DEVICE);
+	} else {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Cache operation cannot be completed!"));
 	}
 }
 
-
 OS_CACHE_OP_ADDR_TYPE OSCPUCacheOpAddressType(PVRSRV_DEVICE_NODE *psDevNode)
 {
-	if (!psDevNode->psDevConfig->pvOSDevice)
-	{
+	if (!psDevNode->psDevConfig->pvOSDevice) {
 		/* Host Mem device node doesn't have an associated Linux dev ptr.
 		   Use virtual addr ops instead of asking kernel to do physical
 		   maintenance */
@@ -262,5 +248,6 @@ IMG_BOOL OSIsWriteCombineUnalignedSafe(void)
 
 	pgprot_t pgprot = pgprot_writecombine(PAGE_KERNEL);
 
-	return (pgprot_val(pgprot) & PTE_ATTRINDX_MASK) == PTE_ATTRINDX(MT_NORMAL_NC);
+	return (pgprot_val(pgprot) & PTE_ATTRINDX_MASK) ==
+	       PTE_ATTRINDX(MT_NORMAL_NC);
 }

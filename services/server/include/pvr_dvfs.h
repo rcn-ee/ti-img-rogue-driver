@@ -44,40 +44,40 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define PVR_DVFS_H
 
 #if defined(SUPPORT_LINUX_DVFS)
- #include <linux/devfreq.h>
- #include <linux/thermal.h>
+#include <linux/devfreq.h>
+#include <linux/thermal.h>
 
- #if defined(CONFIG_DEVFREQ_THERMAL)
-  #include <linux/devfreq_cooling.h>
- #endif
+#if defined(CONFIG_DEVFREQ_THERMAL)
+#include <linux/devfreq_cooling.h>
+#endif
 
- #include <linux/pm_opp.h>
+#include <linux/pm_opp.h>
 #endif
 
 #include "img_types.h"
 
-typedef void (*PFN_SYS_DEV_DVFS_SET_FREQUENCY)(IMG_HANDLE hSysData, IMG_UINT32 ui32Freq);
-typedef void (*PFN_SYS_DEV_DVFS_SET_VOLTAGE)(IMG_HANDLE hSysData, IMG_UINT32 ui32Volt);
+typedef void (*PFN_SYS_DEV_DVFS_SET_FREQUENCY)(IMG_HANDLE hSysData,
+					       IMG_UINT32 ui32Freq);
+typedef void (*PFN_SYS_DEV_DVFS_SET_VOLTAGE)(IMG_HANDLE hSysData,
+					     IMG_UINT32 ui32Volt);
 
-typedef struct _IMG_OPP_
-{
-	IMG_UINT32			ui32Volt;
+typedef struct _IMG_OPP_ {
+	IMG_UINT32 ui32Volt;
 	/*
 	 * Unit of frequency in Hz.
 	 */
-	IMG_UINT32			ui32Freq;
+	IMG_UINT32 ui32Freq;
 } IMG_OPP;
 
-typedef struct _IMG_DVFS_DEVICE_CFG_
-{
-	const IMG_OPP  *pasOPPTable;
-	IMG_UINT32      ui32OPPTableSize;
+typedef struct _IMG_DVFS_DEVICE_CFG_ {
+	const IMG_OPP *pasOPPTable;
+	IMG_UINT32 ui32OPPTableSize;
 #if defined(SUPPORT_LINUX_DVFS)
-	IMG_UINT32      ui32PollMs;
+	IMG_UINT32 ui32PollMs;
 #endif
-	IMG_BOOL        bIdleReq;
-	PFN_SYS_DEV_DVFS_SET_FREQUENCY  pfnSetFrequency;
-	PFN_SYS_DEV_DVFS_SET_VOLTAGE    pfnSetVoltage;
+	IMG_BOOL bIdleReq;
+	PFN_SYS_DEV_DVFS_SET_FREQUENCY pfnSetFrequency;
+	PFN_SYS_DEV_DVFS_SET_VOLTAGE pfnSetVoltage;
 
 #if defined(CONFIG_DEVFREQ_THERMAL) && defined(SUPPORT_LINUX_DVFS)
 	struct devfreq_cooling_power *psPowerOps;
@@ -85,40 +85,37 @@ typedef struct _IMG_DVFS_DEVICE_CFG_
 } IMG_DVFS_DEVICE_CFG;
 
 #if defined(SUPPORT_LINUX_DVFS)
-typedef struct _IMG_DVFS_GOVERNOR_
-{
-	IMG_BOOL			bEnabled;
+typedef struct _IMG_DVFS_GOVERNOR_ {
+	IMG_BOOL bEnabled;
 } IMG_DVFS_GOVERNOR;
 
-typedef struct _IMG_DVFS_GOVERNOR_CFG_
-{
-	IMG_UINT32			ui32UpThreshold;
-	IMG_UINT32			ui32DownDifferential;
+typedef struct _IMG_DVFS_GOVERNOR_CFG_ {
+	IMG_UINT32 ui32UpThreshold;
+	IMG_UINT32 ui32DownDifferential;
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	/* custom thresholds */
-	IMG_UINT32			uiNumMembus;
+	IMG_UINT32 uiNumMembus;
 #endif
 } IMG_DVFS_GOVERNOR_CFG;
 #endif
 
 #if defined(__linux__)
 #if defined(SUPPORT_LINUX_DVFS)
-typedef struct _IMG_DVFS_DEVICE_
-{
-	struct dev_pm_opp		*psOPP;
-	struct devfreq			*psDevFreq;
-	IMG_BOOL			bInitPending;
-	IMG_BOOL			bReady;
-	IMG_BOOL			bEnabled;
-	IMG_HANDLE			hGpuUtilUserDVFS;
+typedef struct _IMG_DVFS_DEVICE_ {
+	struct dev_pm_opp *psOPP;
+	struct devfreq *psDevFreq;
+	IMG_BOOL bInitPending;
+	IMG_BOOL bReady;
+	IMG_BOOL bEnabled;
+	IMG_HANDLE hGpuUtilUserDVFS;
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	IMG_DVFS_GOVERNOR_CFG data;
-	IMG_BOOL			bGovernorReady;
+	IMG_BOOL bGovernorReady;
 #else
 	struct devfreq_simple_ondemand_data data;
 #endif
 #if defined(CONFIG_DEVFREQ_THERMAL)
-	struct thermal_cooling_device	*psDevfreqCoolingDevice;
+	struct thermal_cooling_device *psDevfreqCoolingDevice;
 #endif
 #if defined(CONFIG_PM_DEVFREQ_EVENT) && defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	struct pvr_profiling_device *psProfilingDevice;
@@ -126,15 +123,14 @@ typedef struct _IMG_DVFS_DEVICE_
 } IMG_DVFS_DEVICE;
 #endif
 
-typedef struct _IMG_DVFS_
-{
+typedef struct _IMG_DVFS_ {
 #if defined(SUPPORT_LINUX_DVFS)
-	IMG_DVFS_DEVICE			sDVFSDevice;
-	IMG_DVFS_GOVERNOR		sDVFSGovernor;
-	IMG_DVFS_GOVERNOR_CFG	sDVFSGovernorCfg;
+	IMG_DVFS_DEVICE sDVFSDevice;
+	IMG_DVFS_GOVERNOR sDVFSGovernor;
+	IMG_DVFS_GOVERNOR_CFG sDVFSGovernorCfg;
 #endif
-	IMG_DVFS_DEVICE_CFG		sDVFSDeviceCfg;
+	IMG_DVFS_DEVICE_CFG sDVFSDeviceCfg;
 } PVRSRV_DVFS;
-#endif/* (__linux__) */
+#endif /* (__linux__) */
 
 #endif /* PVR_DVFS_H */

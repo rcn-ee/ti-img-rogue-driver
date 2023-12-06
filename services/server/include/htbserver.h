@@ -73,18 +73,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_error.h"
 #include "htbuffer_types.h"
 
-#define HTBLOGK(SF, args...) do { if (HTB_GROUP_ENABLED(SF)) { (void)HTBLogSimple(SF, ## args); } } while (0)
+#define HTBLOGK(SF, args...)                            \
+	do {                                            \
+		if (HTB_GROUP_ENABLED(SF)) {            \
+			(void)HTBLogSimple(SF, ##args); \
+		}                                       \
+	} while (0)
 
 /* macros to cast 64 or 32-bit pointers into 32-bit integer components for Host Trace */
-#define HTBLOG_PTR_BITS_HIGH(p) ((IMG_UINT32)((((IMG_UINT64)((uintptr_t)p))>>32)&0xffffffff))
-#define HTBLOG_PTR_BITS_LOW(p)  ((IMG_UINT32)(((IMG_UINT64)((uintptr_t)p))&0xffffffff))
+#define HTBLOG_PTR_BITS_HIGH(p) \
+	((IMG_UINT32)((((IMG_UINT64)((uintptr_t)p)) >> 32) & 0xffffffff))
+#define HTBLOG_PTR_BITS_LOW(p) \
+	((IMG_UINT32)(((IMG_UINT64)((uintptr_t)p)) & 0xffffffff))
 
 /* macros to cast 64-bit integers into 32-bit integer components for Host Trace */
-#define HTBLOG_U64_BITS_HIGH(u) ((IMG_UINT32)((u>>32)&0xffffffff))
-#define HTBLOG_U64_BITS_LOW(u)  ((IMG_UINT32)(u&0xffffffff))
+#define HTBLOG_U64_BITS_HIGH(u) ((IMG_UINT32)((u >> 32) & 0xffffffff))
+#define HTBLOG_U64_BITS_LOW(u) ((IMG_UINT32)(u & 0xffffffff))
 
 /* Host Trace Buffer name */
-#define HTB_STREAM_NAME	"PVRHTBuffer"
+#define HTB_STREAM_NAME "PVRHTBuffer"
 
 /************************************************************************/ /*!
  @Function      HTBInit
@@ -127,12 +134,10 @@ HTBDeInit_Impl(void);
 */ /**************************************************************************/
 PVRSRV_ERROR
 HTBControlKM_Impl(const IMG_UINT32 ui32NumFlagGroups,
-			 const IMG_UINT32 *aui32GroupEnable,
-			 const IMG_UINT32 ui32LogLevel,
-			 const IMG_UINT32 ui32EnablePID,
-			 const HTB_LOGMODE_CTRL eLogMode,
-			 const HTB_OPMODE_CTRL eOpMode);
-
+		  const IMG_UINT32 *aui32GroupEnable,
+		  const IMG_UINT32 ui32LogLevel, const IMG_UINT32 ui32EnablePID,
+		  const HTB_LOGMODE_CTRL eLogMode,
+		  const HTB_OPMODE_CTRL eOpMode);
 
 /*************************************************************************/ /*!
  @Function      HTBSyncPartitionMarker
@@ -141,8 +146,7 @@ HTBControlKM_Impl(const IMG_UINT32 ui32NumFlagGroups,
  @Input         ui32Marker      Marker value
 
 */ /**************************************************************************/
-void
-HTBSyncPartitionMarker_Impl(const IMG_UINT32 ui32Marker);
+void HTBSyncPartitionMarker_Impl(const IMG_UINT32 ui32Marker);
 
 /*************************************************************************/ /*!
  @Function      HTBSyncPartitionMarkerRpt
@@ -155,11 +159,10 @@ HTBSyncPartitionMarker_Impl(const IMG_UINT32 ui32Marker);
  @Input         ui32ClkSpeed    previous Clockspeed
 
 */ /**************************************************************************/
-void
-HTBSyncPartitionMarkerRepeat_Impl(const IMG_UINT32 ui32Marker,
-							 const IMG_UINT64 ui64SyncOSTS,
-							 const IMG_UINT64 ui64SyncCRTS,
-							 const IMG_UINT32 ui32ClkSpeed);
+void HTBSyncPartitionMarkerRepeat_Impl(const IMG_UINT32 ui32Marker,
+				       const IMG_UINT64 ui64SyncOSTS,
+				       const IMG_UINT64 ui64SyncCRTS,
+				       const IMG_UINT32 ui32ClkSpeed);
 
 /*************************************************************************/ /*!
  @Function      HTBSyncScale
@@ -176,9 +179,9 @@ HTBSyncPartitionMarkerRepeat_Impl(const IMG_UINT32 ui32Marker,
  @Input         ui32CalcClkSpd  Calculated clock speed
 
 */ /**************************************************************************/
-void
-HTBSyncScale_Impl(const IMG_BOOL bLogValues, const IMG_UINT64 ui64OSTS,
-			 const IMG_UINT64 ui64CRTS, const IMG_UINT32 ui32CalcClkSpd);
+void HTBSyncScale_Impl(const IMG_BOOL bLogValues, const IMG_UINT64 ui64OSTS,
+		       const IMG_UINT64 ui64CRTS,
+		       const IMG_UINT32 ui32CalcClkSpd);
 
 /*************************************************************************/ /*!
  @Function      HTBLogSimple
@@ -191,13 +194,12 @@ HTBSyncScale_Impl(const IMG_BOOL bLogValues, const IMG_UINT64 ui64OSTS,
  @Return        PVRSRV_OK       Success.
 
 */ /**************************************************************************/
-IMG_INTERNAL PVRSRV_ERROR
-HTBLogSimple_Impl(IMG_UINT32 SF, ...);
+IMG_INTERNAL PVRSRV_ERROR HTBLogSimple_Impl(IMG_UINT32 SF, ...);
 
 /*  DEBUG log group enable */
 #if !defined(HTB_DEBUG_LOG_GROUP)
-#undef HTB_LOG_TYPE_DBG    /* No trace statements in this log group should be checked in */
-#define HTB_LOG_TYPE_DBG    __BUILDERROR__
+#undef HTB_LOG_TYPE_DBG /* No trace statements in this log group should be checked in */
+#define HTB_LOG_TYPE_DBG __BUILDERROR__
 #endif
 
 #if defined(PVRSRV_ENABLE_HTB)
@@ -217,24 +219,30 @@ HTBIsConfigured_Impl(void);
 #define HTBIsConfigured HTBIsConfigured_Impl
 #define HTBLogSimple HTBLogSimple_Impl
 #define HTBSyncScale(bLogValues, ui64OSTS, ui64CRTS, ui32CalcClkSpd) \
-  HTBSyncScale_Impl((bLogValues), (ui64OSTS), (ui64CRTS), (ui32CalcClkSpd))
-#define HTBSyncPartitionMarkerRepeat(ui32Marker, ui64SyncOSTS, ui64SyncCRTS, ui32ClkSpeed) \
-  HTBSyncPartitionMarkerRepeat_Impl((ui32Marker), (ui64SyncOSTS), (ui64SyncCRTS), (ui32ClkSpeed))
+	HTBSyncScale_Impl((bLogValues), (ui64OSTS), (ui64CRTS),      \
+			  (ui32CalcClkSpd))
+#define HTBSyncPartitionMarkerRepeat(ui32Marker, ui64SyncOSTS, ui64SyncCRTS, \
+				     ui32ClkSpeed)                           \
+	HTBSyncPartitionMarkerRepeat_Impl((ui32Marker), (ui64SyncOSTS),      \
+					  (ui64SyncCRTS), (ui32ClkSpeed))
 #define HTBSyncPartitionMarker(a) HTBSyncPartitionMarker_Impl((a))
-#define HTBControlKM(ui32NumFlagGroups, aui32GroupEnable, ui32LogLevel, ui32EnablePID, eLogMode, eOpMode) \
-  HTBControlKM_Impl((ui32NumFlagGroups), (aui32GroupEnable), (ui32LogLevel), (ui32EnablePID), (eLogMode), (eOpMode))
+#define HTBControlKM(ui32NumFlagGroups, aui32GroupEnable, ui32LogLevel, \
+		     ui32EnablePID, eLogMode, eOpMode)                  \
+	HTBControlKM_Impl((ui32NumFlagGroups), (aui32GroupEnable),      \
+			  (ui32LogLevel), (ui32EnablePID), (eLogMode),  \
+			  (eOpMode))
 #define HTBInit() HTBInit_Impl()
 #define HTBDeInit() HTBDeInit_Impl()
-#else	/* !PVRSRV_ENABLE_HTB) */
-#define HTBIsConfigured()  IMG_FALSE
-#define HTBLogSimple(SF, args...)  PVRSRV_OK
+#else /* !PVRSRV_ENABLE_HTB) */
+#define HTBIsConfigured() IMG_FALSE
+#define HTBLogSimple(SF, args...) PVRSRV_OK
 #define HTBSyncScale(a, b, c, d)
 #define HTBSyncPartitionMarkerRepeat(a, b, c, d)
 #define HTBSyncPartitionMarker(a)
 #define HTBControlKM(a, b, c, d, e, f) PVRSRV_OK
 #define HTBDeInit() PVRSRV_OK
 #define HTBInit() PVRSRV_OK
-#endif	/* PVRSRV_ENABLE_HTB */
+#endif /* PVRSRV_ENABLE_HTB */
 #endif /* HTBSERVER_H */
 
 /* EOF */

@@ -67,7 +67,7 @@ PVRSRV_ERROR PVRDIImplBrgRegister(void);
  *         error codes returned by TLStreamCreate()
  */
 PVRSRV_ERROR DICreateContextKM(IMG_CHAR *pszStreamName,
-                               DI_CONTEXT **ppsContext);
+			       DI_CONTEXT **ppsContext);
 
 /*! @Function DIDestroyContextKM
  *
@@ -83,10 +83,10 @@ PVRSRV_ERROR DICreateContextKM(IMG_CHAR *pszStreamName,
 PVRSRV_ERROR DIDestroyContextKM(DI_CONTEXT *psContext);
 
 PVRSRV_ERROR DIReadEntryKM(DI_CONTEXT *psContext, const IMG_CHAR *pszEntryPath,
-                           IMG_UINT64 ui64Offset, IMG_UINT64 ui64Size);
+			   IMG_UINT64 ui64Offset, IMG_UINT64 ui64Size);
 
 PVRSRV_ERROR DIWriteEntryKM(DI_CONTEXT *psContext, const IMG_CHAR *pszEntryPath,
-                            IMG_UINT32 ui32ValueSize, const IMG_CHAR *pszValue);
+			    IMG_UINT32 ui32ValueSize, const IMG_CHAR *pszValue);
 
 PVRSRV_ERROR DIListAllEntriesKM(DI_CONTEXT *psContext);
 

@@ -72,46 +72,42 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 static PVRSRV_ERROR _PhysmemWrapExtMempsPMRPtrIntRelease(void *pvData)
 {
 	PVRSRV_ERROR eError;
-	eError = PMRUnrefPMR((PMR *) pvData);
+	eError = PMRUnrefPMR((PMR *)pvData);
 	return eError;
 }
 
-static IMG_INT
-PVRSRVBridgePhysmemWrapExtMem(IMG_UINT32 ui32DispatchTableEntry,
-			      IMG_UINT8 * psPhysmemWrapExtMemIN_UI8,
-			      IMG_UINT8 * psPhysmemWrapExtMemOUT_UI8,
-			      CONNECTION_DATA * psConnection)
+static IMG_INT PVRSRVBridgePhysmemWrapExtMem(
+	IMG_UINT32 ui32DispatchTableEntry, IMG_UINT8 *psPhysmemWrapExtMemIN_UI8,
+	IMG_UINT8 *psPhysmemWrapExtMemOUT_UI8, CONNECTION_DATA *psConnection)
 {
 	PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM *psPhysmemWrapExtMemIN =
-	    (PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM *) IMG_OFFSET_ADDR(psPhysmemWrapExtMemIN_UI8, 0);
+		(PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM *)IMG_OFFSET_ADDR(
+			psPhysmemWrapExtMemIN_UI8, 0);
 	PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM *psPhysmemWrapExtMemOUT =
-	    (PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM *) IMG_OFFSET_ADDR(psPhysmemWrapExtMemOUT_UI8, 0);
+		(PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM *)IMG_OFFSET_ADDR(
+			psPhysmemWrapExtMemOUT_UI8, 0);
 
 	PMR *psPMRPtrInt = NULL;
 
 	psPhysmemWrapExtMemOUT->eError =
-	    PhysmemWrapExtMem(psConnection, OSGetDevNode(psConnection),
-			      psPhysmemWrapExtMemIN->uiSize,
-			      psPhysmemWrapExtMemIN->ui64CpuVAddr,
-			      psPhysmemWrapExtMemIN->uiFlags, &psPMRPtrInt);
+		PhysmemWrapExtMem(psConnection, OSGetDevNode(psConnection),
+				  psPhysmemWrapExtMemIN->uiSize,
+				  psPhysmemWrapExtMemIN->ui64CpuVAddr,
+				  psPhysmemWrapExtMemIN->uiFlags, &psPMRPtrInt);
 	/* Exit early if bridged call fails */
-	if (unlikely(psPhysmemWrapExtMemOUT->eError != PVRSRV_OK))
-	{
+	if (unlikely(psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)) {
 		goto PhysmemWrapExtMem_exit;
 	}
 
 	/* Lock over handle creation. */
 	LockHandle(psConnection->psHandleBase);
 
-	psPhysmemWrapExtMemOUT->eError = PVRSRVAllocHandleUnlocked(psConnection->psHandleBase,
-								   &psPhysmemWrapExtMemOUT->hPMRPtr,
-								   (void *)psPMRPtrInt,
-								   PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
-								   PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
-								   (PFN_HANDLE_RELEASE) &
-								   _PhysmemWrapExtMempsPMRPtrIntRelease);
-	if (unlikely(psPhysmemWrapExtMemOUT->eError != PVRSRV_OK))
-	{
+	psPhysmemWrapExtMemOUT->eError = PVRSRVAllocHandleUnlocked(
+		psConnection->psHandleBase, &psPhysmemWrapExtMemOUT->hPMRPtr,
+		(void *)psPMRPtrInt, PVRSRV_HANDLE_TYPE_PHYSMEM_PMR,
+		PVRSRV_HANDLE_ALLOC_FLAG_MULTI,
+		(PFN_HANDLE_RELEASE)&_PhysmemWrapExtMempsPMRPtrIntRelease);
+	if (unlikely(psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)) {
 		UnlockHandle(psConnection->psHandleBase);
 		goto PhysmemWrapExtMem_exit;
 	}
@@ -121,10 +117,8 @@ PVRSRVBridgePhysmemWrapExtMem(IMG_UINT32 ui32DispatchTableEntry,
 
 PhysmemWrapExtMem_exit:
 
-	if (psPhysmemWrapExtMemOUT->eError != PVRSRV_OK)
-	{
-		if (psPMRPtrInt)
-		{
+	if (psPhysmemWrapExtMemOUT->eError != PVRSRV_OK) {
+		if (psPMRPtrInt) {
 			LockHandle(KERNEL_HANDLE_BASE);
 			PMRUnrefPMR(psPMRPtrInt);
 			UnlockHandle(KERNEL_HANDLE_BASE);
@@ -146,8 +140,8 @@ void DeinitMMEXTMEMBridge(void);
  */
 PVRSRV_ERROR InitMMEXTMEMBridge(void)
 {
-
-	SetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM, PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM,
+	SetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM,
+			      PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM,
 			      PVRSRVBridgePhysmemWrapExtMem, NULL,
 			      sizeof(PVRSRV_BRIDGE_IN_PHYSMEMWRAPEXTMEM),
 			      sizeof(PVRSRV_BRIDGE_OUT_PHYSMEMWRAPEXTMEM));
@@ -160,7 +154,6 @@ PVRSRV_ERROR InitMMEXTMEMBridge(void)
  */
 void DeinitMMEXTMEMBridge(void)
 {
-
-	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM, PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM);
-
+	UnsetDispatchTableEntry(PVRSRV_BRIDGE_MMEXTMEM,
+				PVRSRV_BRIDGE_MMEXTMEM_PHYSMEMWRAPEXTMEM);
 }

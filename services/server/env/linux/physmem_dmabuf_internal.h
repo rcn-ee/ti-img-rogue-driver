@@ -51,19 +51,15 @@ struct dma_buf;
 struct drm_device;
 struct drm_gem_object;
 
-struct dma_buf *
-PhysmemGEMPrimeExport(
+struct dma_buf *PhysmemGEMPrimeExport(
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
-			struct drm_device *psDev,
+	struct drm_device *psDev,
 #endif
 
-			struct drm_gem_object *psObj,
-			int iFlags);
+	struct drm_gem_object *psObj, int iFlags);
 
-void
-PhysmemGEMObjectFree(struct drm_gem_object *psObj);
+void PhysmemGEMObjectFree(struct drm_gem_object *psObj);
 
-void
-PhysmemDmaBufExportFinalize(void *pvDmaBufExportData);
+void PhysmemDmaBufExportFinalize(void *pvDmaBufExportData);
 
 #endif /* !defined(PHYSMEM_DMABUF_INTERNAL_H) */

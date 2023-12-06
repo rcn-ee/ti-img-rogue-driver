@@ -62,16 +62,16 @@
 #include "kernel_compatibility.h"
 
 /* How much memory to give to the PDP heap (used for pdp buffers). */
-#define TC_PDP_MEM_SIZE_BYTES           ((TC_DISPLAY_MEM_SIZE)*1024*1024)
+#define TC_PDP_MEM_SIZE_BYTES ((TC_DISPLAY_MEM_SIZE)*1024 * 1024)
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
 /* How much memory to give to the secure heap. */
-#define TC_SECURE_MEM_SIZE_BYTES        ((TC_SECURE_MEM_SIZE)*1024*1024)
+#define TC_SECURE_MEM_SIZE_BYTES ((TC_SECURE_MEM_SIZE)*1024 * 1024)
 #endif
 
-#define PCI_VENDOR_ID_POWERVR		0x1010
-#define DEVICE_ID_PCI_APOLLO_FPGA	0x1CF1
-#define DEVICE_ID_PCIE_APOLLO_FPGA	0x1CF2
+#define PCI_VENDOR_ID_POWERVR 0x1010
+#define DEVICE_ID_PCI_APOLLO_FPGA 0x1CF1
+#define DEVICE_ID_PCIE_APOLLO_FPGA 0x1CF2
 
 MODULE_DESCRIPTION("PowerVR testchip framework driver");
 MODULE_IMPORT_NS(DMA_BUF);
@@ -94,26 +94,27 @@ MODULE_PARM_DESC(tc_sys_clock, "TC system clock speed (TCF5 only)");
 
 static int tc_mem_latency;
 module_param(tc_mem_latency, int, 0444);
-MODULE_PARM_DESC(tc_mem_latency, "TC memory read latency in cycles (TCF5 only)");
+MODULE_PARM_DESC(tc_mem_latency,
+		 "TC memory read latency in cycles (TCF5 only)");
 
 static unsigned long tc_mem_mode = TC_MEMORY_CONFIG;
 module_param(tc_mem_mode, ulong, 0444);
-MODULE_PARM_DESC(tc_mem_mode, "TC memory mode (local = 1, hybrid = 2, host = 3)");
+MODULE_PARM_DESC(tc_mem_mode,
+		 "TC memory mode (local = 1, hybrid = 2, host = 3)");
 
 static int tc_wresp_latency;
 module_param(tc_wresp_latency, int, 0444);
-MODULE_PARM_DESC(tc_wresp_latency, "TC memory write response latency in cycles (TCF5 only)");
+MODULE_PARM_DESC(tc_wresp_latency,
+		 "TC memory write response latency in cycles (TCF5 only)");
 
 static unsigned long tc_pdp_mem_size = TC_PDP_MEM_SIZE_BYTES;
 module_param(tc_pdp_mem_size, ulong, 0444);
-MODULE_PARM_DESC(tc_pdp_mem_size,
-	"TC PDP reserved memory size in bytes");
+MODULE_PARM_DESC(tc_pdp_mem_size, "TC PDP reserved memory size in bytes");
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
 static unsigned long tc_secure_mem_size = TC_SECURE_MEM_SIZE_BYTES;
 module_param(tc_secure_mem_size, ulong, 0444);
-MODULE_PARM_DESC(tc_secure_mem_size,
-	"TC secure reserved memory size in bytes");
+MODULE_PARM_DESC(tc_secure_mem_size, "TC secure reserved memory size in bytes");
 #endif
 
 static bool fbc_bypass;
@@ -173,8 +174,9 @@ static ssize_t rogue_name_show(struct device_driver *drv, char *buf)
 	if (!tc)
 		return -ENODEV;
 
-	return sprintf(buf, "%s\n", (const char *)
-			tc_debugfs_rogue_name_blobs[tc->version].data);
+	return sprintf(
+		buf, "%s\n",
+		(const char *)tc_debugfs_rogue_name_blobs[tc->version].data);
 }
 
 static DRIVER_ATTR_RO(rogue_name);
@@ -194,20 +196,17 @@ static const struct attribute_group *tc_attr_groups[] = {
 };
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) */
 
-
 int tc_mtrr_setup(struct tc_device *tc)
 {
 	int err = 0;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
 	/* Register the LMA as write combined */
-	err = arch_io_reserve_memtype_wc(tc->tc_mem.base,
-					 tc->tc_mem.size);
+	err = arch_io_reserve_memtype_wc(tc->tc_mem.base, tc->tc_mem.size);
 	if (err)
 		return -ENODEV;
 #endif
 	/* Enable write combining */
-	tc->mtrr = arch_phys_wc_add(tc->tc_mem.base,
-				    tc->tc_mem.size);
+	tc->mtrr = arch_phys_wc_add(tc->tc_mem.base, tc->tc_mem.size);
 	if (tc->mtrr < 0) {
 		err = -ENODEV;
 		goto err_out;
@@ -217,8 +216,7 @@ int tc_mtrr_setup(struct tc_device *tc)
 
 err_out:
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
-	arch_io_free_memtype_wc(tc->tc_mem.base,
-				tc->tc_mem.size);
+	arch_io_free_memtype_wc(tc->tc_mem.base, tc->tc_mem.size);
 #endif
 	return err;
 }
@@ -228,16 +226,15 @@ void tc_mtrr_cleanup(struct tc_device *tc)
 	if (tc->mtrr >= 0) {
 		arch_phys_wc_del(tc->mtrr);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
-		arch_io_free_memtype_wc(tc->tc_mem.base,
-					tc->tc_mem.size);
+		arch_io_free_memtype_wc(tc->tc_mem.base, tc->tc_mem.size);
 #endif
 	}
 }
 
 int tc_is_interface_aligned(u32 eyes, u32 clk_taps, u32 train_ack)
 {
-	u32	max_eye_start = eyes >> 16;
-	u32	min_eye_end   = eyes & 0xffff;
+	u32 max_eye_start = eyes >> 16;
+	u32 min_eye_end = eyes & 0xffff;
 
 	/* If either the training or training ack failed, we haven't aligned */
 	if (!(clk_taps & 0x10000) || !(train_ack & 0x100))
@@ -279,8 +276,8 @@ int tc_iopol32_nonzero(u32 mask, void __iomem *addr)
 	return 0;
 }
 
-int request_pci_io_addr(struct pci_dev *pdev, u32 index,
-	resource_size_t offset, resource_size_t length)
+int request_pci_io_addr(struct pci_dev *pdev, u32 index, resource_size_t offset,
+			resource_size_t length)
 {
 	resource_size_t start, end;
 
@@ -293,15 +290,15 @@ int request_pci_io_addr(struct pci_dev *pdev, u32 index,
 		if (request_region(start + offset, length, DRV_NAME) == NULL)
 			return -EIO;
 	} else {
-		if (request_mem_region(start + offset, length, DRV_NAME)
-			== NULL)
+		if (request_mem_region(start + offset, length, DRV_NAME) ==
+		    NULL)
 			return -EIO;
 	}
 	return 0;
 }
 
-void release_pci_io_addr(struct pci_dev *pdev, u32 index,
-	resource_size_t start, resource_size_t length)
+void release_pci_io_addr(struct pci_dev *pdev, u32 index, resource_size_t start,
+			 resource_size_t length)
 {
 	if (pci_resource_flags(pdev, index) & IORESOURCE_IO)
 		release_region(start, length);
@@ -309,17 +306,16 @@ void release_pci_io_addr(struct pci_dev *pdev, u32 index,
 		release_mem_region(start, length);
 }
 
-int setup_io_region(struct pci_dev *pdev,
-	struct tc_io_region *region, u32 index,
-	resource_size_t offset,	resource_size_t size)
+int setup_io_region(struct pci_dev *pdev, struct tc_io_region *region,
+		    u32 index, resource_size_t offset, resource_size_t size)
 {
 	int err;
 	resource_size_t pci_phys_addr;
 
 	err = request_pci_io_addr(pdev, index, offset, size);
 	if (err) {
-		dev_err(&pdev->dev,
-			"Failed to request tc registers (err=%d)\n", err);
+		dev_err(&pdev->dev, "Failed to request tc registers (err=%d)\n",
+			err);
 		return -EIO;
 	}
 	pci_phys_addr = pci_resource_start(pdev, index);
@@ -330,8 +326,8 @@ int setup_io_region(struct pci_dev *pdev,
 
 	if (!region->registers) {
 		dev_err(&pdev->dev, "Failed to map tc registers\n");
-		release_pci_io_addr(pdev, index,
-			region->region.base, region->region.size);
+		release_pci_io_addr(pdev, index, region->region.base,
+				    region->region.size);
 		return -EIO;
 	}
 	return 0;
@@ -354,7 +350,7 @@ void tc_irq_fake_wrapper(unsigned long data)
 		apollo_irq_handler(0, tc);
 
 	mod_timer(&tc->timer,
-		jiffies + msecs_to_jiffies(FAKE_INTERRUPT_TIME_MS));
+		  jiffies + msecs_to_jiffies(FAKE_INTERRUPT_TIME_MS));
 }
 #endif
 
@@ -401,8 +397,8 @@ static void tc_devres_release(struct device *dev, void *res)
 
 static int tc_cleanup(struct pci_dev *pdev)
 {
-	struct tc_device *tc = devres_find(&pdev->dev,
-					   tc_devres_release, NULL, NULL);
+	struct tc_device *tc =
+		devres_find(&pdev->dev, tc_devres_release, NULL, NULL);
 	int i, err = 0;
 
 	if (!tc) {
@@ -439,8 +435,7 @@ static int tc_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	if (!devres_open_group(&pdev->dev, NULL, GFP_KERNEL))
 		return -ENOMEM;
 
-	tc = devres_alloc(tc_devres_release,
-		sizeof(*tc), GFP_KERNEL);
+	tc = devres_alloc(tc_devres_release, sizeof(*tc), GFP_KERNEL);
 	if (!tc) {
 		err = -ENOMEM;
 		goto err_out;
@@ -450,8 +445,7 @@ static int tc_init(struct pci_dev *pdev, const struct pci_device_id *id)
 
 	err = tc_enable(&pdev->dev);
 	if (err) {
-		dev_err(&pdev->dev,
-			"tc_enable failed %d\n", err);
+		dev_err(&pdev->dev, "tc_enable failed %d\n", err);
 		goto err_release;
 	}
 
@@ -463,7 +457,6 @@ static int tc_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	tc->debugfs_tc_dir = debugfs_create_dir(DRV_NAME, NULL);
 
 	if (pdev->vendor == PCI_VENDOR_ID_ODIN) {
-
 		if (pdev->device == DEVICE_ID_ODIN)
 			tc->odin = true;
 		else if (pdev->device == DEVICE_ID_ORION)
@@ -473,10 +466,9 @@ static int tc_init(struct pci_dev *pdev, const struct pci_device_id *id)
 
 		dev_info(&pdev->dev, "%s detected\n", odin_tc_name(tc));
 
-		err = odin_init(tc, pdev,
-				&tc_core_clock, &tc_mem_clock, &tc_clock_multiplex,
-				tc_pdp_mem_size, sec_mem_size,
-				tc_mem_latency, tc_wresp_latency,
+		err = odin_init(tc, pdev, &tc_core_clock, &tc_mem_clock,
+				&tc_clock_multiplex, tc_pdp_mem_size,
+				sec_mem_size, tc_mem_latency, tc_wresp_latency,
 				tc_mem_mode, fbc_bypass);
 		if (err)
 			goto err_dev_cleanup;
@@ -485,24 +477,22 @@ static int tc_init(struct pci_dev *pdev, const struct pci_device_id *id)
 		dev_info(&pdev->dev, "Apollo detected");
 		tc->odin = false;
 
-		err = apollo_init(tc, pdev,
-				  &tc_core_clock, &tc_mem_clock, tc_sys_clock, &tc_clock_multiplex,
-				  tc_pdp_mem_size, sec_mem_size,
-				  tc_mem_latency, tc_wresp_latency,
-				  tc_mem_mode);
+		err = apollo_init(tc, pdev, &tc_core_clock, &tc_mem_clock,
+				  tc_sys_clock, &tc_clock_multiplex,
+				  tc_pdp_mem_size, sec_mem_size, tc_mem_latency,
+				  tc_wresp_latency, tc_mem_mode);
 		if (err)
 			goto err_dev_cleanup;
 	}
 
 	/* Add the rogue name debugfs entry */
 	tc->debugfs_rogue_name =
-		debugfs_create_blob("rogue-name", 0444,
-			tc->debugfs_tc_dir,
-			&tc_debugfs_rogue_name_blobs[tc->version]);
+		debugfs_create_blob("rogue-name", 0444, tc->debugfs_tc_dir,
+				    &tc_debugfs_rogue_name_blobs[tc->version]);
 
 #if defined(TC_FAKE_INTERRUPTS)
 	dev_warn(&pdev->dev, "WARNING: Faking interrupts every %d ms",
-		FAKE_INTERRUPT_TIME_MS);
+		 FAKE_INTERRUPT_TIME_MS);
 #endif
 
 	/* Register pdp and ext platform devices */
@@ -514,7 +504,7 @@ static int tc_init(struct pci_dev *pdev, const struct pci_device_id *id)
 	if (err)
 		goto err_dev_cleanup;
 
-	err =  tc_register_dma_device(tc);
+	err = tc_register_dma_device(tc);
 	if (err)
 		goto err_dev_cleanup;
 
@@ -538,8 +528,8 @@ err_release:
 
 static void tc_exit(struct pci_dev *pdev)
 {
-	struct tc_device *tc = devres_find(&pdev->dev,
-					   tc_devres_release, NULL, NULL);
+	struct tc_device *tc =
+		devres_find(&pdev->dev, tc_devres_release, NULL, NULL);
 
 	if (!tc) {
 		dev_err(&pdev->dev, "No tc device resources found\n");
@@ -569,16 +559,16 @@ static struct pci_device_id tc_pci_tbl[] = {
 	{ PCI_VDEVICE(ODIN, DEVICE_ID_ODIN) },
 	{ PCI_VDEVICE(ODIN, DEVICE_ID_VALI) },
 	{ PCI_VDEVICE(ODIN, DEVICE_ID_ORION) },
-	{ },
+	{},
 };
 
 static struct pci_driver tc_pci_driver = {
-	.name           = DRV_NAME,
-	.id_table       = tc_pci_tbl,
-	.probe          = tc_init,
-	.remove         = tc_exit,
+	.name = DRV_NAME,
+	.id_table = tc_pci_tbl,
+	.probe = tc_init,
+	.remove = tc_exit,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-	.groups         = tc_attr_groups,
+	.groups = tc_attr_groups,
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0)) */
 };
 
@@ -603,10 +593,9 @@ void tc_disable(struct device *dev)
 EXPORT_SYMBOL(tc_disable);
 
 int tc_set_interrupt_handler(struct device *dev, int interrupt_id,
-	void (*handler_function)(void *), void *data)
+			     void (*handler_function)(void *), void *data)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-		NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 	int err = 0;
 	unsigned long flags;
 
@@ -637,8 +626,7 @@ EXPORT_SYMBOL(tc_set_interrupt_handler);
 
 int tc_enable_interrupt(struct device *dev, int interrupt_id)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-		NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 	int err = 0;
 	unsigned long flags;
 
@@ -656,7 +644,7 @@ int tc_enable_interrupt(struct device *dev, int interrupt_id)
 
 	if (tc->interrupt_handlers[interrupt_id].enabled) {
 		dev_warn(dev, "Interrupt ID %d already enabled\n",
-			interrupt_id);
+			 interrupt_id);
 		err = -EEXIST;
 		goto err_unlock;
 	}
@@ -676,8 +664,7 @@ EXPORT_SYMBOL(tc_enable_interrupt);
 
 int tc_disable_interrupt(struct device *dev, int interrupt_id)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-		NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 	int err = 0;
 	unsigned long flags;
 
@@ -695,7 +682,7 @@ int tc_disable_interrupt(struct device *dev, int interrupt_id)
 
 	if (!tc->interrupt_handlers[interrupt_id].enabled) {
 		dev_warn(dev, "Interrupt ID %d already disabled\n",
-			interrupt_id);
+			 interrupt_id);
 	}
 	tc->interrupt_handlers[interrupt_id].enabled = false;
 
@@ -713,8 +700,7 @@ EXPORT_SYMBOL(tc_disable_interrupt);
 int tc_sys_info(struct device *dev, u32 *tmp, u32 *pll)
 {
 	int err = -ENODEV;
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-		NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	if (!tc) {
 		dev_err(dev, "No tc device resources found\n");
@@ -731,55 +717,44 @@ err_out:
 }
 EXPORT_SYMBOL(tc_sys_info);
 
-int tc_sys_strings(struct device *dev,
-		   char *str_fpga_rev, size_t size_fpga_rev,
+int tc_sys_strings(struct device *dev, char *str_fpga_rev, size_t size_fpga_rev,
 		   char *str_tcf_core_rev, size_t size_tcf_core_rev,
 		   char *str_tcf_core_target_build_id,
-		   size_t size_tcf_core_target_build_id,
-		   char *str_pci_ver, size_t size_pci_ver,
-		   char *str_macro_ver, size_t size_macro_ver)
+		   size_t size_tcf_core_target_build_id, char *str_pci_ver,
+		   size_t size_pci_ver, char *str_macro_ver,
+		   size_t size_macro_ver)
 {
 	int err = -ENODEV;
 
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-		NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	if (!tc) {
 		dev_err(dev, "No tc device resources found\n");
 		goto err_out;
 	}
 
-	if (!str_fpga_rev ||
-	    !size_fpga_rev ||
-	    !str_tcf_core_rev ||
-	    !size_tcf_core_rev ||
-	    !str_tcf_core_target_build_id ||
-	    !size_tcf_core_target_build_id ||
-	    !str_pci_ver ||
-	    !size_pci_ver ||
-	    !str_macro_ver ||
-	    !size_macro_ver) {
-
+	if (!str_fpga_rev || !size_fpga_rev || !str_tcf_core_rev ||
+	    !size_tcf_core_rev || !str_tcf_core_target_build_id ||
+	    !size_tcf_core_target_build_id || !str_pci_ver || !size_pci_ver ||
+	    !str_macro_ver || !size_macro_ver) {
 		err = -EINVAL;
 		goto err_out;
 	}
 
 	if (tc->odin || tc->orion || tc->vali) {
-		err = odin_sys_strings(tc,
-				 str_fpga_rev, size_fpga_rev,
-				 str_tcf_core_rev, size_tcf_core_rev,
-				 str_tcf_core_target_build_id,
-				 size_tcf_core_target_build_id,
-				 str_pci_ver, size_pci_ver,
-				 str_macro_ver, size_macro_ver);
+		err = odin_sys_strings(tc, str_fpga_rev, size_fpga_rev,
+				       str_tcf_core_rev, size_tcf_core_rev,
+				       str_tcf_core_target_build_id,
+				       size_tcf_core_target_build_id,
+				       str_pci_ver, size_pci_ver, str_macro_ver,
+				       size_macro_ver);
 	} else {
-		err = apollo_sys_strings(tc,
-				 str_fpga_rev, size_fpga_rev,
-				 str_tcf_core_rev, size_tcf_core_rev,
-				 str_tcf_core_target_build_id,
-				 size_tcf_core_target_build_id,
-				 str_pci_ver, size_pci_ver,
-				 str_macro_ver, size_macro_ver);
+		err = apollo_sys_strings(tc, str_fpga_rev, size_fpga_rev,
+					 str_tcf_core_rev, size_tcf_core_rev,
+					 str_tcf_core_target_build_id,
+					 size_tcf_core_target_build_id,
+					 str_pci_ver, size_pci_ver,
+					 str_macro_ver, size_macro_ver);
 	}
 
 err_out:
@@ -801,8 +776,7 @@ EXPORT_SYMBOL(tc_core_clock_multiplex);
 
 unsigned int tc_odin_subvers(struct device *dev)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-		NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	if (tc->orion)
 		return 1;
@@ -813,12 +787,10 @@ EXPORT_SYMBOL(tc_odin_subvers);
 
 bool tc_pfim_capable(struct device *dev)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-					   NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	if (tc->odin && !tc->orion)
-		return (!tc->fbc_bypass &&
-			odin_pfim_compatible(tc));
+		return (!tc->fbc_bypass && odin_pfim_compatible(tc));
 
 	return false;
 }
@@ -826,8 +798,7 @@ EXPORT_SYMBOL(tc_pfim_capable);
 
 bool tc_pdp2_compatible(struct device *dev)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-					   NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	/* PDP2 is available in all versions of Sleipnir PCB / Odin RTL */
 	return (tc->odin && !tc->orion);
@@ -837,8 +808,7 @@ EXPORT_SYMBOL(tc_pdp2_compatible);
 struct dma_chan *tc_dma_chan(struct device *dev, char *name)
 
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-					   NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	if (tc->odin)
 		return odin_cdma_chan(tc, name);
@@ -847,11 +817,9 @@ struct dma_chan *tc_dma_chan(struct device *dev, char *name)
 }
 EXPORT_SYMBOL(tc_dma_chan);
 
-void tc_dma_chan_free(struct device *dev,
-		      void *chan_prv)
+void tc_dma_chan_free(struct device *dev, void *chan_prv)
 {
-	struct tc_device *tc = devres_find(dev, tc_devres_release,
-					   NULL, NULL);
+	struct tc_device *tc = devres_find(dev, tc_devres_release, NULL, NULL);
 
 	if (tc->odin)
 		odin_cdma_chan_free(tc, chan_prv);

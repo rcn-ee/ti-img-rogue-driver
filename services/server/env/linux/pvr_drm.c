@@ -74,12 +74,12 @@
 
 #define PVR_DRM_DRIVER_NAME PVR_DRM_NAME
 #define PVR_DRM_DRIVER_DESC "Imagination Technologies PVR DRM"
-#define	PVR_DRM_DRIVER_DATE "20170530"
+#define PVR_DRM_DRIVER_DATE "20170530"
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
-#define	PVR_DRM_DRIVER_PRIME 0
+#define PVR_DRM_DRIVER_PRIME 0
 #else
-#define	PVR_DRM_DRIVER_PRIME DRIVER_PRIME
+#define PVR_DRM_DRIVER_PRIME DRIVER_PRIME
 #endif
 
 /*
@@ -229,7 +229,6 @@ const struct dev_pm_ops pvr_pm_ops = {
 	.restore = pvr_pm_restore,
 };
 
-
 int pvr_drm_load(struct drm_device *ddev, unsigned long flags)
 {
 	struct pvr_drm_private *priv;
@@ -258,7 +257,8 @@ int pvr_drm_load(struct drm_device *ddev, unsigned long flags)
 
 	mutex_lock(&g_device_mutex);
 
-	srv_err = PVRSRVCommonDeviceCreate(ddev->dev, deviceId, &priv->dev_node);
+	srv_err =
+		PVRSRVCommonDeviceCreate(ddev->dev, deviceId, &priv->dev_node);
 	if (srv_err != PVRSRV_OK) {
 		DRM_ERROR("failed to create device node for device %p (%s)\n",
 			  ddev->dev, PVRSRVGetErrorString(srv_err));
@@ -380,13 +380,16 @@ static struct drm_ioctl_desc pvr_drm_ioctls[] = {
 #if defined(SUPPORT_NATIVE_FENCE_SYNC) && !defined(USE_PVRSYNC_DEVNODE)
 	DRM_IOCTL_DEF_DRV(PVR_SYNC_RENAME_CMD, pvr_sync_rename_ioctl,
 			  DRM_RENDER_ALLOW | DRM_UNLOCKED),
-	DRM_IOCTL_DEF_DRV(PVR_SYNC_FORCE_SW_ONLY_CMD, pvr_sync_force_sw_only_ioctl,
+	DRM_IOCTL_DEF_DRV(PVR_SYNC_FORCE_SW_ONLY_CMD,
+			  pvr_sync_force_sw_only_ioctl,
 			  DRM_RENDER_ALLOW | DRM_UNLOCKED),
-	DRM_IOCTL_DEF_DRV(PVR_SW_SYNC_CREATE_FENCE_CMD, pvr_sw_sync_create_fence_ioctl,
+	DRM_IOCTL_DEF_DRV(PVR_SW_SYNC_CREATE_FENCE_CMD,
+			  pvr_sw_sync_create_fence_ioctl,
 			  DRM_RENDER_ALLOW | DRM_UNLOCKED),
 	DRM_IOCTL_DEF_DRV(PVR_SW_SYNC_INC_CMD, pvr_sw_sync_inc_ioctl,
 			  DRM_RENDER_ALLOW | DRM_UNLOCKED),
-	DRM_IOCTL_DEF_DRV(PVR_EXP_FENCE_SYNC_FORCE_CMD, pvr_sync_ioctl_force_exp_only,
+	DRM_IOCTL_DEF_DRV(PVR_EXP_FENCE_SYNC_FORCE_CMD,
+			  pvr_sync_ioctl_force_exp_only,
 			  DRM_RENDER_ALLOW | DRM_UNLOCKED),
 	DRM_IOCTL_DEF_DRV(PVR_SYNC_CREATE_EXPORT_FENCE_CMD,
 			  pvr_export_fence_sync_create_fence_ioctl,
@@ -408,44 +411,44 @@ static long pvr_compat_ioctl(struct file *file, unsigned int cmd,
 #endif /* defined(CONFIG_COMPAT) */
 
 const struct file_operations pvr_drm_fops = {
-	.owner			= THIS_MODULE,
-	.open			= drm_open,
-	.release		= drm_release,
-	.unlocked_ioctl		= drm_ioctl,
+	.owner = THIS_MODULE,
+	.open = drm_open,
+	.release = drm_release,
+	.unlocked_ioctl = drm_ioctl,
 #if defined(CONFIG_COMPAT)
-	.compat_ioctl		= pvr_compat_ioctl,
+	.compat_ioctl = pvr_compat_ioctl,
 #endif
-	.mmap			= PVRSRV_MMap,
-	.poll			= drm_poll,
-	.read			= drm_read,
+	.mmap = PVRSRV_MMap,
+	.poll = drm_poll,
+	.read = drm_read,
 };
 
 const struct drm_driver pvr_drm_generic_driver = {
-	.driver_features	= DRIVER_MODESET | DRIVER_RENDER |
-				  DRIVER_GEM | PVR_DRM_DRIVER_PRIME,
+	.driver_features = DRIVER_MODESET | DRIVER_RENDER | DRIVER_GEM |
+			   PVR_DRM_DRIVER_PRIME,
 
-	.load			= NULL,
-	.unload			= NULL,
-	.open			= pvr_drm_open,
-	.postclose		= pvr_drm_release,
+	.load = NULL,
+	.unload = NULL,
+	.open = pvr_drm_open,
+	.postclose = pvr_drm_release,
 
-	.prime_handle_to_fd	= drm_gem_prime_handle_to_fd,
+	.prime_handle_to_fd = drm_gem_prime_handle_to_fd,
 
 	/* prime_fd_to_handle is not supported */
-	.prime_fd_to_handle	= NULL,
+	.prime_fd_to_handle = NULL,
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 9, 0))
-	.gem_prime_export	= PhysmemGEMPrimeExport,
-	.gem_free_object	= PhysmemGEMObjectFree,
+	.gem_prime_export = PhysmemGEMPrimeExport,
+	.gem_free_object = PhysmemGEMObjectFree,
 #endif
-	.ioctls			= pvr_drm_ioctls,
-	.num_ioctls		= ARRAY_SIZE(pvr_drm_ioctls),
-	.fops			= &pvr_drm_fops,
+	.ioctls = pvr_drm_ioctls,
+	.num_ioctls = ARRAY_SIZE(pvr_drm_ioctls),
+	.fops = &pvr_drm_fops,
 
-	.name			= PVR_DRM_DRIVER_NAME,
-	.desc			= PVR_DRM_DRIVER_DESC,
-	.date			= PVR_DRM_DRIVER_DATE,
-	.major			= PVRVERSION_MAJ,
-	.minor			= PVRVERSION_MIN,
-	.patchlevel		= PVRVERSION_BUILD,
+	.name = PVR_DRM_DRIVER_NAME,
+	.desc = PVR_DRM_DRIVER_DESC,
+	.date = PVR_DRM_DRIVER_DATE,
+	.major = PVRVERSION_MAJ,
+	.minor = PVRVERSION_MIN,
+	.patchlevel = PVRVERSION_BUILD,
 };

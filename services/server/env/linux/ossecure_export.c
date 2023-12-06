@@ -56,16 +56,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "kernel_compatibility.h"
 
-typedef struct
-{
+typedef struct {
 	PVRSRV_ERROR (*pfnReleaseFunc)(void *);
 	void *pvData;
 } OSSecureFileData;
 
 static IMG_INT _OSSecureFileReleaseFunc(struct inode *psInode,
-                                        struct file *psFile)
+					struct file *psFile)
 {
-	OSSecureFileData *psSecureFileData = (OSSecureFileData *)psFile->private_data;
+	OSSecureFileData *psSecureFileData =
+		(OSSecureFileData *)psFile->private_data;
 	psSecureFileData->pfnReleaseFunc(psSecureFileData->pvData);
 
 	OSFreeMem(psSecureFileData);
@@ -75,13 +75,12 @@ static IMG_INT _OSSecureFileReleaseFunc(struct inode *psInode,
 }
 
 static struct file_operations secure_file_fops = {
-	.release	= _OSSecureFileReleaseFunc,
+	.release = _OSSecureFileReleaseFunc,
 };
 
 PVRSRV_ERROR OSSecureExport(const IMG_CHAR *pszName,
-                            PVRSRV_ERROR (*pfnReleaseFunc)(void *),
-                            void *pvData,
-                            IMG_SECURE_TYPE *phSecure)
+			    PVRSRV_ERROR (*pfnReleaseFunc)(void *),
+			    void *pvData, IMG_SECURE_TYPE *phSecure)
 {
 	struct file *secure_file;
 	int secure_fd;
@@ -91,8 +90,7 @@ PVRSRV_ERROR OSSecureExport(const IMG_CHAR *pszName,
 	PVR_ASSERT(pfnReleaseFunc != NULL || pvData != NULL);
 
 	psSecureFileData = OSAllocMem(sizeof(*psSecureFileData));
-	if (psSecureFileData == NULL)
-	{
+	if (psSecureFileData == NULL) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto e0;
 	}
@@ -102,17 +100,16 @@ PVRSRV_ERROR OSSecureExport(const IMG_CHAR *pszName,
 
 	/* Allocate a fd number */
 	secure_fd = get_unused_fd_flags(0);
-	if (secure_fd < 0)
-	{
+	if (secure_fd < 0) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto e0;
 	}
 
 	/* Create a file with provided name, fops and flags,
 	 * also store the private data in the file */
-	secure_file = anon_inode_getfile(pszName, &secure_file_fops, psSecureFileData, 0);
-	if (IS_ERR(secure_file))
-	{
+	secure_file = anon_inode_getfile(pszName, &secure_file_fops,
+					 psSecureFileData, 0);
+	if (IS_ERR(secure_file)) {
 		put_unused_fd(secure_fd);
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto e0;
@@ -137,8 +134,7 @@ PVRSRV_ERROR OSSecureImport(IMG_SECURE_TYPE hSecure, void **ppvData)
 	OSSecureFileData *psSecureFileData;
 
 	secure_file = fget(hSecure);
-	if (!secure_file)
-	{
+	if (!secure_file) {
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_out;
 	}

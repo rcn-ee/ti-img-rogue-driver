@@ -48,29 +48,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "rgxta3d.h"
 
+void WorkEstInitTA3D(PVRSRV_RGXDEV_INFO *psDevInfo,
+		     WORKEST_HOST_DATA *psWorkEstData);
 
-void WorkEstInitTA3D(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstDeInitTA3D(PVRSRV_RGXDEV_INFO *psDevInfo,
+		       WORKEST_HOST_DATA *psWorkEstData);
 
-void WorkEstDeInitTA3D(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstInitCompute(PVRSRV_RGXDEV_INFO *psDevInfo,
+			WORKEST_HOST_DATA *psWorkEstData);
 
-void WorkEstInitCompute(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstDeInitCompute(PVRSRV_RGXDEV_INFO *psDevInfo,
+			  WORKEST_HOST_DATA *psWorkEstData);
 
-void WorkEstDeInitCompute(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstInitTDM(PVRSRV_RGXDEV_INFO *psDevInfo,
+		    WORKEST_HOST_DATA *psWorkEstData);
 
-void WorkEstInitTDM(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstDeInitTDM(PVRSRV_RGXDEV_INFO *psDevInfo,
+		      WORKEST_HOST_DATA *psWorkEstData);
 
-void WorkEstDeInitTDM(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
-
-PVRSRV_ERROR WorkEstPrepare(PVRSRV_RGXDEV_INFO        *psDevInfo,
-                            WORKEST_HOST_DATA         *psWorkEstHostData,
-                            WORKLOAD_MATCHING_DATA    *psWorkloadMatchingData,
-                            const RGXFWIF_CCB_CMD_TYPE eDMCmdType,
-                            const RGX_WORKLOAD        *psWorkloadCharsIn,
-                            IMG_UINT64                ui64DeadlineInus,
-                            RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData);
+PVRSRV_ERROR WorkEstPrepare(PVRSRV_RGXDEV_INFO *psDevInfo,
+			    WORKEST_HOST_DATA *psWorkEstHostData,
+			    WORKLOAD_MATCHING_DATA *psWorkloadMatchingData,
+			    const RGXFWIF_CCB_CMD_TYPE eDMCmdType,
+			    const RGX_WORKLOAD *psWorkloadCharsIn,
+			    IMG_UINT64 ui64DeadlineInus,
+			    RGXFWIF_WORKEST_KICK_DATA *psWorkEstKickData);
 
 PVRSRV_ERROR WorkEstRetire(PVRSRV_RGXDEV_INFO *psDevInfo,
-						   RGXFWIF_WORKEST_FWCCB_CMD *psReturnCmd);
+			   RGXFWIF_WORKEST_FWCCB_CMD *psReturnCmd);
 
 void WorkEstHashLockCreate(POS_LOCK *ppsHashLock);
 
@@ -79,12 +84,12 @@ void WorkEstHashLockDestroy(POS_LOCK psHashLock);
 void WorkEstCheckFirmwareCCB(PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void _WorkEstInit(PVRSRV_RGXDEV_INFO *psDevInfo,
-						 WORKLOAD_MATCHING_DATA *psWorkloadMatchingData,
-						 HASH_FUNC *pfnWorkEstHashFunc,
-						 HASH_KEY_COMP *pfnWorkEstHashCompare);
+		  WORKLOAD_MATCHING_DATA *psWorkloadMatchingData,
+		  HASH_FUNC *pfnWorkEstHashFunc,
+		  HASH_KEY_COMP *pfnWorkEstHashCompare);
 
 void _WorkEstDeInit(PVRSRV_RGXDEV_INFO *psDevInfo,
-						 WORKLOAD_MATCHING_DATA *psWorkloadMatchingData);
+		    WORKLOAD_MATCHING_DATA *psWorkloadMatchingData);
 
 inline IMG_UINT32 _WorkEstDoHash(IMG_UINT32 ui32Input);
 

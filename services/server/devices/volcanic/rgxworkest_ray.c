@@ -52,26 +52,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "hash.h"
 #include "pvr_debug.h"
 
-
 static IMG_BOOL WorkEstHashCompareRay(size_t uKeySize, void *pKey1, void *pKey2)
 {
 	RGX_WORKLOAD *psWorkload1;
 	RGX_WORKLOAD *psWorkload2;
 	PVR_UNREFERENCED_PARAMETER(uKeySize);
 
-	if (pKey1 && pKey2)
-	{
+	if (pKey1 && pKey2) {
 		psWorkload1 = *((RGX_WORKLOAD **)pKey1);
 		psWorkload2 = *((RGX_WORKLOAD **)pKey2);
 
 		PVR_ASSERT(psWorkload1);
 		PVR_ASSERT(psWorkload2);
 
-		if (psWorkload1->sRay.ui32DispatchSize == psWorkload2->sRay.ui32DispatchSize &&
-		    psWorkload1->sRay.ui32AccStructSize == psWorkload2->sRay.ui32AccStructSize)
-		{
+		if (psWorkload1->sRay.ui32DispatchSize ==
+			    psWorkload2->sRay.ui32DispatchSize &&
+		    psWorkload1->sRay.ui32AccStructSize ==
+			    psWorkload2->sRay.ui32AccStructSize) {
 			/* This is added to allow this memory to be freed */
-			*(uintptr_t*)pKey2 = *(uintptr_t*)pKey1;
+			*(uintptr_t *)pKey2 = *(uintptr_t *)pKey1;
 			return IMG_TRUE;
 		}
 	}
@@ -79,9 +78,10 @@ static IMG_BOOL WorkEstHashCompareRay(size_t uKeySize, void *pKey1, void *pKey2)
 	return IMG_FALSE;
 }
 
-static IMG_UINT32 WorkEstHashFuncRay(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen)
+static IMG_UINT32 WorkEstHashFuncRay(size_t uKeySize, void *pKey,
+				     IMG_UINT32 uHashTabLen)
 {
-	RGX_WORKLOAD *psWorkload = *((RGX_WORKLOAD**)pKey);
+	RGX_WORKLOAD *psWorkload = *((RGX_WORKLOAD **)pKey);
 	IMG_UINT32 ui32HashKey = 0;
 	PVR_UNREFERENCED_PARAMETER(uHashTabLen);
 	PVR_UNREFERENCED_PARAMETER(uKeySize);
@@ -93,15 +93,18 @@ static IMG_UINT32 WorkEstHashFuncRay(size_t uKeySize, void *pKey, IMG_UINT32 uHa
 	return ui32HashKey;
 }
 
-void WorkEstInitRay(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData)
+void WorkEstInitRay(PVRSRV_RGXDEV_INFO *psDevInfo,
+		    WORKEST_HOST_DATA *psWorkEstData)
 {
 	_WorkEstInit(psDevInfo,
-		&psWorkEstData->uWorkloadMatchingData.sRay.sDataRDM,
-		(HASH_FUNC *)WorkEstHashFuncRay,
-		(HASH_KEY_COMP *)WorkEstHashCompareRay);
+		     &psWorkEstData->uWorkloadMatchingData.sRay.sDataRDM,
+		     (HASH_FUNC *)WorkEstHashFuncRay,
+		     (HASH_KEY_COMP *)WorkEstHashCompareRay);
 }
 
-void WorkEstDeInitRay(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData)
+void WorkEstDeInitRay(PVRSRV_RGXDEV_INFO *psDevInfo,
+		      WORKEST_HOST_DATA *psWorkEstData)
 {
-	_WorkEstDeInit(psDevInfo, &psWorkEstData->uWorkloadMatchingData.sRay.sDataRDM);
+	_WorkEstDeInit(psDevInfo,
+		       &psWorkEstData->uWorkloadMatchingData.sRay.sDataRDM);
 }

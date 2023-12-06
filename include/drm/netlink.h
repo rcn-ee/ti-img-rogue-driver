@@ -41,7 +41,6 @@
  * CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
-
 #ifndef __NETLINK_H__
 #define __NETLINK_H__
 
@@ -91,57 +90,57 @@ enum nlpvrdpy_attr {
 	NLPVRDPY_ATTR_PAD,
 	__NLPVRDPY_ATTR_MAX
 };
-#define NLPVRDPY_ATTR_MAX  (__NLPVRDPY_ATTR_MAX - 1)
+#define NLPVRDPY_ATTR_MAX (__NLPVRDPY_ATTR_MAX - 1)
 
 static struct nla_policy __attribute__((unused))
 nlpvrdpy_policy[NLPVRDPY_ATTR_MAX + 1] = {
-	[NLPVRDPY_ATTR_NAME]                = { .type = NLA_STRING },
-	[NLPVRDPY_ATTR_MINOR]               = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_NUM_PLANES]          = { .type = NLA_U8  },
-	[NLPVRDPY_ATTR_WIDTH]               = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_HEIGHT]              = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_PIXFMT]              = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_YUV_CSC]             = { .type = NLA_U8  },
-	[NLPVRDPY_ATTR_YUV_BPP]             = { .type = NLA_U8  },
-	[NLPVRDPY_ATTR_PLANE0_ADDR]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE0_SIZE]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE0_OFFSET]       = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE0_PITCH]        = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_NAME] = { .type = NLA_STRING },
+	[NLPVRDPY_ATTR_MINOR] = { .type = NLA_U32 },
+	[NLPVRDPY_ATTR_NUM_PLANES] = { .type = NLA_U8 },
+	[NLPVRDPY_ATTR_WIDTH] = { .type = NLA_U32 },
+	[NLPVRDPY_ATTR_HEIGHT] = { .type = NLA_U32 },
+	[NLPVRDPY_ATTR_PIXFMT] = { .type = NLA_U32 },
+	[NLPVRDPY_ATTR_YUV_CSC] = { .type = NLA_U8 },
+	[NLPVRDPY_ATTR_YUV_BPP] = { .type = NLA_U8 },
+	[NLPVRDPY_ATTR_PLANE0_ADDR] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE0_SIZE] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE0_OFFSET] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE0_PITCH] = { .type = NLA_U64 },
 	[NLPVRDPY_ATTR_PLANE0_GEM_OBJ_NAME] = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_PLANE1_ADDR]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE1_SIZE]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE1_OFFSET]       = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE1_PITCH]        = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE1_ADDR] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE1_SIZE] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE1_OFFSET] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE1_PITCH] = { .type = NLA_U64 },
 	[NLPVRDPY_ATTR_PLANE1_GEM_OBJ_NAME] = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_PLANE2_ADDR]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE2_SIZE]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE2_OFFSET]       = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_PLANE2_PITCH]        = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE2_ADDR] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE2_SIZE] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE2_OFFSET] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_PLANE2_PITCH] = { .type = NLA_U64 },
 	[NLPVRDPY_ATTR_PLANE2_GEM_OBJ_NAME] = { .type = NLA_U32 },
-	[NLPVRDPY_ATTR_FB_MODIFIER]         = { .type = NLA_U64 },
-	[NLPVRDPY_ATTR_NAMING_REQUIRED]     = { .type = NLA_FLAG },
+	[NLPVRDPY_ATTR_FB_MODIFIER] = { .type = NLA_U64 },
+	[NLPVRDPY_ATTR_NAMING_REQUIRED] = { .type = NLA_FLAG },
 };
 
-#define NLPVRDPY_ATTR_PLANE(index, type)				\
-	({								\
-		enum nlpvrdpy_attr __retval;				\
-									\
-		switch (index) {					\
-		case 0:							\
-			__retval = NLPVRDPY_ATTR_PLANE0_ ## type;	\
-			break;						\
-		case 1:							\
-			__retval = NLPVRDPY_ATTR_PLANE1_ ## type;	\
-			break;						\
-		case 2:							\
-			__retval = NLPVRDPY_ATTR_PLANE2_ ## type;	\
-			break;						\
-		default:						\
-			__retval = __NLPVRDPY_ATTR_INVALID;		\
-			break;						\
-		};							\
-									\
-		__retval;						\
+#define NLPVRDPY_ATTR_PLANE(index, type)                        \
+	({                                                      \
+		enum nlpvrdpy_attr __retval;                    \
+                                                                \
+		switch (index) {                                \
+		case 0:                                         \
+			__retval = NLPVRDPY_ATTR_PLANE0_##type; \
+			break;                                  \
+		case 1:                                         \
+			__retval = NLPVRDPY_ATTR_PLANE1_##type; \
+			break;                                  \
+		case 2:                                         \
+			__retval = NLPVRDPY_ATTR_PLANE2_##type; \
+			break;                                  \
+		default:                                        \
+			__retval = __NLPVRDPY_ATTR_INVALID;     \
+			break;                                  \
+		};                                              \
+                                                                \
+		__retval;                                       \
 	})
 
 #endif /* __NETLINK_H__ */

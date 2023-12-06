@@ -66,7 +66,8 @@ PVRSRV_ERROR RGXBvncInitialiseConfiguration(PVRSRV_DEVICE_NODE *psDeviceNode);
 @param		ui64FeatureMask - feature to be checked
 @return		true if feature is supported, false otherwise
 */ /**************************************************************************/
-IMG_BOOL RGXBvncCheckFeatureSupported(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT64 ui64FeatureMask);
+IMG_BOOL RGXBvncCheckFeatureSupported(PVRSRV_DEVICE_NODE *psDeviceNode,
+				      IMG_UINT64 ui64FeatureMask);
 
 /*************************************************************************/ /*!
 @brief		This function returns the value of a feature on the given
@@ -75,7 +76,9 @@ IMG_BOOL RGXBvncCheckFeatureSupported(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT
 @param		ui64FeatureMask - feature for which to return the value
 @return		the value for the specified feature
 */ /**************************************************************************/
-IMG_INT32 RGXBvncGetSupportedFeatureValue(PVRSRV_DEVICE_NODE *psDeviceNode, RGX_FEATURE_WITH_VALUE_INDEX eFeatureIndex);
+IMG_INT32
+RGXBvncGetSupportedFeatureValue(PVRSRV_DEVICE_NODE *psDeviceNode,
+				RGX_FEATURE_WITH_VALUE_INDEX eFeatureIndex);
 
 /*************************************************************************/ /*!
 @brief		This function validates that the BVNC values in CORE_ID regs are
@@ -85,6 +88,7 @@ IMG_INT32 RGXBvncGetSupportedFeatureValue(PVRSRV_DEVICE_NODE *psDeviceNode, RGX_
 @param		CoreIdMask - mask of components to pull from CORE_ID register
 @return		success or fail
 */ /**************************************************************************/
-PVRSRV_ERROR RGXVerifyBVNC(PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT64 ui64GivenBVNC, IMG_UINT64 ui64CoreIdMask);
+PVRSRV_ERROR RGXVerifyBVNC(PVRSRV_DEVICE_NODE *psDeviceNode,
+			   IMG_UINT64 ui64GivenBVNC, IMG_UINT64 ui64CoreIdMask);
 
 #endif /* RGXBVNC_H */

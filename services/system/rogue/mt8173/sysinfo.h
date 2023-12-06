@@ -44,15 +44,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(__SYSINFO_H__)
 #define __SYSINFO_H__
 
-
-
 /*!< System specific poll/timeout details */
-#define MAX_HW_TIME_US                           (1000000)
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1500)//(10000)
+#define MAX_HW_TIME_US (1000000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (1500) //(10000)
 #define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
-#define WAIT_TRY_COUNT                           (20000)
-#define EVENT_OBJECT_TIMEOUT_US                  (100000)
+#define WAIT_TRY_COUNT (20000)
+#define EVENT_OBJECT_TIMEOUT_US (100000)
 
 #define SYS_RGX_OF_COMPATIBLE "mediatek,mt8173-gpu"
 
-#endif	/* !defined(__SYSINFO_H__) */
+#endif /* !defined(__SYSINFO_H__) */

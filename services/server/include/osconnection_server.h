@@ -50,21 +50,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*! Function not implemented definition. */
 #define OSCONNECTION_SERVER_NOT_IMPLEMENTED 0
 /*! Assert used for OSCONNECTION_SERVER_NOT_IMPLEMENTED. */
-#define OSCONNECTION_SERVER_NOT_IMPLEMENTED_ASSERT() PVR_ASSERT(OSCONNECTION_SERVER_NOT_IMPLEMENTED)
+#define OSCONNECTION_SERVER_NOT_IMPLEMENTED_ASSERT() \
+	PVR_ASSERT(OSCONNECTION_SERVER_NOT_IMPLEMENTED)
 
 #if defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS)
-PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOSData);
+PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData,
+					 void *pvOSData);
 PVRSRV_ERROR OSConnectionPrivateDataDeInit(IMG_HANDLE hOsPrivateData);
 
 PVRSRV_ERROR OSConnectionSetHandleOptions(PVRSRV_HANDLE_BASE *psHandleBase);
 
-PVRSRV_DEVICE_NODE* OSGetDevNode(CONNECTION_DATA *psConnection);
+PVRSRV_DEVICE_NODE *OSGetDevNode(CONNECTION_DATA *psConnection);
 
 struct drm_file;
 
-struct drm_file* OSGetDRMFile(CONNECTION_DATA *psConnection);
+struct drm_file *OSGetDRMFile(CONNECTION_DATA *psConnection);
 
-#else	/* defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS) */
+#else /* defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS) */
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(OSConnectionPrivateDataInit)
 #endif
@@ -78,7 +80,8 @@ struct drm_file* OSGetDRMFile(CONNECTION_DATA *psConnection);
                                     private data
 @Return         PVRSRV_OK on success, a failure code otherwise.
 */ /**************************************************************************/
-static INLINE PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOSData)
+static INLINE PVRSRV_ERROR
+OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOSData)
 {
 	PVR_UNREFERENCED_PARAMETER(phOsPrivateData);
 	PVR_UNREFERENCED_PARAMETER(pvOSData);
@@ -99,7 +102,8 @@ static INLINE PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateDa
                                     to be freed
 @Return         PVRSRV_OK on success, a failure code otherwise.
 */ /**************************************************************************/
-static INLINE PVRSRV_ERROR OSConnectionPrivateDataDeInit(IMG_HANDLE hOsPrivateData)
+static INLINE PVRSRV_ERROR
+OSConnectionPrivateDataDeInit(IMG_HANDLE hOsPrivateData)
 {
 	PVR_UNREFERENCED_PARAMETER(hOsPrivateData);
 
@@ -111,7 +115,8 @@ static INLINE PVRSRV_ERROR OSConnectionPrivateDataDeInit(IMG_HANDLE hOsPrivateDa
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(OSConnectionSetHandleOptions)
 #endif
-static INLINE PVRSRV_ERROR OSConnectionSetHandleOptions(PVRSRV_HANDLE_BASE *psHandleBase)
+static INLINE PVRSRV_ERROR
+OSConnectionSetHandleOptions(PVRSRV_HANDLE_BASE *psHandleBase)
 {
 	PVR_UNREFERENCED_PARAMETER(psHandleBase);
 
@@ -123,7 +128,7 @@ static INLINE PVRSRV_ERROR OSConnectionSetHandleOptions(PVRSRV_HANDLE_BASE *psHa
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(OSGetDevNode)
 #endif
-static INLINE PVRSRV_DEVICE_NODE* OSGetDevNode(CONNECTION_DATA *psConnection)
+static INLINE PVRSRV_DEVICE_NODE *OSGetDevNode(CONNECTION_DATA *psConnection)
 {
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -131,7 +136,6 @@ static INLINE PVRSRV_DEVICE_NODE* OSGetDevNode(CONNECTION_DATA *psConnection)
 
 	return NULL;
 }
-#endif	/* defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS) */
-
+#endif /* defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS) */
 
 #endif /* OSCONNECTION_SERVER_H */

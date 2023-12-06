@@ -48,8 +48,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *****************************************************************************
  * Error values
  *****************************************************************************/
-typedef enum PVRSRV_ERROR_TAG
-{
+typedef enum PVRSRV_ERROR_TAG {
 	PVRSRV_OK,
 
 #define PVRE(x) x,
@@ -68,8 +67,10 @@ typedef enum PVRSRV_ERROR_TAG
  * @Return IMG_TRUE if eError is one of the error codes that require the caller
  *         to retry.
  */
-#define PVRSRVIsRetryError(eError) \
-	(((eError == PVRSRV_ERROR_RETRY) || (eError == PVRSRV_ERROR_KERNEL_CCB_FULL)) ? \
-	 IMG_TRUE : IMG_FALSE)
+#define PVRSRVIsRetryError(eError)                    \
+	(((eError == PVRSRV_ERROR_RETRY) ||           \
+	  (eError == PVRSRV_ERROR_KERNEL_CCB_FULL)) ? \
+		 IMG_TRUE :                           \
+		 IMG_FALSE)
 
 #endif /* !defined(PVRSRV_ERROR_H) */

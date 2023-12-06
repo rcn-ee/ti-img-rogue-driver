@@ -67,31 +67,29 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "signfw.h"
 #endif /* RGX_FW_SIGNED */
 
-struct OS_FW_IMAGE_t
-{
+struct OS_FW_IMAGE_t {
 	const struct firmware *psFW;
-	size_t                 uSignatureSize;
+	size_t uSignatureSize;
 };
 
 #if defined(RGX_FW_SIGNED)
 
-static int OSCheckSignature(const struct FirmwareSignatureHeader *psHeader, size_t uSize)
+static int OSCheckSignature(const struct FirmwareSignatureHeader *psHeader,
+			    size_t uSize)
 {
-	if (be32_to_cpu(psHeader->ui32SignatureLen) >= uSize - sizeof(*psHeader))
-	{
+	if (be32_to_cpu(psHeader->ui32SignatureLen) >=
+	    uSize - sizeof(*psHeader)) {
 		return -EBADMSG;
 	}
 
-	if (psHeader->ui8IDType != PKEY_ID_PKCS7)
-	{
+	if (psHeader->ui8IDType != PKEY_ID_PKCS7) {
 		return -ENOPKG;
 	}
 
 	if (psHeader->ui8Algo != 0 || psHeader->ui8HashAlgo != 0 ||
 	    psHeader->ui8SignerLen != 0 || psHeader->ui8KeyIDLen != 0 ||
 	    psHeader->__ui8Padding[0] != 0 || psHeader->__ui8Padding[1] != 0 ||
-	    psHeader->__ui8Padding[2] != 0)
-	{
+	    psHeader->__ui8Padding[2] != 0) {
 		return -EBADMSG;
 	}
 
@@ -100,15 +98,14 @@ static int OSCheckSignature(const struct FirmwareSignatureHeader *psHeader, size
 
 bool OSVerifyFirmware(OS_FW_IMAGE *psFWImage)
 {
-	const struct firmware *psFW        = psFWImage->psFW;
-	const u8              *pui8FWData  = psFW->data;
-	size_t                uFWSize      = psFW->size;
-	uint32_t              ui32MagicLen = sizeof(MODULE_SIG_STRING) - 1;
+	const struct firmware *psFW = psFWImage->psFW;
+	const u8 *pui8FWData = psFW->data;
+	size_t uFWSize = psFW->size;
+	uint32_t ui32MagicLen = sizeof(MODULE_SIG_STRING) - 1;
 	struct FirmwareSignatureHeader sHeader;
-	int                            err;
+	int err;
 
-	if (uFWSize <= ui32MagicLen)
-	{
+	if (uFWSize <= ui32MagicLen) {
 		return false;
 	}
 
@@ -117,14 +114,13 @@ bool OSVerifyFirmware(OS_FW_IMAGE *psFWImage)
 	 * modules, and so appends the MODULE_SIG_STRING magic at the end of
 	 * the signature. Only proceed with verification if this magic is found.
 	 */
-	if (memcmp(pui8FWData + uFWSize - ui32MagicLen, MODULE_SIG_STRING, ui32MagicLen) != 0)
-	{
+	if (memcmp(pui8FWData + uFWSize - ui32MagicLen, MODULE_SIG_STRING,
+		   ui32MagicLen) != 0) {
 		return false;
 	}
 
 	uFWSize -= ui32MagicLen;
-	if (uFWSize <= sizeof(sHeader))
-	{
+	if (uFWSize <= sizeof(sHeader)) {
 		return false;
 	}
 
@@ -134,9 +130,9 @@ bool OSVerifyFirmware(OS_FW_IMAGE *psFWImage)
 	 * contents (We only support RSA Crypto, SHA Hash, X509 certificate and
 	 * PKCS#7 signature).
 	 */
-	memcpy(&sHeader, pui8FWData + (uFWSize - sizeof(sHeader)), sizeof(sHeader));
-	if (OSCheckSignature(&sHeader, uFWSize) != 0)
-	{
+	memcpy(&sHeader, pui8FWData + (uFWSize - sizeof(sHeader)),
+	       sizeof(sHeader));
+	if (OSCheckSignature(&sHeader, uFWSize) != 0) {
 		return false;
 	}
 
@@ -146,18 +142,18 @@ bool OSVerifyFirmware(OS_FW_IMAGE *psFWImage)
 	 */
 	uFWSize -= be32_to_cpu(sHeader.ui32SignatureLen) + sizeof(sHeader);
 	err = verify_pkcs7_signature(pui8FWData, uFWSize, pui8FWData + uFWSize,
-				     be32_to_cpu(sHeader.ui32SignatureLen), NULL,
-				     VERIFYING_UNSPECIFIED_SIGNATURE, NULL, NULL);
-	if (err == 0)
-	{
+				     be32_to_cpu(sHeader.ui32SignatureLen),
+				     NULL, VERIFYING_UNSPECIFIED_SIGNATURE,
+				     NULL, NULL);
+	if (err == 0) {
 		psFWImage->uSignatureSize = psFW->size - uFWSize;
 		PVR_DPF((PVR_DBG_MESSAGE, "%s: Firmware Successfully Verified",
-						__func__));
+			 __func__));
 		return true;
 	}
 
 	PVR_DPF((PVR_DBG_WARNING, "%s: Firmware Verification Failed (%d)",
-					__func__, err));
+		 __func__, err));
 	return false;
 }
 
@@ -172,50 +168,49 @@ inline bool OSVerifyFirmware(OS_FW_IMAGE *psFWImage)
 
 PVRSRV_ERROR
 OSLoadFirmware(PVRSRV_DEVICE_NODE *psDeviceNode, const IMG_CHAR *pszBVNCString,
-               bool (*pfnVerifyFirmware)(OS_FW_IMAGE*), OS_FW_IMAGE **ppsFWImage)
+	       bool (*pfnVerifyFirmware)(OS_FW_IMAGE *),
+	       OS_FW_IMAGE **ppsFWImage)
 {
 	const struct firmware *psFW = NULL;
 	OS_FW_IMAGE *psFWImage;
-	IMG_INT32    res;
+	IMG_INT32 res;
 	PVRSRV_ERROR eError;
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 18, 0))
-	res = firmware_request_nowarn(&psFW, pszBVNCString, psDeviceNode->psDevConfig->pvOSDevice);
+	res = firmware_request_nowarn(&psFW, pszBVNCString,
+				      psDeviceNode->psDevConfig->pvOSDevice);
 #else
-	res = request_firmware(&psFW, pszBVNCString, psDeviceNode->psDevConfig->pvOSDevice);
+	res = request_firmware(&psFW, pszBVNCString,
+			       psDeviceNode->psDevConfig->pvOSDevice);
 #endif
-	if (res != 0)
-	{
+	if (res != 0) {
 		release_firmware(psFW);
-		if (res == -ENOENT)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s: requested firmware('%s') not found (%d)",
-							__func__, pszBVNCString, res));
+		if (res == -ENOENT) {
+			PVR_DPF((PVR_DBG_WARNING,
+				 "%s: requested firmware('%s') not found (%d)",
+				 __func__, pszBVNCString, res));
 			eError = PVRSRV_ERROR_NOT_FOUND;
-		}
-		else
-		{
-			PVR_DPF((PVR_DBG_WARNING, "%s: requested firmware('%s') not ready (%d)",
-							__func__, pszBVNCString, res));
+		} else {
+			PVR_DPF((PVR_DBG_WARNING,
+				 "%s: requested firmware('%s') not ready (%d)",
+				 __func__, pszBVNCString, res));
 			eError = PVRSRV_ERROR_NOT_READY;
 		}
 		goto err_exit;
 	}
 
 	psFWImage = OSAllocZMem(sizeof(*psFWImage));
-	if (psFWImage == NULL)
-	{
+	if (psFWImage == NULL) {
 		PVR_DPF((PVR_DBG_WARNING, "%s: OSAllocZMem('%s') failed.",
-						__func__, pszBVNCString));
+			 __func__, pszBVNCString));
 
 		release_firmware(psFW);
-		eError =  PVRSRV_ERROR_OUT_OF_MEMORY;
+		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_exit;
 	}
 
 	psFWImage->psFW = psFW;
-	if (pfnVerifyFirmware != NULL && !pfnVerifyFirmware(psFWImage))
-	{
+	if (pfnVerifyFirmware != NULL && !pfnVerifyFirmware(psFWImage)) {
 		release_firmware(psFW);
 		OSFreeMem(psFWImage);
 		eError = PVRSRV_ERROR_NOT_AUTHENTICATED;
@@ -230,8 +225,7 @@ err_exit:
 	return eError;
 }
 
-void
-OSUnloadFirmware(OS_FW_IMAGE *psFWImage)
+void OSUnloadFirmware(OS_FW_IMAGE *psFWImage)
 {
 	const struct firmware *psFW = psFWImage->psFW;
 
@@ -239,15 +233,13 @@ OSUnloadFirmware(OS_FW_IMAGE *psFWImage)
 	OSFreeMem(psFWImage);
 }
 
-size_t
-OSFirmwareSize(OS_FW_IMAGE *psFWImage)
+size_t OSFirmwareSize(OS_FW_IMAGE *psFWImage)
 {
 	const struct firmware *psFW = psFWImage->psFW;
 	return psFW->size - psFWImage->uSignatureSize;
 }
 
-const void *
-OSFirmwareData(OS_FW_IMAGE *psFWImage)
+const void *OSFirmwareData(OS_FW_IMAGE *psFWImage)
 {
 	const struct firmware *psFW = psFWImage->psFW;
 

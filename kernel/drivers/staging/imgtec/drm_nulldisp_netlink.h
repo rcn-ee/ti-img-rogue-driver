@@ -50,22 +50,18 @@ typedef void (*nlpvrdpy_disconnect_cb)(void *data);
 typedef int (*nlpvrdpy_flipped_cb)(void *data);
 typedef int (*nlpvrdpy_copied_cb)(void *data);
 
-struct nlpvrdpy *nlpvrdpy_create(struct drm_device *dev,
-					nlpvrdpy_disconnect_cb disconnect_cb,
-					void *disconnect_cb_data,
-					nlpvrdpy_flipped_cb flipped_cb,
-					void *flipped_cb_data,
-					nlpvrdpy_copied_cb copied_cb,
-					void *copied_cb_data);
+struct nlpvrdpy *
+nlpvrdpy_create(struct drm_device *dev, nlpvrdpy_disconnect_cb disconnect_cb,
+		void *disconnect_cb_data, nlpvrdpy_flipped_cb flipped_cb,
+		void *flipped_cb_data, nlpvrdpy_copied_cb copied_cb,
+		void *copied_cb_data);
 
 void nlpvrdpy_destroy(struct nlpvrdpy *nlpvrdpy);
 
-int nlpvrdpy_send_flip(struct nlpvrdpy *nlpvrdpy,
-		       struct drm_framebuffer *fb,
+int nlpvrdpy_send_flip(struct nlpvrdpy *nlpvrdpy, struct drm_framebuffer *fb,
 		       struct drm_gem_object **objs);
 
-int nlpvrdpy_send_copy(struct nlpvrdpy *nlpvrdpy,
-		       struct drm_framebuffer *fb,
+int nlpvrdpy_send_copy(struct nlpvrdpy *nlpvrdpy, struct drm_framebuffer *fb,
 		       struct drm_gem_object **objs);
 
 void nlpvrdpy_send_disconnect(struct nlpvrdpy *nlpvrdpy);

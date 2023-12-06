@@ -57,7 +57,9 @@ PVRSRV_ERROR RGXMMUInit_Register(PVRSRV_DEVICE_NODE *psDeviceNode);
 PVRSRV_ERROR RGXMMUInit_Unregister(PVRSRV_DEVICE_NODE *psDeviceNode);
 
 #if defined(RGX_FEATURE_MMU_VERSION_MAX_VALUE_IDX)
-IMG_UINT64 RGXMMUInit_GetConfigRangeValue(IMG_UINT32 ui32DataPageSize, IMG_UINT64 ui64BaseAddress, IMG_UINT64 ui64RangeSize);
+IMG_UINT64 RGXMMUInit_GetConfigRangeValue(IMG_UINT32 ui32DataPageSize,
+					  IMG_UINT64 ui64BaseAddress,
+					  IMG_UINT64 ui64RangeSize);
 #endif
 
 #endif /* #ifndef SRVKM_RGXMMUINIT_H */

@@ -142,12 +142,11 @@ static inline struct pvr_fence *to_pvr_fence(struct dma_fence *fence)
 	return NULL;
 }
 
-PVRSRV_ERROR pvr_fence_context_register_dbg(void *dbg_request_handle,
-				void *dev,
-				struct pvr_fence_context *fctx);
+PVRSRV_ERROR pvr_fence_context_register_dbg(void *dbg_request_handle, void *dev,
+					    struct pvr_fence_context *fctx);
 struct pvr_fence_context *
 pvr_fence_foreign_context_create(struct workqueue_struct *fence_status_wq,
-		const char *name);
+				 const char *name);
 struct pvr_fence_context *
 pvr_fence_context_create(void *dev_cookie,
 			 struct workqueue_struct *fence_status_wq,
@@ -159,12 +158,10 @@ struct pvr_fence *
 pvr_fence_create(struct pvr_fence_context *fctx,
 		 struct SYNC_CHECKPOINT_CONTEXT_TAG *sync_checkpoint_ctx,
 		 int timeline_fd, const char *name);
-struct pvr_fence *
-pvr_fence_create_from_fence(struct pvr_fence_context *fctx,
-			    struct SYNC_CHECKPOINT_CONTEXT_TAG *sync_checkpoint_ctx,
-			    struct dma_fence *fence,
-			    PVRSRV_FENCE fence_fd,
-			    const char *name);
+struct pvr_fence *pvr_fence_create_from_fence(
+	struct pvr_fence_context *fctx,
+	struct SYNC_CHECKPOINT_CONTEXT_TAG *sync_checkpoint_ctx,
+	struct dma_fence *fence, PVRSRV_FENCE fence_fd, const char *name);
 void pvr_fence_destroy(struct pvr_fence *pvr_fence);
 int pvr_fence_sw_signal(struct pvr_fence *pvr_fence);
 int pvr_fence_sw_error(struct pvr_fence *pvr_fence);
@@ -179,8 +176,7 @@ void pvr_fence_context_signal_fences_nohw(void *data);
 void pvr_fence_context_free_deferred_callback(void *data);
 
 u32 pvr_fence_dump_info_on_stalled_ufos(struct pvr_fence_context *fctx,
-					u32 nr_ufos,
-					u32 *vaddrs);
+					u32 nr_ufos, u32 *vaddrs);
 
 static inline void pvr_fence_cleanup(void)
 {
@@ -192,41 +188,40 @@ static inline void pvr_fence_cleanup(void)
 }
 
 #if defined(PVR_FENCE_DEBUG)
-#define PVR_FENCE_CTX_TRACE(c, fmt, ...)                                   \
-	do {                                                               \
-		struct pvr_fence_context *__fctx = (c);                    \
-		pr_err("c %llu: (PVR) " fmt, (u64) __fctx->fence_context,  \
-		       ## __VA_ARGS__);                                    \
+#define PVR_FENCE_CTX_TRACE(c, fmt, ...)                                 \
+	do {                                                             \
+		struct pvr_fence_context *__fctx = (c);                  \
+		pr_err("c %llu: (PVR) " fmt, (u64)__fctx->fence_context, \
+		       ##__VA_ARGS__);                                   \
 	} while (0)
 #else
 #define PVR_FENCE_CTX_TRACE(c, fmt, ...)
 #endif
 
-#define PVR_FENCE_CTX_WARN(c, fmt, ...)                                    \
-	do {                                                               \
-		struct pvr_fence_context *__fctx = (c);                    \
-		pr_warn("c %llu: (PVR) " fmt, (u64) __fctx->fence_context, \
-			## __VA_ARGS__);                                   \
+#define PVR_FENCE_CTX_WARN(c, fmt, ...)                                   \
+	do {                                                              \
+		struct pvr_fence_context *__fctx = (c);                   \
+		pr_warn("c %llu: (PVR) " fmt, (u64)__fctx->fence_context, \
+			##__VA_ARGS__);                                   \
 	} while (0)
 
-#define PVR_FENCE_CTX_ERR(c, fmt, ...)                                     \
-	do {                                                               \
-		struct pvr_fence_context *__fctx = (c);                    \
-		pr_err("c %llu: (PVR) " fmt, (u64) __fctx->fence_context,  \
-		       ## __VA_ARGS__);                                    \
+#define PVR_FENCE_CTX_ERR(c, fmt, ...)                                   \
+	do {                                                             \
+		struct pvr_fence_context *__fctx = (c);                  \
+		pr_err("c %llu: (PVR) " fmt, (u64)__fctx->fence_context, \
+		       ##__VA_ARGS__);                                   \
 	} while (0)
 
 #if defined(PVR_FENCE_DEBUG)
-#define PVR_FENCE_TRACE(f, fmt, ...)                                       \
-	DMA_FENCE_ERR(f, "(PVR) " fmt, ## __VA_ARGS__)
+#define PVR_FENCE_TRACE(f, fmt, ...) \
+	DMA_FENCE_ERR(f, "(PVR) " fmt, ##__VA_ARGS__)
 #else
 #define PVR_FENCE_TRACE(f, fmt, ...)
 #endif
 
-#define PVR_FENCE_WARN(f, fmt, ...)                                        \
-	DMA_FENCE_WARN(f, "(PVR) " fmt, ## __VA_ARGS__)
+#define PVR_FENCE_WARN(f, fmt, ...) \
+	DMA_FENCE_WARN(f, "(PVR) " fmt, ##__VA_ARGS__)
 
-#define PVR_FENCE_ERR(f, fmt, ...)                                         \
-	DMA_FENCE_ERR(f, "(PVR) " fmt, ## __VA_ARGS__)
+#define PVR_FENCE_ERR(f, fmt, ...) DMA_FENCE_ERR(f, "(PVR) " fmt, ##__VA_ARGS__)
 
 #endif /* !defined(__PVR_FENCE_H__) */

@@ -49,29 +49,27 @@
 #error Define either SUPPORT_RGX or SUPPORT_APOLLO_FGPA, not both
 #endif
 
-int apollo_init(struct tc_device *tc, struct pci_dev *pdev,
-		int *core_clock, int *mem_clock, int sys_clock, int *clock_multiplex,
-		int pdp_mem_size, int secure_mem_size,
-		int mem_latency, int mem_wresp_latency, int mem_mode);
+int apollo_init(struct tc_device *tc, struct pci_dev *pdev, int *core_clock,
+		int *mem_clock, int sys_clock, int *clock_multiplex,
+		int pdp_mem_size, int secure_mem_size, int mem_latency,
+		int mem_wresp_latency, int mem_mode);
 int apollo_cleanup(struct tc_device *tc);
 
 int apollo_register_pdp_device(struct tc_device *tc);
 int apollo_register_ext_device(struct tc_device *tc);
 
-void apollo_enable_interrupt_register(struct tc_device *tc,
-				      int interrupt_id);
-void apollo_disable_interrupt_register(struct tc_device *tc,
-				       int interrupt_id);
+void apollo_enable_interrupt_register(struct tc_device *tc, int interrupt_id);
+void apollo_disable_interrupt_register(struct tc_device *tc, int interrupt_id);
 
 irqreturn_t apollo_irq_handler(int irq, void *data);
 
 int apollo_sys_info(struct tc_device *tc, u32 *tmp, u32 *pll);
-int apollo_sys_strings(struct tc_device *tc,
-		       char *str_fpga_rev, size_t size_fpga_rev,
-		       char *str_tcf_core_rev, size_t size_tcf_core_rev,
+int apollo_sys_strings(struct tc_device *tc, char *str_fpga_rev,
+		       size_t size_fpga_rev, char *str_tcf_core_rev,
+		       size_t size_tcf_core_rev,
 		       char *str_tcf_core_target_build_id,
-		       size_t size_tcf_core_target_build_id,
-		       char *str_pci_ver, size_t size_pci_ver,
-		       char *str_macro_ver, size_t size_macro_ver);
+		       size_t size_tcf_core_target_build_id, char *str_pci_ver,
+		       size_t size_pci_ver, char *str_macro_ver,
+		       size_t size_macro_ver);
 
 #endif /* _APOLLO_DRV_H */

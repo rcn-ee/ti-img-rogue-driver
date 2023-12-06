@@ -61,9 +61,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXSetRegConfigTypeKM(CONNECTION_DATA * psDevConnection,
-                                         PVRSRV_DEVICE_NODE	*psDeviceNode,
-                                         IMG_UINT8 ui8RegPowerIsland);
+PVRSRV_ERROR PVRSRVRGXSetRegConfigTypeKM(CONNECTION_DATA *psDevConnection,
+					 PVRSRV_DEVICE_NODE *psDeviceNode,
+					 IMG_UINT8 ui8RegPowerIsland);
 /*!
 *******************************************************************************
  @Function	PVRSRVRGXSetRegConfigKM
@@ -79,11 +79,11 @@ PVRSRV_ERROR PVRSRVRGXSetRegConfigTypeKM(CONNECTION_DATA * psDevConnection,
  @Return   PVRSRV_ERROR
 ******************************************************************************/
 
-PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA * psConnection,
-                                     PVRSRV_DEVICE_NODE	*psDeviceNode,
-                                     IMG_UINT32	ui64RegAddr,
-                                     IMG_UINT64	ui64RegValue,
-                                     IMG_UINT64	ui64RegMask);
+PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA *psConnection,
+				     PVRSRV_DEVICE_NODE *psDeviceNode,
+				     IMG_UINT32 ui64RegAddr,
+				     IMG_UINT64 ui64RegValue,
+				     IMG_UINT64 ui64RegMask);
 
 /*!
 *******************************************************************************
@@ -96,8 +96,8 @@ PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA * psConnection,
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
-                                       PVRSRV_DEVICE_NODE	*psDeviceNode);
+PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA *psConnection,
+				       PVRSRV_DEVICE_NODE *psDeviceNode);
 
 /*!
 *******************************************************************************
@@ -110,8 +110,8 @@ PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA * psConnection,
-                                        PVRSRV_DEVICE_NODE	*psDeviceNode);
+PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA *psConnection,
+					PVRSRV_DEVICE_NODE *psDeviceNode);
 
 /*!
 *******************************************************************************
@@ -124,7 +124,7 @@ PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA * psConnection,
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXDisableRegConfigKM(CONNECTION_DATA * psConnection,
-                                         PVRSRV_DEVICE_NODE	*psDeviceNode);
+PVRSRV_ERROR PVRSRVRGXDisableRegConfigKM(CONNECTION_DATA *psConnection,
+					 PVRSRV_DEVICE_NODE *psDeviceNode);
 
 #endif /* RGXREGCONFIG_H */

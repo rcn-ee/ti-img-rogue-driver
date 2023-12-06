@@ -57,8 +57,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define B2KB(x) ((x) >> 10)
 #define B2MB(x) ((x) >> 20)
 
-static inline IMG_UINT64 KB2B(IMG_UINT64 ui64Kilobytes) { return ui64Kilobytes << 10; }
-static inline IMG_UINT64 MB2B(IMG_UINT64 ui64Megabytes) { return ui64Megabytes << 20; }
+static inline IMG_UINT64 KB2B(IMG_UINT64 ui64Kilobytes)
+{
+	return ui64Kilobytes << 10;
+}
+static inline IMG_UINT64 MB2B(IMG_UINT64 ui64Megabytes)
+{
+	return ui64Megabytes << 20;
+}
 
 typedef struct _PHYS_HEAP_ PHYS_HEAP;
 #define INVALID_PHYS_HEAP 0xDEADDEAD
@@ -79,34 +85,29 @@ typedef IMG_UINT32 PHYS_HEAP_POLICY;
  * physically contiguous allocations, additional OS functionality
  * is required to map these allocations into the kernel.
  */
-#define PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG      (1U)
+#define PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG (1U)
 #define PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK (1U)
 
 struct _CONNECTION_DATA_;
 
-typedef struct _PG_HANDLE_
-{
-	union
-	{
+typedef struct _PG_HANDLE_ {
+	union {
 		void *pvHandle;
 		IMG_UINT64 ui64Handle;
-	}u;
+	} u;
 	/* The allocation order is log2 value of the number of pages to allocate.
 	 * As such this is a correspondingly small value. E.g, for order 4 we
 	 * are talking 2^4 * PAGE_SIZE contiguous allocation.
 	 * DevPxAlloc API does not need to support orders higher than 4.
 	 */
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
-	IMG_BYTE    uiOrder;    /* Order of the corresponding allocation */
-	IMG_BYTE    uiOSid;     /* OSid to use for allocation arena.
+	IMG_BYTE uiOrder; /* Order of the corresponding allocation */
+	IMG_BYTE uiOSid; /* OSid to use for allocation arena.
 	                         * Connection-specific. */
-	IMG_BYTE    uiPad1,
-	            uiPad2;     /* Spare */
+	IMG_BYTE uiPad1, uiPad2; /* Spare */
 #else
-	IMG_BYTE    uiOrder;    /* Order of the corresponding allocation */
-	IMG_BYTE    uiPad1,
-	            uiPad2,
-	            uiPad3;     /* Spare */
+	IMG_BYTE uiOrder; /* Order of the corresponding allocation */
+	IMG_BYTE uiPad1, uiPad2, uiPad3; /* Spare */
 #endif
 } PG_HANDLE;
 
@@ -126,7 +127,7 @@ typedef void (*PFN_DESTROY_DATA)(PHEAP_IMPL_DATA);
 @Output         IMG_DEV_PHYADDR    Device physical address.
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-typedef PVRSRV_ERROR (*PFN_GET_DEV_PADDR)(PHEAP_IMPL_DATA, IMG_DEV_PHYADDR*);
+typedef PVRSRV_ERROR (*PFN_GET_DEV_PADDR)(PHEAP_IMPL_DATA, IMG_DEV_PHYADDR *);
 /*************************************************************************/ /*!
 @Function       Callback function PFN_GET_CPU_PADDR
 @Description    Get heap CPU physical address.
@@ -134,7 +135,7 @@ typedef PVRSRV_ERROR (*PFN_GET_DEV_PADDR)(PHEAP_IMPL_DATA, IMG_DEV_PHYADDR*);
 @Output         IMG_CPU_PHYADDR    CPU physical address.
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-typedef PVRSRV_ERROR (*PFN_GET_CPU_PADDR)(PHEAP_IMPL_DATA, IMG_CPU_PHYADDR*);
+typedef PVRSRV_ERROR (*PFN_GET_CPU_PADDR)(PHEAP_IMPL_DATA, IMG_CPU_PHYADDR *);
 /*************************************************************************/ /*!
 @Function       Callback function PFN_GET_SIZE
 @Description    Get size of heap.
@@ -142,7 +143,7 @@ typedef PVRSRV_ERROR (*PFN_GET_CPU_PADDR)(PHEAP_IMPL_DATA, IMG_CPU_PHYADDR*);
 @Output         IMG_UINT64         Size of heap.
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-typedef PVRSRV_ERROR (*PFN_GET_SIZE)(PHEAP_IMPL_DATA, IMG_UINT64*);
+typedef PVRSRV_ERROR (*PFN_GET_SIZE)(PHEAP_IMPL_DATA, IMG_UINT64 *);
 /*************************************************************************/ /*!
 @Function       Callback function PFN_GET_PAGE_SHIFT
 @Description    Get heap log2 page shift.
@@ -173,7 +174,8 @@ typedef void (*PFN_GET_MEM_STATS)(PHEAP_IMPL_DATA, IMG_UINT64 *, IMG_UINT64 *);
 @InOut          void**             Iter handle.
 @Return         IMG_BOOL
 */ /**************************************************************************/
-typedef IMG_BOOL (*PFN_GET_HEAP_SPANS_STR_ITER)(PHEAP_IMPL_DATA, IMG_CHAR *, IMG_UINT32, void **);
+typedef IMG_BOOL (*PFN_GET_HEAP_SPANS_STR_ITER)(PHEAP_IMPL_DATA, IMG_CHAR *,
+						IMG_UINT32, void **);
 
 /*************************************************************************/ /*!
 @Function       Callback function PFN_GET_HEAP_DLM_BACKING
@@ -195,27 +197,31 @@ typedef void (*PFN_GET_HEAP_DLM_BACKING)(PHEAP_IMPL_DATA, PHYS_HEAP **);
 typedef IMG_UINT64 (*PFN_GET_HEAP_PMB_SIZE)(PHEAP_IMPL_DATA);
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
-typedef PVRSRV_ERROR (*PFN_PAGES_ALLOC_GPV)(PHYS_HEAP *psPhysHeap, size_t uiSize,
-                                            PG_HANDLE *psMemHandle, IMG_DEV_PHYADDR *psDevPAddr,
-                                            IMG_UINT32 ui32OSid, IMG_PID uiPid);
+typedef PVRSRV_ERROR (*PFN_PAGES_ALLOC_GPV)(PHYS_HEAP *psPhysHeap,
+					    size_t uiSize,
+					    PG_HANDLE *psMemHandle,
+					    IMG_DEV_PHYADDR *psDevPAddr,
+					    IMG_UINT32 ui32OSid, IMG_PID uiPid);
 #endif
 typedef PVRSRV_ERROR (*PFN_PAGES_ALLOC)(PHYS_HEAP *psPhysHeap, size_t uiSize,
-                                        PG_HANDLE *psMemHandle, IMG_DEV_PHYADDR *psDevPAddr,
-                                        IMG_PID uiPid);
+					PG_HANDLE *psMemHandle,
+					IMG_DEV_PHYADDR *psDevPAddr,
+					IMG_PID uiPid);
 
 typedef void (*PFN_PAGES_FREE)(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle);
 
-typedef PVRSRV_ERROR (*PFN_PAGES_MAP)(PHYS_HEAP *psPhysHeap, PG_HANDLE *pshMemHandle,
-                                      size_t uiSize, IMG_DEV_PHYADDR *psDevPAddr,
-                                      void **pvPtr);
+typedef PVRSRV_ERROR (*PFN_PAGES_MAP)(PHYS_HEAP *psPhysHeap,
+				      PG_HANDLE *pshMemHandle, size_t uiSize,
+				      IMG_DEV_PHYADDR *psDevPAddr,
+				      void **pvPtr);
 
-typedef void (*PFN_PAGES_UNMAP)(PHYS_HEAP *psPhysHeap,
-                                PG_HANDLE *psMemHandle, void *pvPtr);
+typedef void (*PFN_PAGES_UNMAP)(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle,
+				void *pvPtr);
 
 typedef PVRSRV_ERROR (*PFN_PAGES_CLEAN)(PHYS_HEAP *psPhysHeap,
-                                        PG_HANDLE *pshMemHandle,
-                                        IMG_UINT32 uiOffset,
-                                        IMG_UINT32 uiLength);
+					PG_HANDLE *pshMemHandle,
+					IMG_UINT32 uiOffset,
+					IMG_UINT32 uiLength);
 
 /*************************************************************************/ /*!
 @Function       Callback function PFN_CREATE_PMR
@@ -236,18 +242,13 @@ typedef PVRSRV_ERROR (*PFN_PAGES_CLEAN)(PHYS_HEAP *psPhysHeap,
 @Input          ui32PDumpFlag      PDump flags.
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-typedef PVRSRV_ERROR (*PFN_CREATE_PMR)(PHYS_HEAP *psPhysHeap,
-									   struct _CONNECTION_DATA_ *psConnection,
-									   IMG_DEVMEM_SIZE_T uiSize,
-									   IMG_UINT32 ui32NumPhysChunks,
-									   IMG_UINT32 ui32NumVirtChunks,
-									   IMG_UINT32 *pui32MappingTable,
-									   IMG_UINT32 uiLog2PageSize,
-									   PVRSRV_MEMALLOCFLAGS_T uiFlags,
-									   const IMG_CHAR *pszAnnotation,
-									   IMG_PID uiPid,
-									   PMR **ppsPMRPtr,
-									   IMG_UINT32 ui32PDumpFlags);
+typedef PVRSRV_ERROR (*PFN_CREATE_PMR)(
+	PHYS_HEAP *psPhysHeap, struct _CONNECTION_DATA_ *psConnection,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 uiLog2PageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	const IMG_CHAR *pszAnnotation, IMG_PID uiPid, PMR **ppsPMRPtr,
+	IMG_UINT32 ui32PDumpFlags);
 
 /*************************************************************************/ /*!
 @Function       Callback function PFN_CREATE_PMB
@@ -264,15 +265,13 @@ typedef PVRSRV_ERROR (*PFN_CREATE_PMR)(PHYS_HEAP *psPhysHeap,
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
 typedef PVRSRV_ERROR (*PFN_CREATE_PMB)(PHYS_HEAP *psPhysHeap,
-                                       IMG_DEVMEM_SIZE_T uiSize,
-                                       const IMG_CHAR *pszAnnotation,
-                                       PMB **ppsPMBPtr,
-                                       RA_BASE_T *puiBase,
-                                       RA_LENGTH_T *puiSize);
+				       IMG_DEVMEM_SIZE_T uiSize,
+				       const IMG_CHAR *pszAnnotation,
+				       PMB **ppsPMBPtr, RA_BASE_T *puiBase,
+				       RA_LENGTH_T *puiSize);
 
 /*! Implementation specific function table */
-typedef struct PHEAP_IMPL_FUNCS_TAG
-{
+typedef struct PHEAP_IMPL_FUNCS_TAG {
 	PFN_DESTROY_DATA pfnDestroyData;
 	PFN_GET_DEV_PADDR pfnGetDevPAddr;
 	PFN_GET_CPU_PADDR pfnGetCPUPAddr;
@@ -301,7 +300,8 @@ typedef struct PHEAP_IMPL_FUNCS_TAG
 @Input          psDevConfig  pointer to device config
 @Return         PVRSRV_ERROR PVRSRV_OK on success, or a PVRSRV_ error code
 */ /**************************************************************************/
-PVRSRV_ERROR PhysHeapInitDeviceHeaps(PPVRSRV_DEVICE_NODE psDeviceNode, PVRSRV_DEVICE_CONFIG *psDevConfig);
+PVRSRV_ERROR PhysHeapInitDeviceHeaps(PPVRSRV_DEVICE_NODE psDeviceNode,
+				     PVRSRV_DEVICE_CONFIG *psDevConfig);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapDeInitDeviceHeaps
@@ -322,8 +322,8 @@ void PhysHeapDeInitDeviceHeaps(PPVRSRV_DEVICE_NODE psDeviceNode);
 */ /**************************************************************************/
 PVRSRV_ERROR
 PhysHeapCreateHeapFromConfig(PPVRSRV_DEVICE_NODE psDevNode,
-							 PHYS_HEAP_CONFIG *psConfig,
-							 PHYS_HEAP **ppsPhysHeap);
+			     PHYS_HEAP_CONFIG *psConfig,
+			     PHYS_HEAP **ppsPhysHeap);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapCreate
@@ -338,12 +338,10 @@ PhysHeapCreateHeapFromConfig(PPVRSRV_DEVICE_NODE psDevNode,
 @Output         ppsPhysHeap  Optional pointer to the created heap. Can be NULL
 @Return         PVRSRV_ERROR PVRSRV_OK or error code
 */ /**************************************************************************/
-PVRSRV_ERROR PhysHeapCreate(PPVRSRV_DEVICE_NODE psDevNode,
-							PHYS_HEAP_CONFIG *psConfig,
-							PHYS_HEAP_POLICY uiPolicy,
-							PHEAP_IMPL_DATA pvImplData,
-							PHEAP_IMPL_FUNCS *psImplFuncs,
-							PHYS_HEAP **ppsPhysHeap);
+PVRSRV_ERROR
+PhysHeapCreate(PPVRSRV_DEVICE_NODE psDevNode, PHYS_HEAP_CONFIG *psConfig,
+	       PHYS_HEAP_POLICY uiPolicy, PHEAP_IMPL_DATA pvImplData,
+	       PHEAP_IMPL_FUNCS *psImplFuncs, PHYS_HEAP **ppsPhysHeap);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapDestroyDeviceHeaps
@@ -366,8 +364,8 @@ PVRSRV_ERROR PhysHeapAcquire(PHYS_HEAP *psPhysHeap);
 @Return         PVRSRV_ERROR PVRSRV_OK or error code
 */ /**************************************************************************/
 PVRSRV_ERROR PhysHeapAcquireByID(PVRSRV_PHYS_HEAP eDevPhysHeap,
-								 PPVRSRV_DEVICE_NODE psDevNode,
-								 PHYS_HEAP **ppsPhysHeap);
+				 PPVRSRV_DEVICE_NODE psDevNode,
+				 PHYS_HEAP **ppsPhysHeap);
 
 void PhysHeapRelease(PHYS_HEAP *psPhysHeap);
 
@@ -409,11 +407,9 @@ IMG_UINT32 PhysHeapGetIPAShift(PHYS_HEAP *psPhysHeap);
 #endif
 
 PVRSRV_ERROR PhysHeapGetCpuPAddr(PHYS_HEAP *psPhysHeap,
-									   IMG_CPU_PHYADDR *psCpuPAddr);
+				 IMG_CPU_PHYADDR *psCpuPAddr);
 
-
-PVRSRV_ERROR PhysHeapGetSize(PHYS_HEAP *psPhysHeap,
-								   IMG_UINT64 *puiSize);
+PVRSRV_ERROR PhysHeapGetSize(PHYS_HEAP *psPhysHeap, IMG_UINT64 *puiSize);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapGetMemInfo
@@ -425,23 +421,20 @@ PVRSRV_ERROR PhysHeapGetSize(PHYS_HEAP *psPhysHeap,
 @Return         PVRSRV_ERROR PVRSRV_OK or error code
 */ /**************************************************************************/
 PVRSRV_ERROR
-PhysHeapGetMemInfo(PPVRSRV_DEVICE_NODE psDevNode,
-                   IMG_UINT32 ui32PhysHeapCount,
-                   PVRSRV_PHYS_HEAP *paePhysHeapID,
-                   PHYS_HEAP_MEM_STATS_PTR paPhysHeapMemStats);
+PhysHeapGetMemInfo(PPVRSRV_DEVICE_NODE psDevNode, IMG_UINT32 ui32PhysHeapCount,
+		   PVRSRV_PHYS_HEAP *paePhysHeapID,
+		   PHYS_HEAP_MEM_STATS_PTR paPhysHeapMemStats);
 
 PVRSRV_ERROR PhysHeapGetDevPAddr(PHYS_HEAP *psPhysHeap,
-								 IMG_DEV_PHYADDR *psDevPAddr);
+				 IMG_DEV_PHYADDR *psDevPAddr);
 
-void PhysHeapCpuPAddrToDevPAddr(PHYS_HEAP *psPhysHeap,
-								IMG_UINT32 ui32NumOfAddr,
-								IMG_DEV_PHYADDR *psDevPAddr,
-								IMG_CPU_PHYADDR *psCpuPAddr);
+void PhysHeapCpuPAddrToDevPAddr(PHYS_HEAP *psPhysHeap, IMG_UINT32 ui32NumOfAddr,
+				IMG_DEV_PHYADDR *psDevPAddr,
+				IMG_CPU_PHYADDR *psCpuPAddr);
 
-void PhysHeapDevPAddrToCpuPAddr(PHYS_HEAP *psPhysHeap,
-								IMG_UINT32 ui32NumOfAddr,
-								IMG_CPU_PHYADDR *psCpuPAddr,
-								IMG_DEV_PHYADDR *psDevPAddr);
+void PhysHeapDevPAddrToCpuPAddr(PHYS_HEAP *psPhysHeap, IMG_UINT32 ui32NumOfAddr,
+				IMG_CPU_PHYADDR *psCpuPAddr,
+				IMG_DEV_PHYADDR *psDevPAddr);
 
 IMG_CHAR *PhysHeapPDumpMemspaceName(PHYS_HEAP *psPhysHeap);
 
@@ -453,19 +446,14 @@ const IMG_CHAR *PhysHeapName(PHYS_HEAP *psPhysHeap);
                 See function pointer for details.
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-PVRSRV_ERROR PhysHeapCreatePMR(PHYS_HEAP *psPhysHeap,
-							   struct _CONNECTION_DATA_ *psConnection,
-							   IMG_DEVMEM_SIZE_T uiSize,
-							   IMG_UINT32 ui32NumPhysChunks,
-							   IMG_UINT32 ui32NumVirtChunks,
-							   IMG_UINT32 *pui32MappingTable,
-							   IMG_UINT32 uiLog2PageSize,
-							   PVRSRV_MEMALLOCFLAGS_T uiFlags,
-							   const IMG_CHAR *pszAnnotation,
-							   IMG_PID uiPid,
-							   PMR **ppsPMRPtr,
-							   IMG_UINT32 ui32PDumpFlags,
-							   PVRSRV_MEMALLOCFLAGS_T *uiOutFlags);
+PVRSRV_ERROR
+PhysHeapCreatePMR(PHYS_HEAP *psPhysHeap, struct _CONNECTION_DATA_ *psConnection,
+		  IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+		  IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+		  IMG_UINT32 uiLog2PageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+		  const IMG_CHAR *pszAnnotation, IMG_PID uiPid, PMR **ppsPMRPtr,
+		  IMG_UINT32 ui32PDumpFlags,
+		  PVRSRV_MEMALLOCFLAGS_T *uiOutFlags);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapCreatePMB
@@ -473,12 +461,9 @@ PVRSRV_ERROR PhysHeapCreatePMR(PHYS_HEAP *psPhysHeap,
                 See @Ref PFN_CREATE_PMB "PFN_CREATE_PMB" for details.
 @Return         PVRSRV_ERROR       PVRSRV_OK or error code
 */ /**************************************************************************/
-PVRSRV_ERROR PhysHeapCreatePMB(PHYS_HEAP *psPhysHeap,
-                               IMG_DEVMEM_SIZE_T uiSize,
-                               const IMG_CHAR *pszAnnotation,
-                               PMB **ppsPMRPtr,
-                               RA_BASE_T *puiBase,
-                               RA_LENGTH_T *puiSize);
+PVRSRV_ERROR PhysHeapCreatePMB(PHYS_HEAP *psPhysHeap, IMG_DEVMEM_SIZE_T uiSize,
+			       const IMG_CHAR *pszAnnotation, PMB **ppsPMRPtr,
+			       RA_BASE_T *puiBase, RA_LENGTH_T *puiSize);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapDeviceNode
@@ -513,36 +498,27 @@ IMG_BOOL PhysHeapInitByPVRLayer(PVRSRV_PHYS_HEAP ePhysHeap);
 IMG_BOOL PhysHeapUserModeAlloc(PVRSRV_PHYS_HEAP ePhysHeap);
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
-PVRSRV_ERROR PhysHeapPagesAllocGPV(PHYS_HEAP *psPhysHeap,
-                                   size_t uiSize,
-                                   PG_HANDLE *psMemHandle,
-                                   IMG_DEV_PHYADDR *psDevPAddr,
-                                   IMG_UINT32 ui32OSid, IMG_PID uiPid);
+PVRSRV_ERROR PhysHeapPagesAllocGPV(PHYS_HEAP *psPhysHeap, size_t uiSize,
+				   PG_HANDLE *psMemHandle,
+				   IMG_DEV_PHYADDR *psDevPAddr,
+				   IMG_UINT32 ui32OSid, IMG_PID uiPid);
 #endif
 
-PVRSRV_ERROR PhysHeapPagesAlloc(PHYS_HEAP *psPhysHeap,
-                                size_t uiSize,
-                                PG_HANDLE *psMemHandle,
-                                IMG_DEV_PHYADDR *psDevPAddr,
-                                IMG_PID uiPid);
+PVRSRV_ERROR PhysHeapPagesAlloc(PHYS_HEAP *psPhysHeap, size_t uiSize,
+				PG_HANDLE *psMemHandle,
+				IMG_DEV_PHYADDR *psDevPAddr, IMG_PID uiPid);
 
-void PhysHeapPagesFree(PHYS_HEAP *psPhysHeap,
-                       PG_HANDLE *psMemHandle);
+void PhysHeapPagesFree(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle);
 
-PVRSRV_ERROR PhysHeapPagesMap(PHYS_HEAP *psPhysHeap,
-                              PG_HANDLE *pshMemHandle,
-                              size_t uiSize,
-                              IMG_DEV_PHYADDR *psDevPAddr,
-                              void **pvPtr);
+PVRSRV_ERROR PhysHeapPagesMap(PHYS_HEAP *psPhysHeap, PG_HANDLE *pshMemHandle,
+			      size_t uiSize, IMG_DEV_PHYADDR *psDevPAddr,
+			      void **pvPtr);
 
-void PhysHeapPagesUnMap(PHYS_HEAP *psPhysHeap,
-                        PG_HANDLE *psMemHandle,
-                        void *pvPtr);
+void PhysHeapPagesUnMap(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle,
+			void *pvPtr);
 
-PVRSRV_ERROR PhysHeapPagesClean(PHYS_HEAP *psPhysHeap,
-                                PG_HANDLE *pshMemHandle,
-                                IMG_UINT32 uiOffset,
-                                IMG_UINT32 uiLength);
+PVRSRV_ERROR PhysHeapPagesClean(PHYS_HEAP *psPhysHeap, PG_HANDLE *pshMemHandle,
+				IMG_UINT32 uiOffset, IMG_UINT32 uiLength);
 
 /*************************************************************************/ /*!
 @Function       PhysHeapGetPageShift
@@ -563,7 +539,7 @@ IMG_UINT32 PhysHeapGetPageShift(PHYS_HEAP *psPhysHeap);
 @Return         PVRSRV_ERROR    If successful PVRSRV_OK else a PVRSRV_ERROR code.
 */ /**************************************************************************/
 PVRSRV_ERROR PhysHeapFreeMemCheck(PHYS_HEAP *psPhysHeap,
-                                  IMG_UINT64 ui64MinRequiredMem,
-                                  IMG_UINT64 *pui64FreeMem);
+				  IMG_UINT64 ui64MinRequiredMem,
+				  IMG_UINT64 *pui64FreeMem);
 
 #endif /* PHYSHEAP_H */

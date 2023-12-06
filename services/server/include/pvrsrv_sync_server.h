@@ -57,18 +57,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SYNC_SW_TIMELINE_MAX_LENGTH PVRSRV_SYNC_NAME_LENGTH
 #define SYNC_SW_FENCE_MAX_LENGTH PVRSRV_SYNC_NAME_LENGTH
 
-typedef struct _SYNC_TIMELINE_OBJ_
-{
+typedef struct _SYNC_TIMELINE_OBJ_ {
 	void *pvTlObj; /* Implementation specific timeline object */
 
-	PVRSRV_TIMELINE hTimeline; /* Reference to implementation-independent timeline object */
+	PVRSRV_TIMELINE
+		hTimeline; /* Reference to implementation-independent timeline object */
 } SYNC_TIMELINE_OBJ;
 
-typedef struct _SYNC_FENCE_OBJ_
-{
+typedef struct _SYNC_FENCE_OBJ_ {
 	void *pvFenceObj; /* Implementation specific fence object */
 
-	PVRSRV_FENCE hFence; /* Reference to implementation-independent fence object */
+	PVRSRV_FENCE
+		hFence; /* Reference to implementation-independent fence object */
 } SYNC_FENCE_OBJ;
 
 static inline void SyncClearTimelineObj(SYNC_TIMELINE_OBJ *psSTO)
@@ -93,28 +93,27 @@ static inline IMG_BOOL SyncIsFenceObjValid(const SYNC_FENCE_OBJ *psSFO)
 	return (IMG_BOOL)(psSFO->pvFenceObj != NULL);
 }
 
-
 /* Mapping of each required function to its appropriate sync-implementation function */
 #if defined(SUPPORT_FALLBACK_FENCE_SYNC)
-	#define SyncFenceWaitKM_                SyncFbFenceWait
-	#define SyncGetFenceObj_                SyncFbGetFenceObj
-	#define SyncFenceReleaseKM_             SyncFbFenceReleaseKM
-	#define SyncSWTimelineFenceCreateKM_    SyncFbSWTimelineFenceCreateKM
-	#define SyncSWTimelineAdvanceKM_        SyncFbSWTimelineAdvanceKM
-	#define SyncSWGetTimelineObj_           SyncFbSWGetTimelineObj
-	#define SyncSWTimelineReleaseKM_        SyncFbTimelineRelease
-	#define SyncDumpFence_                  SyncFbDumpFenceKM
-	#define SyncSWDumpTimeline_             SyncFbSWDumpTimelineKM
+#define SyncFenceWaitKM_ SyncFbFenceWait
+#define SyncGetFenceObj_ SyncFbGetFenceObj
+#define SyncFenceReleaseKM_ SyncFbFenceReleaseKM
+#define SyncSWTimelineFenceCreateKM_ SyncFbSWTimelineFenceCreateKM
+#define SyncSWTimelineAdvanceKM_ SyncFbSWTimelineAdvanceKM
+#define SyncSWGetTimelineObj_ SyncFbSWGetTimelineObj
+#define SyncSWTimelineReleaseKM_ SyncFbTimelineRelease
+#define SyncDumpFence_ SyncFbDumpFenceKM
+#define SyncSWDumpTimeline_ SyncFbSWDumpTimelineKM
 #elif defined(SUPPORT_NATIVE_FENCE_SYNC)
-	#define SyncFenceWaitKM_                pvr_sync_fence_wait
-	#define SyncGetFenceObj_                pvr_sync_fence_get
-	#define SyncFenceReleaseKM_             pvr_sync_fence_release
-	#define SyncSWTimelineFenceCreateKM_    pvr_sync_sw_timeline_fence_create
-	#define SyncSWTimelineAdvanceKM_        pvr_sync_sw_timeline_advance
-	#define SyncSWGetTimelineObj_           pvr_sync_sw_timeline_get
-	#define SyncSWTimelineReleaseKM_        pvr_sync_sw_timeline_release
-	#define SyncDumpFence_                  sync_dump_fence
-	#define SyncSWDumpTimeline_             sync_sw_dump_timeline
+#define SyncFenceWaitKM_ pvr_sync_fence_wait
+#define SyncGetFenceObj_ pvr_sync_fence_get
+#define SyncFenceReleaseKM_ pvr_sync_fence_release
+#define SyncSWTimelineFenceCreateKM_ pvr_sync_sw_timeline_fence_create
+#define SyncSWTimelineAdvanceKM_ pvr_sync_sw_timeline_advance
+#define SyncSWGetTimelineObj_ pvr_sync_sw_timeline_get
+#define SyncSWTimelineReleaseKM_ pvr_sync_sw_timeline_release
+#define SyncDumpFence_ sync_dump_fence
+#define SyncSWDumpTimeline_ sync_sw_dump_timeline
 #endif
 
 /*************************************************************************/ /*!
@@ -132,30 +131,26 @@ static inline IMG_BOOL SyncIsFenceObjValid(const SYNC_FENCE_OBJ *psSFO)
                 PVRSRV_ERROR_TIMEOUT    if the poll has exceeded the timeout
                 PVRSRV_ERROR_FAILED_DEPENDENCIES Other sync-impl specific error
 */ /**************************************************************************/
-static inline PVRSRV_ERROR
-SyncFenceWaitKM(PVRSRV_DEVICE_NODE *psDevNode,
-                const SYNC_FENCE_OBJ *psFenceObj,
-                IMG_UINT32 ui32TimeoutInMs)
+static inline PVRSRV_ERROR SyncFenceWaitKM(PVRSRV_DEVICE_NODE *psDevNode,
+					   const SYNC_FENCE_OBJ *psFenceObj,
+					   IMG_UINT32 ui32TimeoutInMs)
 {
 	PVRSRV_ERROR eError;
 
-	RGXSRV_HWPERF_SYNC_FENCE_WAIT(psDevNode->pvDevice,
-								  BEGIN,
-								  OSGetCurrentProcessID(),
-								  psFenceObj->hFence,
-								  ui32TimeoutInMs);
+	RGXSRV_HWPERF_SYNC_FENCE_WAIT(psDevNode->pvDevice, BEGIN,
+				      OSGetCurrentProcessID(),
+				      psFenceObj->hFence, ui32TimeoutInMs);
 
 	eError = SyncFenceWaitKM_(psFenceObj->pvFenceObj, ui32TimeoutInMs);
 
-	RGXSRV_HWPERF_SYNC_FENCE_WAIT(psDevNode->pvDevice,
-								  END,
-								  OSGetCurrentProcessID(),
-								  psFenceObj->hFence,
-								  ((eError == PVRSRV_OK) ?
-									  RGX_HWPERF_HOST_SYNC_FENCE_WAIT_RESULT_PASSED :
-									  ((eError == PVRSRV_ERROR_TIMEOUT) ?
-										  RGX_HWPERF_HOST_SYNC_FENCE_WAIT_RESULT_TIMEOUT :
-										  RGX_HWPERF_HOST_SYNC_FENCE_WAIT_RESULT_ERROR)));
+	RGXSRV_HWPERF_SYNC_FENCE_WAIT(
+		psDevNode->pvDevice, END, OSGetCurrentProcessID(),
+		psFenceObj->hFence,
+		((eError == PVRSRV_OK) ?
+			 RGX_HWPERF_HOST_SYNC_FENCE_WAIT_RESULT_PASSED :
+			 ((eError == PVRSRV_ERROR_TIMEOUT) ?
+				  RGX_HWPERF_HOST_SYNC_FENCE_WAIT_RESULT_TIMEOUT :
+				  RGX_HWPERF_HOST_SYNC_FENCE_WAIT_RESULT_ERROR)));
 	return eError;
 }
 
@@ -174,9 +169,8 @@ SyncFenceWaitKM(PVRSRV_DEVICE_NODE *psDevNode,
 
 @Return         PVRSRV_ERROR  PVRSRV_OK, on success
 */ /**************************************************************************/
-static inline PVRSRV_ERROR
-SyncGetFenceObj(PVRSRV_FENCE iFence,
-                SYNC_FENCE_OBJ *psFenceObj)
+static inline PVRSRV_ERROR SyncGetFenceObj(PVRSRV_FENCE iFence,
+					   SYNC_FENCE_OBJ *psFenceObj)
 {
 	psFenceObj->hFence = iFence;
 	return SyncGetFenceObj_(iFence, &psFenceObj->pvFenceObj);
@@ -191,8 +185,7 @@ SyncGetFenceObj(PVRSRV_FENCE iFence,
 
 @Return         PVRSRV_ERROR
 */ /**************************************************************************/
-static inline
-PVRSRV_ERROR SyncFenceReleaseKM(const SYNC_FENCE_OBJ *psFenceObj)
+static inline PVRSRV_ERROR SyncFenceReleaseKM(const SYNC_FENCE_OBJ *psFenceObj)
 {
 	return SyncFenceReleaseKM_(psFenceObj->pvFenceObj);
 }
@@ -203,50 +196,45 @@ PVRSRV_ERROR SyncFenceReleaseKM(const SYNC_FENCE_OBJ *psFenceObj)
 /*                                                                           */
 /*****************************************************************************/
 
-static inline PVRSRV_ERROR
-SyncSWTimelineFenceCreateKM(PVRSRV_DEVICE_NODE *psDevNode,
-                            PVRSRV_TIMELINE hSWTimeline,
-                            const IMG_CHAR *pszFenceName,
-                            PVRSRV_FENCE *phOutFence)
+static inline PVRSRV_ERROR SyncSWTimelineFenceCreateKM(
+	PVRSRV_DEVICE_NODE *psDevNode, PVRSRV_TIMELINE hSWTimeline,
+	const IMG_CHAR *pszFenceName, PVRSRV_FENCE *phOutFence)
 {
 	IMG_UINT64 ui64SyncPtIdx;
 	PVRSRV_ERROR eError;
-	eError = SyncSWTimelineFenceCreateKM_(psDevNode,
-	                                      hSWTimeline,
-	                                      pszFenceName,
-	                                      phOutFence,
-	                                      &ui64SyncPtIdx);
-	if (eError == PVRSRV_OK)
-	{
+	eError = SyncSWTimelineFenceCreateKM_(psDevNode, hSWTimeline,
+					      pszFenceName, phOutFence,
+					      &ui64SyncPtIdx);
+	if (eError == PVRSRV_OK) {
 		RGXSRV_HWPERF_ALLOC_SW_FENCE(psDevNode, OSGetCurrentProcessID(),
-		                             *phOutFence, hSWTimeline, ui64SyncPtIdx,
-		                             pszFenceName, OSStringLength(pszFenceName));
+					     *phOutFence, hSWTimeline,
+					     ui64SyncPtIdx, pszFenceName,
+					     OSStringLength(pszFenceName));
 	}
 	return eError;
 }
 
 static inline PVRSRV_ERROR
 SyncSWTimelineAdvanceKM(PVRSRV_DEVICE_NODE *psDevNode,
-                        const SYNC_TIMELINE_OBJ *psSWTimelineObj)
+			const SYNC_TIMELINE_OBJ *psSWTimelineObj)
 {
 	IMG_UINT64 ui64SyncPtIdx;
 	PVRSRV_ERROR eError;
 	eError = SyncSWTimelineAdvanceKM_(psSWTimelineObj->pvTlObj,
-	                                  &ui64SyncPtIdx);
+					  &ui64SyncPtIdx);
 
-	if (eError == PVRSRV_OK)
-	{
+	if (eError == PVRSRV_OK) {
 		RGXSRV_HWPERF_SYNC_SW_TL_ADV(psDevNode->pvDevice,
-		                             OSGetCurrentProcessID(),
-		                             psSWTimelineObj->hTimeline,
-		                             ui64SyncPtIdx);
+					     OSGetCurrentProcessID(),
+					     psSWTimelineObj->hTimeline,
+					     ui64SyncPtIdx);
 	}
 	return eError;
 }
 
 static inline PVRSRV_ERROR
 SyncSWGetTimelineObj(PVRSRV_TIMELINE hSWTimeline,
-                     SYNC_TIMELINE_OBJ *psSWTimelineObj)
+		     SYNC_TIMELINE_OBJ *psSWTimelineObj)
 {
 	psSWTimelineObj->hTimeline = hSWTimeline;
 	return SyncSWGetTimelineObj_(hSWTimeline, &psSWTimelineObj->pvTlObj);
@@ -260,19 +248,19 @@ SyncSWTimelineReleaseKM(const SYNC_TIMELINE_OBJ *psSWTimelineObj)
 
 static inline PVRSRV_ERROR
 SyncDumpFence(const SYNC_FENCE_OBJ *psFenceObj,
-              DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-              void *pvDumpDebugFile)
+	      DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf, void *pvDumpDebugFile)
 {
-	return SyncDumpFence_(psFenceObj->pvFenceObj, pfnDumpDebugPrintf, pvDumpDebugFile);
+	return SyncDumpFence_(psFenceObj->pvFenceObj, pfnDumpDebugPrintf,
+			      pvDumpDebugFile);
 }
 
 static inline PVRSRV_ERROR
 SyncSWDumpTimeline(const SYNC_TIMELINE_OBJ *psSWTimelineObj,
-                   DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                   void *pvDumpDebugFile)
+		   DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+		   void *pvDumpDebugFile)
 {
-	return SyncSWDumpTimeline_(psSWTimelineObj->pvTlObj, pfnDumpDebugPrintf, pvDumpDebugFile);
+	return SyncSWDumpTimeline_(psSWTimelineObj->pvTlObj, pfnDumpDebugPrintf,
+				   pvDumpDebugFile);
 }
-
 
 #endif /* PVRSRV_SYNC_SERVER_H */

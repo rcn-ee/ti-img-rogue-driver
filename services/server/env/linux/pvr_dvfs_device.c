@@ -98,36 +98,35 @@ static int _device_get_devid(struct device *dev)
 	return deviceId;
 }
 
-static IMG_INT32 devfreq_target(struct device *dev, unsigned long *requested_freq, IMG_UINT32 flags)
+static IMG_INT32 devfreq_target(struct device *dev,
+				unsigned long *requested_freq, IMG_UINT32 flags)
 {
 	int deviceId = _device_get_devid(dev);
-	PVRSRV_DEVICE_NODE *psDeviceNode = PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
-	RGX_DATA		*psRGXData = NULL;
-	IMG_DVFS_DEVICE		*psDVFSDevice = NULL;
-	IMG_DVFS_DEVICE_CFG	*psDVFSDeviceCfg = NULL;
-	RGX_TIMING_INFORMATION	*psRGXTimingInfo = NULL;
-	IMG_UINT32		ui32Freq, ui32CurFreq, ui32Volt;
+	PVRSRV_DEVICE_NODE *psDeviceNode =
+		PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
+	RGX_DATA *psRGXData = NULL;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
+	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg = NULL;
+	RGX_TIMING_INFORMATION *psRGXTimingInfo = NULL;
+	IMG_UINT32 ui32Freq, ui32CurFreq, ui32Volt;
 	struct dev_pm_opp *opp;
 
 	/* Check the device is registered */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return -ENODEV;
 	}
 
-	psRGXData = (RGX_DATA*) psDeviceNode->psDevConfig->hDevData;
+	psRGXData = (RGX_DATA *)psDeviceNode->psDevConfig->hDevData;
 	psDVFSDevice = &psDeviceNode->psDevConfig->sDVFS.sDVFSDevice;
 	psDVFSDeviceCfg = &psDeviceNode->psDevConfig->sDVFS.sDVFSDeviceCfg;
 
 	/* Check the RGX device is initialised */
-	if (!psRGXData)
-	{
+	if (!psRGXData) {
 		return -ENODATA;
 	}
 
 	psRGXTimingInfo = psRGXData->psRGXTimingInfo;
-	if (!psDVFSDevice->bEnabled)
-	{
+	if (!psDVFSDevice->bEnabled) {
 		*requested_freq = psRGXTimingInfo->ui32CoreClockSpeed;
 		return 0;
 	}
@@ -156,89 +155,85 @@ static IMG_INT32 devfreq_target(struct device *dev, unsigned long *requested_fre
 
 	ui32CurFreq = psRGXTimingInfo->ui32CoreClockSpeed;
 
-	if (ui32CurFreq == ui32Freq)
-	{
+	if (ui32CurFreq == ui32Freq) {
 		return 0;
 	}
 
-	if (PVRSRV_OK != PVRSRVDevicePreClockSpeedChange(psDeviceNode,
-													 psDVFSDeviceCfg->bIdleReq,
-													 NULL))
-	{
+	if (PVRSRV_OK !=
+	    PVRSRVDevicePreClockSpeedChange(psDeviceNode,
+					    psDVFSDeviceCfg->bIdleReq, NULL)) {
 		dev_err(dev, "PVRSRVDevicePreClockSpeedChange failed\n");
 		return -EPERM;
 	}
 
 	/* Increasing frequency, change voltage first */
-	if (ui32Freq > ui32CurFreq)
-	{
-		psDVFSDeviceCfg->pfnSetVoltage(psDeviceNode->psDevConfig->hSysData, ui32Volt);
+	if (ui32Freq > ui32CurFreq) {
+		psDVFSDeviceCfg->pfnSetVoltage(
+			psDeviceNode->psDevConfig->hSysData, ui32Volt);
 	}
 
-	psDVFSDeviceCfg->pfnSetFrequency(psDeviceNode->psDevConfig->hSysData, ui32Freq);
+	psDVFSDeviceCfg->pfnSetFrequency(psDeviceNode->psDevConfig->hSysData,
+					 ui32Freq);
 
 	/* Decreasing frequency, change frequency first */
-	if (ui32Freq < ui32CurFreq)
-	{
-		psDVFSDeviceCfg->pfnSetVoltage(psDeviceNode->psDevConfig->hSysData, ui32Volt);
+	if (ui32Freq < ui32CurFreq) {
+		psDVFSDeviceCfg->pfnSetVoltage(
+			psDeviceNode->psDevConfig->hSysData, ui32Volt);
 	}
 
 	psRGXTimingInfo->ui32CoreClockSpeed = ui32Freq;
 
-	PVRSRVDevicePostClockSpeedChange(psDeviceNode, psDVFSDeviceCfg->bIdleReq,
-									 NULL);
+	PVRSRVDevicePostClockSpeedChange(psDeviceNode,
+					 psDVFSDeviceCfg->bIdleReq, NULL);
 
 	return 0;
 }
 
-static int devfreq_get_dev_status(struct device *dev, struct devfreq_dev_status *stat)
+static int devfreq_get_dev_status(struct device *dev,
+				  struct devfreq_dev_status *stat)
 {
-	int                      deviceId = _device_get_devid(dev);
-	PVRSRV_DEVICE_NODE      *psDeviceNode = PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
-	PVRSRV_RGXDEV_INFO      *psDevInfo = NULL;
-	IMG_DVFS_DEVICE         *psDVFSDevice = NULL;
-	RGX_DATA                *psRGXData = NULL;
-	RGX_TIMING_INFORMATION  *psRGXTimingInfo = NULL;
-	RGXFWIF_GPU_UTIL_STATS   sGpuUtilStats = {0};
-	PVRSRV_ERROR             eError;
+	int deviceId = _device_get_devid(dev);
+	PVRSRV_DEVICE_NODE *psDeviceNode =
+		PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
+	PVRSRV_RGXDEV_INFO *psDevInfo = NULL;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
+	RGX_DATA *psRGXData = NULL;
+	RGX_TIMING_INFORMATION *psRGXTimingInfo = NULL;
+	RGXFWIF_GPU_UTIL_STATS sGpuUtilStats = { 0 };
+	PVRSRV_ERROR eError;
 #if defined(CONFIG_PM_DEVFREQ_EVENT) && defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	struct pvr_profiling_dev_status *pvr_stat = stat->private_data;
 	int err;
 #endif
 
 	/* Check the device is registered */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return -ENODEV;
 	}
 
 	psDevInfo = psDeviceNode->pvDevice;
 	psDVFSDevice = &psDeviceNode->psDevConfig->sDVFS.sDVFSDevice;
-	psRGXData = (RGX_DATA*) psDeviceNode->psDevConfig->hDevData;
+	psRGXData = (RGX_DATA *)psDeviceNode->psDevConfig->hDevData;
 
 	/* Check the RGX device is initialised */
-	if (!psDevInfo || !psRGXData)
-	{
+	if (!psDevInfo || !psRGXData) {
 		return -ENODATA;
 	}
 
 	psRGXTimingInfo = psRGXData->psRGXTimingInfo;
 	stat->current_frequency = psRGXTimingInfo->ui32CoreClockSpeed;
 
-	if (psDevInfo->pfnGetGpuUtilStats == NULL)
-	{
+	if (psDevInfo->pfnGetGpuUtilStats == NULL) {
 		/* Not yet ready. So set times to something sensible. */
 		stat->busy_time = 0;
 		stat->total_time = 0;
 		return 0;
 	}
 
-	eError = psDevInfo->pfnGetGpuUtilStats(psDeviceNode,
-						psDVFSDevice->hGpuUtilUserDVFS,
-						&sGpuUtilStats);
+	eError = psDevInfo->pfnGetGpuUtilStats(
+		psDeviceNode, psDVFSDevice->hGpuUtilUserDVFS, &sGpuUtilStats);
 
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		return -EAGAIN;
 	}
 
@@ -246,7 +241,8 @@ static int devfreq_get_dev_status(struct device *dev, struct devfreq_dev_status 
 	stat->total_time = sGpuUtilStats.ui64GpuStatCumulative;
 
 #if defined(CONFIG_PM_DEVFREQ_EVENT) && defined(SUPPORT_PVR_DVFS_GOVERNOR)
-	err = pvr_get_dev_status_get_events(psDVFSDevice->psProfilingDevice, pvr_stat);
+	err = pvr_get_dev_status_get_events(psDVFSDevice->psProfilingDevice,
+					    pvr_stat);
 	if (err)
 		return err;
 #endif
@@ -257,20 +253,19 @@ static int devfreq_get_dev_status(struct device *dev, struct devfreq_dev_status 
 static IMG_INT32 devfreq_cur_freq(struct device *dev, unsigned long *freq)
 {
 	int deviceId = _device_get_devid(dev);
-	PVRSRV_DEVICE_NODE *psDeviceNode = PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
+	PVRSRV_DEVICE_NODE *psDeviceNode =
+		PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
 	RGX_DATA *psRGXData = NULL;
 
 	/* Check the device is registered */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return -ENODEV;
 	}
 
-	psRGXData = (RGX_DATA*) psDeviceNode->psDevConfig->hDevData;
+	psRGXData = (RGX_DATA *)psDeviceNode->psDevConfig->hDevData;
 
 	/* Check the RGX device is initialised */
-	if (!psRGXData)
-	{
+	if (!psRGXData) {
 		return -ENODATA;
 	}
 
@@ -279,18 +274,17 @@ static IMG_INT32 devfreq_cur_freq(struct device *dev, unsigned long *freq)
 	return 0;
 }
 
-static struct devfreq_dev_profile img_devfreq_dev_profile =
-{
-	.polling_ms	        = 10,
-	.target             = devfreq_target,
-	.get_dev_status     = devfreq_get_dev_status,
-	.get_cur_freq       = devfreq_cur_freq,
+static struct devfreq_dev_profile img_devfreq_dev_profile = {
+	.polling_ms = 10,
+	.target = devfreq_target,
+	.get_dev_status = devfreq_get_dev_status,
+	.get_cur_freq = devfreq_cur_freq,
 };
 
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 
 /* DEVFREQ governor name */
-#define DEVFREQ_GOV_PVR_BALANCED	"pvr_balanced"
+#define DEVFREQ_GOV_PVR_BALANCED "pvr_balanced"
 
 static unsigned long _get_max_freq(struct devfreq *devfreq_dev)
 {
@@ -307,11 +301,10 @@ static unsigned long _get_max_freq(struct devfreq *devfreq_dev)
  * Calculate the utilisation percentage of X cycles as a proportion
  * of Y cycles
  */
-static inline
-unsigned long UTILISATION_PC(unsigned long X, unsigned long Y)
+static inline unsigned long UTILISATION_PC(unsigned long X, unsigned long Y)
 {
 	PVR_ASSERT(Y > 0);
-/*
+	/*
 	if (X < UINT_MAX / 100UL)
 		return min(100UL, X * 100UL / Y);
 	else
@@ -324,17 +317,17 @@ unsigned long UTILISATION_PC(unsigned long X, unsigned long Y)
 }
 
 static int pvr_governor_get_target(struct devfreq *devfreq_dev,
-								   unsigned long *freq)
+				   unsigned long *freq)
 {
 	struct devfreq_dev_status *stat;
 	struct pvr_profiling_dev_status *pvr_stat;
 	IMG_DVFS_GOVERNOR_CFG *data = devfreq_dev->data;
 	unsigned long ui32Util, ui32UtilDM, ui32UtilBus;
-	int iGeomEventID, iFragEventID, iCompEventID, iSLCReadEventID, iSLCWriteEventID;
+	int iGeomEventID, iFragEventID, iCompEventID, iSLCReadEventID,
+		iSLCWriteEventID;
 	int err;
 
-	if (!devfreq_dev)
-	{
+	if (!devfreq_dev) {
 		return -ENODEV;
 	}
 
@@ -347,108 +340,108 @@ static int pvr_governor_get_target(struct devfreq *devfreq_dev,
 	 */
 
 	err = devfreq_update_stats(devfreq_dev);
-	if (err)
-	{
+	if (err) {
 		dev_warn(&devfreq_dev->dev, "get_dev_status: error (%d)", err);
 		return err;
 	}
 
 	stat = &devfreq_dev->last_status;
 	pvr_stat = stat->private_data;
-	if (!pvr_stat)
-	{
+	if (!pvr_stat) {
 		return -EINVAL;
 	}
 
 	iGeomEventID = pvr_find_event_by_name("geom-cycle");
 	iFragEventID = pvr_find_event_by_name("3d-cycle");
 	iCompEventID = pvr_find_event_by_name("comp-cycle");
-	if (iGeomEventID < 0 || iFragEventID < 0 || iCompEventID < 0)
-	{
+	if (iGeomEventID < 0 || iFragEventID < 0 || iCompEventID < 0) {
 		return -EINVAL;
 	}
 
 	if (pvr_stat->event_data[iGeomEventID].total_count == 0 ||
 	    pvr_stat->event_data[iFragEventID].total_count == 0 ||
-	    pvr_stat->event_data[iCompEventID].total_count == 0)
-	{
+	    pvr_stat->event_data[iCompEventID].total_count == 0) {
 		/* no error to avoid verbose kernel logs before the firmware/GPU
 		 * is available. */
 		return 0;
 	}
 
 	/* GEOM utilisation */
-	if (iGeomEventID >= 0)
-	{
-		ui32Util =
-			UTILISATION_PC(pvr_stat->event_data[iGeomEventID].load_count,
-						   pvr_stat->event_data[iGeomEventID].total_count);
+	if (iGeomEventID >= 0) {
+		ui32Util = UTILISATION_PC(
+			pvr_stat->event_data[iGeomEventID].load_count,
+			pvr_stat->event_data[iGeomEventID].total_count);
 #if defined(DEBUG)
-		dev_info(&devfreq_dev->dev, "Geom event: %lu cycles, %lu percent",
-			pvr_stat->event_data[iGeomEventID].load_count, ui32Util);
+		dev_info(&devfreq_dev->dev,
+			 "Geom event: %lu cycles, %lu percent",
+			 pvr_stat->event_data[iGeomEventID].load_count,
+			 ui32Util);
 #endif
 		ui32UtilDM = max(ui32UtilDM, ui32Util);
 	}
 
 	/* 3D utilisation */
-	if (iFragEventID >= 0)
-	{
-		ui32Util =
-			UTILISATION_PC(pvr_stat->event_data[iFragEventID].load_count,
-						   pvr_stat->event_data[iFragEventID].total_count);
+	if (iFragEventID >= 0) {
+		ui32Util = UTILISATION_PC(
+			pvr_stat->event_data[iFragEventID].load_count,
+			pvr_stat->event_data[iFragEventID].total_count);
 #if defined(DEBUG)
 		dev_info(&devfreq_dev->dev, "3D event: %lu cycles, %lu percent",
-			pvr_stat->event_data[iFragEventID].load_count, ui32Util);
+			 pvr_stat->event_data[iFragEventID].load_count,
+			 ui32Util);
 #endif
 		ui32UtilDM = max(ui32UtilDM, ui32Util);
 	}
 
 	/* Compute utilisation */
-	if (iCompEventID >= 0)
-	{
-		ui32Util =
-			UTILISATION_PC(pvr_stat->event_data[iCompEventID].load_count,
-						   pvr_stat->event_data[iCompEventID].total_count);
+	if (iCompEventID >= 0) {
+		ui32Util = UTILISATION_PC(
+			pvr_stat->event_data[iCompEventID].load_count,
+			pvr_stat->event_data[iCompEventID].total_count);
 #if defined(DEBUG)
-		dev_info(&devfreq_dev->dev, "Compute event: %lu cycles, %lu percent",
-			pvr_stat->event_data[iCompEventID].load_count, ui32Util);
+		dev_info(&devfreq_dev->dev,
+			 "Compute event: %lu cycles, %lu percent",
+			 pvr_stat->event_data[iCompEventID].load_count,
+			 ui32Util);
 #endif
 		ui32UtilDM = max(ui32UtilDM, ui32Util);
 	}
 
-	iSLCReadEventID =  pvr_find_event_by_name("slc-read");
+	iSLCReadEventID = pvr_find_event_by_name("slc-read");
 	iSLCWriteEventID = pvr_find_event_by_name("slc-write");
-	if (iSLCReadEventID >= 0 && iSLCWriteEventID >= 0)
-	{
+	if (iSLCReadEventID >= 0 && iSLCWriteEventID >= 0) {
 		/* Use DXT-series memory bus counters */
 
-		ui32Util =
-			UTILISATION_PC(pvr_stat->event_data[iSLCReadEventID].load_count / data->uiNumMembus,
-						   pvr_stat->event_data[iSLCReadEventID].total_count);
+		ui32Util = UTILISATION_PC(
+			pvr_stat->event_data[iSLCReadEventID].load_count /
+				data->uiNumMembus,
+			pvr_stat->event_data[iSLCReadEventID].total_count);
 		ui32UtilBus = ui32Util;
 
-		ui32Util =
-			UTILISATION_PC(pvr_stat->event_data[iSLCWriteEventID].load_count / data->uiNumMembus,
-						   pvr_stat->event_data[iSLCWriteEventID].total_count);
+		ui32Util = UTILISATION_PC(
+			pvr_stat->event_data[iSLCWriteEventID].load_count /
+				data->uiNumMembus,
+			pvr_stat->event_data[iSLCWriteEventID].total_count);
 		ui32UtilBus = ui32UtilBus + ui32Util;
 
 #if defined(DEBUG)
-		dev_info(&devfreq_dev->dev, "SLC counter r/w: (membus=%u) %lu, %lu percent",
-			data->uiNumMembus,
-			pvr_stat->event_data[iSLCReadEventID].load_count + pvr_stat->event_data[iSLCWriteEventID].load_count,
-			ui32UtilBus);
+		dev_info(&devfreq_dev->dev,
+			 "SLC counter r/w: (membus=%u) %lu, %lu percent",
+			 data->uiNumMembus,
+			 pvr_stat->event_data[iSLCReadEventID].load_count +
+				 pvr_stat->event_data[iSLCWriteEventID]
+					 .load_count,
+			 ui32UtilBus);
 #endif
 	}
 
 	if (ui32UtilDM > 2 * ui32UtilBus) {
 		// DM pipeline limited
 		ui32Util = ui32UtilDM;
-	}
-	else if (ui32UtilBus > 2 * ui32UtilDM) {
+	} else if (ui32UtilBus > 2 * ui32UtilDM) {
 		// Mem bandwidth limited
 		ui32Util = ui32UtilBus;
-	}
-	else {
+	} else {
 		// Average utilisation to smooth random fluctuations
 		ui32Util = (ui32UtilDM + ui32UtilBus) / 2;
 	}
@@ -468,7 +461,7 @@ static void pvr_governor_resume(struct devfreq *devfreq_dev)
 {
 	int deviceId;
 	PVRSRV_DEVICE_NODE *psDeviceNode;
-	IMG_DVFS_DEVICE		*psDVFSDevice = NULL;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
 	struct pvr_profiling_device *psProfilingDevice;
 
 	if (!devfreq_dev || !dev_get_drvdata(&devfreq_dev->dev))
@@ -478,8 +471,7 @@ static void pvr_governor_resume(struct devfreq *devfreq_dev)
 	psDeviceNode = PVRSRVGetDeviceInstanceByKernelDevID(deviceId);
 
 	/* Check the device is registered */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return;
 	}
 
@@ -491,10 +483,9 @@ static void pvr_governor_resume(struct devfreq *devfreq_dev)
 }
 
 static int pvr_governor_event_handler(struct devfreq *devfreq_dev,
-									  unsigned int event, void *data)
+				      unsigned int event, void *data)
 {
-	if (!devfreq_dev)
-	{
+	if (!devfreq_dev) {
 		pr_err("%s: devfreq_dev not ready.\n", __func__);
 		return -ENODEV;
 	}
@@ -507,36 +498,36 @@ static int pvr_governor_event_handler(struct devfreq *devfreq_dev,
 
 	switch (event) {
 	case DEVFREQ_GOV_START:
-		dev_info(&devfreq_dev->dev,"GOV_START event.\n");
+		dev_info(&devfreq_dev->dev, "GOV_START event.\n");
 		devfreq_monitor_start(devfreq_dev);
 		break;
 
 	case DEVFREQ_GOV_STOP:
-		dev_info(&devfreq_dev->dev,"GOV_STOP event.\n");
+		dev_info(&devfreq_dev->dev, "GOV_STOP event.\n");
 		devfreq_monitor_stop(devfreq_dev);
 		break;
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0))
 	case DEVFREQ_GOV_UPDATE_INTERVAL:
-		dev_info(&devfreq_dev->dev,"GOV_UPDATE_INTERVAL event.\n");
+		dev_info(&devfreq_dev->dev, "GOV_UPDATE_INTERVAL event.\n");
 		devfreq_update_interval(devfreq_dev, (unsigned int *)data);
 		break;
 
 #else
 	case DEVFREQ_GOV_INTERVAL:
-		dev_info(&devfreq_dev->dev,"GOV_INTERVAL event.\n");
+		dev_info(&devfreq_dev->dev, "GOV_INTERVAL event.\n");
 		devfreq_interval_update(devfreq_dev, (unsigned int *)data);
 		break;
 #endif
 
 	case DEVFREQ_GOV_SUSPEND:
-		dev_info(&devfreq_dev->dev,"GOV_SUSPEND event.\n");
+		dev_info(&devfreq_dev->dev, "GOV_SUSPEND event.\n");
 		pvr_governor_suspend(devfreq_dev);
 		devfreq_monitor_suspend(devfreq_dev);
 		break;
 
 	case DEVFREQ_GOV_RESUME:
-		dev_info(&devfreq_dev->dev,"GOV_RESUME event.\n");
+		dev_info(&devfreq_dev->dev, "GOV_RESUME event.\n");
 		devfreq_monitor_resume(devfreq_dev);
 		pvr_governor_resume(devfreq_dev);
 		break;
@@ -552,10 +543,9 @@ static int pvr_governor_event_handler(struct devfreq *devfreq_dev,
 static struct devfreq_governor pvr_balanced_governor = {
 	.name = DEVFREQ_GOV_PVR_BALANCED,
 	.get_target_freq = pvr_governor_get_target,
-	.event_handler   = pvr_governor_event_handler,
+	.event_handler = pvr_governor_event_handler,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0))
-	.attrs = DEVFREQ_GOV_ATTR_POLLING_INTERVAL
-		| DEVFREQ_GOV_ATTR_TIMER,
+	.attrs = DEVFREQ_GOV_ATTR_POLLING_INTERVAL | DEVFREQ_GOV_ATTR_TIMER,
 #else
 	.immutable = true,
 #endif
@@ -566,8 +556,7 @@ int pvr_governor_init(void)
 	int ret;
 
 	ret = devfreq_add_governor(&pvr_balanced_governor);
-	if (ret)
-	{
+	if (ret) {
 		pr_err("%s: failed to install governor %d\n", __func__, ret);
 	}
 
@@ -579,26 +568,26 @@ void pvr_governor_exit(void)
 	int ret;
 
 	ret = devfreq_remove_governor(&pvr_balanced_governor);
-	if (ret)
-	{
+	if (ret) {
 		pr_err("Failed to remove governor (%u)\n", ret);
 	}
 }
 
 #if defined(CONFIG_PM_DEVFREQ_EVENT)
 
-static int pvr_get_dev_status_get_events(struct pvr_profiling_device *pvr_prof_dev,
-										 struct pvr_profiling_dev_status *pvr_stat)
+static int
+pvr_get_dev_status_get_events(struct pvr_profiling_device *pvr_prof_dev,
+			      struct pvr_profiling_dev_status *pvr_stat)
 {
 	struct devfreq_event_data event_data;
 	int i, ret = 0;
 
-	for (i = 0; i < pvr_prof_dev->num_events; i++)
-	{
+	for (i = 0; i < pvr_prof_dev->num_events; i++) {
 		if (!pvr_prof_dev->edev[i])
 			continue;
 
-		ret = devfreq_event_get_event(pvr_prof_dev->edev[i], &event_data);
+		ret = devfreq_event_get_event(pvr_prof_dev->edev[i],
+					      &event_data);
 		if (ret < 0)
 			return ret;
 
@@ -613,8 +602,7 @@ static int pvr_governor_reset_events(struct pvr_profiling_device *pvr_prof_dev)
 {
 	int i, ret = 0;
 
-	for (i = 0; i < pvr_prof_dev->num_events; i++)
-	{
+	for (i = 0; i < pvr_prof_dev->num_events; i++) {
 		if (!pvr_prof_dev->edev[i])
 			continue;
 
@@ -668,7 +656,7 @@ static int pvr_governor_set_event(struct devfreq_event_dev *edev)
 }
 
 static int pvr_governor_get_event(struct devfreq_event_dev *edev,
-				struct devfreq_event_data *edata)
+				  struct devfreq_event_data *edata)
 {
 	struct pvr_profiling_device *info = devfreq_event_get_drvdata(edev);
 	unsigned long perf_ctr;
@@ -679,16 +667,17 @@ static int pvr_governor_get_event(struct devfreq_event_dev *edev,
 	/*
 	 * Read performance counter
 	 */
-	perf_ctr = OSReadHWReg32(info->pvRegsBaseKM, g_pvr_governor_events[id].cntr);
+	perf_ctr = OSReadHWReg32(info->pvRegsBaseKM,
+				 g_pvr_governor_events[id].cntr);
 
 	/* Calculate deltas */
-	if (perf_ctr >= g_pvr_governor_events[id].last_value)
-	{
-		edata->load_count = perf_ctr - g_pvr_governor_events[id].last_value;
-	}
-	else
-	{
-		edata->load_count = UINT32_MAX - g_pvr_governor_events[id].last_value + perf_ctr + 1;
+	if (perf_ctr >= g_pvr_governor_events[id].last_value) {
+		edata->load_count =
+			perf_ctr - g_pvr_governor_events[id].last_value;
+	} else {
+		edata->load_count = UINT32_MAX -
+				    g_pvr_governor_events[id].last_value +
+				    perf_ctr + 1;
 	}
 
 	g_pvr_governor_events[id].last_value = perf_ctr;
@@ -696,8 +685,7 @@ static int pvr_governor_get_event(struct devfreq_event_dev *edev,
 	/*
 	 * Calc the utilisation as a fraction of the total cycles
 	 */
-	if (edev->desc->event_type & PVR_EVENT_OP_PERF_CNTR)
-	{
+	if (edev->desc->event_type & PVR_EVENT_OP_PERF_CNTR) {
 		edata->total_count = info->stat->event_data[0].load_count;
 
 		/*
@@ -705,22 +693,19 @@ static int pvr_governor_get_event(struct devfreq_event_dev *edev,
 		 * Cycle counters have 1-cycle or 256-cycle granularity depending on GPU variant
 		 * SLC read/write counters have 1 event granularity
 		 */
-		if ((g_pvr_governor_events[0].shift > 0) && (g_pvr_governor_events[id].shift == 0))
-		{
+		if ((g_pvr_governor_events[0].shift > 0) &&
+		    (g_pvr_governor_events[id].shift == 0)) {
 			int timer_shift = g_pvr_governor_events[0].shift;
-			if (edata->total_count < (UINT32_MAX >> timer_shift))
-			{
-				edata->total_count <<= timer_shift;	/*!< convert total to cycles */
-			}
-			else
-			{
+			if (edata->total_count < (UINT32_MAX >> timer_shift)) {
+				edata->total_count <<=
+					timer_shift; /*!< convert total to cycles */
+			} else {
 				/* avoid overflow but some loss of precision will occur */
-				edata->load_count >>= timer_shift;	/*!< convert load to ticks */
+				edata->load_count >>=
+					timer_shift; /*!< convert load to ticks */
 			}
 		}
-	}
-	else
-	{
+	} else {
 		/* timer runs continuously, effective load is 100% */
 		edata->total_count = edata->load_count;
 	}
@@ -755,17 +740,19 @@ int pvr_events_register(struct device *dev, PVRSRV_DEVICE_NODE *psDeviceNode)
 	pvr_prof_dev->num_events = ARRAY_SIZE(g_pvr_governor_events);
 
 	/* Alloc the event descriptor table */
-	desc = devm_kcalloc(dev, pvr_prof_dev->num_events, sizeof(*desc), GFP_KERNEL);
+	desc = devm_kcalloc(dev, pvr_prof_dev->num_events, sizeof(*desc),
+			    GFP_KERNEL);
 	if (!desc)
 		return -ENOMEM;
 
-	for (idx = 0; idx < pvr_prof_dev->num_events; idx++)
-	{
+	for (idx = 0; idx < pvr_prof_dev->num_events; idx++) {
 		if (!g_pvr_governor_events[idx].name)
 			continue;
 
 		desc[idx].name = g_pvr_governor_events[idx].name;
-		desc[idx].event_type = (idx < PERF_CNTR_OFF) ? PVR_EVENT_OP_TIMER : PVR_EVENT_OP_PERF_CNTR;
+		desc[idx].event_type = (idx < PERF_CNTR_OFF) ?
+					       PVR_EVENT_OP_TIMER :
+					       PVR_EVENT_OP_PERF_CNTR;
 		desc[idx].event_type |= PVR_EVENT_OP_PERF_VER;
 		desc[idx].driver_data = pvr_prof_dev;
 		desc[idx].ops = &pvr_governor_event_ops;
@@ -778,45 +765,50 @@ int pvr_events_register(struct device *dev, PVRSRV_DEVICE_NODE *psDeviceNode)
 		return -ENOMEM;
 
 	/* Populate the events */
-	for (idx = 0, edev = pvr_prof_dev->edev; idx < pvr_prof_dev->num_events; idx++)
-	{
+	for (idx = 0, edev = pvr_prof_dev->edev; idx < pvr_prof_dev->num_events;
+	     idx++) {
 		edev[idx] = devm_devfreq_event_add_edev(dev, &desc[idx]);
-		if (IS_ERR(edev[idx]))
-		{
-			dev_err(dev, "failed to add devfreq-event device (idx=%d)\n", idx);
+		if (IS_ERR(edev[idx])) {
+			dev_err(dev,
+				"failed to add devfreq-event device (idx=%d)\n",
+				idx);
 			return PTR_ERR(edev[idx]);
 		}
 
 		/* enable */
 		err = devfreq_event_enable_edev(edev[idx]);
-		if (err)
-		{
-			dev_err(dev, "failed to enable devfreq-event device (idx=%d)\n", idx);
+		if (err) {
+			dev_err(dev,
+				"failed to enable devfreq-event device (idx=%d)\n",
+				idx);
 			return PTR_ERR(edev[idx]);
 		}
 
-		dev_info(dev, "%s: new PVR devfreq-event device registered %s (%s)\n",
+		dev_info(
+			dev,
+			"%s: new PVR devfreq-event device registered %s (%s)\n",
 			__func__, dev_name(dev), desc[idx].name);
 	}
 
 	/* Allocate the profiling stats, passed to governor */
-	pvr_prof_dev->stat = devm_kzalloc(dev, sizeof(struct pvr_profiling_dev_status), GFP_KERNEL);
+	pvr_prof_dev->stat = devm_kzalloc(
+		dev, sizeof(struct pvr_profiling_dev_status), GFP_KERNEL);
 	if (!pvr_prof_dev->stat)
 		return -ENOMEM;
 
 	/* Map the reg bank */
 	pvr_prof_dev->reg_size = psDeviceNode->psDevConfig->ui32RegsSize;
-	pvr_prof_dev->pvRegsBaseKM = (void __iomem *) OSMapPhysToLin(psDeviceNode->psDevConfig->sRegsCpuPBase,
-			psDeviceNode->psDevConfig->ui32RegsSize,
-			PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
-	if (!pvr_prof_dev->pvRegsBaseKM)
-	{
+	pvr_prof_dev->pvRegsBaseKM = (void __iomem *)OSMapPhysToLin(
+		psDeviceNode->psDevConfig->sRegsCpuPBase,
+		psDeviceNode->psDevConfig->ui32RegsSize,
+		PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
+	if (!pvr_prof_dev->pvRegsBaseKM) {
 		dev_err(dev, "failed to map register bank.");
 		return -ENODEV;
 	}
 
-	dev_info(dev, "Mapped regbank at %p, size 0x%x Bytes.\n", pvr_prof_dev->pvRegsBaseKM,
-			pvr_prof_dev->reg_size);
+	dev_info(dev, "Mapped regbank at %p, size 0x%x Bytes.\n",
+		 pvr_prof_dev->pvRegsBaseKM, pvr_prof_dev->reg_size);
 
 	/* Update the DVFS device */
 	psDVFSDevice = &psDeviceNode->psDevConfig->sDVFS.sDVFSDevice;
@@ -827,26 +819,28 @@ int pvr_events_register(struct device *dev, PVRSRV_DEVICE_NODE *psDeviceNode)
 
 void pvr_events_unregister(struct device *dev, IMG_DVFS_DEVICE *psDVFSDevice)
 {
-	struct pvr_profiling_device *pvr_prof_dev = psDVFSDevice->psProfilingDevice;
+	struct pvr_profiling_device *pvr_prof_dev =
+		psDVFSDevice->psProfilingDevice;
 	struct devfreq_event_dev **edev;
 	int idx, err;
 
 	/* Remove the events */
-	for (idx = 0, edev = pvr_prof_dev->edev; idx < pvr_prof_dev->num_events; idx++)
-	{
+	for (idx = 0, edev = pvr_prof_dev->edev; idx < pvr_prof_dev->num_events;
+	     idx++) {
 		err = devfreq_event_disable_edev(edev[idx]);
-		if (err)
-		{
-			dev_warn(dev, "failed to disable devfreq-event device (idx=%d)\n", idx);
+		if (err) {
+			dev_warn(
+				dev,
+				"failed to disable devfreq-event device (idx=%d)\n",
+				idx);
 		}
 		devm_devfreq_event_remove_edev(dev, edev[idx]);
 	}
 
 	/* Unmap the register bank */
-	if (pvr_prof_dev != NULL && pvr_prof_dev->pvRegsBaseKM != NULL)
-	{
-		OSUnMapPhysToLin((void __force *) pvr_prof_dev->pvRegsBaseKM,
-		                 pvr_prof_dev->reg_size);
+	if (pvr_prof_dev != NULL && pvr_prof_dev->pvRegsBaseKM != NULL) {
+		OSUnMapPhysToLin((void __force *)pvr_prof_dev->pvRegsBaseKM,
+				 pvr_prof_dev->reg_size);
 	}
 
 	/* devfreq_event resources are managed by the kernel */
@@ -862,17 +856,14 @@ static int FillOPPTable(struct device *dev, PVRSRV_DEVICE_NODE *psDeviceNode)
 	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg = NULL;
 
 	/* Check the device exists */
-	if (!dev || !psDeviceNode)
-	{
+	if (!dev || !psDeviceNode) {
 		return -ENODEV;
 	}
 
 	psDVFSDeviceCfg = &psDeviceNode->psDevConfig->sDVFS.sDVFSDeviceCfg;
 
 	for (i = 0, iopp = psDVFSDeviceCfg->pasOPPTable;
-	     i < psDVFSDeviceCfg->ui32OPPTableSize;
-	     i++, iopp++)
-	{
+	     i < psDVFSDeviceCfg->ui32OPPTableSize; i++, iopp++) {
 		err = dev_pm_opp_add(dev, iopp->ui32Freq, iopp->ui32Volt);
 		if (err) {
 			dev_err(dev, "Could not add OPP entry, %d\n", err);
@@ -890,39 +881,34 @@ static void ClearOPPTable(struct device *dev, PVRSRV_DEVICE_NODE *psDeviceNode)
 	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg = NULL;
 
 	/* Check the device exists */
-	if (!dev || !psDeviceNode)
-	{
+	if (!dev || !psDeviceNode) {
 		return;
 	}
 
 	psDVFSDeviceCfg = &psDeviceNode->psDevConfig->sDVFS.sDVFSDeviceCfg;
 
 	for (i = 0, iopp = psDVFSDeviceCfg->pasOPPTable;
-	     i < psDVFSDeviceCfg->ui32OPPTableSize;
-	     i++, iopp++)
-	{
+	     i < psDVFSDeviceCfg->ui32OPPTableSize; i++, iopp++) {
 		dev_pm_opp_remove(dev, iopp->ui32Freq);
 	}
 }
 
-static int GetOPPValues(struct device *dev,
-                        unsigned long *min_freq,
-                        unsigned long *min_volt,
-                        unsigned long *max_freq)
+static int GetOPPValues(struct device *dev, unsigned long *min_freq,
+			unsigned long *min_volt, unsigned long *max_freq)
 {
 	struct dev_pm_opp *opp;
 	int count, i, err = 0;
 	unsigned long freq;
 
-#if ((LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)) && !defined(CHROMIUMOS_KERNEL))
+#if ((LINUX_VERSION_CODE < KERNEL_VERSION(4, 5, 0)) && \
+     !defined(CHROMIUMOS_KERNEL))
 	unsigned int *freq_table;
 #else
 	unsigned long *freq_table;
 #endif
 
 	count = dev_pm_opp_get_opp_count(dev);
-	if (count < 0)
-	{
+	if (count < 0) {
 		dev_err(dev, "Could not fetch OPP count, %d\n", count);
 		return count;
 	}
@@ -930,8 +916,7 @@ static int GetOPPValues(struct device *dev,
 	dev_info(dev, "Found %d OPP points.\n", count);
 
 	freq_table = devm_kcalloc(dev, count, sizeof(*freq_table), GFP_ATOMIC);
-	if (! freq_table)
-	{
+	if (!freq_table) {
 		return -ENOMEM;
 	}
 
@@ -943,8 +928,7 @@ static int GetOPPValues(struct device *dev,
 	/* Iterate over OPP table; Iteration 0 finds "opp w/ freq >= 0 Hz".	 */
 	freq = 0;
 	opp = dev_pm_opp_find_freq_ceil(dev, &freq);
-	if (IS_ERR(opp))
-	{
+	if (IS_ERR(opp)) {
 		err = PTR_ERR(opp);
 		dev_err(dev, "Couldn't find lowest frequency, %d\n", err);
 		goto exit;
@@ -952,31 +936,27 @@ static int GetOPPValues(struct device *dev,
 
 	*min_volt = dev_pm_opp_get_voltage(opp);
 	*max_freq = *min_freq = freq_table[0] = freq;
-	dev_info(dev, "opp[%d/%d]: (%lu Hz, %lu uV)\n", 1, count, freq, *min_volt);
+	dev_info(dev, "opp[%d/%d]: (%lu Hz, %lu uV)\n", 1, count, freq,
+		 *min_volt);
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0))
 	dev_pm_opp_put(opp);
 #endif
 
 	/* Iteration i > 0 finds "opp w/ freq >= (opp[i-1].freq + 1)". */
-	for (i = 1; i < count; i++)
-	{
+	for (i = 1; i < count; i++) {
 		freq++;
 		opp = dev_pm_opp_find_freq_ceil(dev, &freq);
-		if (IS_ERR(opp))
-		{
+		if (IS_ERR(opp)) {
 			err = PTR_ERR(opp);
-			dev_err(dev, "Couldn't find %dth frequency, %d\n", i, err);
+			dev_err(dev, "Couldn't find %dth frequency, %d\n", i,
+				err);
 			goto exit;
 		}
 
 		freq_table[i] = freq;
 		*max_freq = freq;
-		dev_info(dev,
-				 "opp[%d/%d]: (%lu Hz, %lu uV)\n",
-				  i + 1,
-				  count,
-				  freq,
-				  dev_pm_opp_get_voltage(opp));
+		dev_info(dev, "opp[%d/%d]: (%lu Hz, %lu uV)\n", i + 1, count,
+			 freq, dev_pm_opp_get_voltage(opp));
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0))
 		dev_pm_opp_put(opp);
 #endif
@@ -987,13 +967,10 @@ exit:
 	rcu_read_unlock();
 #endif
 
-	if (!err)
-	{
+	if (!err) {
 		img_devfreq_dev_profile.freq_table = freq_table;
 		img_devfreq_dev_profile.max_state = count;
-	}
-	else
-	{
+	} else {
 		devm_kfree(dev, freq_table);
 	}
 
@@ -1002,33 +979,34 @@ exit:
 
 #if defined(CONFIG_DEVFREQ_THERMAL)
 static int RegisterCoolingDevice(struct device *dev,
-								 IMG_DVFS_DEVICE *psDVFSDevice,
-								 struct devfreq_cooling_power *powerOps)
+				 IMG_DVFS_DEVICE *psDVFSDevice,
+				 struct devfreq_cooling_power *powerOps)
 {
 	struct device_node *of_node;
 	int err = 0;
 	PVRSRV_VZ_RET_IF_MODE(GUEST, err);
 
-	if (!psDVFSDevice)
-	{
+	if (!psDVFSDevice) {
 		return -EINVAL;
 	}
 
-	if (!powerOps)
-	{
-		dev_info(dev, "Cooling: power ops not registered, not enabling cooling");
+	if (!powerOps) {
+		dev_info(
+			dev,
+			"Cooling: power ops not registered, not enabling cooling");
 		return 0;
 	}
 
 	of_node = of_node_get(dev->of_node);
 
-	psDVFSDevice->psDevfreqCoolingDevice = of_devfreq_cooling_register_power(
-		of_node, psDVFSDevice->psDevFreq, powerOps);
+	psDVFSDevice->psDevfreqCoolingDevice =
+		of_devfreq_cooling_register_power(
+			of_node, psDVFSDevice->psDevFreq, powerOps);
 
-	if (IS_ERR(psDVFSDevice->psDevfreqCoolingDevice))
-	{
+	if (IS_ERR(psDVFSDevice->psDevfreqCoolingDevice)) {
 		err = PTR_ERR(psDVFSDevice->psDevfreqCoolingDevice);
-		dev_err(dev, "Failed to register as devfreq cooling device %d", err);
+		dev_err(dev, "Failed to register as devfreq cooling device %d",
+			err);
 	}
 
 	of_node_put(of_node);
@@ -1037,15 +1015,17 @@ static int RegisterCoolingDevice(struct device *dev,
 }
 #endif
 
-#define TO_IMG_ERR(err) ((err == -EPROBE_DEFER) ? PVRSRV_ERROR_PROBE_DEFER : PVRSRV_ERROR_INIT_FAILURE)
+#define TO_IMG_ERR(err)                                      \
+	((err == -EPROBE_DEFER) ? PVRSRV_ERROR_PROBE_DEFER : \
+				  PVRSRV_ERROR_INIT_FAILURE)
 
 PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 {
-	IMG_DVFS_DEVICE        *psDVFSDevice = NULL;
-	IMG_DVFS_DEVICE_CFG    *psDVFSDeviceCfg = NULL;
-	struct device          *psDev;
-	PVRSRV_ERROR            eError;
-	int                     err;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
+	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg = NULL;
+	struct device *psDev;
+	PVRSRV_ERROR eError;
+	int err;
 
 	PVRSRV_VZ_RET_IF_MODE(GUEST, PVRSRV_OK);
 
@@ -1053,18 +1033,16 @@ PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	return PVRSRV_ERROR_NOT_SUPPORTED;
 #endif
 
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	PVR_ASSERT(psDeviceNode->psDevConfig);
 
-	if (psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bInitPending)
-	{
+	if (psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bInitPending) {
 		PVR_DPF((PVR_DBG_ERROR,
-				 "DVFS initialise pending for device node %p",
-				 psDeviceNode));
+			 "DVFS initialise pending for device node %p",
+			 psDeviceNode));
 		return PVRSRV_ERROR_INIT_FAILURE;
 	}
 
@@ -1074,43 +1052,44 @@ PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bInitPending = IMG_TRUE;
 
 #if defined(SUPPORT_SOC_TIMER)
-	if (! psDeviceNode->psDevConfig->pfnSoCTimerRead)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "System layer SoC timer callback not implemented"));
+	if (!psDeviceNode->psDevConfig->pfnSoCTimerRead) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "System layer SoC timer callback not implemented"));
 		//return PVRSRV_ERROR_NOT_IMPLEMENTED;
 	}
 #endif
 
 	eError = SORgxGpuUtilStatsRegister(&psDVFSDevice->hGpuUtilUserDVFS);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to register to the GPU utilisation stats, %d", eError));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Failed to register to the GPU utilisation stats, %d",
+			 eError));
 		return eError;
 	}
 
 #if defined(CONFIG_OF)
 	err = dev_pm_opp_of_add_table(psDev);
-	if (err)
-	{
+	if (err) {
 		/*
 		 * If there are no device tree or system layer provided operating points
 		 * then return an error
 		 */
-		if (err != -ENODEV || !psDVFSDeviceCfg->pasOPPTable)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "Failed to init opp table from devicetree, %d", err));
+		if (err != -ENODEV || !psDVFSDeviceCfg->pasOPPTable) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "Failed to init opp table from devicetree, %d",
+				 err));
 			eError = TO_IMG_ERR(err);
 			goto err_exit;
 		}
 	}
 #endif
 
-	if (psDVFSDeviceCfg->pasOPPTable)
-	{
+	if (psDVFSDeviceCfg->pasOPPTable) {
 		err = FillOPPTable(psDev, psDeviceNode);
-		if (err)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "Failed to fill OPP table with data, %d", err));
+		if (err) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "Failed to fill OPP table with data, %d",
+				 err));
 			eError = TO_IMG_ERR(err);
 			goto err_exit;
 		}
@@ -1119,17 +1098,17 @@ PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 #if defined(CONFIG_PM_DEVFREQ_EVENT)
 	err = pvr_events_register(psDev, psDeviceNode);
-	if (err != 0)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to init PVR profiling events, %d", err));
+	if (err != 0) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Failed to init PVR profiling events, %d", err));
 		goto err_exit;
 	}
 #endif
 
 	err = pvr_governor_init();
-	if (err != 0)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to init PVR governor, %d", err));
+	if (err != 0) {
+		PVR_DPF((PVR_DBG_ERROR, "Failed to init PVR governor, %d",
+			 err));
 		goto err_exit;
 	}
 	psDVFSDevice->bGovernorReady = true;
@@ -1138,8 +1117,8 @@ PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	PVR_ASSERT(psDev);
 	PVR_ASSERT(psDeviceNode);
 
-	PVR_TRACE(("PVR DVFS init pending: dev = %p, PVR device = %p",
-			   psDev, psDeviceNode));
+	PVR_TRACE(("PVR DVFS init pending: dev = %p, PVR device = %p", psDev,
+		   psDeviceNode));
 
 	return PVRSRV_OK;
 
@@ -1150,25 +1129,23 @@ err_exit:
 
 PVRSRV_ERROR RegisterDVFSDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 {
-	IMG_DVFS_DEVICE        *psDVFSDevice = NULL;
-	IMG_DVFS_DEVICE_CFG    *psDVFSDeviceCfg = NULL;
-	IMG_DVFS_GOVERNOR_CFG  *psDVFSGovernorCfg = NULL;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
+	IMG_DVFS_DEVICE_CFG *psDVFSDeviceCfg = NULL;
+	IMG_DVFS_GOVERNOR_CFG *psDVFSGovernorCfg = NULL;
 	RGX_TIMING_INFORMATION *psRGXTimingInfo = NULL;
-	struct device          *psDev;
-	unsigned long           min_freq = 0, max_freq = 0, min_volt = 0;
-	PVRSRV_ERROR            eError;
-	int                     err;
+	struct device *psDev;
+	unsigned long min_freq = 0, max_freq = 0, min_volt = 0;
+	PVRSRV_ERROR eError;
+	int err;
 
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	if (!psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bInitPending)
-	{
+	if (!psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bInitPending) {
 		PVR_DPF((PVR_DBG_ERROR,
-				 "DVFS initialise not yet pending for device node %p",
-				 psDeviceNode));
+			 "DVFS initialise not yet pending for device node %p",
+			 psDeviceNode));
 		return PVRSRV_ERROR_INIT_FAILURE;
 	}
 
@@ -1176,13 +1153,13 @@ PVRSRV_ERROR RegisterDVFSDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 	psDVFSDevice = &psDeviceNode->psDevConfig->sDVFS.sDVFSDevice;
 	psDVFSDeviceCfg = &psDeviceNode->psDevConfig->sDVFS.sDVFSDeviceCfg;
 	psDVFSGovernorCfg = &psDeviceNode->psDevConfig->sDVFS.sDVFSGovernorCfg;
-	psRGXTimingInfo = ((RGX_DATA *)psDeviceNode->psDevConfig->hDevData)->psRGXTimingInfo;
+	psRGXTimingInfo = ((RGX_DATA *)psDeviceNode->psDevConfig->hDevData)
+				  ->psRGXTimingInfo;
 	psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bInitPending = IMG_FALSE;
 	psDeviceNode->psDevConfig->sDVFS.sDVFSDevice.bReady = IMG_TRUE;
 
 	err = GetOPPValues(psDev, &min_freq, &min_volt, &max_freq);
-	if (err)
-	{
+	if (err) {
 		PVR_DPF((PVR_DBG_ERROR, "Failed to read OPP points, %d", err));
 		eError = TO_IMG_ERR(err);
 		goto err_exit;
@@ -1193,68 +1170,67 @@ PVRSRV_ERROR RegisterDVFSDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 
 	psRGXTimingInfo->ui32CoreClockSpeed = min_freq;
 
-	psDVFSDeviceCfg->pfnSetFrequency(psDeviceNode->psDevConfig->hSysData, min_freq);
-	psDVFSDeviceCfg->pfnSetVoltage(psDeviceNode->psDevConfig->hSysData, min_volt);
+	psDVFSDeviceCfg->pfnSetFrequency(psDeviceNode->psDevConfig->hSysData,
+					 min_freq);
+	psDVFSDeviceCfg->pfnSetVoltage(psDeviceNode->psDevConfig->hSysData,
+				       min_volt);
 
 #if !defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	/* Use the Linux 'simple_ondemand' governor */
 	psDVFSDevice->data.upthreshold = psDVFSGovernorCfg->ui32UpThreshold;
-	psDVFSDevice->data.downdifferential = psDVFSGovernorCfg->ui32DownDifferential;
+	psDVFSDevice->data.downdifferential =
+		psDVFSGovernorCfg->ui32DownDifferential;
 #endif
 
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	psDVFSDevice->data.ui32UpThreshold = psDVFSGovernorCfg->ui32UpThreshold;
-	psDVFSDevice->data.ui32DownDifferential = psDVFSGovernorCfg->ui32DownDifferential;
+	psDVFSDevice->data.ui32DownDifferential =
+		psDVFSGovernorCfg->ui32DownDifferential;
 
 #if defined(SUPPORT_RGX)
 	{
-		PVRSRV_RGXDEV_INFO *psDevInfo = (PVRSRV_RGXDEV_INFO*) psDeviceNode->pvDevice;
-		if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, NUM_MEMBUS))
-		{
-			psDVFSDevice->data.uiNumMembus = RGX_GET_FEATURE_VALUE(psDevInfo, NUM_MEMBUS);
-		}
-		else
-		{
+		PVRSRV_RGXDEV_INFO *psDevInfo =
+			(PVRSRV_RGXDEV_INFO *)psDeviceNode->pvDevice;
+		if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, NUM_MEMBUS)) {
+			psDVFSDevice->data.uiNumMembus =
+				RGX_GET_FEATURE_VALUE(psDevInfo, NUM_MEMBUS);
+		} else {
 			psDVFSDevice->data.uiNumMembus = 1;
 		}
 	}
 #endif
 #endif
 
-	psDVFSDevice->psDevFreq = devm_devfreq_add_device(psDev,
-													  &img_devfreq_dev_profile,
+	psDVFSDevice->psDevFreq =
+		devm_devfreq_add_device(psDev, &img_devfreq_dev_profile,
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
-													  "pvr_balanced",
-													  &psDVFSDevice->data);
+					"pvr_balanced", &psDVFSDevice->data);
 #else
-													  "simple_ondemand",
-													  &psDVFSDevice->data);
+					"simple_ondemand", &psDVFSDevice->data);
 #endif
 
-	if (IS_ERR(psDVFSDevice->psDevFreq))
-	{
+	if (IS_ERR(psDVFSDevice->psDevFreq)) {
 		PVR_DPF((PVR_DBG_ERROR,
-				 "Failed to add as devfreq device %p, %ld",
-				 psDVFSDevice->psDevFreq,
-				 PTR_ERR(psDVFSDevice->psDevFreq)));
+			 "Failed to add as devfreq device %p, %ld",
+			 psDVFSDevice->psDevFreq,
+			 PTR_ERR(psDVFSDevice->psDevFreq)));
 		eError = TO_IMG_ERR(PTR_ERR(psDVFSDevice->psDevFreq));
 		goto err_exit;
 	}
-#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)) && (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 50)))
+#if ((LINUX_VERSION_CODE >= KERNEL_VERSION(5, 9, 0)) && \
+     (LINUX_VERSION_CODE < KERNEL_VERSION(5, 10, 50)))
 	/* Handle Linux kernel bug where a NULL return can occur. */
-	if (psDVFSDevice->psDevFreq == NULL)
-	{
+	if (psDVFSDevice->psDevFreq == NULL) {
 		PVR_DPF((PVR_DBG_ERROR,
-				 "Failed to add as devfreq device %p, NULL return",
-				 psDVFSDevice->psDevFreq));
+			 "Failed to add as devfreq device %p, NULL return",
+			 psDVFSDevice->psDevFreq));
 		eError = TO_IMG_ERR(-EINVAL);
 		goto err_exit;
 	}
 #endif
 
 	eError = SuspendDVFS(psDeviceNode);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR, "PVRSRVInit: Failed to suspend DVFS"));
 		goto err_exit;
 	}
@@ -1275,26 +1251,24 @@ PVRSRV_ERROR RegisterDVFSDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 #endif
 
 	err = devfreq_register_opp_notifier(psDev, psDVFSDevice->psDevFreq);
-	if (err)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to register opp notifier, %d", err));
+	if (err) {
+		PVR_DPF((PVR_DBG_ERROR, "Failed to register opp notifier, %d",
+			 err));
 		eError = TO_IMG_ERR(err);
 		goto err_exit;
 	}
 
 #if defined(CONFIG_DEVFREQ_THERMAL)
-	err = RegisterCoolingDevice(psDev, psDVFSDevice, psDVFSDeviceCfg->psPowerOps);
-	if (err)
-	{
+	err = RegisterCoolingDevice(psDev, psDVFSDevice,
+				    psDVFSDeviceCfg->psPowerOps);
+	if (err) {
 		eError = TO_IMG_ERR(err);
 		goto err_exit;
 	}
 #endif
 
-	PVR_TRACE(("PVR DVFS activated: %lu-%lu Hz, Period: %ums",
-			   min_freq,
-			   max_freq,
-			   psDVFSDeviceCfg->ui32PollMs));
+	PVR_TRACE(("PVR DVFS activated: %lu-%lu Hz, Period: %ums", min_freq,
+		   max_freq, psDVFSDeviceCfg->ui32PollMs));
 
 	return PVRSRV_OK;
 
@@ -1310,8 +1284,7 @@ void UnregisterDVFSDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 	IMG_INT32 i32Error;
 
 	/* Check the device exists */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return;
 	}
 
@@ -1320,25 +1293,24 @@ void UnregisterDVFSDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 	psDVFSDevice = &psDeviceNode->psDevConfig->sDVFS.sDVFSDevice;
 	psDev = psDeviceNode->psDevConfig->pvOSDevice;
 
-	if (! psDVFSDevice)
-	{
+	if (!psDVFSDevice) {
 		return;
 	}
 
 #if defined(CONFIG_DEVFREQ_THERMAL)
-	if (!IS_ERR_OR_NULL(psDVFSDevice->psDevfreqCoolingDevice))
-	{
-		devfreq_cooling_unregister(psDVFSDevice->psDevfreqCoolingDevice);
+	if (!IS_ERR_OR_NULL(psDVFSDevice->psDevfreqCoolingDevice)) {
+		devfreq_cooling_unregister(
+			psDVFSDevice->psDevfreqCoolingDevice);
 		psDVFSDevice->psDevfreqCoolingDevice = NULL;
 	}
 #endif
 
-	if (psDVFSDevice->psDevFreq)
-	{
-		i32Error = devfreq_unregister_opp_notifier(psDev, psDVFSDevice->psDevFreq);
-		if (i32Error < 0)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "Failed to unregister OPP notifier"));
+	if (psDVFSDevice->psDevFreq) {
+		i32Error = devfreq_unregister_opp_notifier(
+			psDev, psDVFSDevice->psDevFreq);
+		if (i32Error < 0) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "Failed to unregister OPP notifier"));
 		}
 
 		devm_devfreq_remove_device(psDev, psDVFSDevice->psDevFreq);
@@ -1355,8 +1327,7 @@ void DeinitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	struct device *psDev = NULL;
 
 	/* Check the device exists */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return;
 	}
 
@@ -1366,12 +1337,10 @@ void DeinitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	psDev = psDeviceNode->psDevConfig->pvOSDevice;
 
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
-	if (psDVFSDevice->psProfilingDevice)
-	{
+	if (psDVFSDevice->psProfilingDevice) {
 		pvr_events_unregister(psDev, psDVFSDevice);
 	}
-	if (psDVFSDevice->bGovernorReady)
-	{
+	if (psDVFSDevice->bGovernorReady) {
 		pvr_governor_exit();
 		psDVFSDevice->bGovernorReady = false;
 	}
@@ -1392,14 +1361,13 @@ void DeinitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 
 PVRSRV_ERROR SuspendDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 {
-	IMG_DVFS_DEVICE	*psDVFSDevice = NULL;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	int err;
 #endif
 
 	/* Check the device is registered */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return PVRSRV_ERROR_INVALID_DEVICE;
 	}
 
@@ -1408,8 +1376,7 @@ PVRSRV_ERROR SuspendDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	/* Communicate power suspend to devfreq framework */
 	err = devfreq_suspend_device(psDVFSDevice->psDevFreq);
-	if (err < 0)
-	{
+	if (err < 0) {
 		PVR_DPF((PVR_DBG_WARNING, "Failed to suspend DVFS (%d)", err));
 		return PVRSRV_ERROR_INVALID_DEVICE;
 	}
@@ -1420,14 +1387,13 @@ PVRSRV_ERROR SuspendDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 
 PVRSRV_ERROR ResumeDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 {
-	IMG_DVFS_DEVICE	*psDVFSDevice = NULL;
+	IMG_DVFS_DEVICE *psDVFSDevice = NULL;
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
 	int err;
 #endif
 
 	/* Check the device is registered */
-	if (!psDeviceNode)
-	{
+	if (!psDeviceNode) {
 		return PVRSRV_ERROR_INVALID_DEVICE;
 	}
 
@@ -1436,13 +1402,12 @@ PVRSRV_ERROR ResumeDVFS(PPVRSRV_DEVICE_NODE psDeviceNode)
 	/* Not supported in GuestOS drivers */
 	psDVFSDevice->bEnabled = !PVRSRV_VZ_MODE_IS(GUEST);
 #if defined(SUPPORT_PVR_DVFS_GOVERNOR)
-	if (!PVRSRV_VZ_MODE_IS(GUEST))
-	{
+	if (!PVRSRV_VZ_MODE_IS(GUEST)) {
 		/* Communicate power resume to devfreq framework */
 		err = devfreq_resume_device(psDVFSDevice->psDevFreq);
-		if (err < 0)
-		{
-			PVR_DPF((PVR_DBG_WARNING, "Failed to resume DVFS (%d)", err));
+		if (err < 0) {
+			PVR_DPF((PVR_DBG_WARNING, "Failed to resume DVFS (%d)",
+				 err));
 			return PVRSRV_ERROR_INVALID_DEVICE;
 		}
 	}

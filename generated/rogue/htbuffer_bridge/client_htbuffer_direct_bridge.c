@@ -52,19 +52,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "htbserver.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgeHTBControl(IMG_HANDLE hBridge,
-					   IMG_UINT32 ui32NumGroups,
-					   IMG_UINT32 * pui32GroupEnable,
-					   IMG_UINT32 ui32LogLevel,
-					   IMG_UINT32 ui32EnablePID,
-					   IMG_UINT32 ui32LogMode, IMG_UINT32 ui32OpMode)
+IMG_INTERNAL PVRSRV_ERROR BridgeHTBControl(
+	IMG_HANDLE hBridge, IMG_UINT32 ui32NumGroups,
+	IMG_UINT32 *pui32GroupEnable, IMG_UINT32 ui32LogLevel,
+	IMG_UINT32 ui32EnablePID, IMG_UINT32 ui32LogMode, IMG_UINT32 ui32OpMode)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	eError =
-	    HTBControlKM(ui32NumGroups,
-			 pui32GroupEnable, ui32LogLevel, ui32EnablePID, ui32LogMode, ui32OpMode);
+	eError = HTBControlKM(ui32NumGroups, pui32GroupEnable, ui32LogLevel,
+			      ui32EnablePID, ui32LogMode, ui32OpMode);
 
 	return eError;
 }

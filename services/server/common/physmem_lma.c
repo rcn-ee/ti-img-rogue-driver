@@ -59,10 +59,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 typedef struct PHYSMEM_LMA_DATA_TAG {
-	RA_ARENA           *psRA;
-	IMG_CPU_PHYADDR    sStartAddr;
-	IMG_DEV_PHYADDR    sCardBase;
-	IMG_UINT64         uiSize;
+	RA_ARENA *psRA;
+	IMG_CPU_PHYADDR sStartAddr;
+	IMG_DEV_PHYADDR sCardBase;
+	IMG_UINT64 uiSize;
 } PHYSMEM_LMA_DATA;
 
 /*
@@ -70,11 +70,10 @@ typedef struct PHYSMEM_LMA_DATA_TAG {
  * has set it for the referenced heap.
  * It will not fail if the psDevPAddr is invalid.
  */
-static PVRSRV_ERROR
-_GetDevPAddr(PHEAP_IMPL_DATA pvImplData,
-			 IMG_DEV_PHYADDR *psDevPAddr)
+static PVRSRV_ERROR _GetDevPAddr(PHEAP_IMPL_DATA pvImplData,
+				 IMG_DEV_PHYADDR *psDevPAddr)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 
 	*psDevPAddr = psLMAData->sCardBase;
 
@@ -86,22 +85,19 @@ _GetDevPAddr(PHEAP_IMPL_DATA pvImplData,
  * has set it for the referenced heap.
  * It will not fail if the psCpuPAddr is invalid.
  */
-static PVRSRV_ERROR
-_GetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
-			 IMG_CPU_PHYADDR *psCpuPAddr)
+static PVRSRV_ERROR _GetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
+				 IMG_CPU_PHYADDR *psCpuPAddr)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 
 	*psCpuPAddr = psLMAData->sStartAddr;
 
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR
-_GetSize(PHEAP_IMPL_DATA pvImplData,
-		 IMG_UINT64 *puiSize)
+static PVRSRV_ERROR _GetSize(PHEAP_IMPL_DATA pvImplData, IMG_UINT64 *puiSize)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 
 	*puiSize = psLMAData->uiSize;
 
@@ -109,10 +105,10 @@ _GetSize(PHEAP_IMPL_DATA pvImplData,
 }
 
 static void PhysmemGetRAMemRamMemStats(PHEAP_IMPL_DATA pvImplData,
-		 IMG_UINT64 *pui64TotalSize,
-		 IMG_UINT64 *pui64FreeSize)
+				       IMG_UINT64 *pui64TotalSize,
+				       IMG_UINT64 *pui64FreeSize)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 	RA_USAGE_STATS sRAUsageStats;
 
 	RA_Get_Usage_Stats(psLMAData->psRA, &sRAUsageStats);
@@ -121,56 +117,54 @@ static void PhysmemGetRAMemRamMemStats(PHEAP_IMPL_DATA pvImplData,
 	*pui64FreeSize = sRAUsageStats.ui64FreeArenaSize;
 }
 
-static PVRSRV_ERROR
-PhysmemGetArenaLMA(PHYS_HEAP *psPhysHeap,
-				   RA_ARENA **ppsArena)
+static PVRSRV_ERROR PhysmemGetArenaLMA(PHYS_HEAP *psPhysHeap,
+				       RA_ARENA **ppsArena)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)PhysHeapGetImplData(psPhysHeap);
+	PHYSMEM_LMA_DATA *psLMAData =
+		(PHYSMEM_LMA_DATA *)PhysHeapGetImplData(psPhysHeap);
 
-	PVR_LOG_RETURN_IF_FALSE(psLMAData != NULL, "psLMAData", PVRSRV_ERROR_NOT_IMPLEMENTED);
+	PVR_LOG_RETURN_IF_FALSE(psLMAData != NULL, "psLMAData",
+				PVRSRV_ERROR_NOT_IMPLEMENTED);
 
 	*ppsArena = psLMAData->psRA;
 
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR
-_CreateArenas(PHEAP_IMPL_DATA pvImplData, IMG_CHAR *pszLabel, PHYS_HEAP_POLICY uiPolicy)
+static PVRSRV_ERROR _CreateArenas(PHEAP_IMPL_DATA pvImplData,
+				  IMG_CHAR *pszLabel, PHYS_HEAP_POLICY uiPolicy)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 
 	IMG_UINT32 ui32RAPolicy =
-	    ((uiPolicy & PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK) == PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG)
-	    ? RA_POLICY_ALLOC_ALLOW_NONCONTIG : RA_POLICY_DEFAULT;
+		((uiPolicy & PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK) ==
+		 PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG) ?
+			RA_POLICY_ALLOC_ALLOW_NONCONTIG :
+			RA_POLICY_DEFAULT;
 
-	psLMAData->psRA = RA_Create_With_Span(pszLabel,
-	                             OSGetPageShift(),
-	                             psLMAData->sStartAddr.uiAddr,
-	                             psLMAData->sCardBase.uiAddr,
-	                             psLMAData->uiSize,
-	                             ui32RAPolicy);
+	psLMAData->psRA = RA_Create_With_Span(pszLabel, OSGetPageShift(),
+					      psLMAData->sStartAddr.uiAddr,
+					      psLMAData->sCardBase.uiAddr,
+					      psLMAData->uiSize, ui32RAPolicy);
 	PVR_LOG_RETURN_IF_NOMEM(psLMAData->psRA, "RA_Create_With_Span");
 
 	return PVRSRV_OK;
 }
 
-static void
-_DestroyArenas(PHEAP_IMPL_DATA pvImplData)
+static void _DestroyArenas(PHEAP_IMPL_DATA pvImplData)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 
 	/* Remove RAs and RA names for local card memory */
-	if (psLMAData->psRA)
-	{
+	if (psLMAData->psRA) {
 		RA_Delete(psLMAData->psRA);
 		psLMAData->psRA = NULL;
 	}
 }
 
-static void
-_DestroyImplData(PHEAP_IMPL_DATA pvImplData)
+static void _DestroyImplData(PHEAP_IMPL_DATA pvImplData)
 {
-	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA*)pvImplData;
+	PHYSMEM_LMA_DATA *psLMAData = (PHYSMEM_LMA_DATA *)pvImplData;
 
 	_DestroyArenas(pvImplData);
 
@@ -186,8 +180,8 @@ struct _PHYS_HEAP_ITERATOR_ {
 };
 
 PVRSRV_ERROR LMA_HeapIteratorCreate(PVRSRV_DEVICE_NODE *psDevNode,
-                                    PVRSRV_PHYS_HEAP ePhysHeap,
-                                    PHYS_HEAP_ITERATOR **ppsIter)
+				    PVRSRV_PHYS_HEAP ePhysHeap,
+				    PHYS_HEAP_ITERATOR **ppsIter)
 {
 	PVRSRV_ERROR eError;
 	PHYSMEM_LMA_DATA *psLMAData;
@@ -202,9 +196,9 @@ PVRSRV_ERROR LMA_HeapIteratorCreate(PVRSRV_DEVICE_NODE *psDevNode,
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysHeapAcquireByID");
 
 	PVR_LOG_GOTO_IF_FALSE(PhysHeapGetType(psPhysHeap) == PHYS_HEAP_TYPE_LMA,
-	                      "PhysHeap must be of LMA type", release_heap);
+			      "PhysHeap must be of LMA type", release_heap);
 
-	psLMAData = (PHYSMEM_LMA_DATA *) PhysHeapGetImplData(psPhysHeap);
+	psLMAData = (PHYSMEM_LMA_DATA *)PhysHeapGetImplData(psPhysHeap);
 
 	psHeapIter = OSAllocMem(sizeof(*psHeapIter));
 	PVR_LOG_GOTO_IF_NOMEM(psHeapIter, eError, release_heap);
@@ -217,7 +211,8 @@ PVRSRV_ERROR LMA_HeapIteratorCreate(PVRSRV_DEVICE_NODE *psDevNode,
 	RA_Get_Usage_Stats(psLMAData->psRA, &sStats);
 
 	psHeapIter->uiTotalSize = sStats.ui64TotalArenaSize;
-	psHeapIter->uiInUseSize = sStats.ui64TotalArenaSize - sStats.ui64FreeArenaSize;
+	psHeapIter->uiInUseSize =
+		sStats.ui64TotalArenaSize - sStats.ui64FreeArenaSize;
 
 	*ppsIter = psHeapIter;
 
@@ -255,20 +250,18 @@ PVRSRV_ERROR LMA_HeapIteratorReset(PHYS_HEAP_ITERATOR *psIter)
 }
 
 IMG_BOOL LMA_HeapIteratorNext(PHYS_HEAP_ITERATOR *psIter,
-                              IMG_DEV_PHYADDR *psDevPAddr,
-                              IMG_UINT64 *puiSize)
+			      IMG_DEV_PHYADDR *psDevPAddr, IMG_UINT64 *puiSize)
 {
 	PHYS_HEAP_ITERATOR *psHeapIter = psIter;
-	RA_ITERATOR_DATA sData = {0};
+	RA_ITERATOR_DATA sData = { 0 };
 
-	if (psHeapIter == NULL)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "psHeapIter in %s() is NULL", __func__));
+	if (psHeapIter == NULL) {
+		PVR_DPF((PVR_DBG_ERROR, "psHeapIter in %s() is NULL",
+			 __func__));
 		return IMG_FALSE;
 	}
 
-	if (!RA_IteratorNext(psHeapIter->psRAIter, &sData))
-	{
+	if (!RA_IteratorNext(psHeapIter->psRAIter, &sData)) {
 		return IMG_FALSE;
 	}
 
@@ -281,8 +274,8 @@ IMG_BOOL LMA_HeapIteratorNext(PHYS_HEAP_ITERATOR *psIter,
 }
 
 PVRSRV_ERROR LMA_HeapIteratorGetHeapStats(PHYS_HEAP_ITERATOR *psIter,
-                                          IMG_UINT64 *puiTotalSize,
-                                          IMG_UINT64 *puiInUseSize)
+					  IMG_UINT64 *puiTotalSize,
+					  IMG_UINT64 *puiInUseSize)
 {
 	PHYS_HEAP_ITERATOR *psHeapIter = psIter;
 
@@ -296,12 +289,9 @@ PVRSRV_ERROR LMA_HeapIteratorGetHeapStats(PHYS_HEAP_ITERATOR *psIter,
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
 static PVRSRV_ERROR
-LMA_PhyContigPagesAllocGPV(PHYS_HEAP *psPhysHeap,
-                           size_t uiSize,
-                           PG_HANDLE *psMemHandle,
-                           IMG_DEV_PHYADDR *psDevPAddr,
-                           IMG_UINT32 ui32OSid,
-                           IMG_PID uiPid)
+LMA_PhyContigPagesAllocGPV(PHYS_HEAP *psPhysHeap, size_t uiSize,
+			   PG_HANDLE *psMemHandle, IMG_DEV_PHYADDR *psDevPAddr,
+			   IMG_UINT32 ui32OSid, IMG_PID uiPid)
 {
 	PVRSRV_DEVICE_NODE *psDevNode = PhysHeapDeviceNode(psPhysHeap);
 	RA_ARENA *pArena;
@@ -310,45 +300,43 @@ LMA_PhyContigPagesAllocGPV(PHYS_HEAP *psPhysHeap,
 
 	PVR_ASSERT(uiSize != 0);
 	ui32Log2NumPages = OSGetOrder(uiSize);
-	uiSize = IMG_PAGES2BYTES64(OSGetPageSize(),ui32Log2NumPages);
+	uiSize = IMG_PAGES2BYTES64(OSGetPageSize(), ui32Log2NumPages);
 
 	PVR_ASSERT(ui32OSid < GPUVIRT_VALIDATION_NUM_OS);
-	if (ui32OSid >= GPUVIRT_VALIDATION_NUM_OS)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Invalid Arena index %u defaulting to 0",
-		        __func__, ui32OSid));
+	if (ui32OSid >= GPUVIRT_VALIDATION_NUM_OS) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Invalid Arena index %u defaulting to 0", __func__,
+			 ui32OSid));
 		ui32OSid = 0;
 	}
 
 	pArena = psDevNode->psOSidSubArena[ui32OSid];
 
-	if (psMemHandle->uiOSid != ui32OSid)
-	{
-		PVR_LOG(("%s: Unexpected OSid value %u - expecting %u", __func__,
-		        psMemHandle->uiOSid, ui32OSid));
+	if (psMemHandle->uiOSid != ui32OSid) {
+		PVR_LOG(("%s: Unexpected OSid value %u - expecting %u",
+			 __func__, psMemHandle->uiOSid, ui32OSid));
 	}
 
-	psMemHandle->uiOSid = ui32OSid;		/* For Free() use */
+	psMemHandle->uiOSid = ui32OSid; /* For Free() use */
 
-	eError =  RAMemDoPhyContigPagesAlloc(pArena, uiSize, psMemHandle,
-	                                     psDevPAddr, uiPid);
+	eError = RAMemDoPhyContigPagesAlloc(pArena, uiSize, psMemHandle,
+					    psDevPAddr, uiPid);
 	PVR_LOG_IF_ERROR(eError, "RAMemDoPhyContigPagesAlloc");
 
 	return eError;
 }
 #endif
 
-static PVRSRV_ERROR
-LMA_PhyContigPagesAlloc(PHYS_HEAP *psPhysHeap,
-                         size_t uiSize,
-                         PG_HANDLE *psMemHandle,
-                         IMG_DEV_PHYADDR *psDevPAddr,
-                         IMG_PID uiPid)
+static PVRSRV_ERROR LMA_PhyContigPagesAlloc(PHYS_HEAP *psPhysHeap,
+					    size_t uiSize,
+					    PG_HANDLE *psMemHandle,
+					    IMG_DEV_PHYADDR *psDevPAddr,
+					    IMG_PID uiPid)
 {
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
 	IMG_UINT32 ui32OSid = 0;
-	return LMA_PhyContigPagesAllocGPV(psPhysHeap, uiSize, psMemHandle, psDevPAddr,
-									  ui32OSid, uiPid);
+	return LMA_PhyContigPagesAllocGPV(psPhysHeap, uiSize, psMemHandle,
+					  psDevPAddr, ui32OSid, uiPid);
 #else
 	PVRSRV_ERROR eError;
 
@@ -360,26 +348,25 @@ LMA_PhyContigPagesAlloc(PHYS_HEAP *psPhysHeap,
 
 	PVR_ASSERT(uiSize != 0);
 	ui32Log2NumPages = OSGetOrder(uiSize);
-	uiSize = IMG_PAGES2BYTES64(OSGetPageSize(),ui32Log2NumPages);
+	uiSize = IMG_PAGES2BYTES64(OSGetPageSize(), ui32Log2NumPages);
 
 	eError = RAMemDoPhyContigPagesAlloc(pArena, uiSize, psMemHandle,
-	                                    psDevPAddr, uiPid);
+					    psDevPAddr, uiPid);
 	PVR_LOG_IF_ERROR(eError, "RAMemDoPhyContigPagesAlloc");
 
 	return eError;
 #endif
 }
 
-static void
-LMA_PhyContigPagesFree(PHYS_HEAP *psPhysHeap,
-                       PG_HANDLE *psMemHandle)
+static void LMA_PhyContigPagesFree(PHYS_HEAP *psPhysHeap,
+				   PG_HANDLE *psMemHandle)
 {
-	RA_ARENA	*pArena;
+	RA_ARENA *pArena;
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
-	RA_BASE_T uiCardAddr = (RA_BASE_T) psMemHandle->u.ui64Handle;
+	RA_BASE_T uiCardAddr = (RA_BASE_T)psMemHandle->u.ui64Handle;
 	PVRSRV_DEVICE_NODE *psDevNode = PhysHeapDeviceNode(psPhysHeap);
-	IMG_UINT32	ui32OSid = psMemHandle->uiOSid;
+	IMG_UINT32 ui32OSid = psMemHandle->uiOSid;
 
 	/*
 	 * The Arena ID is set by the originating allocation, and maintained via
@@ -389,11 +376,11 @@ LMA_PhyContigPagesFree(PHYS_HEAP *psPhysHeap,
 	 * are created.
 	 */
 	PVR_ASSERT(ui32OSid < GPUVIRT_VALIDATION_NUM_OS);
-	if (ui32OSid >= GPUVIRT_VALIDATION_NUM_OS)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Invalid Arena index %u PhysAddr 0x%"
-		         IMG_UINT64_FMTSPECx " Reverting to Arena 0", __func__,
-		         ui32OSid, uiCardAddr));
+	if (ui32OSid >= GPUVIRT_VALIDATION_NUM_OS) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Invalid Arena index %u PhysAddr 0x%" IMG_UINT64_FMTSPECx
+			 " Reverting to Arena 0",
+			 __func__, ui32OSid, uiCardAddr));
 		/*
 		 * No way of determining what we're trying to free so default to the
 		 * global default arena index 0.
@@ -403,31 +390,25 @@ LMA_PhyContigPagesFree(PHYS_HEAP *psPhysHeap,
 
 	pArena = psDevNode->psOSidSubArena[ui32OSid];
 
-	PVR_DPF((PVR_DBG_MESSAGE, "%s: (GPU Virtualisation) Freeing 0x%"
-	        IMG_UINT64_FMTSPECx ", Arena %u", __func__,
-	        uiCardAddr, ui32OSid));
+	PVR_DPF((PVR_DBG_MESSAGE,
+		 "%s: (GPU Virtualisation) Freeing 0x%" IMG_UINT64_FMTSPECx
+		 ", Arena %u",
+		 __func__, uiCardAddr, ui32OSid));
 
 #else
 	PhysmemGetArenaLMA(psPhysHeap, &pArena);
 #endif
 
-	RAMemDoPhyContigPagesFree(pArena,
-	                          psMemHandle);
+	RAMemDoPhyContigPagesFree(pArena, psMemHandle);
 }
 
-static PVRSRV_ERROR
-LMAPhysmemNewRAMemRamBackedPMR(PHYS_HEAP *psPhysHeap,
-                               CONNECTION_DATA *psConnection,
-                               IMG_DEVMEM_SIZE_T uiSize,
-                               IMG_UINT32 ui32NumPhysChunks,
-                               IMG_UINT32 ui32NumVirtChunks,
-                               IMG_UINT32 *pui32MappingTable,
-                               IMG_UINT32 uiLog2AllocPageSize,
-                               PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                               const IMG_CHAR *pszAnnotation,
-                               IMG_PID uiPid,
-                               PMR **ppsPMRPtr,
-                               IMG_UINT32 ui32PDumpFlags)
+static PVRSRV_ERROR LMAPhysmemNewRAMemRamBackedPMR(
+	PHYS_HEAP *psPhysHeap, CONNECTION_DATA *psConnection,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 uiLog2AllocPageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	const IMG_CHAR *pszAnnotation, IMG_PID uiPid, PMR **ppsPMRPtr,
+	IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 	RA_ARENA *pArena;
@@ -435,26 +416,16 @@ LMAPhysmemNewRAMemRamBackedPMR(PHYS_HEAP *psPhysHeap,
 	eError = PhysmemGetArenaLMA(psPhysHeap, &pArena);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysmemGetArenaLMA");
 
-	eError = PhysmemNewRAMemRamBackedPMR(psPhysHeap,
-	                                     pArena,
-	                                     psConnection,
-	                                     uiSize,
-	                                     ui32NumPhysChunks,
-	                                     ui32NumVirtChunks,
-	                                     pui32MappingTable,
-	                                     uiLog2AllocPageSize,
-	                                     uiFlags,
-	                                     pszAnnotation,
-	                                     uiPid,
-	                                     ppsPMRPtr,
-	                                     ui32PDumpFlags);
+	eError = PhysmemNewRAMemRamBackedPMR(
+		psPhysHeap, pArena, psConnection, uiSize, ui32NumPhysChunks,
+		ui32NumVirtChunks, pui32MappingTable, uiLog2AllocPageSize,
+		uiFlags, pszAnnotation, uiPid, ppsPMRPtr, ui32PDumpFlags);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysmemNewLocalRamBackedPMR");
 
 	return PVRSRV_OK;
 }
 
-static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs =
-{
+static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs = {
 	.pfnDestroyData = &_DestroyImplData,
 	.pfnGetDevPAddr = &_GetDevPAddr,
 	.pfnGetCPUPAddr = &_GetCPUPAddr,
@@ -473,11 +444,9 @@ static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs =
 };
 
 PVRSRV_ERROR
-PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode,
-                     PHYS_HEAP_POLICY uiPolicy,
-                     PHYS_HEAP_CONFIG *psConfig,
-                     IMG_CHAR *pszLabel,
-                     PHYS_HEAP **ppsPhysHeap)
+PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		     PHYS_HEAP_CONFIG *psConfig, IMG_CHAR *pszLabel,
+		     PHYS_HEAP **ppsPhysHeap)
 {
 	PHYSMEM_LMA_DATA *psLMAData;
 	PVRSRV_ERROR eError;
@@ -485,7 +454,7 @@ PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode,
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pszLabel != NULL, "pszLabel");
 
 	PVR_ASSERT(psConfig->eType == PHYS_HEAP_TYPE_LMA ||
-	           psConfig->eType == PHYS_HEAP_TYPE_DMA);
+		   psConfig->eType == PHYS_HEAP_TYPE_DMA);
 
 	psLMAData = OSAllocMem(sizeof(*psLMAData));
 	PVR_LOG_RETURN_IF_NOMEM(psLMAData, "OSAllocMem");
@@ -494,21 +463,16 @@ PhysmemCreateHeapLMA(PVRSRV_DEVICE_NODE *psDevNode,
 	psLMAData->sCardBase = PhysHeapConfigGetCardBase(psConfig);
 	psLMAData->uiSize = PhysHeapConfigGetSize(psConfig);
 
-	eError = PhysHeapCreate(psDevNode,
-							psConfig,
-							uiPolicy,
-							(PHEAP_IMPL_DATA)psLMAData,
-							&_sPHEAPImplFuncs,
-							ppsPhysHeap);
-	if (eError != PVRSRV_OK)
-	{
+	eError = PhysHeapCreate(psDevNode, psConfig, uiPolicy,
+				(PHEAP_IMPL_DATA)psLMAData, &_sPHEAPImplFuncs,
+				ppsPhysHeap);
+	if (eError != PVRSRV_OK) {
 		OSFreeMem(psLMAData);
 		return eError;
 	}
 
 	eError = _CreateArenas(psLMAData, pszLabel, uiPolicy);
 	PVR_LOG_RETURN_IF_ERROR(eError, "_CreateArenas");
-
 
 	return eError;
 }

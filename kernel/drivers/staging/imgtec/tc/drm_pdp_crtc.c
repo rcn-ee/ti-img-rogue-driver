@@ -85,7 +85,7 @@ struct pdp_flip_data {
 
 /* returns true for ok, false for fail */
 static bool pdp_clocks_set(struct drm_crtc *crtc,
-				struct drm_display_mode *adjusted_mode)
+			   struct drm_display_mode *adjusted_mode)
 {
 	struct pdp_drm_private *dev_priv = crtc->dev->dev_private;
 	struct pdp_crtc *pdp_crtc = to_pdp_crtc(crtc);
@@ -93,18 +93,17 @@ static bool pdp_clocks_set(struct drm_crtc *crtc,
 
 	switch (dev_priv->version) {
 	case PDP_VERSION_ODIN: {
-		pdp_odin_set_updates_enabled(crtc->dev->dev,
-						pdp_crtc->pdp_reg, false);
-		res = pdp_odin_clocks_set(crtc->dev->dev,
-				pdp_crtc->pdp_reg, pdp_crtc->pll_reg,
-				0,                       /* apollo only */
-				dev_priv->outdev - 1,
-				pdp_crtc->odn_core_reg,  /* odin only */
-				adjusted_mode->hdisplay,
-				adjusted_mode->vdisplay,
-				dev_priv->subversion);
-		pdp_odin_set_updates_enabled(crtc->dev->dev,
-					     pdp_crtc->pdp_reg, true);
+		pdp_odin_set_updates_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
+					     false);
+		res = pdp_odin_clocks_set(
+			crtc->dev->dev, pdp_crtc->pdp_reg, pdp_crtc->pll_reg,
+			0, /* apollo only */
+			dev_priv->outdev - 1,
+			pdp_crtc->odn_core_reg, /* odin only */
+			adjusted_mode->hdisplay, adjusted_mode->vdisplay,
+			dev_priv->subversion);
+		pdp_odin_set_updates_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
+					     true);
 
 		break;
 	}
@@ -113,12 +112,12 @@ static bool pdp_clocks_set(struct drm_crtc *crtc,
 
 		pdp_apollo_set_updates_enabled(crtc->dev->dev,
 					       pdp_crtc->pdp_reg, false);
-		res = pdp_apollo_clocks_set(crtc->dev->dev,
-				pdp_crtc->pdp_reg, pdp_crtc->pll_reg,
-				clock_in_mhz,           /* apollo only */
-				NULL,                   /* odin only */
-				adjusted_mode->hdisplay,
-				adjusted_mode->vdisplay);
+		res = pdp_apollo_clocks_set(crtc->dev->dev, pdp_crtc->pdp_reg,
+					    pdp_crtc->pll_reg,
+					    clock_in_mhz, /* apollo only */
+					    NULL, /* odin only */
+					    adjusted_mode->hdisplay,
+					    adjusted_mode->vdisplay);
 		pdp_apollo_set_updates_enabled(crtc->dev->dev,
 					       pdp_crtc->pdp_reg, true);
 
@@ -131,7 +130,8 @@ static bool pdp_clocks_set(struct drm_crtc *crtc,
 		plato_enable_pdp_clock(dev_priv->dev->dev->parent);
 		res = true;
 #else
-		DRM_ERROR("Trying to enable plato PDP clock on non-Plato build\n");
+		DRM_ERROR(
+			"Trying to enable plato PDP clock on non-Plato build\n");
 		res = false;
 #endif
 		break;
@@ -149,18 +149,15 @@ void pdp_crtc_set_plane_enabled(struct drm_crtc *crtc, bool enable)
 
 	switch (dev_priv->version) {
 	case PDP_VERSION_ODIN:
-		pdp_odin_set_plane_enabled(crtc->dev->dev,
-					   pdp_crtc->pdp_reg,
-					   0, enable);
+		pdp_odin_set_plane_enabled(crtc->dev->dev, pdp_crtc->pdp_reg, 0,
+					   enable);
 		break;
 	case PDP_VERSION_APOLLO:
-		pdp_apollo_set_plane_enabled(crtc->dev->dev,
-					     pdp_crtc->pdp_reg,
+		pdp_apollo_set_plane_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
 					     0, enable);
 		break;
 	case PDP_VERSION_PLATO:
-		pdp_plato_set_plane_enabled(crtc->dev->dev,
-					    pdp_crtc->pdp_reg,
+		pdp_plato_set_plane_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
 					    0, enable);
 		break;
 	default:
@@ -175,18 +172,15 @@ static void pdp_crtc_set_syncgen_enabled(struct drm_crtc *crtc, bool enable)
 
 	switch (dev_priv->version) {
 	case PDP_VERSION_ODIN:
-		pdp_odin_set_syncgen_enabled(crtc->dev->dev,
-					     pdp_crtc->pdp_reg,
+		pdp_odin_set_syncgen_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
 					     enable);
 		break;
 	case PDP_VERSION_APOLLO:
 		pdp_apollo_set_syncgen_enabled(crtc->dev->dev,
-					       pdp_crtc->pdp_reg,
-					       enable);
+					       pdp_crtc->pdp_reg, enable);
 		break;
 	case PDP_VERSION_PLATO:
-		pdp_plato_set_syncgen_enabled(crtc->dev->dev,
-					      pdp_crtc->pdp_reg,
+		pdp_plato_set_syncgen_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
 					      enable);
 		break;
 	default:
@@ -252,53 +246,41 @@ static void pdp_crtc_mode_set(struct drm_crtc *crtc,
 
 	switch (dev_priv->version) {
 	case PDP_VERSION_ODIN:
-		pdp_odin_set_updates_enabled(crtc->dev->dev,
-					     pdp_crtc->pdp_reg, false);
-		pdp_odin_reset_planes(crtc->dev->dev,
-				      pdp_crtc->pdp_reg);
-		pdp_odin_mode_set(crtc->dev->dev,
-			     pdp_crtc->pdp_reg,
-			     adjusted_mode->hdisplay, adjusted_mode->vdisplay,
-			     hbps, ht, has,
-			     hlbs, hfps, hrbs,
-			     vbps, vt, vas,
-			     vtbs, vfps, vbbs,
-			     adjusted_mode->flags & DRM_MODE_FLAG_NHSYNC,
-			     adjusted_mode->flags & DRM_MODE_FLAG_NVSYNC,
-			     pdp_crtc->pfim_reg);
-		pdp_odin_set_powerdwn_enabled(crtc->dev->dev,
-					      pdp_crtc->pdp_reg, false);
-		pdp_odin_set_updates_enabled(crtc->dev->dev,
-					     pdp_crtc->pdp_reg, true);
+		pdp_odin_set_updates_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
+					     false);
+		pdp_odin_reset_planes(crtc->dev->dev, pdp_crtc->pdp_reg);
+		pdp_odin_mode_set(crtc->dev->dev, pdp_crtc->pdp_reg,
+				  adjusted_mode->hdisplay,
+				  adjusted_mode->vdisplay, hbps, ht, has, hlbs,
+				  hfps, hrbs, vbps, vt, vas, vtbs, vfps, vbbs,
+				  adjusted_mode->flags & DRM_MODE_FLAG_NHSYNC,
+				  adjusted_mode->flags & DRM_MODE_FLAG_NVSYNC,
+				  pdp_crtc->pfim_reg);
+		pdp_odin_set_powerdwn_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
+					      false);
+		pdp_odin_set_updates_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
+					     true);
 		break;
 	case PDP_VERSION_APOLLO:
 		pdp_apollo_set_updates_enabled(crtc->dev->dev,
 					       pdp_crtc->pdp_reg, false);
-		pdp_apollo_reset_planes(crtc->dev->dev,
-					pdp_crtc->pdp_reg);
-		pdp_apollo_mode_set(crtc->dev->dev,
-			     pdp_crtc->pdp_reg,
-			     adjusted_mode->hdisplay, adjusted_mode->vdisplay,
-			     hbps, ht, has,
-			     hlbs, hfps, hrbs,
-			     vbps, vt, vas,
-			     vtbs, vfps, vbbs,
-			     adjusted_mode->flags & DRM_MODE_FLAG_NHSYNC,
-			     adjusted_mode->flags & DRM_MODE_FLAG_NVSYNC);
+		pdp_apollo_reset_planes(crtc->dev->dev, pdp_crtc->pdp_reg);
+		pdp_apollo_mode_set(
+			crtc->dev->dev, pdp_crtc->pdp_reg,
+			adjusted_mode->hdisplay, adjusted_mode->vdisplay, hbps,
+			ht, has, hlbs, hfps, hrbs, vbps, vt, vas, vtbs, vfps,
+			vbbs, adjusted_mode->flags & DRM_MODE_FLAG_NHSYNC,
+			adjusted_mode->flags & DRM_MODE_FLAG_NVSYNC);
 		pdp_apollo_set_powerdwn_enabled(crtc->dev->dev,
 						pdp_crtc->pdp_reg, false);
 		pdp_apollo_set_updates_enabled(crtc->dev->dev,
 					       pdp_crtc->pdp_reg, true);
 		break;
 	case PDP_VERSION_PLATO:
-		pdp_plato_mode_set(crtc->dev->dev,
-				   pdp_crtc->pdp_reg,
+		pdp_plato_mode_set(crtc->dev->dev, pdp_crtc->pdp_reg,
 				   adjusted_mode->hdisplay,
-				   adjusted_mode->vdisplay,
-				   hbps, ht, has,
-				   hlbs, hfps, hrbs,
-				   vbps, vt, vas,
-				   vtbs, vfps, vbbs,
+				   adjusted_mode->vdisplay, hbps, ht, has, hlbs,
+				   hfps, hrbs, vbps, vt, vas, vtbs, vfps, vbbs,
 				   adjusted_mode->flags & DRM_MODE_FLAG_NHSYNC,
 				   adjusted_mode->flags & DRM_MODE_FLAG_NVSYNC);
 		break;
@@ -307,17 +289,14 @@ static void pdp_crtc_mode_set(struct drm_crtc *crtc,
 	}
 }
 
-
 static bool pdp_crtc_helper_mode_fixup(struct drm_crtc *crtc,
-					const struct drm_display_mode *mode,
-					struct drm_display_mode *adjusted_mode)
+				       const struct drm_display_mode *mode,
+				       struct drm_display_mode *adjusted_mode)
 {
 	struct pdp_drm_private *dev_priv = crtc->dev->dev_private;
 
-	if (dev_priv->version == PDP_VERSION_ODIN
-		&& mode->hdisplay == 1920
-		&& mode->vdisplay == 1080) {
-
+	if (dev_priv->version == PDP_VERSION_ODIN && mode->hdisplay == 1920 &&
+	    mode->vdisplay == 1080) {
 		/* 1080p 60Hz */
 		const int h_total = 2200;
 		const int h_active_start = 192;
@@ -327,15 +306,15 @@ static bool pdp_crtc_helper_mode_fixup(struct drm_crtc *crtc,
 		const int v_back_porch_start = 5;
 
 		adjusted_mode->htotal = h_total;
-		adjusted_mode->hsync_start = adjusted_mode->htotal -
-						h_active_start;
-		adjusted_mode->hsync_end = adjusted_mode->hsync_start +
-						h_back_porch_start;
+		adjusted_mode->hsync_start =
+			adjusted_mode->htotal - h_active_start;
+		adjusted_mode->hsync_end =
+			adjusted_mode->hsync_start + h_back_porch_start;
 		adjusted_mode->vtotal = v_total;
-		adjusted_mode->vsync_start = adjusted_mode->vtotal -
-						v_active_start;
-		adjusted_mode->vsync_end = adjusted_mode->vsync_start +
-						v_back_porch_start;
+		adjusted_mode->vsync_start =
+			adjusted_mode->vtotal - v_active_start;
+		adjusted_mode->vsync_end =
+			adjusted_mode->vsync_start + v_back_porch_start;
 	}
 	return true;
 }
@@ -356,7 +335,8 @@ static void pdp_crtc_helper_atomic_flush(struct drm_crtc *crtc,
 static void pdp_crtc_helper_atomic_flush(struct drm_crtc *crtc,
 					 struct drm_atomic_state *state)
 {
-	struct drm_crtc_state *old_crtc_state = drm_atomic_get_new_crtc_state(state, crtc);
+	struct drm_crtc_state *old_crtc_state =
+		drm_atomic_get_new_crtc_state(state, crtc);
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0) */
 	struct drm_crtc_state *new_crtc_state = crtc->state;
 
@@ -370,8 +350,8 @@ static void pdp_crtc_helper_atomic_flush(struct drm_crtc *crtc,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 4, 0))
 		pdp_crtc->flip_async = new_crtc_state->async_flip;
 #else
-		pdp_crtc->flip_async = !!(new_crtc_state->pageflip_flags
-					  & DRM_MODE_PAGE_FLIP_ASYNC);
+		pdp_crtc->flip_async = !!(new_crtc_state->pageflip_flags &
+					  DRM_MODE_PAGE_FLIP_ASYNC);
 #endif
 		if (pdp_crtc->flip_async)
 			WARN_ON(drm_crtc_vblank_get(crtc) != 0);
@@ -414,8 +394,9 @@ static void pdp_crtc_helper_atomic_enable(struct drm_crtc *crtc,
 }
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0))
-static void pdp_crtc_helper_atomic_disable(struct drm_crtc *crtc,
-					   struct drm_crtc_state *old_crtc_state)
+static void
+pdp_crtc_helper_atomic_disable(struct drm_crtc *crtc,
+			       struct drm_crtc_state *old_crtc_state)
 #else
 static void pdp_crtc_helper_atomic_disable(struct drm_crtc *crtc,
 					   struct drm_atomic_state *state)
@@ -455,14 +436,13 @@ static int pdp_crtc_helper_mode_set_base_atomic(struct drm_crtc *crtc,
 	if (x < 0 || y < 0)
 		return -EINVAL;
 
-	pdp_plane_set_surface(crtc, crtc->primary, fb,
-			      (uint32_t) x, (uint32_t) y);
+	pdp_plane_set_surface(crtc, crtc->primary, fb, (uint32_t)x,
+			      (uint32_t)y);
 
 	return 0;
 }
 
-static int pdp_crtc_helper_mode_set_base(struct drm_crtc *crtc,
-					 int x, int y,
+static int pdp_crtc_helper_mode_set_base(struct drm_crtc *crtc, int x, int y,
 					 struct drm_framebuffer *old_fb)
 {
 	if (!crtc->primary->fb) {
@@ -470,10 +450,8 @@ static int pdp_crtc_helper_mode_set_base(struct drm_crtc *crtc,
 		return 0;
 	}
 
-	return pdp_crtc_helper_mode_set_base_atomic(crtc,
-						    crtc->primary->fb,
-						    x, y,
-						    0);
+	return pdp_crtc_helper_mode_set_base_atomic(crtc, crtc->primary->fb, x,
+						    y, 0);
 }
 
 static int pdp_crtc_helper_mode_set(struct drm_crtc *crtc,
@@ -504,11 +482,10 @@ static void pdp_crtc_helper_disable(struct drm_crtc *crtc)
 	if (status != PDP_CRTC_FLIP_STATUS_NONE) {
 		long lerr;
 
-		lerr = wait_event_timeout(
-			pdp_crtc->flip_pending_wait_queue,
-			atomic_read(&pdp_crtc->flip_status)
-					!= PDP_CRTC_FLIP_STATUS_PENDING,
-			30 * HZ);
+		lerr = wait_event_timeout(pdp_crtc->flip_pending_wait_queue,
+					  atomic_read(&pdp_crtc->flip_status) !=
+						  PDP_CRTC_FLIP_STATUS_PENDING,
+					  30 * HZ);
 		if (!lerr)
 			DRM_ERROR("Failed to wait for pending flip\n");
 		else if (!pdp_crtc->flip_async)
@@ -517,8 +494,7 @@ static void pdp_crtc_helper_disable(struct drm_crtc *crtc)
 }
 #endif /* defined(PDP_USE_ATOMIC) */
 
-static int pfim_init(struct drm_device *dev,
-		     struct pdp_crtc *pdp_crtc,
+static int pfim_init(struct drm_device *dev, struct pdp_crtc *pdp_crtc,
 		     const char *crtc_name)
 {
 	struct pdp_drm_private *dev_priv = dev->dev_private;
@@ -531,8 +507,7 @@ static int pfim_init(struct drm_device *dev,
 	}
 
 	regs = platform_get_resource_byname(to_platform_device(dev->dev),
-					    IORESOURCE_MEM,
-					    "pfim-regs");
+					    IORESOURCE_MEM, "pfim-regs");
 	if (!regs) {
 		DRM_ERROR("missing pfim register info\n");
 		return -ENXIO;
@@ -542,8 +517,7 @@ static int pfim_init(struct drm_device *dev,
 	pdp_crtc->pfim_reg_size = resource_size(regs);
 
 	if (!request_mem_region(pdp_crtc->pfim_reg_phys_base,
-				pdp_crtc->pfim_reg_size,
-				crtc_name)) {
+				pdp_crtc->pfim_reg_size, crtc_name)) {
 		DRM_ERROR("failed to reserve pfim registers\n");
 		return -EBUSY;
 	}
@@ -628,8 +602,8 @@ static void pdp_crtc_flip(struct drm_crtc *crtc)
 	struct pdp_crtc *pdp_crtc = to_pdp_crtc(crtc);
 	struct drm_framebuffer *old_fb;
 
-	WARN_ON(atomic_read(&to_pdp_crtc(crtc)->flip_status)
-			!= PDP_CRTC_FLIP_STATUS_PENDING);
+	WARN_ON(atomic_read(&to_pdp_crtc(crtc)->flip_status) !=
+		PDP_CRTC_FLIP_STATUS_PENDING);
 
 	old_fb = pdp_crtc->old_fb;
 	pdp_crtc->old_fb = NULL;
@@ -638,7 +612,7 @@ static void pdp_crtc_flip(struct drm_crtc *crtc)
 	 * The graphics stream registers latch on vsync so we can go ahead and
 	 * do the flip now.
 	 */
-	(void) pdp_crtc_helper_mode_set_base(crtc, crtc->x, crtc->y, old_fb);
+	(void)pdp_crtc_helper_mode_set_base(crtc, crtc->x, crtc->y, old_fb);
 
 	atomic_set(&pdp_crtc->flip_status, PDP_CRTC_FLIP_STATUS_DONE);
 	wake_up(&pdp_crtc->flip_pending_wait_queue);
@@ -692,8 +666,7 @@ static int pdp_crtc_flip_schedule(struct drm_crtc *crtc,
 	flip_data->crtc = crtc;
 
 	ww_mutex_lock(&old_resv->lock, NULL);
-	flip_data->wait_fence =
-		dma_fence_get(dma_resv_get_excl(old_resv));
+	flip_data->wait_fence = dma_fence_get(dma_resv_get_excl(old_resv));
 
 	if (old_resv != resv) {
 		ww_mutex_unlock(&old_resv->lock);
@@ -728,14 +701,14 @@ err_set_flip_status_none:
 	return err;
 }
 
-static int pdp_crtc_page_flip(struct drm_crtc *crtc,
-			      struct drm_framebuffer *fb,
+static int pdp_crtc_page_flip(struct drm_crtc *crtc, struct drm_framebuffer *fb,
 			      struct drm_pending_vblank_event *event,
 			      uint32_t page_flip_flags
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0))
-			      , struct drm_modeset_acquire_ctx *ctx
+			      ,
+			      struct drm_modeset_acquire_ctx *ctx
 #endif
-			     )
+)
 {
 	struct pdp_crtc *pdp_crtc = to_pdp_crtc(crtc);
 	struct pdp_framebuffer *pdp_fb = to_pdp_framebuffer(fb);
@@ -819,11 +792,10 @@ static const struct drm_crtc_funcs pdp_crtc_funcs = {
 	.page_flip = pdp_crtc_page_flip,
 #endif
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 7, 0))
-	.enable_vblank  = pdp_enable_vblank,
+	.enable_vblank = pdp_enable_vblank,
 	.disable_vblank = pdp_disable_vblank,
 #endif
 };
-
 
 struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 				 struct drm_plane *primary_plane)
@@ -844,8 +816,7 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 	pdp_crtc->number = number;
 
 	switch (number) {
-	case 0:
-	{
+	case 0: {
 		struct resource *regs;
 		const char *pdp_resname = NULL;
 
@@ -869,9 +840,8 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 		}
 
 		regs = platform_get_resource_byname(
-				    to_platform_device(dev->dev),
-				    IORESOURCE_MEM,
-				    pdp_resname);
+			to_platform_device(dev->dev), IORESOURCE_MEM,
+			pdp_resname);
 		if (!regs) {
 			DRM_ERROR("missing pdp register info\n");
 			err = -ENXIO;
@@ -882,11 +852,10 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 		pdp_crtc->pdp_reg_size = resource_size(regs);
 
 		if (dev_priv->version == PDP_VERSION_ODIN ||
-			dev_priv->version == PDP_VERSION_APOLLO) {
+		    dev_priv->version == PDP_VERSION_APOLLO) {
 			regs = platform_get_resource_byname(
-					    to_platform_device(dev->dev),
-					    IORESOURCE_MEM,
-					    "pll-regs");
+				to_platform_device(dev->dev), IORESOURCE_MEM,
+				"pll-regs");
 			if (!regs) {
 				DRM_ERROR("missing pll register info\n");
 				err = -ENXIO;
@@ -905,9 +874,8 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 			}
 		} else if (dev_priv->version == PDP_VERSION_PLATO) {
 			regs = platform_get_resource_byname(
-				    to_platform_device(dev->dev),
-				    IORESOURCE_MEM,
-				    PLATO_PDP_RESOURCE_BIF_REGS);
+				to_platform_device(dev->dev), IORESOURCE_MEM,
+				PLATO_PDP_RESOURCE_BIF_REGS);
 			if (!regs) {
 				DRM_ERROR("missing pdp-bif register info\n");
 				err = -ENXIO;
@@ -918,9 +886,10 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 			pdp_crtc->pdp_bif_reg_size = resource_size(regs);
 
 			if (!request_mem_region(pdp_crtc->pdp_bif_reg_phys_base,
-					pdp_crtc->pdp_bif_reg_size,
-					crtc_name)) {
-				DRM_ERROR("failed to reserve pdp-bif registers\n");
+						pdp_crtc->pdp_bif_reg_size,
+						crtc_name)) {
+				DRM_ERROR(
+					"failed to reserve pdp-bif registers\n");
 				err = -EBUSY;
 				goto err_crtc_free;
 			}
@@ -937,9 +906,8 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 
 		if (dev_priv->version == PDP_VERSION_ODIN) {
 			regs = platform_get_resource_byname(
-					    to_platform_device(dev->dev),
-					    IORESOURCE_MEM,
-					    "odn-core");
+				to_platform_device(dev->dev), IORESOURCE_MEM,
+				"odn-core");
 			if (!regs) {
 				DRM_ERROR("missing odn-core info\n");
 				err = -ENXIO;
@@ -949,9 +917,9 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 			pdp_crtc->odn_core_phys_base = regs->start;
 			pdp_crtc->odn_core_size = resource_size(regs);
 
-			pdp_crtc->odn_core_reg
-				= ioremap(pdp_crtc->odn_core_phys_base,
-					  pdp_crtc->odn_core_size);
+			pdp_crtc->odn_core_reg =
+				ioremap(pdp_crtc->odn_core_phys_base,
+					pdp_crtc->odn_core_size);
 			if (!pdp_crtc->odn_core_reg) {
 				DRM_ERROR("failed to map pdp reset register\n");
 				err = -ENOMEM;
@@ -974,15 +942,14 @@ struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 	}
 
 	if (!request_mem_region(pdp_crtc->pdp_reg_phys_base,
-				pdp_crtc->pdp_reg_size,
-				crtc_name)) {
+				pdp_crtc->pdp_reg_size, crtc_name)) {
 		DRM_ERROR("failed to reserve pdp registers\n");
 		err = -EBUSY;
 		goto err_crtc_free;
 	}
 
-	pdp_crtc->pdp_reg = ioremap(pdp_crtc->pdp_reg_phys_base,
-				    pdp_crtc->pdp_reg_size);
+	pdp_crtc->pdp_reg =
+		ioremap(pdp_crtc->pdp_reg_phys_base, pdp_crtc->pdp_reg_size);
 	if (!pdp_crtc->pdp_reg) {
 		DRM_ERROR("failed to map pdp registers\n");
 		err = -ENOMEM;
@@ -1024,18 +991,15 @@ void pdp_crtc_set_vblank_enabled(struct drm_crtc *crtc, bool enable)
 
 	switch (dev_priv->version) {
 	case PDP_VERSION_ODIN:
-		pdp_odin_set_vblank_enabled(crtc->dev->dev,
-					    pdp_crtc->pdp_reg,
+		pdp_odin_set_vblank_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
 					    enable);
 		break;
 	case PDP_VERSION_APOLLO:
-		pdp_apollo_set_vblank_enabled(crtc->dev->dev,
-					    pdp_crtc->pdp_reg,
-					    enable);
+		pdp_apollo_set_vblank_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
+					      enable);
 		break;
 	case PDP_VERSION_PLATO:
-		pdp_plato_set_vblank_enabled(crtc->dev->dev,
-					     pdp_crtc->pdp_reg,
+		pdp_plato_set_vblank_enabled(crtc->dev->dev, pdp_crtc->pdp_reg,
 					     enable);
 		break;
 	default:

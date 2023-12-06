@@ -50,16 +50,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "vz_vmm_pvz.h"
 #include "vmm_pvz_client.h"
 
-
-static inline void
-PvzClientLockAcquire(void)
+static inline void PvzClientLockAcquire(void)
 {
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 	OSLockAcquire(psPVRSRVData->hPvzConnectionLock);
 }
 
-static inline void
-PvzClientLockRelease(void)
+static inline void PvzClientLockRelease(void)
 {
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 	OSLockRelease(psPVRSRVData->hPvzConnectionLock);
@@ -79,27 +76,33 @@ PvzClientMapDevPhysHeap(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	PVRSRV_ERROR eError;
 	IMG_DEV_PHYADDR sDevPAddr;
 	VMM_PVZ_CONNECTION *psVmmPvz;
-	PHYS_HEAP *psFwPhysHeap = psDevConfig->psDevNode->apsPhysHeap[FIRST_PHYSHEAP_MAPPED_TO_FW_MAIN_DEVMEM];
+	PHYS_HEAP *psFwPhysHeap =
+		psDevConfig->psDevNode
+			->apsPhysHeap[FIRST_PHYSHEAP_MAPPED_TO_FW_MAIN_DEVMEM];
 
 	eError = PhysHeapGetDevPAddr(psFwPhysHeap, &sDevPAddr);
 
 #if defined(PVR_PMR_TRANSLATE_UMA_ADDRESSES)
-{
-	IMG_DEV_PHYADDR sDevPAddrTranslated;
+	{
+		IMG_DEV_PHYADDR sDevPAddrTranslated;
 
-	/* If required, perform a software translation between CPU and Device physical addresses. */
-	PhysHeapCpuPAddrToDevPAddr(psFwPhysHeap, 1, &sDevPAddrTranslated, (IMG_CPU_PHYADDR *)&sDevPAddr);
-	sDevPAddr.uiAddr = sDevPAddrTranslated.uiAddr;
-}
+		/* If required, perform a software translation between CPU and Device physical addresses. */
+		PhysHeapCpuPAddrToDevPAddr(psFwPhysHeap, 1,
+					   &sDevPAddrTranslated,
+					   (IMG_CPU_PHYADDR *)&sDevPAddr);
+		sDevPAddr.uiAddr = sDevPAddrTranslated.uiAddr;
+	}
 #endif
 
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysHeapGetDevPAddr");
-	PVR_LOG_RETURN_IF_FALSE((sDevPAddr.uiAddr != 0), "PhysHeapGetDevPAddr", PVRSRV_ERROR_INVALID_PARAMS);
+	PVR_LOG_RETURN_IF_FALSE((sDevPAddr.uiAddr != 0), "PhysHeapGetDevPAddr",
+				PVRSRV_ERROR_INVALID_PARAMS);
 
 	psVmmPvz = PvzConnectionAcquire();
 	PvzClientLockAcquire();
 
-	eError = psVmmPvz->sClientFuncTab.pfnMapDevPhysHeap(RGX_FIRMWARE_RAW_HEAP_SIZE, sDevPAddr.uiAddr);
+	eError = psVmmPvz->sClientFuncTab.pfnMapDevPhysHeap(
+		RGX_FIRMWARE_RAW_HEAP_SIZE, sDevPAddr.uiAddr);
 
 	PvzClientLockRelease();
 	PvzConnectionRelease(psVmmPvz);

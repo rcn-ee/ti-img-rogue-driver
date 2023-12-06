@@ -63,7 +63,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "ion_sys.h"
 #endif
 
-PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOSData)
+PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData,
+					 void *pvOSData)
 {
 	ENV_CONNECTION_PRIVATE_DATA *psPrivData = pvOSData;
 	ENV_CONNECTION_DATA *psEnvConnection;
@@ -73,8 +74,7 @@ PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOS
 
 	*phOsPrivateData = OSAllocZMem(sizeof(ENV_CONNECTION_DATA));
 
-	if (*phOsPrivateData == NULL)
-	{
+	if (*phOsPrivateData == NULL) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: OSAllocMem failed", __func__));
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
@@ -91,9 +91,9 @@ PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOS
 #endif
 
 #if defined(SUPPORT_ION) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
-	psIonConnection = (ENV_ION_CONNECTION_DATA *)OSAllocZMem(sizeof(ENV_ION_CONNECTION_DATA));
-	if (psIonConnection == NULL)
-	{
+	psIonConnection = (ENV_ION_CONNECTION_DATA *)OSAllocZMem(
+		sizeof(ENV_ION_CONNECTION_DATA));
+	if (psIonConnection == NULL) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: OSAllocMem failed", __func__));
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
@@ -104,15 +104,17 @@ PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOS
 		more than the PID to have a unique name.
 	*/
 	psEnvConnection->psIonData->psIonDev = IonDevAcquire();
-	OSSNPrintf(psEnvConnection->psIonData->azIonClientName, ION_CLIENT_NAME_SIZE, "pvr_ion_client-%p-%d", *phOsPrivateData, OSGetCurrentClientProcessIDKM());
+	OSSNPrintf(psEnvConnection->psIonData->azIonClientName,
+		   ION_CLIENT_NAME_SIZE, "pvr_ion_client-%p-%d",
+		   *phOsPrivateData, OSGetCurrentClientProcessIDKM());
 	psEnvConnection->psIonData->psIonClient =
 		ion_client_create(psEnvConnection->psIonData->psIonDev,
-						  psEnvConnection->psIonData->azIonClientName);
+				  psEnvConnection->psIonData->azIonClientName);
 
-	if (IS_ERR_OR_NULL(psEnvConnection->psIonData->psIonClient))
-	{
-		PVR_DPF((PVR_DBG_ERROR, "OSConnectionPrivateDataInit: Couldn't create "
-								"ion client for per connection data"));
+	if (IS_ERR_OR_NULL(psEnvConnection->psIonData->psIonClient)) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "OSConnectionPrivateDataInit: Couldn't create "
+			 "ion client for per connection data"));
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 #endif /* SUPPORT_ION && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)) */
@@ -121,8 +123,7 @@ PVRSRV_ERROR OSConnectionPrivateDataInit(IMG_HANDLE *phOsPrivateData, void *pvOS
 
 PVRSRV_ERROR OSConnectionPrivateDataDeInit(IMG_HANDLE hOsPrivateData)
 {
-	if (hOsPrivateData == NULL)
-	{
+	if (hOsPrivateData == NULL) {
 		return PVRSRV_OK;
 	}
 
@@ -145,7 +146,6 @@ PVRSRV_ERROR OSConnectionPrivateDataDeInit(IMG_HANDLE hOsPrivateData)
 
 	return PVRSRV_OK;
 }
-
 
 PVRSRV_DEVICE_NODE *OSGetDevNode(CONNECTION_DATA *psConnection)
 {

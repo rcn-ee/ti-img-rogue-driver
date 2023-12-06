@@ -47,7 +47,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(SYSCCONFIG_H)
 #define SYSCCONFIG_H
 
-
 #define RGX_NOHW_CORE_CLOCK_SPEED 100000000
 #define SYS_RGX_ACTIVE_POWER_LATENCY_MS (0)
 
@@ -55,4 +54,4 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * system specific data structures
  *****************************************************************************/
 
-#endif	/* SYSCCONFIG_H */
+#endif /* SYSCCONFIG_H */

@@ -71,19 +71,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define drm_encoder_init(dev, encoder, funcs, encoder_type, name, ...) \
 	drm_encoder_init(dev, encoder, funcs, encoder_type)
 
-#define drm_universal_plane_init(dev, plane, possible_crtcs, funcs, formats, format_count, format_modifiers, type, name, ...) \
-	({ (void) format_modifiers; drm_universal_plane_init(dev, plane, possible_crtcs, funcs, formats, format_count, type); })
+#define drm_universal_plane_init(dev, plane, possible_crtcs, funcs, formats, \
+				 format_count, format_modifiers, type, name, \
+				 ...)                                        \
+	({                                                                   \
+		(void)format_modifiers;                                      \
+		drm_universal_plane_init(dev, plane, possible_crtcs, funcs,  \
+					 formats, format_count, type);       \
+	})
 
-#define drm_crtc_init_with_planes(dev, crtc, primary, cursor, funcs, name, ...) \
+#define drm_crtc_init_with_planes(dev, crtc, primary, cursor, funcs, name, \
+				  ...)                                     \
 	drm_crtc_init_with_planes(dev, crtc, primary, cursor, funcs)
 
 #elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0))
 
-#define drm_universal_plane_init(dev, plane, possible_crtcs, funcs, formats, format_count, format_modifiers, type, name, ...) \
-	({ (void) format_modifiers; drm_universal_plane_init(dev, plane, possible_crtcs, funcs, formats, format_count, type, name, ##__VA_ARGS__); })
+#define drm_universal_plane_init(dev, plane, possible_crtcs, funcs, formats, \
+				 format_count, format_modifiers, type, name, \
+				 ...)                                        \
+	({                                                                   \
+		(void)format_modifiers;                                      \
+		drm_universal_plane_init(dev, plane, possible_crtcs, funcs,  \
+					 formats, format_count, type, name,  \
+					 ##__VA_ARGS__);                     \
+	})
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 14, 0)) */
-
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0))
 
@@ -92,17 +105,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * pointer "current" is defined in asm/current.h, which makes it pointless
  * to pass it on every function call.
 */
-#define get_user_pages(start, nr_pages, gup_flags, pages, vmas) \
-	get_user_pages(current, current->mm, start, nr_pages, gup_flags & FOLL_WRITE, gup_flags & FOLL_FORCE, pages, vmas)
+#define get_user_pages(start, nr_pages, gup_flags, pages, vmas)             \
+	get_user_pages(current, current->mm, start, nr_pages,               \
+		       gup_flags &FOLL_WRITE, gup_flags &FOLL_FORCE, pages, \
+		       vmas)
 
 #elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
 
 /* Linux 4.9 replaced the write/force parameters with "gup_flags" */
 #define get_user_pages(start, nr_pages, gup_flags, pages, vmas) \
-	get_user_pages(start, nr_pages, gup_flags & FOLL_WRITE, gup_flags & FOLL_FORCE, pages, vmas)
+	get_user_pages(start, nr_pages, gup_flags &FOLL_WRITE,  \
+		       gup_flags &FOLL_FORCE, pages, vmas)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)) */
-
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)) && \
 	!defined(CHROMIUMOS_KERNEL)
@@ -112,8 +127,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * the entire DMA-BUF.
  * Additionally, dma_buf_end_cpu_access() now returns an int error.
  */
-#define dma_buf_begin_cpu_access(DMABUF, DIRECTION) dma_buf_begin_cpu_access(DMABUF, 0, DMABUF->size, DIRECTION)
-#define dma_buf_end_cpu_access(DMABUF, DIRECTION) ({ dma_buf_end_cpu_access(DMABUF, 0, DMABUF->size, DIRECTION); 0; })
+#define dma_buf_begin_cpu_access(DMABUF, DIRECTION) \
+	dma_buf_begin_cpu_access(DMABUF, 0, DMABUF->size, DIRECTION)
+#define dma_buf_end_cpu_access(DMABUF, DIRECTION)                           \
+	({                                                                  \
+		dma_buf_end_cpu_access(DMABUF, 0, DMABUF->size, DIRECTION); \
+		0;                                                          \
+	})
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 6, 0)) && \
 		  !defined(CHROMIUMOS_KERNEL) */
@@ -121,27 +141,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0))
 
 /* Linux 4.7 removed the first arguments as it's never been used */
-#define drm_gem_object_lookup(filp, handle) drm_gem_object_lookup((filp)->minor->dev, filp, handle)
+#define drm_gem_object_lookup(filp, handle) \
+	drm_gem_object_lookup((filp)->minor->dev, filp, handle)
 
 /* Linux 4.7 replaced nla_put_u64 with nla_put_u64_64bit */
-#define nla_put_u64_64bit(skb, attrtype, value, padattr) nla_put_u64(skb, attrtype, value)
+#define nla_put_u64_64bit(skb, attrtype, value, padattr) \
+	nla_put_u64(skb, attrtype, value)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 7, 0)) */
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0))
 
 /* Linux 4.9 changed the second argument to a drm_file pointer */
-#define drm_vma_node_is_allowed(node, file_priv) drm_vma_node_is_allowed(node, (file_priv)->filp)
-#define drm_vma_node_allow(node, file_priv) drm_vma_node_allow(node, (file_priv)->filp)
-#define drm_vma_node_revoke(node, file_priv) drm_vma_node_revoke(node, (file_priv)->filp)
+#define drm_vma_node_is_allowed(node, file_priv) \
+	drm_vma_node_is_allowed(node, (file_priv)->filp)
+#define drm_vma_node_allow(node, file_priv) \
+	drm_vma_node_allow(node, (file_priv)->filp)
+#define drm_vma_node_revoke(node, file_priv) \
+	drm_vma_node_revoke(node, (file_priv)->filp)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 9, 0)) */
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0))
 #define refcount_read(r) atomic_read(r)
-#define drm_mm_insert_node(mm, node, size) drm_mm_insert_node(mm, node, size, 0, DRM_MM_SEARCH_DEFAULT)
+#define drm_mm_insert_node(mm, node, size) \
+	drm_mm_insert_node(mm, node, size, 0, DRM_MM_SEARCH_DEFAULT)
 
-#define drm_helper_mode_fill_fb_struct(dev, fb, mode_cmd) drm_helper_mode_fill_fb_struct(fb, mode_cmd)
+#define drm_helper_mode_fill_fb_struct(dev, fb, mode_cmd) \
+	drm_helper_mode_fill_fb_struct(fb, mode_cmd)
 
 /*
  * In Linux Kernels >= 4.12 for x86 another level of page tables has been
@@ -156,20 +183,19 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0)) */
 
-
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
 
-#define drm_mode_object_get(obj)          drm_mode_object_reference(obj)
-#define drm_mode_object_put(obj)          drm_mode_object_unreference(obj)
-#define drm_connector_get(obj)            drm_connector_reference(obj)
-#define drm_connector_put(obj)            drm_connector_unreference(obj)
-#define drm_framebuffer_get(obj)          drm_framebuffer_reference(obj)
-#define drm_framebuffer_put(obj)          drm_framebuffer_unreference(obj)
-#define drm_gem_object_get(obj)           drm_gem_object_reference(obj)
-#define drm_gem_object_put_locked(obj)    drm_gem_object_unreference(obj)
-#define __drm_gem_object_put(obj)         __drm_gem_object_unreference(obj)
-#define drm_property_blob_get(obj)        drm_property_reference_blob(obj)
-#define drm_property_blob_put(obj)        drm_property_unreference_blob(obj)
+#define drm_mode_object_get(obj) drm_mode_object_reference(obj)
+#define drm_mode_object_put(obj) drm_mode_object_unreference(obj)
+#define drm_connector_get(obj) drm_connector_reference(obj)
+#define drm_connector_put(obj) drm_connector_unreference(obj)
+#define drm_framebuffer_get(obj) drm_framebuffer_reference(obj)
+#define drm_framebuffer_put(obj) drm_framebuffer_unreference(obj)
+#define drm_gem_object_get(obj) drm_gem_object_reference(obj)
+#define drm_gem_object_put_locked(obj) drm_gem_object_unreference(obj)
+#define __drm_gem_object_put(obj) __drm_gem_object_unreference(obj)
+#define drm_property_blob_get(obj) drm_property_reference_blob(obj)
+#define drm_property_blob_put(obj) drm_property_unreference_blob(obj)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0)) */
 
@@ -177,46 +203,43 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define drm_dev_put(dev) drm_dev_unref(dev)
 
-#define drm_mode_object_find(dev, file_priv, id, type) drm_mode_object_find(dev, id, type)
+#define drm_mode_object_find(dev, file_priv, id, type) \
+	drm_mode_object_find(dev, id, type)
 #define drm_encoder_find(dev, file_priv, id) drm_encoder_find(dev, id)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 15, 0)) */
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 16, 0))
 
-#define drm_atomic_helper_check_plane_state(plane_state, crtc_state, \
-											min_scale, max_scale, \
-											can_position, can_update_disabled) \
-	({ \
-		const struct drm_rect __clip = { \
-			.x2 = crtc_state->crtc->mode.hdisplay, \
-			.y2 = crtc_state->crtc->mode.vdisplay, \
-		}; \
-		int __ret = drm_plane_helper_check_state(plane_state, \
-												 &__clip, \
-												 min_scale, max_scale, \
-												 can_position, \
-												 can_update_disabled); \
-		__ret; \
+#define drm_atomic_helper_check_plane_state(plane_state, crtc_state,           \
+					    min_scale, max_scale,              \
+					    can_position, can_update_disabled) \
+	({                                                                     \
+		const struct drm_rect __clip = {                               \
+			.x2 = crtc_state->crtc->mode.hdisplay,                 \
+			.y2 = crtc_state->crtc->mode.vdisplay,                 \
+		};                                                             \
+		int __ret = drm_plane_helper_check_state(plane_state, &__clip, \
+							 min_scale, max_scale, \
+							 can_position,         \
+							 can_update_disabled); \
+		__ret;                                                         \
 	})
 
 #elif (LINUX_VERSION_CODE < KERNEL_VERSION(4, 17, 0))
 
-#define drm_atomic_helper_check_plane_state(plane_state, crtc_state, \
-											min_scale, max_scale, \
-											can_position, can_update_disabled) \
-	({ \
-		const struct drm_rect __clip = { \
-			.x2 = crtc_state->crtc->mode.hdisplay, \
-			.y2 = crtc_state->crtc->mode.vdisplay, \
-		}; \
-		int __ret = drm_atomic_helper_check_plane_state(plane_state, \
-														crtc_state, \
-														&__clip, \
-														min_scale, max_scale, \
-														can_position, \
-														can_update_disabled); \
-		__ret; \
+#define drm_atomic_helper_check_plane_state(plane_state, crtc_state,           \
+					    min_scale, max_scale,              \
+					    can_position, can_update_disabled) \
+	({                                                                     \
+		const struct drm_rect __clip = {                               \
+			.x2 = crtc_state->crtc->mode.hdisplay,                 \
+			.y2 = crtc_state->crtc->mode.vdisplay,                 \
+		};                                                             \
+		int __ret = drm_atomic_helper_check_plane_state(               \
+			plane_state, crtc_state, &__clip, min_scale,           \
+			max_scale, can_position, can_update_disabled);         \
+		__ret;                                                         \
 	})
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 17, 0)) */
@@ -231,7 +254,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(4, 19, 0)) */
 
-
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 
 /*
@@ -242,12 +264,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
 #if defined(copy_from_user)
- /*
+/*
   * NOTE: This function should not be called directly as it exists simply to
   * work around copy_from_user being defined as a macro that calls access_ok.
   */
-static inline int
-__pvr_copy_from_user(void *to, const void __user *from, unsigned long n)
+static inline int __pvr_copy_from_user(void *to, const void __user *from,
+				       unsigned long n)
 {
 	return copy_from_user(to, from, n);
 }
@@ -257,12 +279,12 @@ __pvr_copy_from_user(void *to, const void __user *from, unsigned long n)
 #endif
 
 #if defined(copy_to_user)
- /*
+/*
   * NOTE: This function should not be called directly as it exists simply to
   * work around copy_to_user being defined as a macro that calls access_ok.
   */
-static inline int
-__pvr_copy_to_user(void __user *to, const void *from, unsigned long n)
+static inline int __pvr_copy_to_user(void __user *to, const void *from,
+				     unsigned long n)
 {
 	return copy_to_user(to, from, n);
 }
@@ -279,12 +301,12 @@ __pvr_copy_to_user(void __user *to, const void *from, unsigned long n)
  * than 'um' (User Mode Linux), which stopped using it in 4.2.
  */
 #if defined(access_ok)
- /*
+/*
   * NOTE: This function should not be called directly as it exists simply to
   * work around access_ok being defined as a macro.
   */
-static inline int
-__pvr_access_ok_compat(int type, const void __user * addr, unsigned long size)
+static inline int __pvr_access_ok_compat(int type, const void __user *addr,
+					 unsigned long size)
 {
 	return access_ok(type, addr, size);
 }
@@ -308,11 +330,11 @@ __pvr_access_ok_compat(int type, const void __user * addr, unsigned long size)
  */
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0))
 
-#define mmap_write_lock(mm)   down_write(&mm->mmap_sem)
+#define mmap_write_lock(mm) down_write(&mm->mmap_sem)
 #define mmap_write_unlock(mm) up_write(&mm->mmap_sem)
 
-#define mmap_read_lock(mm)    down_read(&mm->mmap_sem)
-#define mmap_read_unlock(mm)  up_read(&mm->mmap_sem)
+#define mmap_read_lock(mm) down_read(&mm->mmap_sem)
+#define mmap_read_unlock(mm) up_read(&mm->mmap_sem)
 
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5, 8, 0) */
 
@@ -335,16 +357,18 @@ struct dma_buf_map {
 	void *vaddr;
 };
 
-#define dma_buf_vmap(dmabuf, map) \
-	({ \
-		(map)->vaddr = dma_buf_vmap(dmabuf); \
-		(map)->vaddr ? 0 : ((dmabuf) && (dmabuf)->ops->vmap) ? -ENOMEM : -EINVAL; \
+#define dma_buf_vmap(dmabuf, map)                             \
+	({                                                    \
+		(map)->vaddr = dma_buf_vmap(dmabuf);          \
+		(map)->vaddr			  ? 0 :       \
+		((dmabuf) && (dmabuf)->ops->vmap) ? -ENOMEM : \
+						    -EINVAL;  \
 	})
 
-#define dma_buf_vunmap(dmabuf, map) \
-	({ \
+#define dma_buf_vunmap(dmabuf, map)                   \
+	({                                            \
 		dma_buf_vunmap(dmabuf, (map)->vaddr); \
-		(map)->vaddr = NULL; \
+		(map)->vaddr = NULL;                  \
 	})
 
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0) */
@@ -389,8 +413,7 @@ struct dma_buf_map {
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
 
-#define register_shrinker(shrinker, name) \
-	register_shrinker(shrinker)
+#define register_shrinker(shrinker, name) register_shrinker(shrinker)
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0)) */
 
@@ -409,19 +432,19 @@ struct dma_buf_map {
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(6, 2, 0)) */
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 1, 0)) || \
-        ((LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)) && !defined(ANDROID))
+	((LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)) && !defined(ANDROID))
 static inline void pvr_vm_flags_set(struct vm_area_struct *vma,
-				vm_flags_t flags)
+				    vm_flags_t flags)
 {
 	vma->vm_flags |= flags;
 }
 static inline void pvr_vm_flags_init(struct vm_area_struct *vma,
-				vm_flags_t flags)
+				     vm_flags_t flags)
 {
 	vma->vm_flags = flags;
 }
 #else
-#define pvr_vm_flags_set  vm_flags_set
+#define pvr_vm_flags_set vm_flags_set
 #define pvr_vm_flags_init vm_flags_init
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(6, 3, 0)) */
 
@@ -433,25 +456,24 @@ static inline void pvr_vm_flags_init(struct vm_area_struct *vma,
 
 #if defined(__GNUC__)
 #define GCC_VERSION_AT_LEAST(major, minor) \
-	(__GNUC__ > (major) || \
-	(__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
+	(__GNUC__ > (major) ||             \
+	 (__GNUC__ == (major) && __GNUC_MINOR__ >= (minor)))
 #else
 #define GCC_VERSION_AT_LEAST(major, minor) 0
 #endif
 
 #if defined(__clang__)
-#define CLANG_VERSION_AT_LEAST(major) \
-	(__clang_major__ >= (major))
+#define CLANG_VERSION_AT_LEAST(major) (__clang_major__ >= (major))
 #else
 #define CLANG_VERSION_AT_LEAST(major) 0
 #endif
 
 #if !defined(__fallthrough)
-	#if GCC_VERSION_AT_LEAST(7, 0) || CLANG_VERSION_AT_LEAST(10)
-		#define __fallthrough __attribute__((__fallthrough__))
-	#else
-		#define __fallthrough
-	#endif
+#if GCC_VERSION_AT_LEAST(7, 0) || CLANG_VERSION_AT_LEAST(10)
+#define __fallthrough __attribute__((__fallthrough__))
+#else
+#define __fallthrough
+#endif
 #endif
 
 #endif /* __KERNEL_COMPATIBILITY_H__ */

@@ -48,10 +48,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define TD_MAX_NUM_MIPS_PAGETABLE_PAGES (4U)
 
-typedef union _PVRSRV_FW_BOOT_PARAMS_
-{
-	struct
-	{
+typedef union _PVRSRV_FW_BOOT_PARAMS_ {
+	struct {
 		IMG_DEV_VIRTADDR sFWCodeDevVAddr;
 		IMG_DEV_VIRTADDR sFWDataDevVAddr;
 		IMG_DEV_VIRTADDR sFWCorememCodeDevVAddr;
@@ -62,17 +60,16 @@ typedef union _PVRSRV_FW_BOOT_PARAMS_
 		IMG_UINT32 ui32NumThreads;
 	} sMeta;
 
-	struct
-	{
+	struct {
 		IMG_DEV_PHYADDR sGPURegAddr;
-		IMG_DEV_PHYADDR asFWPageTableAddr[TD_MAX_NUM_MIPS_PAGETABLE_PAGES];
+		IMG_DEV_PHYADDR
+			asFWPageTableAddr[TD_MAX_NUM_MIPS_PAGETABLE_PAGES];
 		IMG_DEV_PHYADDR sFWStackAddr;
 		IMG_UINT32 ui32FWPageTableLog2PageSize;
 		IMG_UINT32 ui32FWPageTableNumPages;
 	} sMips;
 
-	struct
-	{
+	struct {
 		IMG_DEV_VIRTADDR sFWCorememCodeDevVAddr;
 		RGXFWIF_DEV_VIRTADDR sFWCorememCodeFWAddr;
 		IMG_DEVMEM_SIZE_T uiFWCorememCodeSize;
@@ -83,6 +80,5 @@ typedef union _PVRSRV_FW_BOOT_PARAMS_
 	} sRISCV;
 
 } PVRSRV_FW_BOOT_PARAMS;
-
 
 #endif /* RGX_FIRMWARE_BOOT_H */

@@ -68,10 +68,8 @@ PVRSRVTQLoadShaders(PVRSRV_DEVICE_NODE *psDeviceNode);
 @Output         ppsCLIPMRMem Shader data used by CPU client side.
 @Output         ppsUSCPMRMem Shader usc code used by GPU.
 */ /**************************************************************************/
-void
-PVRSRVTQAcquireShaders(PVRSRV_DEVICE_NODE  *psDeviceNode,
-                       PMR                **ppsCLIPMRMem,
-                       PMR                **ppsUSCPMRMem);
+void PVRSRVTQAcquireShaders(PVRSRV_DEVICE_NODE *psDeviceNode,
+			    PMR **ppsCLIPMRMem, PMR **ppsUSCPMRMem);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVTQUnLoadShaders

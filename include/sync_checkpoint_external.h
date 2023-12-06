@@ -62,14 +62,16 @@ typedef struct SYNC_CHECKPOINT_TAG *PSYNC_CHECKPOINT;
  */
 typedef IMG_UINT32 PVRSRV_SYNC_CHECKPOINT_STATE;
 
-#define PVRSRV_SYNC_CHECKPOINT_UNDEF         0x000U
-#define PVRSRV_SYNC_CHECKPOINT_ACTIVE        0xac1U  /*!< checkpoint has not signalled */
-#define PVRSRV_SYNC_CHECKPOINT_SIGNALLED     0x519U  /*!< checkpoint has signalled */
-#define PVRSRV_SYNC_CHECKPOINT_ERRORED       0xeffU   /*!< checkpoint has been errored */
+#define PVRSRV_SYNC_CHECKPOINT_UNDEF 0x000U
+#define PVRSRV_SYNC_CHECKPOINT_ACTIVE \
+	0xac1U /*!< checkpoint has not signalled */
+#define PVRSRV_SYNC_CHECKPOINT_SIGNALLED 0x519U /*!< checkpoint has signalled */
+#define PVRSRV_SYNC_CHECKPOINT_ERRORED \
+	0xeffU /*!< checkpoint has been errored */
 
-
-#define PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR(fwaddr)	(((fwaddr) & 0x1U) != 0U)
-#define PVRSRV_UFO_IS_SYNC_CHECKPOINT(ufoptr)			(PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR((ufoptr)->puiAddrUFO.ui32Addr))
+#define PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR(fwaddr) (((fwaddr)&0x1U) != 0U)
+#define PVRSRV_UFO_IS_SYNC_CHECKPOINT(ufoptr) \
+	(PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR((ufoptr)->puiAddrUFO.ui32Addr))
 
 /* Maximum number of sync checkpoints the firmware supports in one fence */
 #define MAX_SYNC_CHECKPOINTS_PER_FENCE 32U
@@ -78,6 +80,6 @@ typedef IMG_UINT32 PVRSRV_SYNC_CHECKPOINT_STATE;
  * Define to be used with SyncCheckpointAlloc() to indicate a checkpoint which
  * represents a foreign sync point or collection of foreign sync points.
  */
-#define SYNC_CHECKPOINT_FOREIGN_CHECKPOINT ((PVRSRV_TIMELINE) - 2U)
+#define SYNC_CHECKPOINT_FOREIGN_CHECKPOINT ((PVRSRV_TIMELINE)-2U)
 
 #endif /* SYNC_CHECKPOINT_EXTERNAL_H */

@@ -49,8 +49,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pmr_impl.h"
 
 /* Structures, functions and definitions shared with the generic PMR code */
-struct _PMR_ENV_
-{
+struct _PMR_ENV_ {
 	/*
 	 * The smp_store_release and smp_load_acquire functions are used
 	 * to access this field, in order to avoid taking locks, where
@@ -61,30 +60,31 @@ struct _PMR_ENV_
 
 typedef struct _PMR_ENV_ PMR_ENV;
 
-#define	DECLARE_PMR_ENV_DATA(name) PMR_ENV name;
+#define DECLARE_PMR_ENV_DATA(name) PMR_ENV name;
 
 /* The generic PMR code calls these functions, via the macros that follow */
 void PMREnvInitialize(PMR_ENV *psPMREnv);
 void PMREnvFinalize(PMR_ENV *psPMREnv);
 
-#define	PMR_ENV_INITIALIZE(psPMR, sEnvData) PMREnvInitialize(&psPMR->sEnvData)
-#define	PMR_ENV_FINALIZE(psPMR, sEnvData) PMREnvFinalize(&psPMR->sEnvData)
+#define PMR_ENV_INITIALIZE(psPMR, sEnvData) PMREnvInitialize(&psPMR->sEnvData)
+#define PMR_ENV_FINALIZE(psPMR, sEnvData) PMREnvFinalize(&psPMR->sEnvData)
 
 /* The generic PMR code provides this function, using the macro that follows */
 PMR_ENV *PMREnvGetData(PMR *psPMR);
 
-#define	DEFINE_PMR_ENV_GET_DATA(psPMR, sEnvData) \
-	PMR_ENV *PMREnvGetData(PMR *psPMR) { return &psPMR->sEnvData; }
+#define DEFINE_PMR_ENV_GET_DATA(psPMR, sEnvData) \
+	PMR_ENV *PMREnvGetData(PMR *psPMR)       \
+	{                                        \
+		return &psPMR->sEnvData;         \
+	}
 
 /*
  * Structures, functions and definitions used by the environment specific
  * PMR code.
  */
 
-void
-PMREnvDmaBufSetExportData(PMR *psPMR, void *pvData);
+void PMREnvDmaBufSetExportData(PMR *psPMR, void *pvData);
 
-void *
-PMREnvDmaBufGetExportData(PMR *psPMR);
+void *PMREnvDmaBufGetExportData(PMR *psPMR);
 
 #endif /* !defined(PMR_ENV_H) */

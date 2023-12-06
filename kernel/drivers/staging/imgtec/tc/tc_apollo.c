@@ -77,14 +77,14 @@
  */
 #include "kernel_compatibility.h"
 
-#define TC_INTERRUPT_FLAG_PDP      (1 << PDP1_INT_SHIFT)
-#define TC_INTERRUPT_FLAG_EXT      (1 << EXT_INT_SHIFT)
+#define TC_INTERRUPT_FLAG_PDP (1 << PDP1_INT_SHIFT)
+#define TC_INTERRUPT_FLAG_EXT (1 << EXT_INT_SHIFT)
 
-#define PCI_VENDOR_ID_POWERVR      0x1010
-#define DEVICE_ID_PCI_APOLLO_FPGA  0x1CF1
+#define PCI_VENDOR_ID_POWERVR 0x1010
+#define DEVICE_ID_PCI_APOLLO_FPGA 0x1CF1
 #define DEVICE_ID_PCIE_APOLLO_FPGA 0x1CF2
 
-#define APOLLO_MEM_PCI_BASENUM	   (2)
+#define APOLLO_MEM_PCI_BASENUM (2)
 
 static struct {
 	struct thermal_zone_device *thermal_zone;
@@ -113,12 +113,10 @@ struct apollo_fpga_platform_data {
 
 static void spi_write(struct tc_device *tc, u32 off, u32 val)
 {
-	iowrite32(off, tc->tcf.registers
-		  + TCF_CLK_CTRL_TCF_SPI_MST_ADDR_RDNWR);
-	iowrite32(val, tc->tcf.registers
-		  + TCF_CLK_CTRL_TCF_SPI_MST_WDATA);
-	iowrite32(TCF_SPI_MST_GO_MASK, tc->tcf.registers
-		  + TCF_CLK_CTRL_TCF_SPI_MST_GO);
+	iowrite32(off, tc->tcf.registers + TCF_CLK_CTRL_TCF_SPI_MST_ADDR_RDNWR);
+	iowrite32(val, tc->tcf.registers + TCF_CLK_CTRL_TCF_SPI_MST_WDATA);
+	iowrite32(TCF_SPI_MST_GO_MASK,
+		  tc->tcf.registers + TCF_CLK_CTRL_TCF_SPI_MST_GO);
 	udelay(1000);
 }
 
@@ -127,16 +125,16 @@ static int spi_read(struct tc_device *tc, u32 off, u32 *val)
 	int cnt = 0;
 	u32 spi_mst_status;
 
-	iowrite32(0x40000 | off, tc->tcf.registers
-		  + TCF_CLK_CTRL_TCF_SPI_MST_ADDR_RDNWR);
-	iowrite32(TCF_SPI_MST_GO_MASK, tc->tcf.registers
-		  + TCF_CLK_CTRL_TCF_SPI_MST_GO);
+	iowrite32(0x40000 | off,
+		  tc->tcf.registers + TCF_CLK_CTRL_TCF_SPI_MST_ADDR_RDNWR);
+	iowrite32(TCF_SPI_MST_GO_MASK,
+		  tc->tcf.registers + TCF_CLK_CTRL_TCF_SPI_MST_GO);
 
 	udelay(100);
 
 	do {
-		spi_mst_status = ioread32(tc->tcf.registers
-					  + TCF_CLK_CTRL_TCF_SPI_MST_STATUS);
+		spi_mst_status = ioread32(tc->tcf.registers +
+					  TCF_CLK_CTRL_TCF_SPI_MST_STATUS);
 
 		if (cnt++ > 10000) {
 			dev_err(&tc->pdev->dev,
@@ -147,14 +145,12 @@ static int spi_read(struct tc_device *tc, u32 off, u32 *val)
 
 	} while (spi_mst_status != 0x08);
 
-	*val = ioread32(tc->tcf.registers
-			+ TCF_CLK_CTRL_TCF_SPI_MST_RDATA);
+	*val = ioread32(tc->tcf.registers + TCF_CLK_CTRL_TCF_SPI_MST_RDATA);
 
 	return 0;
 }
 
-static int apollo_thermal_get_temp(struct thermal_zone_device *thermal,
-				   int *t)
+static int apollo_thermal_get_temp(struct thermal_zone_device *thermal, int *t)
 {
 	struct tc_device *tc;
 	int err = -ENODEV;
@@ -170,7 +166,7 @@ static int apollo_thermal_get_temp(struct thermal_zone_device *thermal,
 
 	if (spi_read(tc, TCF_TEMP_SENSOR_SPI_OFFSET, &tmp)) {
 		dev_err(&tc->pdev->dev,
-				"Failed to read apollo temperature sensor\n");
+			"Failed to read apollo temperature sensor\n");
 
 		goto err_out;
 	}
@@ -190,16 +186,16 @@ static struct thermal_zone_device_ops apollo_thermal_dev_ops = {
 
 #if defined(SUPPORT_RGX)
 
-static void pll_write_reg(struct tc_device *tc,
-	resource_size_t reg_offset, u32 reg_value)
+static void pll_write_reg(struct tc_device *tc, resource_size_t reg_offset,
+			  u32 reg_value)
 {
 	BUG_ON(reg_offset < TCF_PLL_PLL_CORE_CLK0);
-	BUG_ON(reg_offset > tc->tcf_pll.region.size +
-		TCF_PLL_PLL_CORE_CLK0 - 4);
+	BUG_ON(reg_offset >
+	       tc->tcf_pll.region.size + TCF_PLL_PLL_CORE_CLK0 - 4);
 
 	/* Tweak the offset because we haven't mapped the full pll region */
-	iowrite32(reg_value, tc->tcf_pll.registers +
-		reg_offset - TCF_PLL_PLL_CORE_CLK0);
+	iowrite32(reg_value,
+		  tc->tcf_pll.registers + reg_offset - TCF_PLL_PLL_CORE_CLK0);
 }
 
 static u32 sai_read_es2(struct tc_device *tc, u32 addr)
@@ -219,7 +215,7 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 
 	/* Try to enable the core clock PLL */
 	spi_write(tc, 0x1, 0x0);
-	reg  = ioread32(tc->tcf.registers + 0x320);
+	reg = ioread32(tc->tcf.registers + 0x320);
 	reg |= 0x1;
 	iowrite32(reg, tc->tcf.registers + 0x320);
 	reg &= 0xfffffffe;
@@ -227,29 +223,26 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 	msleep(1000);
 
 	if (spi_read(tc, 0x2, &reg)) {
-		dev_err(&tc->pdev->dev,
-				"Unable to read PLL status\n");
+		dev_err(&tc->pdev->dev, "Unable to read PLL status\n");
 		goto err_out;
 	}
 
 	if (reg == 0x1) {
 		/* Select DUT PLL as core clock */
-		reg  = ioread32(tc->tcf.registers +
-			TCF_CLK_CTRL_DUT_CONTROL_1);
+		reg = ioread32(tc->tcf.registers + TCF_CLK_CTRL_DUT_CONTROL_1);
 		reg &= 0xfffffff7;
-		iowrite32(reg, tc->tcf.registers +
-			TCF_CLK_CTRL_DUT_CONTROL_1);
+		iowrite32(reg, tc->tcf.registers + TCF_CLK_CTRL_DUT_CONTROL_1);
 	} else {
-		dev_err(&tc->pdev->dev,
-			"PLL has failed to lock, status = %x\n", reg);
+		dev_err(&tc->pdev->dev, "PLL has failed to lock, status = %x\n",
+			reg);
 		goto err_out;
 	}
 
-	reg_reset_n = ioread32(tc->tcf.registers +
-		TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	reg_reset_n =
+		ioread32(tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 
 	while (!aligned && reset_cnt < 10 &&
-			tc->version != APOLLO_VERSION_TCF_5) {
+	       tc->version != APOLLO_VERSION_TCF_5) {
 		int bank;
 		u32 eyes;
 		u32 clk_taps;
@@ -259,12 +252,12 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 
 		/* Reset the DUT to allow the SAI to retrain */
 		reg_reset_n &= ~(0x1 << DUT_RESETN_SHIFT);
-		iowrite32(reg_reset_n, tc->tcf.registers +
-			  TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+		iowrite32(reg_reset_n,
+			  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 		udelay(100);
 		reg_reset_n |= (0x1 << DUT_RESETN_SHIFT);
-		iowrite32(reg_reset_n, tc->tcf.registers +
-			  TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+		iowrite32(reg_reset_n,
+			  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 		udelay(100);
 
 		/* Assume alignment passed, if any bank fails on either DUT or
@@ -283,11 +276,11 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 			spi_read(tc, bank_base + 0x3, &clk_taps);
 			spi_read(tc, bank_base + 0x6, &train_ack);
 
-			bank_aligned = tc_is_interface_aligned(
-					eyes, clk_taps, train_ack);
+			bank_aligned = tc_is_interface_aligned(eyes, clk_taps,
+							       train_ack);
 			if (!bank_aligned) {
 				dev_warn(&tc->pdev->dev,
-					"Alignment check failed, retrying\n");
+					 "Alignment check failed, retrying\n");
 				aligned = false;
 				break;
 			}
@@ -299,12 +292,12 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 			clk_taps = sai_read_es2(tc, bank_base + 0x3);
 			train_ack = sai_read_es2(tc, bank_base + 0x6);
 
-			bank_aligned = tc_is_interface_aligned(
-					eyes, clk_taps, train_ack);
+			bank_aligned = tc_is_interface_aligned(eyes, clk_taps,
+							       train_ack);
 
 			if (!bank_aligned) {
 				dev_warn(&tc->pdev->dev,
-					"Alignment check failed, retrying\n");
+					 "Alignment check failed, retrying\n");
 				aligned = false;
 				break;
 			}
@@ -312,7 +305,8 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 	}
 
 	if (!aligned) {
-		dev_err(&tc->pdev->dev, "Unable to initialise the testchip (interface alignment failure), please restart the system.\n");
+		dev_err(&tc->pdev->dev,
+			"Unable to initialise the testchip (interface alignment failure), please restart the system.\n");
 		/* We are not returning an error here, cause VP doesn't
 		 * implement the necessary registers although they claim to be
 		 * TC compatible.
@@ -320,9 +314,12 @@ static int apollo_align_interface_es2(struct tc_device *tc)
 	}
 
 	if (reset_cnt > 1) {
-		dev_dbg(&tc->pdev->dev, "Note: The testchip required more than one reset to find a good interface alignment!\n");
-		dev_dbg(&tc->pdev->dev, "      This should be harmless, but if you do suspect foul play, please reset the machine.\n");
-		dev_dbg(&tc->pdev->dev, "      If you continue to see this message you may want to report it to PowerVR Verification Platforms.\n");
+		dev_dbg(&tc->pdev->dev,
+			"Note: The testchip required more than one reset to find a good interface alignment!\n");
+		dev_dbg(&tc->pdev->dev,
+			"      This should be harmless, but if you do suspect foul play, please reset the machine.\n");
+		dev_dbg(&tc->pdev->dev,
+			"      If you continue to see this message you may want to report it to PowerVR Verification Platforms.\n");
 	}
 
 	err = 0;
@@ -330,8 +327,8 @@ err_out:
 	return err;
 }
 
-static void apollo_set_clocks(struct tc_device *tc,
-			      int core_clock, int mem_clock, int sys_clock)
+static void apollo_set_clocks(struct tc_device *tc, int core_clock,
+			      int mem_clock, int sys_clock)
 {
 	u32 val;
 
@@ -363,8 +360,8 @@ static void apollo_set_clocks(struct tc_device *tc,
 	udelay(400);
 }
 
-static void apollo_set_mem_latency(struct tc_device *tc,
-				   int mem_latency, int mem_wresp_latency)
+static void apollo_set_mem_latency(struct tc_device *tc, int mem_latency,
+				   int mem_wresp_latency)
 {
 	u32 regval = 0;
 
@@ -414,7 +411,8 @@ static void apollo_set_mem_latency(struct tc_device *tc,
 }
 
 static void apollo_fpga_update_dut_clk_freq(struct tc_device *tc,
-					    int *core_clock, int *mem_clock, int *clock_multiplex)
+					    int *core_clock, int *mem_clock,
+					    int *clock_multiplex)
 {
 	struct device *dev = &tc->pdev->dev;
 	u32 reg = 0;
@@ -428,24 +426,36 @@ static void apollo_fpga_update_dut_clk_freq(struct tc_device *tc,
 		reg = ioread32(tc->tcf.registers + TCF_CLK_CTRL_DUT_CLK_INFO);
 
 		if ((reg != 0) && (reg != 0xbaadface) && (reg != 0xffffffff)) {
-			dev_info(dev, "TCF_CLK_CTRL_DUT_CLK_INFO = %08x\n", reg);
+			dev_info(dev, "TCF_CLK_CTRL_DUT_CLK_INFO = %08x\n",
+				 reg);
 
 			if (*core_clock == 0) {
-				*core_clock = ((reg & CORE_MASK) >> CORE_SHIFT) * 1000000;
-				dev_info(dev, "Using register DUT core clock value: %i\n",
-							*core_clock);
+				*core_clock =
+					((reg & CORE_MASK) >> CORE_SHIFT) *
+					1000000;
+				dev_info(
+					dev,
+					"Using register DUT core clock value: %i\n",
+					*core_clock);
 			} else {
-				dev_info(dev, "Using module param DUT core clock value: %i\n",
-							*core_clock);
+				dev_info(
+					dev,
+					"Using module param DUT core clock value: %i\n",
+					*core_clock);
 			}
 
 			if (*mem_clock == 0) {
-				*mem_clock = ((reg & MEM_MASK) >> MEM_SHIFT) * 1000000;
-				dev_info(dev, "Using register DUT mem clock value: %i\n",
-				 *mem_clock);
+				*mem_clock = ((reg & MEM_MASK) >> MEM_SHIFT) *
+					     1000000;
+				dev_info(
+					dev,
+					"Using register DUT mem clock value: %i\n",
+					*mem_clock);
 			} else {
-				dev_info(dev, "Using module param DUT mem clock value: %i\n",
-							*mem_clock);
+				dev_info(
+					dev,
+					"Using module param DUT mem clock value: %i\n",
+					*mem_clock);
 			}
 
 			return;
@@ -455,35 +465,36 @@ static void apollo_fpga_update_dut_clk_freq(struct tc_device *tc,
 	if (*core_clock == 0) {
 		*core_clock = RGX_TC_CORE_CLOCK_SPEED;
 		dev_info(dev, "Using default DUT core clock value: %i\n",
-				 *core_clock);
+			 *core_clock);
 	} else {
 		dev_info(dev, "Using module param DUT core clock value: %i\n",
-					*core_clock);
+			 *core_clock);
 	}
 
 	if (*mem_clock == 0) {
 		*mem_clock = RGX_TC_MEM_CLOCK_SPEED;
 		dev_info(dev, "Using default DUT mem clock value: %i\n",
-				 *mem_clock);
+			 *mem_clock);
 	} else {
 		dev_info(dev, "Using module param DUT mem clock value: %i\n",
-					*mem_clock);
+			 *mem_clock);
 	}
 
 	if (*clock_multiplex == 0) {
 		*clock_multiplex = RGX_TC_CLOCK_MULTIPLEX;
 		dev_info(dev, "Using default DUT clock multiplex: %i\n",
-				 *clock_multiplex);
+			 *clock_multiplex);
 	} else {
 		dev_info(dev, "Using module param DUT clock multiplex: %i\n",
-					*clock_multiplex);
+			 *clock_multiplex);
 	}
 }
 
 #endif /* defined(SUPPORT_RGX) */
 
-static int apollo_hard_reset(struct tc_device *tc,
-			     int *core_clock, int *mem_clock, int sys_clock, int *clock_multiplex)
+static int apollo_hard_reset(struct tc_device *tc, int *core_clock,
+			     int *mem_clock, int sys_clock,
+			     int *clock_multiplex)
 {
 	u32 reg;
 	u32 reg_reset_n = 0;
@@ -495,65 +506,69 @@ static int apollo_hard_reset(struct tc_device *tc,
 
 	if (tc->version == APOLLO_VERSION_TCF_2) {
 		/* Power down */
-		reg = ioread32(tc->tcf.registers +
-			TCF_CLK_CTRL_DUT_CONTROL_1);
+		reg = ioread32(tc->tcf.registers + TCF_CLK_CTRL_DUT_CONTROL_1);
 		reg &= ~DUT_CTRL_VCC_0V9EN;
 		reg &= ~DUT_CTRL_VCC_1V8EN;
 		reg |= DUT_CTRL_VCC_IO_INH;
 		reg |= DUT_CTRL_VCC_CORE_INH;
-		iowrite32(reg, tc->tcf.registers +
-			TCF_CLK_CTRL_DUT_CONTROL_1);
+		iowrite32(reg, tc->tcf.registers + TCF_CLK_CTRL_DUT_CONTROL_1);
 		msleep(500);
 	}
 
 	/* Put everything into reset */
-	iowrite32(reg_reset_n, tc->tcf.registers +
-		TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	iowrite32(reg_reset_n,
+		  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 
 	/* Take PDP1 and PDP2 out of reset */
 	reg_reset_n |= (0x1 << PDP1_RESETN_SHIFT);
 	reg_reset_n |= (0x1 << PDP2_RESETN_SHIFT);
 
-	iowrite32(reg_reset_n, tc->tcf.registers +
-		TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	iowrite32(reg_reset_n,
+		  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 	msleep(100);
 
 	/* Take DDR out of reset */
 	reg_reset_n |= (0x1 << DDR_RESETN_SHIFT);
-	iowrite32(reg_reset_n, tc->tcf.registers +
-		  TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	iowrite32(reg_reset_n,
+		  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 
 #if defined(SUPPORT_RGX)
 	if (tc->version == APOLLO_VERSION_TCF_5) {
-		apollo_fpga_update_dut_clk_freq(tc, core_clock, mem_clock, clock_multiplex);
+		apollo_fpga_update_dut_clk_freq(tc, core_clock, mem_clock,
+						clock_multiplex);
 	} else {
 		struct device *dev = &tc->pdev->dev;
 
 		if (*core_clock == 0) {
 			*core_clock = RGX_TC_CORE_CLOCK_SPEED;
-			dev_info(dev, "Using default DUT core clock value: %i\n",
-					 *core_clock);
+			dev_info(dev,
+				 "Using default DUT core clock value: %i\n",
+				 *core_clock);
 		} else {
-			dev_info(dev, "Using module param DUT core clock value: %i\n",
-						*core_clock);
+			dev_info(
+				dev,
+				"Using module param DUT core clock value: %i\n",
+				*core_clock);
 		}
 
 		if (*mem_clock == 0) {
 			*mem_clock = RGX_TC_MEM_CLOCK_SPEED;
 			dev_info(dev, "Using default DUT mem clock value: %i\n",
-					 *mem_clock);
+				 *mem_clock);
 		} else {
-			dev_info(dev, "Using module param DUT mem clock value: %i\n",
-						*mem_clock);
+			dev_info(dev,
+				 "Using module param DUT mem clock value: %i\n",
+				 *mem_clock);
 		}
 
 		if (*clock_multiplex == 0) {
 			*clock_multiplex = RGX_TC_CLOCK_MULTIPLEX;
 			dev_info(dev, "Using default DUT clock multiplex: %i\n",
-					 *clock_multiplex);
+				 *clock_multiplex);
 		} else {
-			dev_info(dev, "Using module param DUT clock multiplex: %i\n",
-						*clock_multiplex);
+			dev_info(dev,
+				 "Using module param DUT clock multiplex: %i\n",
+				 *clock_multiplex);
 		}
 	}
 
@@ -563,32 +578,30 @@ static int apollo_hard_reset(struct tc_device *tc,
 	/* Put take GLB_CLKG and SCB out of reset */
 	reg_reset_n |= (0x1 << GLB_CLKG_EN_SHIFT);
 	reg_reset_n |= (0x1 << SCB_RESETN_SHIFT);
-	iowrite32(reg_reset_n, tc->tcf.registers +
-		  TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	iowrite32(reg_reset_n,
+		  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 	msleep(100);
 
 	if (tc->version == APOLLO_VERSION_TCF_2) {
 		/* Enable the voltage control regulators on DUT */
-		reg = ioread32(tc->tcf.registers +
-			TCF_CLK_CTRL_DUT_CONTROL_1);
+		reg = ioread32(tc->tcf.registers + TCF_CLK_CTRL_DUT_CONTROL_1);
 		reg |= DUT_CTRL_VCC_0V9EN;
 		reg |= DUT_CTRL_VCC_1V8EN;
 		reg &= ~DUT_CTRL_VCC_IO_INH;
 		reg &= ~DUT_CTRL_VCC_CORE_INH;
-		iowrite32(reg, tc->tcf.registers +
-			TCF_CLK_CTRL_DUT_CONTROL_1);
+		iowrite32(reg, tc->tcf.registers + TCF_CLK_CTRL_DUT_CONTROL_1);
 		msleep(300);
 	}
 
 	/* Take DUT_DCM out of reset */
 	reg_reset_n |= (0x1 << DUT_DCM_RESETN_SHIFT);
-	iowrite32(reg_reset_n, tc->tcf.registers +
-		  TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	iowrite32(reg_reset_n,
+		  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 	msleep(100);
 
-
 	err = tc_iopol32_nonzero(DCM_LOCK_STATUS_MASK,
-		tc->tcf.registers + TCF_CLK_CTRL_DCM_LOCK_STATUS);
+				 tc->tcf.registers +
+					 TCF_CLK_CTRL_DCM_LOCK_STATUS);
 
 	if (err != 0)
 		goto err_out;
@@ -602,8 +615,8 @@ static int apollo_hard_reset(struct tc_device *tc,
 
 	/* Take DUT out of reset */
 	reg_reset_n |= (0x1 << DUT_RESETN_SHIFT);
-	iowrite32(reg_reset_n, tc->tcf.registers +
-		  TCF_CLK_CTRL_CLK_AND_RST_CTRL);
+	iowrite32(reg_reset_n,
+		  tc->tcf.registers + TCF_CLK_CTRL_CLK_AND_RST_CTRL);
 	msleep(100);
 
 	if (tc->version != APOLLO_VERSION_TCF_5) {
@@ -627,12 +640,12 @@ static int apollo_hard_reset(struct tc_device *tc,
 		spi_write(tc, 0xc, 6); /* init & run */
 
 		/* Register a new thermal zone */
-		apollo_pdata.thermal_zone =
-			thermal_zone_device_register("apollo", 0, 0, tc,
-						     &apollo_thermal_dev_ops,
-						     NULL, 0, 0);
+		apollo_pdata.thermal_zone = thermal_zone_device_register(
+			"apollo", 0, 0, tc, &apollo_thermal_dev_ops, NULL, 0,
+			0);
 		if (IS_ERR(apollo_pdata.thermal_zone)) {
-			dev_warn(&tc->pdev->dev, "Couldn't register thermal zone");
+			dev_warn(&tc->pdev->dev,
+				 "Couldn't register thermal zone");
 			apollo_pdata.thermal_zone = NULL;
 		}
 	}
@@ -650,11 +663,13 @@ static int apollo_hard_reset(struct tc_device *tc,
 		build_owner = (reg >> 20) & 0xf;
 
 		if (build_inc) {
-			dev_alert(&tc->pdev->dev,
+			dev_alert(
+				&tc->pdev->dev,
 				"BE WARNED: You are not running a tagged release of the FPGA!\n");
 
-			dev_alert(&tc->pdev->dev, "Owner: 0x%01x, Inc: 0x%02x\n",
-				  build_owner, build_inc);
+			dev_alert(&tc->pdev->dev,
+				  "Owner: 0x%01x, Inc: 0x%02x\n", build_owner,
+				  build_inc);
 		}
 
 		dev_info(&tc->pdev->dev, "FPGA Release: %u.%02u\n",
@@ -672,8 +687,8 @@ static void apollo_set_mem_mode_lma(struct tc_device *tc)
 	u32 val;
 
 	val = ioread32(tc->tcf.registers + TCF_CLK_CTRL_TEST_CTRL);
-	val &= ~(ADDRESS_FORCE_MASK | PCI_TEST_MODE_MASK | HOST_ONLY_MODE_MASK
-		| HOST_PHY_MODE_MASK);
+	val &= ~(ADDRESS_FORCE_MASK | PCI_TEST_MODE_MASK | HOST_ONLY_MODE_MASK |
+		 HOST_PHY_MODE_MASK);
 	val |= (0x1 << ADDRESS_FORCE_SHIFT);
 	iowrite32(val, tc->tcf.registers + TCF_CLK_CTRL_TEST_CTRL);
 }
@@ -683,8 +698,8 @@ static void apollo_set_mem_mode_hybrid(struct tc_device *tc)
 	u32 val;
 
 	val = ioread32(tc->tcf.registers + TCF_CLK_CTRL_TEST_CTRL);
-	val &= ~(ADDRESS_FORCE_MASK | PCI_TEST_MODE_MASK | HOST_ONLY_MODE_MASK
-		| HOST_PHY_MODE_MASK);
+	val &= ~(ADDRESS_FORCE_MASK | PCI_TEST_MODE_MASK | HOST_ONLY_MODE_MASK |
+		 HOST_PHY_MODE_MASK);
 	val |= ((0x1 << HOST_ONLY_MODE_SHIFT) | (0x1 << HOST_PHY_MODE_SHIFT));
 	iowrite32(val, tc->tcf.registers + TCF_CLK_CTRL_TEST_CTRL);
 
@@ -753,13 +768,14 @@ static u64 apollo_get_fpga_dma_mask(struct tc_device *tc)
 }
 #endif /* defined(SUPPORT_RGX) || defined(SUPPORT_APOLLO_FPGA) */
 
-static int apollo_hw_init(struct tc_device *tc,
-			  int *core_clock, int *mem_clock, int sys_clock, int *clock_multiplex,
-			  int mem_latency, int mem_wresp_latency, int mem_mode)
+static int apollo_hw_init(struct tc_device *tc, int *core_clock, int *mem_clock,
+			  int sys_clock, int *clock_multiplex, int mem_latency,
+			  int mem_wresp_latency, int mem_mode)
 {
 	int err = 0;
 
-	err = apollo_hard_reset(tc, core_clock, mem_clock, sys_clock, clock_multiplex);
+	err = apollo_hard_reset(tc, core_clock, mem_clock, sys_clock,
+				clock_multiplex);
 	if (err)
 		goto err_out;
 
@@ -801,24 +817,24 @@ static int apollo_enable_irq(struct tc_device *tc)
 #endif
 
 	mod_timer(&tc->timer,
-		jiffies + msecs_to_jiffies(FAKE_INTERRUPT_TIME_MS));
+		  jiffies + msecs_to_jiffies(FAKE_INTERRUPT_TIME_MS));
 #else
 	{
 		u32 val;
 
-		iowrite32(0, tc->tcf.registers +
-			TCF_CLK_CTRL_INTERRUPT_ENABLE);
-		iowrite32(0xffffffff, tc->tcf.registers +
-			TCF_CLK_CTRL_INTERRUPT_CLEAR);
+		iowrite32(0, tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
+		iowrite32(0xffffffff,
+			  tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_CLEAR);
 
 		/* Set sense to active high */
 		val = ioread32(tc->tcf.registers +
-			TCF_CLK_CTRL_INTERRUPT_OP_CFG) & ~(INT_SENSE_MASK);
-		iowrite32(val, tc->tcf.registers +
-			TCF_CLK_CTRL_INTERRUPT_OP_CFG);
+			       TCF_CLK_CTRL_INTERRUPT_OP_CFG) &
+		      ~(INT_SENSE_MASK);
+		iowrite32(val,
+			  tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_OP_CFG);
 
 		err = request_irq(tc->pdev->irq, apollo_irq_handler,
-			IRQF_SHARED, DRV_NAME, tc);
+				  IRQF_SHARED, DRV_NAME, tc);
 	}
 #endif
 	return err;
@@ -829,20 +845,17 @@ static void apollo_disable_irq(struct tc_device *tc)
 #if defined(TC_FAKE_INTERRUPTS)
 	del_timer_sync(&tc->timer);
 #else
-	iowrite32(0, tc->tcf.registers +
-		TCF_CLK_CTRL_INTERRUPT_ENABLE);
-	iowrite32(0xffffffff, tc->tcf.registers +
-		TCF_CLK_CTRL_INTERRUPT_CLEAR);
+	iowrite32(0, tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
+	iowrite32(0xffffffff, tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_CLEAR);
 
 	free_irq(tc->pdev->irq, tc);
 #endif
 }
 
-static enum tc_version_t
-apollo_detect_tc_version(struct tc_device *tc)
+static enum tc_version_t apollo_detect_tc_version(struct tc_device *tc)
 {
 	u32 val = ioread32(tc->tcf.registers +
-		       TCF_CLK_CTRL_TCF_CORE_TARGET_BUILD_CFG);
+			   TCF_CLK_CTRL_TCF_CORE_TARGET_BUILD_CFG);
 
 	switch (val) {
 	default:
@@ -881,8 +894,9 @@ static u32 apollo_interrupt_id_to_flag(int interrupt_id)
  * is any aliasing. e.g. some devices may advertise 1GB of memory but in reality only have half of
  * that.
  */
-static uint64_t
-apollo_get_memory_size(struct tc_device *tc, uint64_t pci_bar_base, uint64_t pci_bar_size)
+static uint64_t apollo_get_memory_size(struct tc_device *tc,
+				       uint64_t pci_bar_base,
+				       uint64_t pci_bar_size)
 {
 #define MEM_PROBE_VALUE 0xa5a5a5a5
 #define MEM_MAP_SIZE sizeof(uint32_t)
@@ -890,7 +904,8 @@ apollo_get_memory_size(struct tc_device *tc, uint64_t pci_bar_base, uint64_t pci
 	uint32_t *mem_zero;
 	uint64_t mem_size = 0;
 
-	BUG_ON((pci_bar_size & (pci_bar_size-1)) != 0);	/* PCI BARs are always a power of 2 */
+	BUG_ON((pci_bar_size & (pci_bar_size - 1)) !=
+	       0); /* PCI BARs are always a power of 2 */
 	host_mapped_base = ioremap(pci_bar_base, MEM_MAP_SIZE);
 
 	if (host_mapped_base == NULL) {
@@ -899,15 +914,17 @@ apollo_get_memory_size(struct tc_device *tc, uint64_t pci_bar_base, uint64_t pci
 			__func__, pci_bar_base, pci_bar_size);
 	} else {
 		mem_zero = (uint32_t __force *)host_mapped_base;
-		mem_size = 1024*1024;	/* assume at least 1MB of memory */
+		mem_size = 1024 * 1024; /* assume at least 1MB of memory */
 		while (mem_size < pci_bar_size) {
-			void __iomem *host_mapped = ioremap(pci_bar_base + mem_size, MEM_MAP_SIZE);
+			void __iomem *host_mapped =
+				ioremap(pci_bar_base + mem_size, MEM_MAP_SIZE);
 			volatile uint32_t *mem_probe;
 
 			if (host_mapped == NULL) {
 				dev_err(&tc->pdev->dev,
 					"%s: Cannot map PCI memory at phys 0x%llx for size 0x%llx",
-					__func__, pci_bar_base + mem_size, pci_bar_size);
+					__func__, pci_bar_base + mem_size,
+					pci_bar_size);
 				break;
 			}
 
@@ -918,14 +935,15 @@ apollo_get_memory_size(struct tc_device *tc, uint64_t pci_bar_base, uint64_t pci
 			*mem_zero = 0;
 			if (*mem_probe != MEM_PROBE_VALUE)
 				break;
-			*mem_probe = 0;	/* reset value */
-			mem_size <<= 1;	/* double the offset we probe each time. */
+			*mem_probe = 0; /* reset value */
+			mem_size <<=
+				1; /* double the offset we probe each time. */
 			iounmap(host_mapped);
 		}
 		iounmap(host_mapped_base);
 		dev_info(&tc->pdev->dev,
-			"%s: Local memory size 0x%llx (PCI BAR size 0x%llx)",
-			__func__, mem_size, pci_bar_size);
+			 "%s: Local memory size 0x%llx (PCI BAR size 0x%llx)",
+			 __func__, mem_size, pci_bar_size);
 	}
 
 	return mem_size;
@@ -939,17 +957,17 @@ static int apollo_dev_init(struct tc_device *tc, struct pci_dev *pdev,
 	uint64_t tc_mem_size;
 
 	/* Reserve and map the tcf_clk / "sys" registers */
-	err = setup_io_region(pdev, &tc->tcf,
-		SYS_APOLLO_REG_PCI_BASENUM,
-		SYS_APOLLO_REG_SYS_OFFSET, SYS_APOLLO_REG_SYS_SIZE);
+	err = setup_io_region(pdev, &tc->tcf, SYS_APOLLO_REG_PCI_BASENUM,
+			      SYS_APOLLO_REG_SYS_OFFSET,
+			      SYS_APOLLO_REG_SYS_SIZE);
 	if (err)
 		goto err_out;
 
 	/* Reserve and map the tcf_pll registers */
-	err = setup_io_region(pdev, &tc->tcf_pll,
-		SYS_APOLLO_REG_PCI_BASENUM,
-		SYS_APOLLO_REG_PLL_OFFSET + TCF_PLL_PLL_CORE_CLK0,
-		TCF_PLL_PLL_DRP_STATUS - TCF_PLL_PLL_CORE_CLK0 + 4);
+	err = setup_io_region(pdev, &tc->tcf_pll, SYS_APOLLO_REG_PCI_BASENUM,
+			      SYS_APOLLO_REG_PLL_OFFSET + TCF_PLL_PLL_CORE_CLK0,
+			      TCF_PLL_PLL_DRP_STATUS - TCF_PLL_PLL_CORE_CLK0 +
+				      4);
 	if (err)
 		goto err_unmap_sys_registers;
 
@@ -958,8 +976,8 @@ static int apollo_dev_init(struct tc_device *tc, struct pci_dev *pdev,
 	/* If this is a special 'fgpa' build, have the apollo driver manage
 	 * the second register bar.
 	 */
-	err = setup_io_region(pdev, &apollo_pdata.fpga,
-		SYS_RGX_REG_PCI_BASENUM, 0, FPGA_REGISTERS_SIZE);
+	err = setup_io_region(pdev, &apollo_pdata.fpga, SYS_RGX_REG_PCI_BASENUM,
+			      0, FPGA_REGISTERS_SIZE);
 	if (err)
 		goto err_unmap_pll_registers;
 #endif
@@ -968,15 +986,15 @@ static int apollo_dev_init(struct tc_device *tc, struct pci_dev *pdev,
 	tc->version = apollo_detect_tc_version(tc);
 
 	/* Setup card memory */
-	tc->tc_mem.base =
-		pci_resource_start(pdev, APOLLO_MEM_PCI_BASENUM);
+	tc->tc_mem.base = pci_resource_start(pdev, APOLLO_MEM_PCI_BASENUM);
 
 	pci_bar_size = pci_resource_len(pdev, APOLLO_MEM_PCI_BASENUM);
 
 	tc_mem_size = apollo_get_memory_size(tc, tc->tc_mem.base, pci_bar_size);
 
 	if (tc_mem_size < pci_bar_size) {
-		dev_warn(&tc->pdev->dev,
+		dev_warn(
+			&tc->pdev->dev,
 			"%s: Device memory region smaller than PCI BAR (got 0x%08llx, PCI BAR 0x%08llx)",
 			__func__, tc_mem_size, pci_bar_size);
 	}
@@ -986,20 +1004,17 @@ static int apollo_dev_init(struct tc_device *tc, struct pci_dev *pdev,
 	if (tc->tc_mem.size < pdp_mem_size) {
 		dev_err(&pdev->dev,
 			"Apollo MEM region (bar %d) has size of %lu which is smaller than the requested PDP heap of %lu",
-			APOLLO_MEM_PCI_BASENUM,
-			(unsigned long)tc->tc_mem.size,
+			APOLLO_MEM_PCI_BASENUM, (unsigned long)tc->tc_mem.size,
 			(unsigned long)pdp_mem_size);
 		err = -EIO;
 		goto err_unmap_fpga_registers;
 	}
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
-	if (tc->tc_mem.size <
-	    (pdp_mem_size + secure_mem_size)) {
+	if (tc->tc_mem.size < (pdp_mem_size + secure_mem_size)) {
 		dev_err(&pdev->dev,
 			"Apollo MEM region (bar %d) has size of %lu which is smaller than the requested PDP heap of %lu plus the requested secure heap size %lu",
-			APOLLO_MEM_PCI_BASENUM,
-			(unsigned long)tc->tc_mem.size,
+			APOLLO_MEM_PCI_BASENUM, (unsigned long)tc->tc_mem.size,
 			(unsigned long)pdp_mem_size,
 			(unsigned long)secure_mem_size);
 		err = -EIO;
@@ -1017,18 +1032,17 @@ static int apollo_dev_init(struct tc_device *tc, struct pci_dev *pdev,
 	/* We know ext_heap_mem_size won't underflow as we've compared
 	 * tc_mem.size against the pdp_mem_size value earlier
 	 */
-	tc->ext_heap_mem_size =
-		tc->tc_mem.size - tc->pdp_heap_mem_size;
+	tc->ext_heap_mem_size = tc->tc_mem.size - tc->pdp_heap_mem_size;
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
 	tc->ext_heap_mem_size -= secure_mem_size;
 #endif
 
 	if (tc->ext_heap_mem_size < TC_EXT_MINIMUM_MEM_SIZE) {
-		dev_warn(&pdev->dev,
+		dev_warn(
+			&pdev->dev,
 			"Apollo MEM region (bar %d) has size of %lu, with %lu pdp_mem_size only %lu bytes are left for ext device, which looks too small",
-			APOLLO_MEM_PCI_BASENUM,
-			(unsigned long)tc->tc_mem.size,
+			APOLLO_MEM_PCI_BASENUM, (unsigned long)tc->tc_mem.size,
 			(unsigned long)pdp_mem_size,
 			(unsigned long)tc->ext_heap_mem_size);
 		/* Continue as this is only a 'helpful warning' not a hard
@@ -1037,11 +1051,10 @@ static int apollo_dev_init(struct tc_device *tc, struct pci_dev *pdev,
 	}
 
 	tc->ext_heap_mem_base = tc->tc_mem.base;
-	tc->pdp_heap_mem_base =
-		tc->tc_mem.base + tc->ext_heap_mem_size;
+	tc->pdp_heap_mem_base = tc->tc_mem.base + tc->ext_heap_mem_size;
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
-	tc->secure_heap_mem_base = tc->pdp_heap_mem_base +
-		tc->pdp_heap_mem_size;
+	tc->secure_heap_mem_base =
+		tc->pdp_heap_mem_base + tc->pdp_heap_mem_size;
 	tc->secure_heap_mem_size = secure_mem_size;
 #endif
 
@@ -1070,16 +1083,17 @@ err_unmap_fpga_registers:
 #if defined(SUPPORT_APOLLO_FPGA)
 	iounmap(apollo_pdata.fpga.registers);
 	release_pci_io_addr(pdev, SYS_RGX_REG_PCI_BASENUM,
-		apollo_pdata.fpga.region.base, apollo_pdata.fpga.region.size);
+			    apollo_pdata.fpga.region.base,
+			    apollo_pdata.fpga.region.size);
 err_unmap_pll_registers:
 #endif /* defined(SUPPORT_APOLLO_FPGA) */
 	iounmap(tc->tcf_pll.registers);
 	release_pci_io_addr(pdev, SYS_APOLLO_REG_PCI_BASENUM,
-		tc->tcf_pll.region.base, tc->tcf_pll.region.size);
+			    tc->tcf_pll.region.base, tc->tcf_pll.region.size);
 err_unmap_sys_registers:
 	iounmap(tc->tcf.registers);
 	release_pci_io_addr(pdev, SYS_APOLLO_REG_PCI_BASENUM,
-		tc->tcf.region.base, tc->tcf.region.size);
+			    tc->tcf.region.base, tc->tcf.region.size);
 	goto err_out;
 }
 
@@ -1100,25 +1114,26 @@ static void apollo_dev_cleanup(struct tc_device *tc)
 #if defined(SUPPORT_APOLLO_FPGA)
 	iounmap(apollo_pdata.fpga.registers);
 	release_pci_io_addr(tc->pdev, SYS_RGX_REG_PCI_BASENUM,
-		apollo_pdata.fpga.region.base, apollo_pdata.fpga.region.size);
+			    apollo_pdata.fpga.region.base,
+			    apollo_pdata.fpga.region.size);
 #endif
 
 	iounmap(tc->tcf_pll.registers);
 	release_pci_io_addr(tc->pdev, SYS_APOLLO_REG_PCI_BASENUM,
-		tc->tcf_pll.region.base, tc->tcf_pll.region.size);
+			    tc->tcf_pll.region.base, tc->tcf_pll.region.size);
 
 	iounmap(tc->tcf.registers);
 	release_pci_io_addr(tc->pdev, SYS_APOLLO_REG_PCI_BASENUM,
-		tc->tcf.region.base, tc->tcf.region.size);
+			    tc->tcf.region.base, tc->tcf.region.size);
 
 	if (apollo_pdata.thermal_zone)
 		thermal_zone_device_unregister(apollo_pdata.thermal_zone);
 }
 
-int apollo_init(struct tc_device *tc, struct pci_dev *pdev,
-		int *core_clock, int *mem_clock, int sys_clock, int *clock_multiplex,
-		int pdp_mem_size, int secure_mem_size,
-		int mem_latency, int mem_wresp_latency, int mem_mode)
+int apollo_init(struct tc_device *tc, struct pci_dev *pdev, int *core_clock,
+		int *mem_clock, int sys_clock, int *clock_multiplex,
+		int pdp_mem_size, int secure_mem_size, int mem_latency,
+		int mem_wresp_latency, int mem_mode)
 {
 	int err = 0;
 
@@ -1128,8 +1143,9 @@ int apollo_init(struct tc_device *tc, struct pci_dev *pdev,
 		goto err_out;
 	}
 
-	err = apollo_hw_init(tc, core_clock, mem_clock, sys_clock, clock_multiplex,
-			     mem_latency, mem_wresp_latency, mem_mode);
+	err = apollo_hw_init(tc, core_clock, mem_clock, sys_clock,
+			     clock_multiplex, mem_latency, mem_wresp_latency,
+			     mem_mode);
 	if (err) {
 		dev_err(&pdev->dev, "apollo_hw_init failed\n");
 		goto err_dev_cleanup;
@@ -1137,8 +1153,7 @@ int apollo_init(struct tc_device *tc, struct pci_dev *pdev,
 
 	err = apollo_enable_irq(tc);
 	if (err) {
-		dev_err(&pdev->dev,
-			"Failed to initialise IRQ\n");
+		dev_err(&pdev->dev, "Failed to initialise IRQ\n");
 		goto err_dev_cleanup;
 	}
 
@@ -1162,41 +1177,42 @@ int apollo_register_pdp_device(struct tc_device *tc)
 {
 	int err = 0;
 	resource_size_t reg_start =
-		pci_resource_start(tc->pdev,
-				   SYS_APOLLO_REG_PCI_BASENUM);
+		pci_resource_start(tc->pdev, SYS_APOLLO_REG_PCI_BASENUM);
 	struct resource pdp_resources_es2[] = {
 		DEFINE_RES_MEM_NAMED(reg_start + SYS_APOLLO_REG_PDP1_OFFSET,
-				SYS_APOLLO_REG_PDP1_SIZE, "pdp-regs"),
-		DEFINE_RES_MEM_NAMED(reg_start +
-				SYS_APOLLO_REG_PLL_OFFSET +
-				TCF_PLL_PLL_PDP_CLK0,
-				TCF_PLL_PLL_PDP2_DRP_GO -
-				TCF_PLL_PLL_PDP_CLK0 + 4, "pll-regs"),
+				     SYS_APOLLO_REG_PDP1_SIZE, "pdp-regs"),
+		DEFINE_RES_MEM_NAMED(reg_start + SYS_APOLLO_REG_PLL_OFFSET +
+					     TCF_PLL_PLL_PDP_CLK0,
+				     TCF_PLL_PLL_PDP2_DRP_GO -
+					     TCF_PLL_PLL_PDP_CLK0 + 4,
+				     "pll-regs"),
 	};
 	struct resource pdp_resources_tcf5[] = {
 		DEFINE_RES_MEM_NAMED(reg_start + SYS_APOLLO_REG_PDP1_OFFSET,
-				SYS_APOLLO_REG_PDP1_SIZE, "pdp-regs"),
-		DEFINE_RES_MEM_NAMED(reg_start +
-				SYS_APOLLO_REG_PLL_OFFSET +
-				TCF_PLL_PLL_PDP_CLK0,
-				TCF_PLL_PLL_PDP2_DRP_GO -
-				TCF_PLL_PLL_PDP_CLK0 + 4, "pll-regs"),
-		DEFINE_RES_MEM_NAMED(pci_resource_start(tc->pdev,
-				TC5_SYS_APOLLO_REG_PCI_BASENUM)
-				+ TC5_SYS_APOLLO_REG_PDP2_OFFSET,
+				     SYS_APOLLO_REG_PDP1_SIZE, "pdp-regs"),
+		DEFINE_RES_MEM_NAMED(reg_start + SYS_APOLLO_REG_PLL_OFFSET +
+					     TCF_PLL_PLL_PDP_CLK0,
+				     TCF_PLL_PLL_PDP2_DRP_GO -
+					     TCF_PLL_PLL_PDP_CLK0 + 4,
+				     "pll-regs"),
+		DEFINE_RES_MEM_NAMED(
+			pci_resource_start(tc->pdev,
+					   TC5_SYS_APOLLO_REG_PCI_BASENUM) +
+				TC5_SYS_APOLLO_REG_PDP2_OFFSET,
 			TC5_SYS_APOLLO_REG_PDP2_SIZE, "tc5-pdp2-regs"),
 
-		DEFINE_RES_MEM_NAMED(pci_resource_start(tc->pdev,
-				TC5_SYS_APOLLO_REG_PCI_BASENUM)
-				+ TC5_SYS_APOLLO_REG_PDP2_FBDC_OFFSET,
-				TC5_SYS_APOLLO_REG_PDP2_FBDC_SIZE,
-				"tc5-pdp2-fbdc-regs"),
+		DEFINE_RES_MEM_NAMED(
+			pci_resource_start(tc->pdev,
+					   TC5_SYS_APOLLO_REG_PCI_BASENUM) +
+				TC5_SYS_APOLLO_REG_PDP2_FBDC_OFFSET,
+			TC5_SYS_APOLLO_REG_PDP2_FBDC_SIZE,
+			"tc5-pdp2-fbdc-regs"),
 
-		DEFINE_RES_MEM_NAMED(pci_resource_start(tc->pdev,
-				TC5_SYS_APOLLO_REG_PCI_BASENUM)
-				+ TC5_SYS_APOLLO_REG_HDMI_OFFSET,
-				TC5_SYS_APOLLO_REG_HDMI_SIZE,
-				"tc5-adv5711-regs"),
+		DEFINE_RES_MEM_NAMED(
+			pci_resource_start(tc->pdev,
+					   TC5_SYS_APOLLO_REG_PCI_BASENUM) +
+				TC5_SYS_APOLLO_REG_HDMI_OFFSET,
+			TC5_SYS_APOLLO_REG_HDMI_SIZE, "tc5-adv5711-regs"),
 	};
 
 	struct tc_pdp_platform_data pdata = {
@@ -1222,7 +1238,7 @@ int apollo_register_pdp_device(struct tc_device *tc)
 		pdp_device_info.res = pdp_resources_tcf5;
 		pdp_device_info.num_res = ARRAY_SIZE(pdp_resources_tcf5);
 	} else if (tc->version == APOLLO_VERSION_TCF_2 ||
-			tc->version == APOLLO_VERSION_TCF_BONNIE) {
+		   tc->version == APOLLO_VERSION_TCF_BONNIE) {
 		pdp_device_info.res = pdp_resources_es2;
 		pdp_device_info.num_res = ARRAY_SIZE(pdp_resources_es2);
 	} else {
@@ -1233,8 +1249,8 @@ int apollo_register_pdp_device(struct tc_device *tc)
 	tc->pdp_dev = platform_device_register_full(&pdp_device_info);
 	if (IS_ERR(tc->pdp_dev)) {
 		err = PTR_ERR(tc->pdp_dev);
-		dev_err(&tc->pdev->dev,
-			"Failed to register PDP device (%d)\n", err);
+		dev_err(&tc->pdev->dev, "Failed to register PDP device (%d)\n",
+			err);
 		tc->pdp_dev = NULL;
 		goto err;
 	}
@@ -1248,9 +1264,9 @@ int apollo_register_ext_device(struct tc_device *tc)
 {
 	int err = 0;
 	struct resource rogue_resources[] = {
-		DEFINE_RES_MEM_NAMED(pci_resource_start(tc->pdev,
-				SYS_RGX_REG_PCI_BASENUM),
-			 SYS_RGX_REG_REGION_SIZE, "rogue-regs"),
+		DEFINE_RES_MEM_NAMED(
+			pci_resource_start(tc->pdev, SYS_RGX_REG_PCI_BASENUM),
+			SYS_RGX_REG_REGION_SIZE, "rogue-regs"),
 	};
 	struct tc_rogue_platform_data pdata = {
 #if defined(SUPPORT_ION) && (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
@@ -1280,8 +1296,7 @@ int apollo_register_ext_device(struct tc_device *tc)
 		.dma_mask = apollo_get_rogue_dma_mask(tc),
 	};
 
-	tc->ext_dev
-		= platform_device_register_full(&rogue_device_info);
+	tc->ext_dev = platform_device_register_full(&rogue_device_info);
 
 	if (IS_ERR(tc->ext_dev)) {
 		err = PTR_ERR(tc->ext_dev);
@@ -1301,9 +1316,9 @@ int apollo_register_ext_device(struct tc_device *tc)
 		/* For the 'fpga' build, we don't use the Rogue, but reuse the
 		 * define that mentions RGX.
 		 */
-		DEFINE_RES_MEM_NAMED(pci_resource_start(tc->pdev,
-				SYS_RGX_REG_PCI_BASENUM),
-			 SYS_RGX_REG_REGION_SIZE, "fpga-regs"),
+		DEFINE_RES_MEM_NAMED(
+			pci_resource_start(tc->pdev, SYS_RGX_REG_PCI_BASENUM),
+			SYS_RGX_REG_REGION_SIZE, "fpga-regs"),
 	};
 	struct apollo_fpga_platform_data pdata = {
 		.mem_mode = tc->mem_mode,
@@ -1325,8 +1340,8 @@ int apollo_register_ext_device(struct tc_device *tc)
 	tc->ext_dev = platform_device_register_full(&fpga_device_info);
 	if (IS_ERR(tc->ext_dev)) {
 		err = PTR_ERR(tc->ext_dev);
-		dev_err(&tc->pdev->dev,
-			"Failed to register fpga device (%d)\n", err);
+		dev_err(&tc->pdev->dev, "Failed to register fpga device (%d)\n",
+			err);
 		tc->ext_dev = NULL;
 		/* Fall through */
 	}
@@ -1343,33 +1358,31 @@ int apollo_register_ext_device(struct tc_device *tc)
 
 #endif /* defined(SUPPORT_RGX) */
 
-void apollo_enable_interrupt_register(struct tc_device *tc,
-				      int interrupt_id)
+void apollo_enable_interrupt_register(struct tc_device *tc, int interrupt_id)
 {
 	u32 val;
 
 	if (interrupt_id == TC_INTERRUPT_PDP ||
-		interrupt_id == TC_INTERRUPT_EXT) {
-		val = ioread32(
-			tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
+	    interrupt_id == TC_INTERRUPT_EXT) {
+		val = ioread32(tc->tcf.registers +
+			       TCF_CLK_CTRL_INTERRUPT_ENABLE);
 		val |= apollo_interrupt_id_to_flag(interrupt_id);
 		iowrite32(val,
-			tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
+			  tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
 	}
 }
 
-void apollo_disable_interrupt_register(struct tc_device *tc,
-				       int interrupt_id)
+void apollo_disable_interrupt_register(struct tc_device *tc, int interrupt_id)
 {
 	u32 val;
 
 	if (interrupt_id == TC_INTERRUPT_PDP ||
-		interrupt_id == TC_INTERRUPT_EXT) {
-		val = ioread32(
-			tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
+	    interrupt_id == TC_INTERRUPT_EXT) {
+		val = ioread32(tc->tcf.registers +
+			       TCF_CLK_CTRL_INTERRUPT_ENABLE);
 		val &= ~(apollo_interrupt_id_to_flag(interrupt_id));
 		iowrite32(val,
-			tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
+			  tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_ENABLE);
 	}
 }
 
@@ -1385,11 +1398,10 @@ irqreturn_t apollo_irq_handler(int irq, void *data)
 
 #if defined(TC_FAKE_INTERRUPTS)
 	/* If we're faking interrupts pretend we got both ext and PDP ints */
-	interrupt_status = TC_INTERRUPT_FLAG_EXT
-		| TC_INTERRUPT_FLAG_PDP;
+	interrupt_status = TC_INTERRUPT_FLAG_EXT | TC_INTERRUPT_FLAG_PDP;
 #else
-	interrupt_status = ioread32(tc->tcf.registers
-			+ TCF_CLK_CTRL_INTERRUPT_STATUS);
+	interrupt_status =
+		ioread32(tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_STATUS);
 #endif
 
 	if (interrupt_status & TC_INTERRUPT_FLAG_EXT) {
@@ -1429,7 +1441,7 @@ irqreturn_t apollo_irq_handler(int irq, void *data)
 
 	if (interrupt_clear)
 		iowrite32(0xffffffff,
-			tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_CLEAR);
+			  tc->tcf.registers + TCF_CLK_CTRL_INTERRUPT_CLEAR);
 
 	spin_unlock_irqrestore(&tc->interrupt_handler_lock, flags);
 
@@ -1465,13 +1477,13 @@ err_out:
 	return err;
 }
 
-int apollo_sys_strings(struct tc_device *tc,
-		       char *str_fpga_rev, size_t size_fpga_rev,
-		       char *str_tcf_core_rev, size_t size_tcf_core_rev,
+int apollo_sys_strings(struct tc_device *tc, char *str_fpga_rev,
+		       size_t size_fpga_rev, char *str_tcf_core_rev,
+		       size_t size_tcf_core_rev,
 		       char *str_tcf_core_target_build_id,
-		       size_t size_tcf_core_target_build_id,
-		       char *str_pci_ver, size_t size_pci_ver,
-		       char *str_macro_ver, size_t size_macro_ver)
+		       size_t size_tcf_core_target_build_id, char *str_pci_ver,
+		       size_t size_pci_ver, char *str_macro_ver,
+		       size_t size_macro_ver)
 {
 	int err = 0;
 	u32 val;
@@ -1483,13 +1495,12 @@ int apollo_sys_strings(struct tc_device *tc,
 	 * (without trying to reserve it) to get the information we need.
 	 */
 	host_fpga_base =
-		pci_resource_start(tc->pdev, SYS_APOLLO_REG_PCI_BASENUM)
-				+ 0x40F0;
+		pci_resource_start(tc->pdev, SYS_APOLLO_REG_PCI_BASENUM) +
+		0x40F0;
 
 	host_fpga_registers = ioremap(host_fpga_base, 0x04);
 	if (!host_fpga_registers) {
-		dev_err(&tc->pdev->dev,
-			"Failed to map host fpga registers\n");
+		dev_err(&tc->pdev->dev, "Failed to map host fpga registers\n");
 		err = -EIO;
 		goto err_out;
 	}
@@ -1499,8 +1510,7 @@ int apollo_sys_strings(struct tc_device *tc,
 	snprintf(str_pci_ver, size_pci_ver, "%d",
 		 HEX2DEC((val & 0x00FF0000) >> 16));
 	snprintf(str_macro_ver, size_macro_ver, "%d.%d",
-		 (val & 0x00000F00) >> 8,
-		 HEX2DEC((val & 0x000000FF) >> 0));
+		 (val & 0x00000F00) >> 8, HEX2DEC((val & 0x000000FF) >> 0));
 
 	/* Unmap the register now that we no longer need it */
 	iounmap(host_fpga_registers);
@@ -1515,24 +1525,25 @@ int apollo_sys_strings(struct tc_device *tc,
 
 	if (val == 0) {
 		/* Create the components of the TCF core revision number */
-		val = ioread32(tc->tcf.registers + TCF_CLK_CTRL_TCF_CORE_REV_REG);
+		val = ioread32(tc->tcf.registers +
+			       TCF_CLK_CTRL_TCF_CORE_REV_REG);
 		snprintf(str_tcf_core_rev, size_tcf_core_rev, "%d.%d.%d",
-			 HEX2DEC((val & TCF_CORE_REV_REG_MAJOR_MASK)
-				 >> TCF_CORE_REV_REG_MAJOR_SHIFT),
-			 HEX2DEC((val & TCF_CORE_REV_REG_MINOR_MASK)
-				 >> TCF_CORE_REV_REG_MINOR_SHIFT),
-			 HEX2DEC((val & TCF_CORE_REV_REG_MAINT_MASK)
-				 >> TCF_CORE_REV_REG_MAINT_SHIFT));
+			 HEX2DEC((val & TCF_CORE_REV_REG_MAJOR_MASK) >>
+				 TCF_CORE_REV_REG_MAJOR_SHIFT),
+			 HEX2DEC((val & TCF_CORE_REV_REG_MINOR_MASK) >>
+				 TCF_CORE_REV_REG_MINOR_SHIFT),
+			 HEX2DEC((val & TCF_CORE_REV_REG_MAINT_MASK) >>
+				 TCF_CORE_REV_REG_MAINT_SHIFT));
 
 		/* Create the components of the FPGA revision number */
 		val = ioread32(tc->tcf.registers + TCF_CLK_CTRL_FPGA_REV_REG);
 		snprintf(str_fpga_rev, size_fpga_rev, "%d.%d.%d",
-			 HEX2DEC((val & FPGA_REV_REG_MAJOR_MASK)
-				 >> FPGA_REV_REG_MAJOR_SHIFT),
-			 HEX2DEC((val & FPGA_REV_REG_MINOR_MASK)
-				 >> FPGA_REV_REG_MINOR_SHIFT),
-			 HEX2DEC((val & FPGA_REV_REG_MAINT_MASK)
-				 >> FPGA_REV_REG_MAINT_SHIFT));
+			 HEX2DEC((val & FPGA_REV_REG_MAJOR_MASK) >>
+				 FPGA_REV_REG_MAJOR_SHIFT),
+			 HEX2DEC((val & FPGA_REV_REG_MINOR_MASK) >>
+				 FPGA_REV_REG_MINOR_SHIFT),
+			 HEX2DEC((val & FPGA_REV_REG_MAINT_MASK) >>
+				 FPGA_REV_REG_MAINT_SHIFT));
 	} else if (val == 1) {
 		/* Create the components of the TCF core revision number */
 		snprintf(str_tcf_core_rev, size_tcf_core_rev, "%d", val);
@@ -1544,8 +1555,8 @@ int apollo_sys_strings(struct tc_device *tc,
 			 HEX2DEC((val & MINOR_MASK) >> MINOR_SHIFT));
 	} else {
 		dev_warn(&tc->pdev->dev,
-			 "%s: unrecognised SW_IF_VERSION %#08x\n",
-			 __func__, val);
+			 "%s: unrecognised SW_IF_VERSION %#08x\n", __func__,
+			 val);
 
 		/* Create the components of the TCF core revision number */
 		snprintf(str_tcf_core_rev, size_tcf_core_rev, "%d", val);
@@ -1558,9 +1569,9 @@ int apollo_sys_strings(struct tc_device *tc,
 	val = ioread32(tc->tcf.registers +
 		       TCF_CLK_CTRL_TCF_CORE_TARGET_BUILD_CFG);
 	snprintf(str_tcf_core_target_build_id, size_tcf_core_target_build_id,
-		"%d",
-		(val & TCF_CORE_TARGET_BUILD_ID_MASK)
-		>> TCF_CORE_TARGET_BUILD_ID_SHIFT);
+		 "%d",
+		 (val & TCF_CORE_TARGET_BUILD_ID_MASK) >>
+			 TCF_CORE_TARGET_BUILD_ID_SHIFT);
 
 err_out:
 	return err;

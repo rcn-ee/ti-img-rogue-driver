@@ -59,7 +59,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 #endif
 
-
 #include "img_defs.h"
 #include "img_types.h"
 #include "img_elf.h"
@@ -85,10 +84,9 @@ extern "C" {
  * Specific fields for RGX_CR_IDLE must not be polled in pdumps
  * (technical reasons)
  */
-#define CR_IDLE_UNSELECTED_MASK ((~RGX_CR_SLC_IDLE_ACE_CONVERTERS_CLRMSK) |	\
-								 (~RGX_CR_SLC_IDLE_OWDB_CLRMSK) |			\
-								 (RGX_CR_SLC_IDLE_FBCDC_ARB_EN))
-
+#define CR_IDLE_UNSELECTED_MASK                     \
+	((~RGX_CR_SLC_IDLE_ACE_CONVERTERS_CLRMSK) | \
+	 (~RGX_CR_SLC_IDLE_OWDB_CLRMSK) | (RGX_CR_SLC_IDLE_FBCDC_ARB_EN))
 
 /*!
 *******************************************************************************
@@ -105,10 +103,7 @@ extern "C" {
  @Return         void
 
 ******************************************************************************/
-void RGXMemCopy(const void *hPrivate,
-                void *pvDst,
-                void *pvSrc,
-                size_t uiSize);
+void RGXMemCopy(const void *hPrivate, void *pvDst, void *pvSrc, size_t uiSize);
 
 /*!
 *******************************************************************************
@@ -125,10 +120,8 @@ void RGXMemCopy(const void *hPrivate,
  @Return         void
 
 ******************************************************************************/
-void RGXMemSet(const void *hPrivate,
-               void *pvDst,
-               IMG_UINT8 ui8Value,
-               size_t uiSize);
+void RGXMemSet(const void *hPrivate, void *pvDst, IMG_UINT8 ui8Value,
+	       size_t uiSize);
 
 /*!
 *******************************************************************************
@@ -144,10 +137,8 @@ void RGXMemSet(const void *hPrivate,
  @Return         void
 
 ******************************************************************************/
-__printf(2, 3)
-void RGXCommentLog(const void *hPrivate,
-                   const IMG_CHAR *pszString,
-                   ...);
+__printf(2, 3) void RGXCommentLog(const void *hPrivate,
+				  const IMG_CHAR *pszString, ...);
 
 /*!
 *******************************************************************************
@@ -163,10 +154,8 @@ void RGXCommentLog(const void *hPrivate,
  @Return         void
 
 ******************************************************************************/
-__printf(2, 3)
-void RGXErrorLog(const void *hPrivate,
-                 const IMG_CHAR *pszString,
-                 ...);
+__printf(2, 3) void RGXErrorLog(const void *hPrivate, const IMG_CHAR *pszString,
+				...);
 
 #if defined(RGX_FEATURE_MIPS_BIT_MASK)
 /*!
@@ -188,31 +177,30 @@ IMG_UINT32 RGXGetOSPageSize(const void *hPrivate);
 /* This is used to check if a specific feature is enabled.
  * Should be used instead of calling RGXDeviceHasFeature.  */
 #define RGX_DEVICE_HAS_FEATURE(hPrivate, Feature) \
-			RGXDeviceHasFeature(hPrivate, RGX_FEATURE_##Feature##_BIT_MASK)
+	RGXDeviceHasFeature(hPrivate, RGX_FEATURE_##Feature##_BIT_MASK)
 
 /* This is used to check if a specific feature with value is enabled.
  * Should be used instead of calling RGXDeviceGetFeatureValue.  */
 #define RGX_DEVICE_HAS_FEATURE_VALUE(hPrivate, Feature) \
-			(RGXDeviceGetFeatureValue(hPrivate, RGX_FEATURE_##Feature##_IDX) >= 0)
+	(RGXDeviceGetFeatureValue(hPrivate, RGX_FEATURE_##Feature##_IDX) >= 0)
 
 /* This is used to get the value of a specific feature from hPrivate.
  * Should be used instead of calling RGXDeviceGetFeatureValue.  */
 #define RGX_DEVICE_GET_FEATURE_VALUE(hPrivate, Feature) \
-			RGXDeviceGetFeatureValue(hPrivate, RGX_FEATURE_##Feature##_IDX)
-
+	RGXDeviceGetFeatureValue(hPrivate, RGX_FEATURE_##Feature##_IDX)
 
 /* This is used to check if a specific ERN is enabled from hPrivate.
  * Should be used instead of calling RGXDeviceHasErnBrn.  */
 #define RGX_DEVICE_HAS_ERN(hPrivate, ERN) \
-			RGXDeviceHasErnBrn(hPrivate, HW_ERN_##ERN##_BIT_MASK)
+	RGXDeviceHasErnBrn(hPrivate, HW_ERN_##ERN##_BIT_MASK)
 
 /* This is used to check if a specific BRN is enabled from hPrivate.
  * Should be used instead of calling RGXDeviceHasErnBrn.  */
 #define RGX_DEVICE_HAS_BRN(hPrivate, BRN) \
-			RGXDeviceHasErnBrn(hPrivate, FIX_HW_BRN_##BRN##_BIT_MASK)
+	RGXDeviceHasErnBrn(hPrivate, FIX_HW_BRN_##BRN##_BIT_MASK)
 
 #define CLK_CTRL_FORCE_ON(X, Module) \
-			X = (((X) & RGX_CR_##Module##_CLRMSK) | RGX_CR_##Module##_ON)
+	X = (((X)&RGX_CR_##Module##_CLRMSK) | RGX_CR_##Module##_ON)
 /*!
 *******************************************************************************
 
@@ -226,7 +214,8 @@ IMG_UINT32 RGXGetOSPageSize(const void *hPrivate);
  @Return         Value >= 0 if the given feature is available, -1 otherwise
 
 ******************************************************************************/
-IMG_INT32 RGXDeviceGetFeatureValue(const void *hPrivate, IMG_UINT64 ui64Feature);
+IMG_INT32 RGXDeviceGetFeatureValue(const void *hPrivate,
+				   IMG_UINT64 ui64Feature);
 
 /*!
 *******************************************************************************
@@ -286,13 +275,11 @@ IMG_UINT32 RGXGetFWCorememSize(const void *hPrivate);
  @Return        void
 
 ******************************************************************************/
-void RGXWriteReg32(const void *hPrivate,
-                   IMG_UINT32 ui32RegAddr,
-                   IMG_UINT32 ui32RegValue);
+void RGXWriteReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+		   IMG_UINT32 ui32RegValue);
 
-void RGXWriteReg64(const void *hPrivate,
-                   IMG_UINT32 ui32RegAddr,
-                   IMG_UINT64 ui64RegValue);
+void RGXWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+		   IMG_UINT64 ui64RegValue);
 
 /*!
 *******************************************************************************
@@ -307,11 +294,9 @@ void RGXWriteReg64(const void *hPrivate,
  @Return         Register value
 
 ******************************************************************************/
-IMG_UINT32 RGXReadReg32(const void *hPrivate,
-                        IMG_UINT32 ui32RegAddr);
+IMG_UINT32 RGXReadReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr);
 
-IMG_UINT64 RGXReadReg64(const void *hPrivate,
-                        IMG_UINT32 ui32RegAddr);
+IMG_UINT64 RGXReadReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr);
 
 /*!
 *******************************************************************************
@@ -328,10 +313,9 @@ IMG_UINT64 RGXReadReg64(const void *hPrivate,
  @Return         Always returns PVRSRV_OK
 
 ******************************************************************************/
-IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate,
-                                   IMG_UINT32 ui32RegAddr,
-                                   IMG_UINT64 ui64RegValue,
-                                   IMG_UINT64 ui64RegKeepMask);
+IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+				   IMG_UINT64 ui64RegValue,
+				   IMG_UINT64 ui64RegKeepMask);
 
 /*!
 *******************************************************************************
@@ -350,15 +334,11 @@ IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate,
                  PVRSRV_ERROR_TIMEOUT if the poll takes too long
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPollReg32(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT32 ui32RegValue,
-                          IMG_UINT32 ui32RegMask);
+PVRSRV_ERROR RGXPollReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT32 ui32RegValue, IMG_UINT32 ui32RegMask);
 
-PVRSRV_ERROR RGXPollReg64(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT64 ui64RegValue,
-                          IMG_UINT64 ui64RegMask);
+PVRSRV_ERROR RGXPollReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT64 ui64RegValue, IMG_UINT64 ui64RegMask);
 
 /*!
 *******************************************************************************
@@ -376,8 +356,8 @@ PVRSRV_ERROR RGXPollReg64(const void *hPrivate,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXWriteMetaRegThroughSP(const void *hPrivate,
-                                      IMG_UINT32 ui32RegAddr,
-                                      IMG_UINT32 ui32RegValue);
+				      IMG_UINT32 ui32RegAddr,
+				      IMG_UINT32 ui32RegValue);
 
 /*!
 *******************************************************************************
@@ -395,8 +375,8 @@ PVRSRV_ERROR RGXWriteMetaRegThroughSP(const void *hPrivate,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXReadMetaRegThroughSP(const void *hPrivate,
-                                     IMG_UINT32 ui32RegAddr,
-                                     IMG_UINT32* ui32RegValue);
+				     IMG_UINT32 ui32RegAddr,
+				     IMG_UINT32 *ui32RegValue);
 
 /*!
 *******************************************************************************
@@ -430,9 +410,8 @@ void RGXSetPoweredState(const void *hPrivate, IMG_BOOL bPowered);
  @Return         void
 
 ******************************************************************************/
-void RGXWaitCycles(const void *hPrivate,
-                   IMG_UINT32 ui32Cycles,
-                   IMG_UINT32 ui32WaitUs);
+void RGXWaitCycles(const void *hPrivate, IMG_UINT32 ui32Cycles,
+		   IMG_UINT32 ui32WaitUs);
 
 /*!
 *******************************************************************************
@@ -471,18 +450,14 @@ void RGXAcquireKernelMMUPC(const void *hPrivate, IMG_DEV_PHYADDR *psPCAddr);
 ******************************************************************************/
 #if defined(PDUMP)
 #if !defined(RGX_FEATURE_HOST_SECURITY_VERSION_MAX_VALUE_IDX)
-void RGXWriteKernelMMUPC64(const void *hPrivate,
-                           IMG_UINT32 ui32PCReg,
-                           IMG_UINT32 ui32PCRegAlignShift,
-                           IMG_UINT32 ui32PCRegShift,
-                           IMG_UINT64 ui64PCVal);
+void RGXWriteKernelMMUPC64(const void *hPrivate, IMG_UINT32 ui32PCReg,
+			   IMG_UINT32 ui32PCRegAlignShift,
+			   IMG_UINT32 ui32PCRegShift, IMG_UINT64 ui64PCVal);
 #endif
 
-void RGXWriteKernelMMUPC32(const void *hPrivate,
-                           IMG_UINT32 ui32PCReg,
-                           IMG_UINT32 ui32PCRegAlignShift,
-                           IMG_UINT32 ui32PCRegShift,
-                           IMG_UINT32 ui32PCVal);
+void RGXWriteKernelMMUPC32(const void *hPrivate, IMG_UINT32 ui32PCReg,
+			   IMG_UINT32 ui32PCRegAlignShift,
+			   IMG_UINT32 ui32PCRegShift, IMG_UINT32 ui32PCVal);
 #else /* defined(PDUMP) */
 
 #if !defined(RGX_FEATURE_HOST_SECURITY_VERSION_MAX_VALUE_IDX)
@@ -494,7 +469,6 @@ void RGXWriteKernelMMUPC32(const void *hPrivate,
 	RGXWriteReg32(priv, pcreg, pcval)
 
 #endif /* defined(PDUMP) */
-
 
 #if defined(RGX_FEATURE_MIPS_BIT_MASK)
 /*!
@@ -510,7 +484,8 @@ void RGXWriteKernelMMUPC32(const void *hPrivate,
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireGPURegsAddr(const void *hPrivate, IMG_DEV_PHYADDR *psGPURegsAddr);
+void RGXAcquireGPURegsAddr(const void *hPrivate,
+			   IMG_DEV_PHYADDR *psGPURegsAddr);
 
 /*!
 *******************************************************************************
@@ -532,14 +507,14 @@ void RGXAcquireGPURegsAddr(const void *hPrivate, IMG_DEV_PHYADDR *psGPURegsAddr)
 
 ******************************************************************************/
 #if defined(PDUMP)
-void RGXMIPSWrapperConfig(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT64 ui64GPURegsAddr,
-                          IMG_UINT32 ui32GPURegsAlign,
-                          IMG_UINT32 ui32BootMode);
+void RGXMIPSWrapperConfig(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT64 ui64GPURegsAddr,
+			  IMG_UINT32 ui32GPURegsAlign, IMG_UINT32 ui32BootMode);
 #else
-#define RGXMIPSWrapperConfig(priv, regaddr, gpuregsaddr, gpuregsalign, bootmode) \
-	RGXWriteReg64(priv, regaddr, ((gpuregsaddr) >> (gpuregsalign)) | (bootmode))
+#define RGXMIPSWrapperConfig(priv, regaddr, gpuregsaddr, gpuregsalign, \
+			     bootmode)                                 \
+	RGXWriteReg64(priv, regaddr,                                   \
+		      ((gpuregsaddr) >> (gpuregsalign)) | (bootmode))
 #endif
 
 /*!
@@ -556,7 +531,8 @@ void RGXMIPSWrapperConfig(const void *hPrivate,
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireBootRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psBootRemapAddr);
+void RGXAcquireBootRemapAddr(const void *hPrivate,
+			     IMG_DEV_PHYADDR *psBootRemapAddr);
 
 /*!
 *******************************************************************************
@@ -579,17 +555,19 @@ void RGXAcquireBootRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psBootRemapA
 
 ******************************************************************************/
 #if defined(PDUMP)
-void RGXBootRemapConfig(const void *hPrivate,
-                        IMG_UINT32 ui32Config1RegAddr,
-                        IMG_UINT64 ui64Config1RegValue,
-                        IMG_UINT32 ui32Config2RegAddr,
-                        IMG_UINT64 ui64Config2PhyAddr,
-                        IMG_UINT64 ui64Config2PhyMask,
-                        IMG_UINT64 ui64Config2Settings);
+void RGXBootRemapConfig(const void *hPrivate, IMG_UINT32 ui32Config1RegAddr,
+			IMG_UINT64 ui64Config1RegValue,
+			IMG_UINT32 ui32Config2RegAddr,
+			IMG_UINT64 ui64Config2PhyAddr,
+			IMG_UINT64 ui64Config2PhyMask,
+			IMG_UINT64 ui64Config2Settings);
 #else
-#define RGXBootRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, c2settings) do { \
-		RGXWriteReg64(priv, c1reg, (c1val)); \
-		RGXWriteReg64(priv, c2reg, ((c2phyaddr) & (c2phymask)) | (c2settings)); \
+#define RGXBootRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, \
+			   c2settings)                                      \
+	do {                                                                \
+		RGXWriteReg64(priv, c1reg, (c1val));                        \
+		RGXWriteReg64(priv, c2reg,                                  \
+			      ((c2phyaddr) & (c2phymask)) | (c2settings));  \
 	} while (0)
 #endif
 
@@ -607,7 +585,8 @@ void RGXBootRemapConfig(const void *hPrivate,
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireCodeRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psCodeRemapAddr);
+void RGXAcquireCodeRemapAddr(const void *hPrivate,
+			     IMG_DEV_PHYADDR *psCodeRemapAddr);
 
 /*!
 *******************************************************************************
@@ -630,17 +609,19 @@ void RGXAcquireCodeRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psCodeRemapA
 
 ******************************************************************************/
 #if defined(PDUMP)
-void RGXCodeRemapConfig(const void *hPrivate,
-                        IMG_UINT32 ui32Config1RegAddr,
-                        IMG_UINT64 ui64Config1RegValue,
-                        IMG_UINT32 ui32Config2RegAddr,
-                        IMG_UINT64 ui64Config2PhyAddr,
-                        IMG_UINT64 ui64Config2PhyMask,
-                        IMG_UINT64 ui64Config2Settings);
+void RGXCodeRemapConfig(const void *hPrivate, IMG_UINT32 ui32Config1RegAddr,
+			IMG_UINT64 ui64Config1RegValue,
+			IMG_UINT32 ui32Config2RegAddr,
+			IMG_UINT64 ui64Config2PhyAddr,
+			IMG_UINT64 ui64Config2PhyMask,
+			IMG_UINT64 ui64Config2Settings);
 #else
-#define RGXCodeRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, c2settings) do { \
-		RGXWriteReg64(priv, c1reg, (c1val)); \
-		RGXWriteReg64(priv, c2reg, ((c2phyaddr) & (c2phymask)) | (c2settings)); \
+#define RGXCodeRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, \
+			   c2settings)                                      \
+	do {                                                                \
+		RGXWriteReg64(priv, c1reg, (c1val));                        \
+		RGXWriteReg64(priv, c2reg,                                  \
+			      ((c2phyaddr) & (c2phymask)) | (c2settings));  \
 	} while (0)
 #endif
 
@@ -658,7 +639,8 @@ void RGXCodeRemapConfig(const void *hPrivate,
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireDataRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psDataRemapAddr);
+void RGXAcquireDataRemapAddr(const void *hPrivate,
+			     IMG_DEV_PHYADDR *psDataRemapAddr);
 
 /*!
 *******************************************************************************
@@ -681,17 +663,19 @@ void RGXAcquireDataRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psDataRemapA
 
 ******************************************************************************/
 #if defined(PDUMP)
-void RGXDataRemapConfig(const void *hPrivate,
-                        IMG_UINT32 ui32Config1RegAddr,
-                        IMG_UINT64 ui64Config1RegValue,
-                        IMG_UINT32 ui32Config2RegAddr,
-                        IMG_UINT64 ui64Config2PhyAddr,
-                        IMG_UINT64 ui64Config2PhyMask,
-                        IMG_UINT64 ui64Config2Settings);
+void RGXDataRemapConfig(const void *hPrivate, IMG_UINT32 ui32Config1RegAddr,
+			IMG_UINT64 ui64Config1RegValue,
+			IMG_UINT32 ui32Config2RegAddr,
+			IMG_UINT64 ui64Config2PhyAddr,
+			IMG_UINT64 ui64Config2PhyMask,
+			IMG_UINT64 ui64Config2Settings);
 #else
-#define RGXDataRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, c2settings) do { \
-		RGXWriteReg64(priv, c1reg, (c1val)); \
-		RGXWriteReg64(priv, c2reg, ((c2phyaddr) & (c2phymask)) | (c2settings)); \
+#define RGXDataRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, \
+			   c2settings)                                      \
+	do {                                                                \
+		RGXWriteReg64(priv, c1reg, (c1val));                        \
+		RGXWriteReg64(priv, c2reg,                                  \
+			      ((c2phyaddr) & (c2phymask)) | (c2settings));  \
 	} while (0)
 #endif
 
@@ -709,7 +693,8 @@ void RGXDataRemapConfig(const void *hPrivate,
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireTrampolineRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psTrampolineRemapAddr);
+void RGXAcquireTrampolineRemapAddr(const void *hPrivate,
+				   IMG_DEV_PHYADDR *psTrampolineRemapAddr);
 
 /*!
 *******************************************************************************
@@ -733,16 +718,19 @@ void RGXAcquireTrampolineRemapAddr(const void *hPrivate, IMG_DEV_PHYADDR *psTram
 ******************************************************************************/
 #if defined(PDUMP)
 void RGXTrampolineRemapConfig(const void *hPrivate,
-                        IMG_UINT32 ui32Config1RegAddr,
-                        IMG_UINT64 ui64Config1RegValue,
-                        IMG_UINT32 ui32Config2RegAddr,
-                        IMG_UINT64 ui64Config2PhyAddr,
-                        IMG_UINT64 ui64Config2PhyMask,
-                        IMG_UINT64 ui64Config2Settings);
+			      IMG_UINT32 ui32Config1RegAddr,
+			      IMG_UINT64 ui64Config1RegValue,
+			      IMG_UINT32 ui32Config2RegAddr,
+			      IMG_UINT64 ui64Config2PhyAddr,
+			      IMG_UINT64 ui64Config2PhyMask,
+			      IMG_UINT64 ui64Config2Settings);
 #else
-#define RGXTrampolineRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr, c2phymask, c2settings) do { \
-		RGXWriteReg64(priv, c1reg, (c1val)); \
-		RGXWriteReg64(priv, c2reg, ((c2phyaddr) & (c2phymask)) | (c2settings)); \
+#define RGXTrampolineRemapConfig(priv, c1reg, c1val, c2reg, c2phyaddr,     \
+				 c2phymask, c2settings)                    \
+	do {                                                               \
+		RGXWriteReg64(priv, c1reg, (c1val));                       \
+		RGXWriteReg64(priv, c2reg,                                 \
+			      ((c2phyaddr) & (c2phymask)) | (c2settings)); \
 	} while (0)
 #endif
 #endif /* defined(RGX_FEATURE_MIPS_BIT_MASK) */
@@ -850,7 +838,8 @@ IMG_BOOL RGXDevicePA0IsValid(const void *hPrivate);
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireBootCodeAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootCodeAddr);
+void RGXAcquireBootCodeAddr(const void *hPrivate,
+			    IMG_DEV_VIRTADDR *psBootCodeAddr);
 
 /*!
 *******************************************************************************
@@ -865,7 +854,8 @@ void RGXAcquireBootCodeAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootCodeAd
  @Return:       Base host address of the RISCV firmware data
 
 ******************************************************************************/
-void *RGXCalculateHostFWDataAddress(const void *hPrivate, void *pvHostFWDataAddr);
+void *RGXCalculateHostFWDataAddress(const void *hPrivate,
+				    void *pvHostFWDataAddr);
 
 /*!
 *******************************************************************************
@@ -880,7 +870,8 @@ void *RGXCalculateHostFWDataAddress(const void *hPrivate, void *pvHostFWDataAddr
  @Return          void
 
 ******************************************************************************/
-void RGXAcquireBootDataAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootDataAddr);
+void RGXAcquireBootDataAddr(const void *hPrivate,
+			    IMG_DEV_VIRTADDR *psBootDataAddr);
 
 /*!
 *******************************************************************************

@@ -52,109 +52,89 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "connection_server.h"
 
+PVRSRV_ERROR
+PVRSRVRGXFWDebugInitFWImageKM(PMR *psFWImgDestPMR, PMR *psFWImgSrcPMR,
+			      IMG_UINT64 ui64FWImgLen, PMR *psFWImgSigPMR,
+			      IMG_UINT64 ui64FWSigLen);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugInitFWImageKM(
-	PMR *psFWImgDestPMR,
-	PMR *psFWImgSrcPMR,
-	IMG_UINT64 ui64FWImgLen,
-	PMR *psFWImgSigPMR,
-	IMG_UINT64 ui64FWSigLen);
+PVRSRVRGXFWDebugQueryFWLogKM(const CONNECTION_DATA *psConnection,
+			     const PVRSRV_DEVICE_NODE *psDeviceNode,
+			     IMG_UINT32 *pui32RGXFWLogType);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugQueryFWLogKM(
-	const CONNECTION_DATA *psConnection,
-	const PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32 *pui32RGXFWLogType);
+PVRSRVRGXFWDebugSetFWLogKM(const CONNECTION_DATA *psConnection,
+			   const PVRSRV_DEVICE_NODE *psDeviceNode,
+			   IMG_UINT32 ui32RGXFWLogType);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetFWLogKM(
-	const CONNECTION_DATA *psConnection,
-	const PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32RGXFWLogType);
+PVRSRVRGXFWDebugSetHCSDeadlineKM(CONNECTION_DATA *psConnection,
+				 PVRSRV_DEVICE_NODE *psDeviceNode,
+				 IMG_UINT32 ui32HCSDeadlineMS);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetHCSDeadlineKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32HCSDeadlineMS);
+PVRSRVRGXFWDebugSetDriverTimeSliceKM(CONNECTION_DATA *psConnection,
+				     PVRSRV_DEVICE_NODE *psDeviceNode,
+				     IMG_UINT32 ui32DriverID,
+				     IMG_UINT32 ui32TSPercentage);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetDriverTimeSliceKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32DriverID,
-	IMG_UINT32  ui32TSPercentage);
+PVRSRVRGXFWDebugSetDriverTimeSliceIntervalKM(CONNECTION_DATA *psConnection,
+					     PVRSRV_DEVICE_NODE *psDeviceNode,
+					     IMG_UINT32 ui32TSIntervalMs);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetDriverTimeSliceIntervalKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32TSIntervalMs);
+PVRSRVRGXFWDebugSetDriverPriorityKM(CONNECTION_DATA *psConnection,
+				    PVRSRV_DEVICE_NODE *psDeviceNode,
+				    IMG_UINT32 ui32DriverID,
+				    IMG_INT32 i32DriverPriority);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetDriverPriorityKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32DriverID,
-	IMG_INT32   i32DriverPriority);
+PVRSRVRGXFWDebugSetDriverIsolationGroupKM(CONNECTION_DATA *psConnection,
+					  PVRSRV_DEVICE_NODE *psDeviceNode,
+					  IMG_UINT32 ui32DriverID,
+					  IMG_UINT32 ui32DriverIsolationGroup);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetDriverIsolationGroupKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32DriverID,
-	IMG_UINT32  ui32DriverIsolationGroup);
+PVRSRVRGXFWDebugSetOSNewOnlineStateKM(CONNECTION_DATA *psConnection,
+				      PVRSRV_DEVICE_NODE *psDeviceNode,
+				      IMG_UINT32 ui32DriverID,
+				      IMG_UINT32 ui32OSNewState);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSetOSNewOnlineStateKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32DriverID,
-	IMG_UINT32  ui32OSNewState);
+PVRSRVRGXFWDebugMapGuestHeapKM(CONNECTION_DATA *psConnection,
+			       PVRSRV_DEVICE_NODE *psDeviceNode,
+			       IMG_UINT32 ui32DriverID,
+			       IMG_UINT64 ui64GuestHeapBase);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugMapGuestHeapKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32 ui32DriverID,
-	IMG_UINT64 ui64GuestHeapBase);
+PVRSRVRGXFWDebugPHRConfigureKM(CONNECTION_DATA *psConnection,
+			       PVRSRV_DEVICE_NODE *psDeviceNode,
+			       IMG_UINT32 ui32PHRMode);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugPHRConfigureKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32 ui32PHRMode);
+PVRSRVRGXFWDebugWdgConfigureKM(CONNECTION_DATA *psConnection,
+			       PVRSRV_DEVICE_NODE *psDeviceNode,
+			       IMG_UINT32 ui32WdgPeriodUs);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugWdgConfigureKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32 ui32WdgPeriodUs);
+PVRSRVRGXFWDebugDumpFreelistPageListKM(CONNECTION_DATA *psConnection,
+				       PVRSRV_DEVICE_NODE *psDeviceNode);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugDumpFreelistPageListKM(
-	CONNECTION_DATA * psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode);
+PVRSRVRGXFWDebugInjectFaultKM(CONNECTION_DATA *psConnection,
+			      PVRSRV_DEVICE_NODE *psDeviceNode);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugInjectFaultKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode);
+PVRSRVRGXFWDebugSuspendDeviceKM(CONNECTION_DATA *psConnection,
+				PVRSRV_DEVICE_NODE *psDeviceNode);
 
 PVRSRV_ERROR
-PVRSRVRGXFWDebugSuspendDeviceKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode);
-
-PVRSRV_ERROR
-PVRSRVRGXFWDebugResumeDeviceKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode);
+PVRSRVRGXFWDebugResumeDeviceKM(CONNECTION_DATA *psConnection,
+			       PVRSRV_DEVICE_NODE *psDeviceNode);
 
 PVRSRV_ERROR
 PVRSRVRGXFWDebugSetVzConnectionCooldownPeriodInSecKM(
-	CONNECTION_DATA *psConnection,
-	PVRSRV_DEVICE_NODE *psDeviceNode,
-	IMG_UINT32  ui32VzConnectionCooldownPeriodInSec);
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_UINT32 ui32VzConnectionCooldownPeriodInSec);
 #endif

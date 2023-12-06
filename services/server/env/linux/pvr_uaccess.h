@@ -45,7 +45,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/uaccess.h>
 #include <linux/version.h>
 
-static inline unsigned long pvr_copy_to_user(void __user *pvTo, const void *pvFrom, unsigned long ulBytes)
+static inline unsigned long
+pvr_copy_to_user(void __user *pvTo, const void *pvFrom, unsigned long ulBytes)
 {
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 0, 0))
 	if (access_ok(VERIFY_WRITE, pvTo, ulBytes))
@@ -59,16 +60,15 @@ static inline unsigned long pvr_copy_to_user(void __user *pvTo, const void *pvFr
 	return ulBytes;
 }
 
-
 #if defined(__KLOCWORK__)
-	/* this part is only to tell Klocwork not to report false positive because
+/* this part is only to tell Klocwork not to report false positive because
 	   it doesn't understand that pvr_copy_from_user will initialise the memory
 	   pointed to by pvTo */
 #include <linux/string.h> /* get the memset prototype */
-static inline unsigned long pvr_copy_from_user(void *pvTo, const void __user *pvFrom, unsigned long ulBytes)
+static inline unsigned long
+pvr_copy_from_user(void *pvTo, const void __user *pvFrom, unsigned long ulBytes)
 {
-	if (pvTo != NULL)
-	{
+	if (pvTo != NULL) {
 		memset(pvTo, 0xAA, ulBytes);
 		return 0;
 	}
@@ -77,7 +77,8 @@ static inline unsigned long pvr_copy_from_user(void *pvTo, const void __user *pv
 
 #else /* real implementation */
 
-static inline unsigned long pvr_copy_from_user(void *pvTo, const void __user *pvFrom, unsigned long ulBytes)
+static inline unsigned long
+pvr_copy_from_user(void *pvTo, const void __user *pvFrom, unsigned long ulBytes)
 {
 	/*
 	 * The compile time correctness checking introduced for copy_from_user in

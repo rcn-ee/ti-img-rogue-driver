@@ -54,36 +54,35 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_ri_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgeRIWritePMREntry(IMG_HANDLE hBridge, IMG_HANDLE hPMRHandle);
+IMG_INTERNAL PVRSRV_ERROR BridgeRIWritePMREntry(IMG_HANDLE hBridge,
+						IMG_HANDLE hPMRHandle);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeRIWriteMEMDESCEntry(IMG_HANDLE hBridge,
-						    IMG_HANDLE hPMRHandle,
-						    IMG_UINT32 ui32TextBSize,
-						    const IMG_CHAR * puiTextB,
-						    IMG_UINT64 ui64Offset,
-						    IMG_UINT64 ui64Size,
-						    IMG_BOOL bIsImport,
-						    IMG_BOOL bIsSuballoc, IMG_HANDLE * phRIHandle);
+IMG_INTERNAL PVRSRV_ERROR BridgeRIWriteMEMDESCEntry(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMRHandle, IMG_UINT32 ui32TextBSize,
+	const IMG_CHAR *puiTextB, IMG_UINT64 ui64Offset, IMG_UINT64 ui64Size,
+	IMG_BOOL bIsImport, IMG_BOOL bIsSuballoc, IMG_HANDLE *phRIHandle);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeRIWriteProcListEntry(IMG_HANDLE hBridge,
-						     IMG_UINT32 ui32TextBSize,
-						     const IMG_CHAR * puiTextB,
-						     IMG_UINT64 ui64Size,
-						     IMG_UINT64 ui64DevVAddr,
-						     IMG_HANDLE * phRIHandle);
+IMG_INTERNAL PVRSRV_ERROR BridgeRIWriteProcListEntry(
+	IMG_HANDLE hBridge, IMG_UINT32 ui32TextBSize, const IMG_CHAR *puiTextB,
+	IMG_UINT64 ui64Size, IMG_UINT64 ui64DevVAddr, IMG_HANDLE *phRIHandle);
 
 IMG_INTERNAL PVRSRV_ERROR BridgeRIUpdateMEMDESCAddr(IMG_HANDLE hBridge,
-						    IMG_HANDLE hRIHandle, IMG_DEV_VIRTADDR sAddr);
+						    IMG_HANDLE hRIHandle,
+						    IMG_DEV_VIRTADDR sAddr);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeRIDeleteMEMDESCEntry(IMG_HANDLE hBridge, IMG_HANDLE hRIHandle);
+IMG_INTERNAL PVRSRV_ERROR BridgeRIDeleteMEMDESCEntry(IMG_HANDLE hBridge,
+						     IMG_HANDLE hRIHandle);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeRIDumpList(IMG_HANDLE hBridge, IMG_HANDLE hPMRHandle);
+IMG_INTERNAL PVRSRV_ERROR BridgeRIDumpList(IMG_HANDLE hBridge,
+					   IMG_HANDLE hPMRHandle);
 
 IMG_INTERNAL PVRSRV_ERROR BridgeRIDumpAll(IMG_HANDLE hBridge);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeRIDumpProcess(IMG_HANDLE hBridge, IMG_PID ui32Pid);
+IMG_INTERNAL PVRSRV_ERROR BridgeRIDumpProcess(IMG_HANDLE hBridge,
+					      IMG_PID ui32Pid);
 
 IMG_INTERNAL PVRSRV_ERROR BridgeRIWritePMREntryWithOwner(IMG_HANDLE hBridge,
-							 IMG_HANDLE hPMRHandle, IMG_PID ui32Owner);
+							 IMG_HANDLE hPMRHandle,
+							 IMG_PID ui32Owner);
 
 #endif /* CLIENT_RI_BRIDGE_H */

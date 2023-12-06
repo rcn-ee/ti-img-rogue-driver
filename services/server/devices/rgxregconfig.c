@@ -50,28 +50,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pdump_km.h"
 #include "pvrsrv.h"
 
-PVRSRV_ERROR PVRSRVRGXSetRegConfigTypeKM(CONNECTION_DATA * psDevConnection,
-                                         PVRSRV_DEVICE_NODE	 *psDeviceNode,
-                                         IMG_UINT8           ui8RegCfgType)
+PVRSRV_ERROR PVRSRVRGXSetRegConfigTypeKM(CONNECTION_DATA *psDevConnection,
+					 PVRSRV_DEVICE_NODE *psDeviceNode,
+					 IMG_UINT8 ui8RegCfgType)
 {
 #if defined(SUPPORT_USER_REGISTER_CONFIGURATION)
-	PVRSRV_ERROR          eError      = PVRSRV_OK;
-	PVRSRV_RGXDEV_INFO    *psDevInfo  = psDeviceNode->pvDevice;
-	RGX_REG_CONFIG        *psRegCfg   = &psDevInfo->sRegConfig;
-	RGXFWIF_REG_CFG_TYPE  eRegCfgType = (RGXFWIF_REG_CFG_TYPE) ui8RegCfgType;
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	RGX_REG_CONFIG *psRegCfg = &psDevInfo->sRegConfig;
+	RGXFWIF_REG_CFG_TYPE eRegCfgType = (RGXFWIF_REG_CFG_TYPE)ui8RegCfgType;
 
 	PVR_UNREFERENCED_PARAMETER(psDevConnection);
 
 	OSLockAcquire(psRegCfg->hLock);
 
-	if (eRegCfgType < psRegCfg->eRegCfgTypeToPush)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: Register configuration requested (%d) is not valid since it has to be at least %d."
-			 " Configurations of different types need to go in order",
-			 __func__,
-			 eRegCfgType,
-			 psRegCfg->eRegCfgTypeToPush));
+	if (eRegCfgType < psRegCfg->eRegCfgTypeToPush) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Register configuration requested (%d) is not valid since it has to be at least %d."
+			" Configurations of different types need to go in order",
+			__func__, eRegCfgType, psRegCfg->eRegCfgTypeToPush));
 		OSLockRelease(psRegCfg->hLock);
 		return PVRSRV_ERROR_REG_CONFIG_INVALID_TYPE;
 	}
@@ -84,24 +82,25 @@ PVRSRV_ERROR PVRSRVRGXSetRegConfigTypeKM(CONNECTION_DATA * psDevConnection,
 #else
 	PVR_UNREFERENCED_PARAMETER(psDevConnection);
 
-	PVR_DPF((PVR_DBG_ERROR,
-		 "%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
-		 __func__));
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
+		__func__));
 	return PVRSRV_ERROR_FEATURE_DISABLED;
 #endif
 }
 
-PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA * psConnection,
-                                     PVRSRV_DEVICE_NODE	*psDeviceNode,
-                                     IMG_UINT32		ui32RegAddr,
-                                     IMG_UINT64		ui64RegValue,
-                                     IMG_UINT64		ui64RegMask)
+PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA *psConnection,
+				     PVRSRV_DEVICE_NODE *psDeviceNode,
+				     IMG_UINT32 ui32RegAddr,
+				     IMG_UINT64 ui64RegValue,
+				     IMG_UINT64 ui64RegMask)
 {
 #if defined(SUPPORT_USER_REGISTER_CONFIGURATION)
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sRegCfgCmd;
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	RGX_REG_CONFIG		*psRegCfg = &psDevInfo->sRegConfig;
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sRegCfgCmd;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	RGX_REG_CONFIG *psRegCfg = &psDevInfo->sRegConfig;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -109,39 +108,35 @@ PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA * psConnection,
 
 	OSLockAcquire(psRegCfg->hLock);
 
-	if (psRegCfg->bEnabled)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: Cannot add record whilst register configuration active.",
-			 __func__));
+	if (psRegCfg->bEnabled) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Cannot add record whilst register configuration active.",
+			__func__));
 		OSLockRelease(psRegCfg->hLock);
 		return PVRSRV_ERROR_REG_CONFIG_ENABLED;
 	}
-	if (psRegCfg->ui32NumRegRecords == RGXFWIF_REG_CFG_MAX_SIZE)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: Register configuration full.",
+	if (psRegCfg->ui32NumRegRecords == RGXFWIF_REG_CFG_MAX_SIZE) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Register configuration full.",
 			 __func__));
 		OSLockRelease(psRegCfg->hLock);
 		return PVRSRV_ERROR_REG_CONFIG_FULL;
 	}
 
 	sRegCfgCmd.eCmdType = RGXFWIF_KCCB_CMD_REGCONFIG;
-	sRegCfgCmd.uCmdData.sRegConfigData.sRegConfig.ui64Addr = (IMG_UINT64) ui32RegAddr;
+	sRegCfgCmd.uCmdData.sRegConfigData.sRegConfig.ui64Addr =
+		(IMG_UINT64)ui32RegAddr;
 	sRegCfgCmd.uCmdData.sRegConfigData.sRegConfig.ui64Value = ui64RegValue;
 	sRegCfgCmd.uCmdData.sRegConfigData.sRegConfig.ui64Mask = ui64RegMask;
-	sRegCfgCmd.uCmdData.sRegConfigData.eRegConfigType = psRegCfg->eRegCfgTypeToPush;
+	sRegCfgCmd.uCmdData.sRegConfigData.eRegConfigType =
+		psRegCfg->eRegCfgTypeToPush;
 	sRegCfgCmd.uCmdData.sRegConfigData.eCmdType = RGXFWIF_REGCFG_CMD_ADD;
 
-	eError = RGXScheduleCommand(psDeviceNode->pvDevice,
-				RGXFWIF_DM_GP,
-				&sRegCfgCmd,
-				PDUMP_FLAGS_CONTINUOUS);
-	if (eError != PVRSRV_OK)
-	{
+	eError = RGXScheduleCommand(psDeviceNode->pvDevice, RGXFWIF_DM_GP,
+				    &sRegCfgCmd, PDUMP_FLAGS_CONTINUOUS);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: RGXScheduleCommand failed. Error:%u",
-			 __func__,
+			 "%s: RGXScheduleCommand failed. Error:%u", __func__,
 			 eError));
 		OSLockRelease(psRegCfg->hLock);
 		return eError;
@@ -155,21 +150,22 @@ PVRSRV_ERROR PVRSRVRGXAddRegConfigKM(CONNECTION_DATA * psConnection,
 #else
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
-	PVR_DPF((PVR_DBG_ERROR,
-		 "%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
-		 __func__));
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
+		__func__));
 	return PVRSRV_ERROR_FEATURE_DISABLED;
 #endif
 }
 
-PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
-                                       PVRSRV_DEVICE_NODE	*psDeviceNode)
+PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA *psConnection,
+				       PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 #if defined(SUPPORT_USER_REGISTER_CONFIGURATION)
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sRegCfgCmd;
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	RGX_REG_CONFIG		*psRegCfg = &psDevInfo->sRegConfig;
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sRegCfgCmd;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	RGX_REG_CONFIG *psRegCfg = &psDevInfo->sRegConfig;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -177,11 +173,11 @@ PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
 
 	OSLockAcquire(psRegCfg->hLock);
 
-	if (psRegCfg->bEnabled)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: Attempt to clear register configuration whilst active.",
-			 __func__));
+	if (psRegCfg->bEnabled) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Attempt to clear register configuration whilst active.",
+			__func__));
 		OSLockRelease(psRegCfg->hLock);
 		return PVRSRV_ERROR_REG_CONFIG_ENABLED;
 	}
@@ -189,15 +185,11 @@ PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
 	sRegCfgCmd.eCmdType = RGXFWIF_KCCB_CMD_REGCONFIG;
 	sRegCfgCmd.uCmdData.sRegConfigData.eCmdType = RGXFWIF_REGCFG_CMD_CLEAR;
 
-	eError = RGXScheduleCommand(psDeviceNode->pvDevice,
-				RGXFWIF_DM_GP,
-				&sRegCfgCmd,
-				PDUMP_FLAGS_CONTINUOUS);
-	if (eError != PVRSRV_OK)
-	{
+	eError = RGXScheduleCommand(psDeviceNode->pvDevice, RGXFWIF_DM_GP,
+				    &sRegCfgCmd, PDUMP_FLAGS_CONTINUOUS);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: RGXScheduleCommand failed. Error:%u",
-			 __func__,
+			 "%s: RGXScheduleCommand failed. Error:%u", __func__,
 			 eError));
 		OSLockRelease(psRegCfg->hLock);
 		return eError;
@@ -210,9 +202,10 @@ PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
 
 	return eError;
 #else
-	PVR_DPF((PVR_DBG_ERROR,
-		 "%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
-		 __func__));
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
+		__func__));
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -220,14 +213,14 @@ PVRSRV_ERROR PVRSRVRGXClearRegConfigKM(CONNECTION_DATA * psConnection,
 #endif
 }
 
-PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA * psConnection,
-                                        PVRSRV_DEVICE_NODE	*psDeviceNode)
+PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA *psConnection,
+					PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 #if defined(SUPPORT_USER_REGISTER_CONFIGURATION)
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sRegCfgCmd;
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	RGX_REG_CONFIG		*psRegCfg = &psDevInfo->sRegConfig;
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sRegCfgCmd;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	RGX_REG_CONFIG *psRegCfg = &psDevInfo->sRegConfig;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -238,15 +231,11 @@ PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA * psConnection,
 	sRegCfgCmd.eCmdType = RGXFWIF_KCCB_CMD_REGCONFIG;
 	sRegCfgCmd.uCmdData.sRegConfigData.eCmdType = RGXFWIF_REGCFG_CMD_ENABLE;
 
-	eError = RGXScheduleCommand(psDeviceNode->pvDevice,
-				RGXFWIF_DM_GP,
-				&sRegCfgCmd,
-				PDUMP_FLAGS_CONTINUOUS);
-	if (eError != PVRSRV_OK)
-	{
+	eError = RGXScheduleCommand(psDeviceNode->pvDevice, RGXFWIF_DM_GP,
+				    &sRegCfgCmd, PDUMP_FLAGS_CONTINUOUS);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: RGXScheduleCommand failed. Error:%u",
-			 __func__,
+			 "%s: RGXScheduleCommand failed. Error:%u", __func__,
 			 eError));
 		OSLockRelease(psRegCfg->hLock);
 		return eError;
@@ -260,21 +249,22 @@ PVRSRV_ERROR PVRSRVRGXEnableRegConfigKM(CONNECTION_DATA * psConnection,
 #else
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
-	PVR_DPF((PVR_DBG_ERROR,
-		 "%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
-		 __func__));
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
+		__func__));
 	return PVRSRV_ERROR_FEATURE_DISABLED;
 #endif
 }
 
-PVRSRV_ERROR PVRSRVRGXDisableRegConfigKM(CONNECTION_DATA * psConnection,
-                                         PVRSRV_DEVICE_NODE	*psDeviceNode)
+PVRSRV_ERROR PVRSRVRGXDisableRegConfigKM(CONNECTION_DATA *psConnection,
+					 PVRSRV_DEVICE_NODE *psDeviceNode)
 {
 #if defined(SUPPORT_USER_REGISTER_CONFIGURATION)
-	PVRSRV_ERROR		eError = PVRSRV_OK;
-	RGXFWIF_KCCB_CMD	sRegCfgCmd;
-	PVRSRV_RGXDEV_INFO	*psDevInfo = psDeviceNode->pvDevice;
-	RGX_REG_CONFIG		*psRegCfg = &psDevInfo->sRegConfig;
+	PVRSRV_ERROR eError = PVRSRV_OK;
+	RGXFWIF_KCCB_CMD sRegCfgCmd;
+	PVRSRV_RGXDEV_INFO *psDevInfo = psDeviceNode->pvDevice;
+	RGX_REG_CONFIG *psRegCfg = &psDevInfo->sRegConfig;
 
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
@@ -283,17 +273,14 @@ PVRSRV_ERROR PVRSRVRGXDisableRegConfigKM(CONNECTION_DATA * psConnection,
 	OSLockAcquire(psRegCfg->hLock);
 
 	sRegCfgCmd.eCmdType = RGXFWIF_KCCB_CMD_REGCONFIG;
-	sRegCfgCmd.uCmdData.sRegConfigData.eCmdType = RGXFWIF_REGCFG_CMD_DISABLE;
+	sRegCfgCmd.uCmdData.sRegConfigData.eCmdType =
+		RGXFWIF_REGCFG_CMD_DISABLE;
 
-	eError = RGXScheduleCommand(psDeviceNode->pvDevice,
-				RGXFWIF_DM_GP,
-				&sRegCfgCmd,
-				PDUMP_FLAGS_CONTINUOUS);
-	if (eError != PVRSRV_OK)
-	{
+	eError = RGXScheduleCommand(psDeviceNode->pvDevice, RGXFWIF_DM_GP,
+				    &sRegCfgCmd, PDUMP_FLAGS_CONTINUOUS);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: RGXScheduleCommand failed. Error:%u",
-			 __func__,
+			 "%s: RGXScheduleCommand failed. Error:%u", __func__,
 			 eError));
 		OSLockRelease(psRegCfg->hLock);
 		return eError;
@@ -305,9 +292,10 @@ PVRSRV_ERROR PVRSRVRGXDisableRegConfigKM(CONNECTION_DATA * psConnection,
 
 	return eError;
 #else
-	PVR_DPF((PVR_DBG_ERROR,
-		 "%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
-		 __func__));
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"%s: Feature disabled. Compile with SUPPORT_USER_REGISTER_CONFIGURATION",
+		__func__));
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 
 	return PVRSRV_ERROR_FEATURE_DISABLED;

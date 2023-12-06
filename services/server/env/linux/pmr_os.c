@@ -97,16 +97,15 @@ static void MMapPMROpen(struct vm_area_struct *ps_vma)
 	PVRSRV_ERROR eError;
 
 	/* VM_DONTCOPY should ensure this function never gets called */
-	PVR_DPF((PVR_DBG_WARNING,
-			 "%s: Unexpected mmap open call, this is probably an application bug.",
-			 __func__));
-	PVR_DPF((PVR_DBG_WARNING,
-			 "%s: vma struct: 0x%p, vAddr: %#lX, length: %#lX, PMR pointer: 0x%p",
-			 __func__,
-			 ps_vma,
-			 ps_vma->vm_start,
-			 ps_vma->vm_end - ps_vma->vm_start,
-			 psPMR));
+	PVR_DPF((
+		PVR_DBG_WARNING,
+		"%s: Unexpected mmap open call, this is probably an application bug.",
+		__func__));
+	PVR_DPF((
+		PVR_DBG_WARNING,
+		"%s: vma struct: 0x%p, vAddr: %#lX, length: %#lX, PMR pointer: 0x%p",
+		__func__, ps_vma, ps_vma->vm_start,
+		ps_vma->vm_end - ps_vma->vm_start, psPMR));
 
 	/* In case we get called anyway let's do things right by increasing the refcount and
 	 * locking down the physical addresses.
@@ -114,13 +113,10 @@ static void MMapPMROpen(struct vm_area_struct *ps_vma)
 	PMRRefPMR(psPMR);
 
 	eError = PMRLockSysPhysAddresses(psPMR);
-	if (unlikely(eError != PVRSRV_OK))
-	{
+	if (unlikely(eError != PVRSRV_OK)) {
 		PVR_LOG_ERROR(eError, "PMRLockSysPhysAddresses");
 		PMRUnrefPMR(psPMR);
-	}
-	else
-	{
+	} else {
 		/* MMapPMROpen() is call when a process is forked, but only if
 		 * mappings are to be inherited so increment mapping count of the
 		 * PMR to prevent its layout cannot be changed (if sparse).
@@ -138,19 +134,19 @@ static void MMapPMRClose(struct vm_area_struct *ps_vma)
 	{
 		uintptr_t vAddr = ps_vma->vm_start;
 
-		while (vAddr < ps_vma->vm_end)
-		{
+		while (vAddr < ps_vma->vm_end) {
 			/* USER MAPPING */
-			PVRSRVStatsRemoveMemAllocRecord(PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES,
-			                                (IMG_UINT64)vAddr,
-			                                OSGetCurrentClientProcessIDKM());
+			PVRSRVStatsRemoveMemAllocRecord(
+				PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES,
+				(IMG_UINT64)vAddr,
+				OSGetCurrentClientProcessIDKM());
 			vAddr += PAGE_SIZE;
 		}
 	}
 #else
 	PVRSRVStatsDecrMemAllocStat(PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES,
-	                            ps_vma->vm_end - ps_vma->vm_start,
-	                            OSGetCurrentClientProcessIDKM());
+				    ps_vma->vm_end - ps_vma->vm_start,
+				    OSGetCurrentClientProcessIDKM());
 #endif
 #endif
 
@@ -174,52 +170,36 @@ static int MMapVAccess(struct vm_area_struct *ps_vma, unsigned long addr,
 	PVRSRV_ERROR eError;
 	int iRetVal = -EINVAL;
 
-	if (write)
-	{
-		eError = PMR_WriteBytes(psPMR,
-					(IMG_DEVMEM_OFFSET_T) ulOffset,
-					buf,
-					len,
-					&uiBytesCopied);
-	}
-	else
-	{
-		eError = PMR_ReadBytes(psPMR,
-				       (IMG_DEVMEM_OFFSET_T) ulOffset,
-				       buf,
-				       len,
-				       &uiBytesCopied);
+	if (write) {
+		eError = PMR_WriteBytes(psPMR, (IMG_DEVMEM_OFFSET_T)ulOffset,
+					buf, len, &uiBytesCopied);
+	} else {
+		eError = PMR_ReadBytes(psPMR, (IMG_DEVMEM_OFFSET_T)ulOffset,
+				       buf, len, &uiBytesCopied);
 	}
 
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Error from %s (%d)",
-			 __func__,
-			 write ? "PMR_WriteBytes" : "PMR_ReadBytes",
-			 eError));
-	}
-	else
-	{
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Error from %s (%d)", __func__,
+			 write ? "PMR_WriteBytes" : "PMR_ReadBytes", eError));
+	} else {
 		iRetVal = uiBytesCopied;
 	}
 
 	return iRetVal;
 }
 
-static const struct vm_operations_struct gsMMapOps =
-{
+static const struct vm_operations_struct gsMMapOps = {
 	.open = &MMapPMROpen,
 	.close = &MMapPMRClose,
 	.access = MMapVAccess,
 };
 
 static INLINE int _OSMMapPMR(PVRSRV_DEVICE_NODE *psDevNode,
-							struct vm_area_struct *ps_vma,
-							IMG_DEVMEM_OFFSET_T uiOffset,
-							IMG_CPU_PHYADDR *psCpuPAddr,
-							IMG_UINT32 uiLog2PageSize,
-							IMG_BOOL bUseVMInsertPage,
-							IMG_BOOL bUseMixedMap)
+			     struct vm_area_struct *ps_vma,
+			     IMG_DEVMEM_OFFSET_T uiOffset,
+			     IMG_CPU_PHYADDR *psCpuPAddr,
+			     IMG_UINT32 uiLog2PageSize,
+			     IMG_BOOL bUseVMInsertPage, IMG_BOOL bUseMixedMap)
 {
 	IMG_INT32 iStatus;
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
@@ -239,10 +219,8 @@ static INLINE int _OSMMapPMR(PVRSRV_DEVICE_NODE *psDevNode,
 	 * vm_insert_page() allows insertion of individual pages into user
 	 * VMA space _only_ if page is a order-zero allocated page
 	 */
-	if (bUseVMInsertPage)
-	{
-		if (bUseMixedMap)
-		{
+	if (bUseVMInsertPage) {
+		if (bUseMixedMap) {
 			/*
 			 * This path is just for debugging. It should be
 			 * equivalent to the remap_pfn_range() path.
@@ -250,41 +228,33 @@ static INLINE int _OSMMapPMR(PVRSRV_DEVICE_NODE *psDevNode,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 20, 0))
 			vm_fault_t vmf;
 
-			vmf = vmf_insert_mixed(ps_vma,
-									ps_vma->vm_start + uiOffset,
-									sPFN);
-			if (vmf & VM_FAULT_ERROR)
-			{
+			vmf = vmf_insert_mixed(
+				ps_vma, ps_vma->vm_start + uiOffset, sPFN);
+			if (vmf & VM_FAULT_ERROR) {
 				iStatus = vm_fault_to_errno(vmf, 0);
-			}
-			else
-			{
+			} else {
 				iStatus = 0;
 			}
 #else
 			iStatus = vm_insert_mixed(ps_vma,
-									  ps_vma->vm_start + uiOffset,
+						  ps_vma->vm_start + uiOffset,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
-									  sPFN);
+						  sPFN);
 #else
-									  uiPFN);
+						  uiPFN);
 #endif
 #endif
-		}
-		else
-		{
+		} else {
 			/* Since kernel 3.7 this sets VM_MIXEDMAP internally */
 			iStatus = vm_insert_page(ps_vma,
-									 ps_vma->vm_start + uiOffset,
+						 ps_vma->vm_start + uiOffset,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
-									 pfn_t_to_page(sPFN));
+						 pfn_t_to_page(sPFN));
 #else
-									 pfn_to_page(uiPFN));
+						 pfn_to_page(uiPFN));
 #endif
 		}
-	}
-	else
-	{
+	} else {
 		/*
 		   NOTE: Regarding absence of dma_mmap_coherent() in _OSMMapPMR()
 
@@ -323,15 +293,14 @@ static INLINE int _OSMMapPMR(PVRSRV_DEVICE_NODE *psDevNode,
 		*/
 		size_t uiNumContiguousBytes = 1ULL << uiLog2PageSize;
 
-		iStatus = remap_pfn_range(ps_vma,
-								  ps_vma->vm_start + uiOffset,
+		iStatus = remap_pfn_range(ps_vma, ps_vma->vm_start + uiOffset,
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
-								  pfn_t_to_pfn(sPFN),
+					  pfn_t_to_pfn(sPFN),
 #else
-								  uiPFN,
+					  uiPFN,
 #endif
-								  uiNumContiguousBytes,
-								  ps_vma->vm_page_prot);
+					  uiNumContiguousBytes,
+					  ps_vma->vm_page_prot);
 	}
 
 	return iStatus;
@@ -361,27 +330,26 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 
 	/* if writeable but not shared mapping is requested then fail */
 	PVR_RETURN_IF_INVALID_PARAM(((uVMFlags & VM_WRITE) == 0) ||
-	                            ((uVMFlags & VM_SHARED) != 0));
+				    ((uVMFlags & VM_SHARED) != 0));
 
 	uiLength = ps_vma->vm_end - ps_vma->vm_start;
 
 	/* Check early if the requested mapping size doesn't exceed the virtual
 	 * PMR size. */
-	if (PMR_LogicalSize(psPMR) < uiLength)
-	{
-		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_BAD_MAPPING, ErrReturn);
+	if (PMR_LogicalSize(psPMR) < uiLength) {
+		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_BAD_MAPPING,
+				    ErrReturn);
 	}
 
 	uiLog2PageSize = PMR_GetLog2Contiguity(psPMR);
 
 	/* Check the number of PFNs to be mapped is valid. */
 	uiNumOfPFNs = uiLength >> uiLog2PageSize;
-	if (uiNumOfPFNs == 0)
-	{
-		PVR_LOG_VA(PVR_DBG_ERROR,
-		           "uiLength is invalid. Must be >= %u.",
-		           1 << uiLog2PageSize);
-		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_BAD_MAPPING, ErrReturn);
+	if (uiNumOfPFNs == 0) {
+		PVR_LOG_VA(PVR_DBG_ERROR, "uiLength is invalid. Must be >= %u.",
+			   1 << uiLog2PageSize);
+		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_BAD_MAPPING,
+				    ErrReturn);
 	}
 
 	/*
@@ -391,8 +359,7 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	PMRRefPMR(psPMR);
 
 	eError = PMRLockSysPhysAddresses(psPMR);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		goto ErrUnrefPMR;
 	}
 
@@ -404,39 +371,35 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	PMRCpuMapCountIncr(psPMR);
 	sPageProt = vm_get_page_prot(ps_vma->vm_flags);
 
-	eError = DevmemCPUCacheMode(psDevNode,
-	                            PMR_Flags(psPMR),
-	                            &ui32CPUCacheFlags);
-	if (eError != PVRSRV_OK)
-	{
+	eError = DevmemCPUCacheMode(psDevNode, PMR_Flags(psPMR),
+				    &ui32CPUCacheFlags);
+	if (eError != PVRSRV_OK) {
 		goto ErrUnlockPhysAddr;
 	}
 
-	switch (ui32CPUCacheFlags)
-	{
-		case PVRSRV_MEMALLOCFLAG_CPU_UNCACHED:
-				sPageProt = pgprot_noncached(sPageProt);
-				break;
+	switch (ui32CPUCacheFlags) {
+	case PVRSRV_MEMALLOCFLAG_CPU_UNCACHED:
+		sPageProt = pgprot_noncached(sPageProt);
+		break;
 
-		case PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC:
-				sPageProt = pgprot_writecombine(sPageProt);
-				break;
+	case PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC:
+		sPageProt = pgprot_writecombine(sPageProt);
+		break;
 
-		case PVRSRV_MEMALLOCFLAG_CPU_CACHED:
-		{
+	case PVRSRV_MEMALLOCFLAG_CPU_CACHED: {
 /* Do not set to write-combine for plato */
 #if !defined(PLATO_MEMORY_CONFIG)
-				PHYS_HEAP *psPhysHeap = PMR_PhysHeap(psPMR);
+		PHYS_HEAP *psPhysHeap = PMR_PhysHeap(psPMR);
 
-				if (PhysHeapGetType(psPhysHeap) == PHYS_HEAP_TYPE_LMA)
-					sPageProt = pgprot_writecombine(sPageProt);
+		if (PhysHeapGetType(psPhysHeap) == PHYS_HEAP_TYPE_LMA)
+			sPageProt = pgprot_writecombine(sPageProt);
 #endif
-				break;
-		}
+		break;
+	}
 
-		default:
-				eError = PVRSRV_ERROR_INVALID_PARAMS;
-				goto ErrUnlockPhysAddr;
+	default:
+		eError = PVRSRV_ERROR_INVALID_PARAMS;
+		goto ErrUnlockPhysAddr;
 	}
 	ps_vma->vm_page_prot = sPageProt;
 
@@ -457,34 +420,27 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 #if defined(PMR_OS_USE_VM_INSERT_PAGE)
 	/* Is this mmap targeting non order-zero pages or does it use pfn mappings?
 	 * If yes, don't use vm_insert_page */
-	bUseVMInsertPage = (uiLog2PageSize == PAGE_SHIFT) && (PMR_GetType(psPMR) != PMR_TYPE_EXTMEM);
+	bUseVMInsertPage = (uiLog2PageSize == PAGE_SHIFT) &&
+			   (PMR_GetType(psPMR) != PMR_TYPE_EXTMEM);
 #endif
 
 	/* Can we use stack allocations */
-	if (uiNumOfPFNs > PMR_MAX_TRANSLATION_STACK_ALLOC)
-	{
+	if (uiNumOfPFNs > PMR_MAX_TRANSLATION_STACK_ALLOC) {
 		psCpuPAddr = OSAllocMem(uiNumOfPFNs * sizeof(*psCpuPAddr));
 		PVR_LOG_GOTO_IF_NOMEM(psCpuPAddr, eError, ErrUnlockPhysAddr);
 
 		/* Should allocation fail, clean-up here before exiting */
 		pbValid = OSAllocMem(uiNumOfPFNs * sizeof(*pbValid));
 		PVR_LOG_GOTO_IF_NOMEM(pbValid, eError, ErrFreeCpuPAddr);
-	}
-	else
-	{
+	} else {
 		psCpuPAddr = asCpuPAddr;
 		pbValid = abValid;
 	}
 
 	/* Obtain map range pfns */
-	eError = PMR_CpuPhysAddr(psPMR,
-				 uiLog2PageSize,
-				 uiNumOfPFNs,
-				 0,
-				 psCpuPAddr,
-				 pbValid);
-	if (eError != PVRSRV_OK)
-	{
+	eError = PMR_CpuPhysAddr(psPMR, uiLog2PageSize, uiNumOfPFNs, 0,
+				 psCpuPAddr, pbValid);
+	if (eError != PVRSRV_OK) {
 		goto ErrFreeValid;
 	}
 
@@ -494,27 +450,30 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	 * NOTE: vm_insert_page() allows insertion of individual pages into user
 	 * VMA space _only_ if said page is an order-zero allocated page.
 	 */
-	if (bUseVMInsertPage)
-	{
+	if (bUseVMInsertPage) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
 		pfn_t sPFN;
 #else
 		unsigned long uiPFN;
 #endif
 
-		for (uiOffsetIdx = 0; uiOffsetIdx < uiNumOfPFNs; ++uiOffsetIdx)
-		{
-			if (pbValid[uiOffsetIdx])
-			{
+		for (uiOffsetIdx = 0; uiOffsetIdx < uiNumOfPFNs;
+		     ++uiOffsetIdx) {
+			if (pbValid[uiOffsetIdx]) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0))
-				sPFN = phys_to_pfn_t(psCpuPAddr[uiOffsetIdx].uiAddr, 0);
+				sPFN = phys_to_pfn_t(
+					psCpuPAddr[uiOffsetIdx].uiAddr, 0);
 
-				if (!pfn_t_valid(sPFN) || page_count(pfn_t_to_page(sPFN)) == 0)
+				if (!pfn_t_valid(sPFN) ||
+				    page_count(pfn_t_to_page(sPFN)) == 0)
 #else
-				uiPFN = psCpuPAddr[uiOffsetIdx].uiAddr >> PAGE_SHIFT;
-				PVR_ASSERT(((IMG_UINT64)uiPFN << PAGE_SHIFT) == psCpuPAddr[uiOffsetIdx].uiAddr);
+				uiPFN = psCpuPAddr[uiOffsetIdx].uiAddr >>
+					PAGE_SHIFT;
+				PVR_ASSERT(((IMG_UINT64)uiPFN << PAGE_SHIFT) ==
+					   psCpuPAddr[uiOffsetIdx].uiAddr);
 
-				if (!pfn_valid(uiPFN) || page_count(pfn_to_page(uiPFN)) == 0)
+				if (!pfn_valid(uiPFN) ||
+				    page_count(pfn_to_page(uiPFN)) == 0)
 #endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 5, 0)) */
 				{
 					bUseMixedMap = IMG_TRUE;
@@ -523,13 +482,10 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 			}
 		}
 
-		if (bUseMixedMap)
-		{
+		if (bUseMixedMap) {
 			uVMFlags |= VM_MIXEDMAP;
 		}
-	}
-	else
-	{
+	} else {
 		uVMFlags |= VM_PFNMAP;
 	}
 
@@ -537,25 +493,20 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 	pvr_vm_flags_init(ps_vma, uVMFlags);
 
 	/* For each PMR page-size contiguous bytes, map page(s) into user VMA */
-	for (uiOffset = 0; uiOffset < uiLength; uiOffset += 1ULL<<uiLog2PageSize)
-	{
+	for (uiOffset = 0; uiOffset < uiLength;
+	     uiOffset += 1ULL << uiLog2PageSize) {
 		uiOffsetIdx = uiOffset >> uiLog2PageSize;
 		/*
 		 * Only map in pages that are valid, any that aren't will be
 		 * picked up by the nopage handler which will return a zeroed
 		 * page for us.
 		 */
-		if (pbValid[uiOffsetIdx])
-		{
-			iStatus = _OSMMapPMR(psDevNode,
-								 ps_vma,
-								 uiOffset,
-								 &psCpuPAddr[uiOffsetIdx],
-								 uiLog2PageSize,
-								 bUseVMInsertPage,
-								 bUseMixedMap);
-			if (iStatus)
-			{
+		if (pbValid[uiOffsetIdx]) {
+			iStatus = _OSMMapPMR(psDevNode, ps_vma, uiOffset,
+					     &psCpuPAddr[uiOffsetIdx],
+					     uiLog2PageSize, bUseVMInsertPage,
+					     bUseMixedMap);
+			if (iStatus) {
 				/* Failure error code doesn't get propagated */
 				eError = PVRSRV_ERROR_PMR_CPU_PAGE_MAP_FAILED;
 				PVR_ASSERT(0);
@@ -567,26 +518,29 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 		{
 			IMG_CPU_PHYADDR sPAddr;
 			sPAddr.uiAddr = pbValid[uiOffsetIdx] ?
-					psCpuPAddr[uiOffsetIdx].uiAddr :
-					IMG_CAST_TO_CPUPHYADDR_UINT(PMR_OS_BAD_CPUADDR);
+						psCpuPAddr[uiOffsetIdx].uiAddr :
+						IMG_CAST_TO_CPUPHYADDR_UINT(
+							PMR_OS_BAD_CPUADDR);
 
-			PVRSRVStatsAddMemAllocRecord(PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES,
-										(void*)(uintptr_t)(ps_vma->vm_start + uiOffset),
-										sPAddr,
-										1<<uiLog2PageSize,
-										OSGetCurrentClientProcessIDKM()
-										DEBUG_MEMSTATS_VALUES);
+			PVRSRVStatsAddMemAllocRecord(
+				PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES,
+				(void *)(uintptr_t)(ps_vma->vm_start +
+						    uiOffset),
+				sPAddr, 1 << uiLog2PageSize,
+				OSGetCurrentClientProcessIDKM()
+					DEBUG_MEMSTATS_VALUES);
 		}
 #undef PMR_OS_BAD_CPUADDR
 #endif
 	}
 
 #if defined(PVRSRV_ENABLE_PROCESS_STATS) && !defined(PVRSRV_ENABLE_MEMORY_STATS)
-	PVRSRVStatsIncrMemAllocStat(PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES, uiNumOfPFNs * PAGE_SIZE, OSGetCurrentClientProcessIDKM());
+	PVRSRVStatsIncrMemAllocStat(PVRSRV_MEM_ALLOC_TYPE_MAP_UMA_LMA_PAGES,
+				    uiNumOfPFNs * PAGE_SIZE,
+				    OSGetCurrentClientProcessIDKM());
 #endif
 
-	if (psCpuPAddr != asCpuPAddr)
-	{
+	if (psCpuPAddr != asCpuPAddr) {
 		OSFreeMem(psCpuPAddr);
 		OSFreeMem(pbValid);
 	}
@@ -607,13 +561,11 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData)
 
 	/* Error exit paths follow */
 ErrFreeValid:
-	if (pbValid != abValid)
-	{
+	if (pbValid != abValid) {
 		OSFreeMem(pbValid);
 	}
 ErrFreeCpuPAddr:
-	if (psCpuPAddr != asCpuPAddr)
-	{
+	if (psCpuPAddr != asCpuPAddr) {
 		OSFreeMem(psCpuPAddr);
 	}
 ErrUnlockPhysAddr:

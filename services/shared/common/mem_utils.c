@@ -49,8 +49,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * is enabled. (The code should work on other architectures.)
  */
 
-
-
 /* NOTE: This C file is compiled with -ffreestanding to avoid pattern matching
  *       by the compiler to stdlib functions, and it must only use the below
  *       headers. Do not include any IMG or services headers in this file.
@@ -76,11 +74,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if DEVICE_MEMSETCPY_ALIGN_IN_BYTES > 8
 typedef __uint128_t uint128_t;
 
-typedef struct
-{
+typedef struct {
 	uint128_t ui128DataFields[2];
-}
-uint256_t;
+} uint256_t;
 #endif
 
 #endif
@@ -93,14 +89,19 @@ uint256_t;
 #if defined(__GNUC__)
 
 #ifndef MIN
-#define MIN(a, b) \
- ({__typeof(a) _a = (a); __typeof(b) _b = (b); _a > _b ? _b : _a;})
+#define MIN(a, b)                     \
+	({                            \
+		__typeof(a) _a = (a); \
+		__typeof(b) _b = (b); \
+		_a > _b ? _b : _a;    \
+	})
 #endif
 
 #if !defined(DEVICE_MEMSETCPY_ALIGN_IN_BYTES)
 #define DEVICE_MEMSETCPY_ALIGN_IN_BYTES __SIZEOF_LONG__
 #endif
-#if (DEVICE_MEMSETCPY_ALIGN_IN_BYTES & (DEVICE_MEMSETCPY_ALIGN_IN_BYTES - 1)) != 0
+#if (DEVICE_MEMSETCPY_ALIGN_IN_BYTES & \
+     (DEVICE_MEMSETCPY_ALIGN_IN_BYTES - 1)) != 0
 #error "DEVICE_MEMSETCPY_ALIGN_IN_BYTES must be a power of 2"
 #endif
 #if DEVICE_MEMSETCPY_ALIGN_IN_BYTES < 4
@@ -113,70 +114,70 @@ uint256_t;
 
 #if __SIZEOF_LONG__ > DEVICE_MEMSETCPY_ALIGN_IN_BYTES
 /* Meaningless, and harder to do correctly */
-# error Cannot handle DEVICE_MEMSETCPY_ALIGN_IN_BYTES < sizeof(long)
+#error Cannot handle DEVICE_MEMSETCPY_ALIGN_IN_BYTES < sizeof(long)
 typedef unsigned long block_t;
 #elif __SIZEOF_LONG__ <= DEVICE_MEMSETCPY_ALIGN_IN_BYTES
-# if defined(DEVICE_MEMSETCPY_NON_VECTOR_KM)
-#  if DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 8
-    typedef uint64_t block_t;
-#  elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 16
-    typedef uint128_t block_t;
-#  elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 32
-    typedef uint256_t block_t;
-#  endif
-# else
+#if defined(DEVICE_MEMSETCPY_NON_VECTOR_KM)
+#if DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 8
+typedef uint64_t block_t;
+#elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 16
+typedef uint128_t block_t;
+#elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 32
+typedef uint256_t block_t;
+#endif
+#else
 typedef unsigned int block_t
 	__attribute__((vector_size(DEVICE_MEMSETCPY_ALIGN_IN_BYTES)));
-# endif
-# if defined(__arm64__) || defined(__aarch64__)
-#  if   DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 8
-#   define DEVICE_MEMSETCPY_ARM64
-#   define REGSZ "w"
-#   define REGCL "w"
-#   define BVCLB "r"
-#  elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 16
-#   define DEVICE_MEMSETCPY_ARM64
-#   define REGSZ "x"
-#   define REGCL "x"
-#   define BVCLB "r"
-#  elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 32
-#   if defined(__ARM_NEON_FP)
-#    define DEVICE_MEMSETCPY_ARM64
-#    define REGSZ "q"
-#    define REGCL "v"
-#    define BVCLB "w"
-#   endif
-#  endif
-#  if defined(DEVICE_MEMSETCPY_ARM64)
-#   if defined(DEVICE_MEMSETCPY_ARM64_NON_TEMPORAL)
-#    define NSHLD() __asm__ ("dmb nshld")
-#    define NSHST() __asm__ ("dmb nshst")
-#    define LDP "ldnp"
-#    define STP "stnp"
-#   else
-#    define NSHLD()
-#    define NSHST()
-#    define LDP "ldp"
-#    define STP "stp"
-#   endif
-#   if defined(DEVICE_MEMSETCPY_NON_VECTOR_KM)
-#    if DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 8
+#endif
+#if defined(__arm64__) || defined(__aarch64__)
+#if DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 8
+#define DEVICE_MEMSETCPY_ARM64
+#define REGSZ "w"
+#define REGCL "w"
+#define BVCLB "r"
+#elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 16
+#define DEVICE_MEMSETCPY_ARM64
+#define REGSZ "x"
+#define REGCL "x"
+#define BVCLB "r"
+#elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 32
+#if defined(__ARM_NEON_FP)
+#define DEVICE_MEMSETCPY_ARM64
+#define REGSZ "q"
+#define REGCL "v"
+#define BVCLB "w"
+#endif
+#endif
+#if defined(DEVICE_MEMSETCPY_ARM64)
+#if defined(DEVICE_MEMSETCPY_ARM64_NON_TEMPORAL)
+#define NSHLD() __asm__("dmb nshld")
+#define NSHST() __asm__("dmb nshst")
+#define LDP "ldnp"
+#define STP "stnp"
+#else
+#define NSHLD()
+#define NSHST()
+#define LDP "ldp"
+#define STP "stp"
+#endif
+#if defined(DEVICE_MEMSETCPY_NON_VECTOR_KM)
+#if DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 8
 typedef uint32_t block_half_t;
-#    elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 16
+#elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 16
 typedef uint64_t block_half_t;
-#    elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 32
+#elif DEVICE_MEMSETCPY_ALIGN_IN_BYTES == 32
 typedef uint128_t block_half_t;
-#    endif
-#   else
- typedef unsigned int block_half_t
+#endif
+#else
+typedef unsigned int block_half_t
 	__attribute__((vector_size(DEVICE_MEMSETCPY_ALIGN_IN_BYTES / 2)));
-#   endif
-#  endif
-# endif
+#endif
+#endif
+#endif
 #endif
 
-__attribute__((visibility("hidden")))
-void DeviceMemCopy(void *pvDst, const void *pvSrc, size_t uSize)
+__attribute__((visibility("hidden"))) void
+DeviceMemCopy(void *pvDst, const void *pvSrc, size_t uSize)
 {
 	volatile const char *pcSrc = pvSrc;
 	volatile char *pcDst = pvDst;
@@ -186,42 +187,34 @@ void DeviceMemCopy(void *pvDst, const void *pvSrc, size_t uSize)
 	size_t uSrcUnaligned = (size_t)pcSrc % sizeof(block_t);
 	size_t uDstUnaligned = (size_t)pcDst % sizeof(block_t);
 
-	if (!uSrcUnaligned && !uDstUnaligned)
-	{
+	if (!uSrcUnaligned && !uDstUnaligned) {
 		/* Neither pointer is unaligned. Optimal case. */
 		bBlockCopy = 1;
-	}
-	else
-	{
-		if (uSrcUnaligned == uDstUnaligned)
-		{
+	} else {
+		if (uSrcUnaligned == uDstUnaligned) {
 			/* Neither pointer is usefully aligned, but they are misaligned in
 			 * the same way, so we can copy a preamble in a slow way, then
 			 * optimize the rest.
 			 */
-			uPreambleBytes = MIN(sizeof(block_t) - uDstUnaligned, uSize);
+			uPreambleBytes =
+				MIN(sizeof(block_t) - uDstUnaligned, uSize);
 			uSize -= uPreambleBytes;
-			while (uPreambleBytes)
-			{
+			while (uPreambleBytes) {
 				*pcDst++ = *pcSrc++;
 				uPreambleBytes--;
 			}
 
 			bBlockCopy = 1;
-		}
-		else if ((uSrcUnaligned | uDstUnaligned) % sizeof(int) == 0)
-		{
+		} else if ((uSrcUnaligned | uDstUnaligned) % sizeof(int) == 0) {
 			/* Both pointers are at least 32-bit aligned, and we assume that
 			 * the processor must handle all kinds of 32-bit load-stores.
 			 * NOTE: Could we optimize this with a non-temporal version?
 			 */
-			if (uSize >= sizeof(int))
-			{
+			if (uSize >= sizeof(int)) {
 				volatile int *piSrc = (int *)((void *)pcSrc);
 				volatile int *piDst = (int *)((void *)pcDst);
 
-				while (uSize >= sizeof(int))
-				{
+				while (uSize >= sizeof(int)) {
 					*piDst++ = *piSrc++;
 					uSize -= sizeof(int);
 				}
@@ -232,8 +225,7 @@ void DeviceMemCopy(void *pvDst, const void *pvSrc, size_t uSize)
 		}
 	}
 
-	if (bBlockCopy && uSize >= sizeof(block_t))
-	{
+	if (bBlockCopy && uSize >= sizeof(block_t)) {
 		volatile block_t *pSrc = (block_t *)((void *)pcSrc);
 		volatile block_t *pDst = (block_t *)((void *)pcDst);
 
@@ -241,14 +233,13 @@ void DeviceMemCopy(void *pvDst, const void *pvSrc, size_t uSize)
 		NSHLD();
 #endif
 
-		while (uSize >= sizeof(block_t))
-		{
+		while (uSize >= sizeof(block_t)) {
 #if defined(DEVICE_MEMSETCPY_ARM64)
-			__asm__ (LDP " " REGSZ "0, " REGSZ "1, [%[pSrc]]\n\t"
-			         STP " " REGSZ "0, " REGSZ "1, [%[pDst]]"
-						:
-						: [pSrc] "r" (pSrc), [pDst] "r" (pDst)
-						: "memory", REGCL "0", REGCL "1");
+			__asm__(LDP " " REGSZ "0, " REGSZ "1, [%[pSrc]]\n\t" STP
+				    " " REGSZ "0, " REGSZ "1, [%[pDst]]"
+				:
+				: [pSrc] "r"(pSrc), [pDst] "r"(pDst)
+				: "memory", REGCL "0", REGCL "1");
 #else
 			*pDst = *pSrc;
 #endif
@@ -265,34 +256,30 @@ void DeviceMemCopy(void *pvDst, const void *pvSrc, size_t uSize)
 		pcDst = (char *)((void *)pDst);
 	}
 
-	while (uSize)
-	{
+	while (uSize) {
 		*pcDst++ = *pcSrc++;
 		uSize--;
 	}
 }
 
-__attribute__((visibility("hidden")))
-void DeviceMemSet(void *pvDst, unsigned char ui8Value, size_t uSize)
+__attribute__((visibility("hidden"))) void
+DeviceMemSet(void *pvDst, unsigned char ui8Value, size_t uSize)
 {
 	volatile char *pcDst = pvDst;
 	size_t uPreambleBytes;
 
 	size_t uDstUnaligned = (size_t)pcDst % sizeof(block_t);
 
-	if (uDstUnaligned)
-	{
+	if (uDstUnaligned) {
 		uPreambleBytes = MIN(sizeof(block_t) - uDstUnaligned, uSize);
 		uSize -= uPreambleBytes;
-		while (uPreambleBytes)
-		{
+		while (uPreambleBytes) {
 			*pcDst++ = ui8Value;
 			uPreambleBytes--;
 		}
 	}
 
-	if (uSize >= sizeof(block_t))
-	{
+	if (uSize >= sizeof(block_t)) {
 		volatile block_t *pDst = (block_t *)((void *)pcDst);
 		size_t i, uBlockSize;
 #if defined(DEVICE_MEMSETCPY_ARM64)
@@ -306,32 +293,30 @@ void DeviceMemSet(void *pvDst, unsigned char ui8Value, size_t uSize)
 
 		uBlockSize = sizeof(BLK_t) / sizeof(ui8Value);
 
-		for (i = 0; i < uBlockSize; i++)
-		{
-			bValue |= (BLK_t)ui8Value << ((uBlockSize - i - 1) * BITS_PER_BYTE);
+		for (i = 0; i < uBlockSize; i++) {
+			bValue |= (BLK_t)ui8Value
+				  << ((uBlockSize - i - 1) * BITS_PER_BYTE);
 		}
 #else
-		BLK_t bValue = {0};
+		BLK_t bValue = { 0 };
 
 		uBlockSize = sizeof(bValue) / sizeof(unsigned int);
 		for (i = 0; i < uBlockSize; i++)
-			bValue[i] = ui8Value << 24U |
-			            ui8Value << 16U |
-			            ui8Value <<  8U |
-			            ui8Value;
+			bValue[i] = ui8Value << 24U | ui8Value << 16U |
+				    ui8Value << 8U | ui8Value;
 #endif /* defined(DEVICE_MEMSETCPY_NON_VECTOR_KM) */
 
 #if defined(DEVICE_MEMSETCPY_ARM64)
 		NSHLD();
 #endif
 
-		while (uSize >= sizeof(block_t))
-		{
+		while (uSize >= sizeof(block_t)) {
 #if defined(DEVICE_MEMSETCPY_ARM64)
-			__asm__ (STP " %" REGSZ "[bValue], %" REGSZ "[bValue], [%[pDst]]"
-						:
-						: [bValue] BVCLB (bValue), [pDst] "r" (pDst)
-						: "memory");
+			__asm__(STP " %" REGSZ "[bValue], %" REGSZ
+				    "[bValue], [%[pDst]]"
+				:
+				: [bValue] BVCLB(bValue), [pDst] "r"(pDst)
+				: "memory");
 #else
 			*pDst = bValue;
 #endif
@@ -346,8 +331,7 @@ void DeviceMemSet(void *pvDst, unsigned char ui8Value, size_t uSize)
 		pcDst = (char *)((void *)pDst);
 	}
 
-	while (uSize)
-	{
+	while (uSize) {
 		*pcDst++ = ui8Value;
 		uSize--;
 	}
@@ -362,8 +346,7 @@ void DeviceMemCopyBytes(void *pvDst, const void *pvSrc, size_t uSize)
 	volatile const char *pcSrc = pvSrc;
 	volatile char *pcDst = pvDst;
 
-	while (uSize)
-	{
+	while (uSize) {
 		*pcDst++ = *pcSrc++;
 		uSize--;
 	}
@@ -374,8 +357,7 @@ void DeviceMemSetBytes(void *pvDst, unsigned char ui8Value, size_t uSize)
 {
 	volatile char *pcDst = pvDst;
 
-	while (uSize)
-	{
+	while (uSize) {
 		*pcDst++ = ui8Value;
 		uSize--;
 	}
@@ -397,13 +379,13 @@ size_t StringLCopy(IMG_CHAR *pszDest, const IMG_CHAR *pszSrc, size_t uDataSize)
 	 * Let strlcpy handle any truncation cases correctly.
 	 * We will definitely get a NUL-terminated string set in pszDest
 	 */
-	size_t  uSrcSize = strlcpy(pszDest, pszSrc, uDataSize);
+	size_t uSrcSize = strlcpy(pszDest, pszSrc, uDataSize);
 
 #if defined(PVR_DEBUG_STRLCPY)
 	/* Handle truncation by dumping calling stack if debug allows */
-	if (uSrcSize >= uDataSize)
-	{
-		PVR_DPF((PVR_DBG_WARNING,
+	if (uSrcSize >= uDataSize) {
+		PVR_DPF((
+			PVR_DBG_WARNING,
 			"%s: String truncated Src = '<%s>' %ld bytes, Dest = '%s'",
 			__func__, pszSrc, (long)uDataSize, pszDest));
 		OSDumpStack();
@@ -428,12 +410,9 @@ size_t StringLCopy(IMG_CHAR *pszDest, const IMG_CHAR *pszSrc, size_t uDataSize)
 	size_t uSrcSize = strnlen(pszSrc, uDataSize);
 
 	(void)strncpy(pszDest, pszSrc, uSrcSize);
-	if (uSrcSize == uDataSize)
-	{
-		pszDest[uSrcSize-1] = '\0';
-	}
-	else
-	{
+	if (uSrcSize == uDataSize) {
+		pszDest[uSrcSize - 1] = '\0';
+	} else {
 		pszDest[uSrcSize] = '\0';
 	}
 

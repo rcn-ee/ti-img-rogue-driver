@@ -51,62 +51,55 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "cache_km.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgeCacheOpQueue(IMG_HANDLE hBridge,
-					     IMG_UINT32 ui32NumCacheOps,
-					     IMG_HANDLE * phPMR,
-					     IMG_UINT64 * pui64Address,
-					     IMG_DEVMEM_OFFSET_T * puiOffset,
-					     IMG_DEVMEM_SIZE_T * puiSize,
-					     PVRSRV_CACHE_OP * piuCacheOp,
-					     IMG_UINT32 ui32OpTimeline)
+IMG_INTERNAL PVRSRV_ERROR
+BridgeCacheOpQueue(IMG_HANDLE hBridge, IMG_UINT32 ui32NumCacheOps,
+		   IMG_HANDLE *phPMR, IMG_UINT64 *pui64Address,
+		   IMG_DEVMEM_OFFSET_T *puiOffset, IMG_DEVMEM_SIZE_T *puiSize,
+		   PVRSRV_CACHE_OP *piuCacheOp, IMG_UINT32 ui32OpTimeline)
 {
 	PVRSRV_ERROR eError;
 	PMR **psPMRInt;
 
-	psPMRInt = (PMR **) phPMR;
+	psPMRInt = (PMR **)phPMR;
 
-	eError =
-	    CacheOpQueue(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-			 ui32NumCacheOps,
-			 psPMRInt, pui64Address, puiOffset, puiSize, piuCacheOp, ui32OpTimeline);
+	eError = CacheOpQueue(NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge),
+			      ui32NumCacheOps, psPMRInt, pui64Address,
+			      puiOffset, puiSize, piuCacheOp, ui32OpTimeline);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeCacheOpExec(IMG_HANDLE hBridge,
-					    IMG_HANDLE hPMR,
+IMG_INTERNAL PVRSRV_ERROR BridgeCacheOpExec(IMG_HANDLE hBridge, IMG_HANDLE hPMR,
 					    IMG_UINT64 ui64Address,
 					    IMG_DEVMEM_OFFSET_T uiOffset,
-					    IMG_DEVMEM_SIZE_T uiSize, PVRSRV_CACHE_OP iuCacheOp)
+					    IMG_DEVMEM_SIZE_T uiSize,
+					    PVRSRV_CACHE_OP iuCacheOp)
 {
 	PVRSRV_ERROR eError;
 	PMR *psPMRInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psPMRInt = (PMR *) hPMR;
+	psPMRInt = (PMR *)hPMR;
 
-	eError = CacheOpValExec(psPMRInt, ui64Address, uiOffset, uiSize, iuCacheOp);
+	eError = CacheOpValExec(psPMRInt, ui64Address, uiOffset, uiSize,
+				iuCacheOp);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeCacheOpLog(IMG_HANDLE hBridge,
-					   IMG_HANDLE hPMR,
-					   IMG_UINT64 ui64Address,
-					   IMG_DEVMEM_OFFSET_T uiOffset,
-					   IMG_DEVMEM_SIZE_T uiSize,
-					   IMG_INT64 i64StartTime,
-					   IMG_INT64 i64EndTime, PVRSRV_CACHE_OP iuCacheOp)
+IMG_INTERNAL PVRSRV_ERROR BridgeCacheOpLog(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_UINT64 ui64Address,
+	IMG_DEVMEM_OFFSET_T uiOffset, IMG_DEVMEM_SIZE_T uiSize,
+	IMG_INT64 i64StartTime, IMG_INT64 i64EndTime, PVRSRV_CACHE_OP iuCacheOp)
 {
 	PVRSRV_ERROR eError;
 	PMR *psPMRInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psPMRInt = (PMR *) hPMR;
+	psPMRInt = (PMR *)hPMR;
 
-	eError =
-	    CacheOpLog(psPMRInt,
-		       ui64Address, uiOffset, uiSize, i64StartTime, i64EndTime, iuCacheOp);
+	eError = CacheOpLog(psPMRInt, ui64Address, uiOffset, uiSize,
+			    i64StartTime, i64EndTime, iuCacheOp);
 
 	return eError;
 }

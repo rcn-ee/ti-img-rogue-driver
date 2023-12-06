@@ -93,17 +93,16 @@ THE SOFTWARE.
 #endif
 
 #define img_fourcc_mod_combine(uiModHi, uiModLo) \
-	((__u64) ((__u32) (uiModHi)) << 32 | (__u64) ((__u32) (uiModLo)))
+	((__u64)((__u32)(uiModHi)) << 32 | (__u64)((__u32)(uiModLo)))
 
-#define img_fourcc_mod_hi(ui64Mod) \
-	((__u32) ((__u64) (ui64Mod) >> 32))
+#define img_fourcc_mod_hi(ui64Mod) ((__u32)((__u64)(ui64Mod) >> 32))
 
-#define img_fourcc_mod_lo(ui64Mod) \
-	((__u32) ((__u64) (ui64Mod)) & 0xffffffff)
+#define img_fourcc_mod_lo(ui64Mod) ((__u32)((__u64)(ui64Mod)) & 0xffffffff)
 
 #ifndef fourcc_mod_code
-#define fourcc_mod_code(vendor, val) \
-	((((__u64)DRM_FORMAT_MOD_VENDOR_## vendor) << 56) | (val & 0x00ffffffffffffffULL))
+#define fourcc_mod_code(vendor, val)                       \
+	((((__u64)DRM_FORMAT_MOD_VENDOR_##vendor) << 56) | \
+	 (val & 0x00ffffffffffffffULL))
 #endif
 
 #ifndef DRM_FORMAT_MOD_INVALID
@@ -114,48 +113,48 @@ THE SOFTWARE.
 #define DRM_FORMAT_MOD_LINEAR fourcc_mod_code(NONE, 0)
 #endif
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V1      fourcc_mod_code(PVR, 3)
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V1     fourcc_mod_code(PVR, 9)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V1 fourcc_mod_code(PVR, 3)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V1 fourcc_mod_code(PVR, 9)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V7      fourcc_mod_code(PVR, 6)
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V7     fourcc_mod_code(PVR, 12)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V7 fourcc_mod_code(PVR, 6)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V7 fourcc_mod_code(PVR, 12)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V10     fourcc_mod_code(PVR, 21)
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V10    fourcc_mod_code(PVR, 22)
-#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V10    fourcc_mod_code(PVR, 23)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V10 fourcc_mod_code(PVR, 21)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V10 fourcc_mod_code(PVR, 22)
+#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V10 fourcc_mod_code(PVR, 23)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V12     fourcc_mod_code(PVR, 15)
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V12    fourcc_mod_code(PVR, 16)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V12 fourcc_mod_code(PVR, 15)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V12 fourcc_mod_code(PVR, 16)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V13             fourcc_mod_code(PVR, 24)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_8x8_V13     fourcc_mod_code(PVR, 25)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_8x8_V13     fourcc_mod_code(PVR, 26)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_8x8_V13     fourcc_mod_code(PVR, 27)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V13 fourcc_mod_code(PVR, 24)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_8x8_V13 fourcc_mod_code(PVR, 25)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_8x8_V13 fourcc_mod_code(PVR, 26)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_8x8_V13 fourcc_mod_code(PVR, 27)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V13            fourcc_mod_code(PVR, 28)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_16x4_V13    fourcc_mod_code(PVR, 29)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_16x4_V13    fourcc_mod_code(PVR, 30)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_16x4_V13    fourcc_mod_code(PVR, 31)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V13 fourcc_mod_code(PVR, 28)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_16x4_V13 fourcc_mod_code(PVR, 29)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_16x4_V13 fourcc_mod_code(PVR, 30)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_16x4_V13 fourcc_mod_code(PVR, 31)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_8x8_V13     fourcc_mod_code(PVR, 32)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_16x4_V13    fourcc_mod_code(PVR, 33)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_8x8_V13 fourcc_mod_code(PVR, 32)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_16x4_V13 fourcc_mod_code(PVR, 33)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V14             fourcc_mod_code(PVR, 34)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_8x8_V14     fourcc_mod_code(PVR, 35)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_8x8_V14     fourcc_mod_code(PVR, 36)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_8x8_V14     fourcc_mod_code(PVR, 37)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_8x8_V14     fourcc_mod_code(PVR, 38)
+#define DRM_FORMAT_MOD_PVR_FBCDC_8x8_V14 fourcc_mod_code(PVR, 34)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_8x8_V14 fourcc_mod_code(PVR, 35)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_8x8_V14 fourcc_mod_code(PVR, 36)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_8x8_V14 fourcc_mod_code(PVR, 37)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_8x8_V14 fourcc_mod_code(PVR, 38)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V14            fourcc_mod_code(PVR, 39)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_16x4_V14    fourcc_mod_code(PVR, 40)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_16x4_V14    fourcc_mod_code(PVR, 41)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_16x4_V14    fourcc_mod_code(PVR, 42)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_16x4_V14    fourcc_mod_code(PVR, 43)
+#define DRM_FORMAT_MOD_PVR_FBCDC_16x4_V14 fourcc_mod_code(PVR, 39)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_16x4_V14 fourcc_mod_code(PVR, 40)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_16x4_V14 fourcc_mod_code(PVR, 41)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_16x4_V14 fourcc_mod_code(PVR, 42)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_16x4_V14 fourcc_mod_code(PVR, 43)
 
-#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V14            fourcc_mod_code(PVR, 44)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_32x2_V14    fourcc_mod_code(PVR, 45)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_32x2_V14    fourcc_mod_code(PVR, 46)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_32x2_V14    fourcc_mod_code(PVR, 47)
-#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_32x2_V14    fourcc_mod_code(PVR, 48)
+#define DRM_FORMAT_MOD_PVR_FBCDC_32x2_V14 fourcc_mod_code(PVR, 44)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY25_32x2_V14 fourcc_mod_code(PVR, 45)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY37_32x2_V14 fourcc_mod_code(PVR, 46)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY50_32x2_V14 fourcc_mod_code(PVR, 47)
+#define DRM_FORMAT_MOD_PVR_FBCDC_LOSSY75_32x2_V14 fourcc_mod_code(PVR, 48)
 
 #endif /* IMG_DRM_FOURCC_H */

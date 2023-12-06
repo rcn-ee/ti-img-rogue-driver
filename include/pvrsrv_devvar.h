@@ -58,10 +58,9 @@ extern "C" {
 typedef struct SYNC_PRIM_CONTEXT_TAG *PDEVVARCTX;
 typedef struct PVRSRV_CLIENT_SYNC_PRIM_TAG *PDEVVAR;
 
-typedef struct PVRSRV_DEV_VAR_UPDATE_TAG
-{
-	PDEVVAR					psDevVar;			/*!< Pointer to the dev var */
-	IMG_UINT32				ui32UpdateValue;	/*!< the update value */
+typedef struct PVRSRV_DEV_VAR_UPDATE_TAG {
+	PDEVVAR psDevVar; /*!< Pointer to the dev var */
+	IMG_UINT32 ui32UpdateValue; /*!< the update value */
 } PVRSRV_DEV_VAR_UPDATE;
 
 /*************************************************************************/ /*!
@@ -81,7 +80,7 @@ typedef struct PVRSRV_DEV_VAR_UPDATE_TAG
 /*****************************************************************************/
 IMG_EXPORT PVRSRV_ERROR
 PVRSRVDevVarContextCreate(const PVRSRV_DEV_CONNECTION *psDevConnection,
-                          PDEVVARCTX                  *phDevVarContext);
+			  PDEVVARCTX *phDevVarContext);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarContextDestroy
@@ -94,8 +93,7 @@ PVRSRVDevVarContextCreate(const PVRSRV_DEV_CONNECTION *psDevConnection,
 @Return         None
 */
 /*****************************************************************************/
-IMG_EXPORT void
-PVRSRVDevVarContextDestroy(PDEVVARCTX hDevVarContext);
+IMG_EXPORT void PVRSRVDevVarContextDestroy(PDEVVARCTX hDevVarContext);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarAlloc
@@ -117,14 +115,13 @@ PVRSRVDevVarContextDestroy(PDEVVARCTX hDevVarContext);
 */
 /*****************************************************************************/
 IMG_EXPORT PVRSRV_ERROR
-PVRSRVDevVarAllocI(PDEVVARCTX hDevVarContext,
-                   PDEVVAR *ppsDevVar,
-                   IMG_UINT32 ui32InitialValue,
-                   const IMG_CHAR *pszDevVarName
-                   PVR_DBG_FILELINE_PARAM);
-#define PVRSRVDevVarAlloc(hDevVarContext, ppsDevVar, ui32InitialValue, pszDevVarName) \
-	PVRSRVDevVarAllocI( (hDevVarContext), (ppsDevVar), (ui32InitialValue), (pszDevVarName) \
-	                    PVR_DBG_FILELINE )
+PVRSRVDevVarAllocI(PDEVVARCTX hDevVarContext, PDEVVAR *ppsDevVar,
+		   IMG_UINT32 ui32InitialValue,
+		   const IMG_CHAR *pszDevVarName PVR_DBG_FILELINE_PARAM);
+#define PVRSRVDevVarAlloc(hDevVarContext, ppsDevVar, ui32InitialValue,        \
+			  pszDevVarName)                                      \
+	PVRSRVDevVarAllocI((hDevVarContext), (ppsDevVar), (ui32InitialValue), \
+			   (pszDevVarName)PVR_DBG_FILELINE)
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarFree
@@ -136,8 +133,7 @@ PVRSRVDevVarAllocI(PDEVVARCTX hDevVarContext,
 @Return         None
 */
 /*****************************************************************************/
-IMG_EXPORT void
-PVRSRVDevVarFree(PDEVVAR psDevVar);
+IMG_EXPORT void PVRSRVDevVarFree(PDEVVAR psDevVar);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarSet
@@ -151,9 +147,7 @@ PVRSRVDevVarFree(PDEVVAR psDevVar);
 @Return         None
 */
 /*****************************************************************************/
-IMG_EXPORT void
-PVRSRVDevVarSet(PDEVVAR		psDevVar,
-                IMG_UINT32	ui32Value);
+IMG_EXPORT void PVRSRVDevVarSet(PDEVVAR psDevVar, IMG_UINT32 ui32Value);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarGet
@@ -166,8 +160,7 @@ PVRSRVDevVarSet(PDEVVAR		psDevVar,
 @Return         Value of the variable
 */
 /*****************************************************************************/
-IMG_EXPORT IMG_UINT32
-PVRSRVDevVarGet(PDEVVAR		psDevVar);
+IMG_EXPORT IMG_UINT32 PVRSRVDevVarGet(PDEVVAR psDevVar);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarGetFirmwareAddr
@@ -180,8 +173,7 @@ PVRSRVDevVarGet(PDEVVAR		psDevVar);
 @Return         The firmware address of the device variable
 */
 /*****************************************************************************/
-IMG_EXPORT IMG_UINT32
-PVRSRVDevVarGetFirmwareAddr(PDEVVAR	psDevVar);
+IMG_EXPORT IMG_UINT32 PVRSRVDevVarGetFirmwareAddr(PDEVVAR psDevVar);
 
 #if defined(PDUMP)
 /*************************************************************************/ /*!
@@ -194,8 +186,7 @@ PVRSRVDevVarGetFirmwareAddr(PDEVVAR	psDevVar);
 @Return         None
 */
 /*****************************************************************************/
-IMG_EXPORT void
-PVRSRVDevVarPDump(PDEVVAR psDevVar);
+IMG_EXPORT void PVRSRVDevVarPDump(PDEVVAR psDevVar);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarPDumpPol
@@ -213,12 +204,10 @@ PVRSRVDevVarPDump(PDEVVAR psDevVar);
 @Return         None
 */
 /*****************************************************************************/
-IMG_EXPORT void
-PVRSRVDevVarPDumpPol(PDEVVAR psDevVar,
-                     IMG_UINT32 ui32Value,
-                     IMG_UINT32 ui32Mask,
-                     PDUMP_POLL_OPERATOR eOperator,
-                     IMG_UINT32 ui32PDumpFlags);
+IMG_EXPORT void PVRSRVDevVarPDumpPol(PDEVVAR psDevVar, IMG_UINT32 ui32Value,
+				     IMG_UINT32 ui32Mask,
+				     PDUMP_POLL_OPERATOR eOperator,
+				     IMG_UINT32 ui32PDumpFlags);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVDevVarPDumpCBP
@@ -236,18 +225,15 @@ PVRSRVDevVarPDumpPol(PDEVVAR psDevVar,
 @Return         None
 */
 /*****************************************************************************/
-IMG_EXPORT void
-PVRSRVDevVarPDumpCBP(PDEVVAR psDevVar,
-                     IMG_UINT64 uiWriteOffset,
-                     IMG_UINT64 uiPacketSize,
-                     IMG_UINT64 uiBufferSize);
+IMG_EXPORT void PVRSRVDevVarPDumpCBP(PDEVVAR psDevVar, IMG_UINT64 uiWriteOffset,
+				     IMG_UINT64 uiPacketSize,
+				     IMG_UINT64 uiBufferSize);
 #else /* PDUMP */
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PVRSRVDevVarPDump)
 #endif
-static INLINE void
-PVRSRVDevVarPDump(PDEVVAR psDevVar)
+static INLINE void PVRSRVDevVarPDump(PDEVVAR psDevVar)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevVar);
 }
@@ -255,28 +241,25 @@ PVRSRVDevVarPDump(PDEVVAR psDevVar)
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PVRSRVDevVarPDumpPol)
 #endif
-static INLINE void
-PVRSRVDevVarPDumpPol(PDEVVAR psDevVar,
-                     IMG_UINT32 ui32Value,
-                     IMG_UINT32 ui32Mask,
-                     PDUMP_POLL_OPERATOR eOperator,
-                     IMG_UINT32 ui32PDumpFlags)
+static INLINE void PVRSRVDevVarPDumpPol(PDEVVAR psDevVar, IMG_UINT32 ui32Value,
+					IMG_UINT32 ui32Mask,
+					PDUMP_POLL_OPERATOR eOperator,
+					IMG_UINT32 ui32PDumpFlags)
 {
-	 PVR_UNREFERENCED_PARAMETER(psDevVar);
-	 PVR_UNREFERENCED_PARAMETER(ui32Value);
-	 PVR_UNREFERENCED_PARAMETER(ui32Mask);
-	 PVR_UNREFERENCED_PARAMETER(eOperator);
-	 PVR_UNREFERENCED_PARAMETER(ui32PDumpFlags);
+	PVR_UNREFERENCED_PARAMETER(psDevVar);
+	PVR_UNREFERENCED_PARAMETER(ui32Value);
+	PVR_UNREFERENCED_PARAMETER(ui32Mask);
+	PVR_UNREFERENCED_PARAMETER(eOperator);
+	PVR_UNREFERENCED_PARAMETER(ui32PDumpFlags);
 }
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PVRSRVDevVarPDumpCBP)
 #endif
-static INLINE void
-PVRSRVDevVarPDumpCBP(PDEVVAR psDevVar,
-                     IMG_UINT64 uiWriteOffset,
-                     IMG_UINT64 uiPacketSize,
-                     IMG_UINT64 uiBufferSize)
+static INLINE void PVRSRVDevVarPDumpCBP(PDEVVAR psDevVar,
+					IMG_UINT64 uiWriteOffset,
+					IMG_UINT64 uiPacketSize,
+					IMG_UINT64 uiBufferSize)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevVar);
 	PVR_UNREFERENCED_PARAMETER(uiWriteOffset);

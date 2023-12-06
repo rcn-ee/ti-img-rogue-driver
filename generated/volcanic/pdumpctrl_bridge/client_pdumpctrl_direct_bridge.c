@@ -50,7 +50,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "pdump_km.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpGetState(IMG_HANDLE hBridge, IMG_UINT64 * pui64State)
+IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpGetState(IMG_HANDLE hBridge,
+						    IMG_UINT64 *pui64State)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
@@ -60,37 +61,34 @@ IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpGetState(IMG_HANDLE hBridge, IMG_UINT
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpGetFrame(IMG_HANDLE hBridge, IMG_UINT32 * pui32Frame)
+IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpGetFrame(IMG_HANDLE hBridge,
+						    IMG_UINT32 *pui32Frame)
 {
 	PVRSRV_ERROR eError;
 
-	eError = PDumpGetFrameKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge), pui32Frame);
+	eError = PDumpGetFrameKM(NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge),
+				 pui32Frame);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpSetDefaultCaptureParams(IMG_HANDLE hBridge,
-								   IMG_UINT32 ui32Mode,
-								   IMG_UINT32 ui32Start,
-								   IMG_UINT32 ui32End,
-								   IMG_UINT32 ui32Interval,
-								   IMG_UINT32 ui32MaxParamFileSize,
-								   IMG_UINT32 ui32AutoTermTimeout)
+IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpSetDefaultCaptureParams(
+	IMG_HANDLE hBridge, IMG_UINT32 ui32Mode, IMG_UINT32 ui32Start,
+	IMG_UINT32 ui32End, IMG_UINT32 ui32Interval,
+	IMG_UINT32 ui32MaxParamFileSize, IMG_UINT32 ui32AutoTermTimeout)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PDumpSetDefaultCaptureParamsKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-					   ui32Mode,
-					   ui32Start,
-					   ui32End,
-					   ui32Interval, ui32MaxParamFileSize, ui32AutoTermTimeout);
+	eError = PDumpSetDefaultCaptureParamsKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32Mode,
+		ui32Start, ui32End, ui32Interval, ui32MaxParamFileSize,
+		ui32AutoTermTimeout);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpIsLastCaptureFrame(IMG_HANDLE hBridge,
-							      IMG_BOOL * pbpbIsLastCaptureFrame)
+IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpIsLastCaptureFrame(
+	IMG_HANDLE hBridge, IMG_BOOL *pbpbIsLastCaptureFrame)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
@@ -104,6 +102,7 @@ IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpForceCaptureStop(IMG_HANDLE hBridge)
 {
 	PVRSRV_ERROR eError;
 
-	eError = PDumpForceCaptureStopKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge));
+	eError = PDumpForceCaptureStopKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge));
 	return eError;
 }

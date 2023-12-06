@@ -49,17 +49,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 extern "C" {
 #endif
 
-#define SYNC_FB_FILE_STRING_MAX			256
-#define SYNC_FB_MODULE_STRING_LEN_MAX	(32)
-#define	SYNC_FB_DESC_STRING_LEN_MAX		(32)
+#define SYNC_FB_FILE_STRING_MAX 256
+#define SYNC_FB_MODULE_STRING_LEN_MAX (32)
+#define SYNC_FB_DESC_STRING_LEN_MAX (32)
 
 /* By default, fence-sync module emits into HWPerf (of course, if enabled) and
  * considers a process (sleepable) context */
-#define PVRSRV_FENCE_FLAG_NONE             (0U)
+#define PVRSRV_FENCE_FLAG_NONE (0U)
 #define PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT (1U << 0)
-#define PVRSRV_FENCE_FLAG_CTX_ATOMIC       (1U << 1)
+#define PVRSRV_FENCE_FLAG_CTX_ATOMIC (1U << 1)
 
 #if defined(__cplusplus)
 }
 #endif
-#endif	/* PVRSRV_SYNC_KM_H */
+#endif /* PVRSRV_SYNC_KM_H */

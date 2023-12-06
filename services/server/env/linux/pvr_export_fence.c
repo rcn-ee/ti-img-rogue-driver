@@ -72,7 +72,7 @@ const char *pvr_exp_fence_context_name(struct pvr_exp_fence_context *fctx)
 }
 
 void pvr_exp_fence_context_value_str(struct pvr_exp_fence_context *fctx,
-				    char *str, int size)
+				     char *str, int size)
 {
 	snprintf(str, size, "%d", atomic_read(&fctx->seqno));
 }
@@ -106,18 +106,20 @@ static const char *pvr_exp_fence_get_timeline_name(struct dma_fence *fence)
 		return "***NO_TIMELINE***";
 }
 
-static void pvr_exp_fence_value_str(struct dma_fence *fence, char *str, int size)
+static void pvr_exp_fence_value_str(struct dma_fence *fence, char *str,
+				    int size)
 {
-	snprintf(str, size, "%llu", (u64) fence->seqno);
+	snprintf(str, size, "%llu", (u64)fence->seqno);
 }
 
-static void pvr_exp_fence_timeline_value_str(struct dma_fence *fence,
-					    char *str, int size)
+static void pvr_exp_fence_timeline_value_str(struct dma_fence *fence, char *str,
+					     int size)
 {
 	struct pvr_exp_fence *pvr_exp_fence = to_pvr_exp_fence(fence);
 
 	if (pvr_exp_fence->fence_context)
-		pvr_exp_fence_context_value_str(pvr_exp_fence->fence_context, str, size);
+		pvr_exp_fence_context_value_str(pvr_exp_fence->fence_context,
+						str, size);
 }
 
 static bool pvr_exp_fence_enable_signaling(struct dma_fence *fence)
@@ -146,7 +148,7 @@ static void pvr_exp_fence_release(struct dma_fence *fence)
 	if (pvr_exp_fence->fence_context) {
 		atomic_dec(&pvr_exp_fence->fence_context->fence_count);
 		kref_put(&pvr_exp_fence->fence_context->kref,
-			pvr_exp_fence_context_destroy_kref);
+			 pvr_exp_fence_context_destroy_kref);
 	}
 	kfree(pvr_exp_fence);
 }
@@ -185,7 +187,8 @@ pvr_exp_fence_context_create(const char *context_name, const char *driver_name)
 void pvr_exp_fence_context_destroy(struct pvr_exp_fence_context *fence_context)
 {
 	if (fence_context)
-		kref_put(&fence_context->kref, pvr_exp_fence_context_destroy_kref);
+		kref_put(&fence_context->kref,
+			 pvr_exp_fence_context_destroy_kref);
 }
 
 struct dma_fence *
@@ -216,14 +219,15 @@ pvr_exp_fence_create(struct pvr_exp_fence_context *fence_context)
 	if (pfence_context) {
 		seqno = pvr_exp_fence_context_seqno_next(pfence_context);
 		dma_fence_init(&pvr_exp_fence->base, &pvr_exp_fence_ops,
-		       &pvr_exp_fence->lock, pfence_context->context, seqno);
+			       &pvr_exp_fence->lock, pfence_context->context,
+			       seqno);
 
 		atomic_inc(&pfence_context->fence_count);
 		kref_get(&pfence_context->kref);
 
 	} else {
 		dma_fence_init(&pvr_exp_fence->base, &pvr_exp_fence_ops,
-		       &pvr_exp_fence->lock, 0, seqno);
+			       &pvr_exp_fence->lock, 0, seqno);
 	}
 
 	return &pvr_exp_fence->base;

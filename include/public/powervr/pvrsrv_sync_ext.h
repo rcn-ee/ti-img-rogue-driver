@@ -47,7 +47,7 @@ extern "C" {
 /*!
  * Number of UFOs in operations
  */
-#define	PVRSRV_MAX_SYNCS (PVRSRV_MAX_SYNC_PRIMS + PVRSRV_MAX_DEV_VARS)
+#define PVRSRV_MAX_SYNCS (PVRSRV_MAX_SYNC_PRIMS + PVRSRV_MAX_DEV_VARS)
 
 /*! Implementation independent types for passing fence/timeline to Services.
  */
@@ -61,11 +61,11 @@ typedef int32_t PVRSRV_EXP_FENCE_CTX;
 
 /* Macros for API callers using the fence sync model
  */
-#define PVRSRV_NO_TIMELINE      ((PVRSRV_TIMELINE) -1)
-#define PVRSRV_NO_FENCE         ((PVRSRV_FENCE)    -1)
-#define PVRSRV_NO_EXP_FENCE_CTX ((PVRSRV_EXP_FENCE_CTX) -1)
-#define PVRSRV_NO_FENCE_PTR     NULL
-#define PVRSRV_NO_TIMELINE_PTR  NULL
+#define PVRSRV_NO_TIMELINE ((PVRSRV_TIMELINE)-1)
+#define PVRSRV_NO_FENCE ((PVRSRV_FENCE)-1)
+#define PVRSRV_NO_EXP_FENCE_CTX ((PVRSRV_EXP_FENCE_CTX)-1)
+#define PVRSRV_NO_FENCE_PTR NULL
+#define PVRSRV_NO_TIMELINE_PTR NULL
 
 #if defined(__cplusplus)
 }

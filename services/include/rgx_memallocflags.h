@@ -43,16 +43,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RGX_MEMALLOCFLAGS_H
 #define RGX_MEMALLOCFLAGS_H
 
-
 /* Include pvrsrv layer header as the flags below are used in the device
  * field defined in this header inside Services code.
  * See PVRSRV_MEMALLOCFLAG_DEVICE_FLAGS_MASK */
 #include "pvrsrv_memallocflags.h"
 
-
 /* Device specific MMU flags */
-#define PMMETA_PROTECT          (1U << 0)      /*!< Memory that only the PM and Meta can access */
-#define FIRMWARE_CACHED         (1U << 1)      /*!< Memory that is cached in META/MIPS */
-
+#define PMMETA_PROTECT \
+	(1U << 0) /*!< Memory that only the PM and Meta can access */
+#define FIRMWARE_CACHED (1U << 1) /*!< Memory that is cached in META/MIPS */
 
 #endif /* RGX_MEMALLOCFLAGS_H */

@@ -48,8 +48,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_error.h"
 #include "pvr_drv.h"
 
-typedef struct LINUX_THREAD_ACTIVITY_STATS
-{
+typedef struct LINUX_THREAD_ACTIVITY_STATS {
 	IMG_INT32 i32KernelThreadCount;
 	IMG_INT32 i32DriverThreadCount;
 	IMG_INT32 i32SuspendedThreadCount;
@@ -71,7 +70,7 @@ typedef struct LINUX_THREAD_ACTIVITY_STATS
  @Return        PVRSRV_ERROR
 ******************************************************************************/
 PVRSRV_ERROR LinuxBridgeBlockClientsAccess(struct pvr_drm_private *psDevPriv,
-                                           IMG_BOOL bShutdown);
+					   IMG_BOOL bShutdown);
 
 /*!
 ******************************************************************************
@@ -95,7 +94,8 @@ void LinuxBridgeNumActiveKernelThreadsDecrement(void);
 
  @Return        PVRSRV_ERROR
 */ /**************************************************************************/
-PVRSRV_ERROR LinuxGetThreadActivityStats(LINUX_THREAD_ACTIVITY_STATS *psThreadStats);
+PVRSRV_ERROR
+LinuxGetThreadActivityStats(LINUX_THREAD_ACTIVITY_STATS *psThreadStats);
 
 /*!
 ******************************************************************************

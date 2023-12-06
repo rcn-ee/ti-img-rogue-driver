@@ -78,9 +78,11 @@
 #define PVRSRV_APPHINT_FIRMWARELOGTYPE 0
 #define PVRSRV_APPHINT_FIRMWAREPERF FW_PERF_CONF_NONE
 #define PVRSRV_APPHINT_FIRMWARE_HEAP_POLICY 5
-#define PVRSRV_APPHINT_FWCONTEXTSWITCHPROFILE RGXFWIF_CTXSWITCH_PROFILE_MEDIUM_EN
+#define PVRSRV_APPHINT_FWCONTEXTSWITCHPROFILE \
+	RGXFWIF_CTXSWITCH_PROFILE_MEDIUM_EN
 #define PVRSRV_APPHINT_FWPOISONONFREEVALUE 0xBD
-#define PVRSRV_APPHINT_FWTRACEBUFSIZEINDWORDS RGXFW_TRACE_BUF_DEFAULT_SIZE_IN_DWORDS
+#define PVRSRV_APPHINT_FWTRACEBUFSIZEINDWORDS \
+	RGXFW_TRACE_BUF_DEFAULT_SIZE_IN_DWORDS
 #define PVRSRV_APPHINT_GENERALNON4KHEAPPAGESIZE 0x4000
 #define PVRSRV_APPHINT_GPIOVALIDATIONMODE 0
 #define PVRSRV_APPHINT_GPUUNITSPOWERCHANGE IMG_FALSE
@@ -266,7 +268,32 @@
 #define RGX_DRIVERID_9_DEFAULT_ISOLATION_GROUP 0
 #define RGX_DRIVERID_9_DEFAULT_PRIORITY (1 - 9)
 #define RGX_DRIVERID_9_DEFAULT_TIME_SLICE 0
-#define RGX_DRIVER_DEFAULT_TIME_SLICES_SUM (((((((((((((((((((((((((((((((( + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + 0)
+#define RGX_DRIVER_DEFAULT_TIME_SLICES_SUM                                       \
+	((((((((((((((((((((((((((((((((+0) + 0) + 0) + 0) + 0) + 0) + 0) + 0) + \
+				0) +                                             \
+			       0) +                                              \
+			      0) +                                               \
+			     0) +                                                \
+			    0) +                                                 \
+			   0) +                                                  \
+			  0) +                                                   \
+			 0) +                                                    \
+			0) +                                                     \
+		       0) +                                                      \
+		      0) +                                                       \
+		     0) +                                                        \
+		    0) +                                                         \
+		   0) +                                                          \
+		  0) +                                                           \
+		 0) +                                                            \
+		0) +                                                             \
+	       0) +                                                              \
+	      0) +                                                               \
+	     0) +                                                                \
+	    0) +                                                                 \
+	   0) +                                                                  \
+	  0) +                                                                   \
+	 0)
 #define RGX_DRIVER_DEFAULT_TIME_SLICE_INTERVAL 0
 #define RGX_FW_FILENAME "rgx.fw"
 #define RGX_FW_HEAP_OSID_ASSIGNMENT RGX_FW_HEAP_USES_FIRMWARE_OSID
@@ -274,7 +301,7 @@
 #define RGX_FW_HEAP_USES_DEDICATED_OSID 2
 #define RGX_FW_HEAP_USES_FIRMWARE_OSID 0
 #define RGX_FW_HEAP_USES_HOST_OSID 1
-#define RGX_FW_PHYSHEAP_MINMEM_ON_CONNECTION  512
+#define RGX_FW_PHYSHEAP_MINMEM_ON_CONNECTION 512
 #define RGX_HCS_DEFAULT_DEADLINE_MS 0xFFFFFFFFU
 #define RGX_INITIAL_SLR_HOLDOFF_PERIOD_MS 0
 #define RGX_NUM_DRIVERS_SUPPORTED 1

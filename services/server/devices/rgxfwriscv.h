@@ -45,12 +45,16 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGXFWRISCV_H
 
 #if defined(RGX_FEATURE_HOST_SECURITY_VERSION_MAX_VALUE_IDX)
-#define RGXRISCVFW_GET_REMAP_SECURE(r)          (RGX_CR_FWCORE_ADDR_REMAP_CONFIG0__HOST_SECURITY_GEQ4 + ((r) * 8U))
-#define RGXRISCVFW_BOOTLDR_CODE_REMAP_SECURE    (RGXRISCVFW_GET_REMAP_SECURE(RGXRISCVFW_BOOTLDR_CODE_REGION))
-#define RGXRISCVFW_BOOTLDR_DATA_REMAP_SECURE    (RGXRISCVFW_GET_REMAP_SECURE(RGXRISCVFW_BOOTLDR_DATA_REGION))
-#define RGX_GET_RISCV_REGS_BASE(psDevInfo) \
+#define RGXRISCVFW_GET_REMAP_SECURE(r) \
+	(RGX_CR_FWCORE_ADDR_REMAP_CONFIG0__HOST_SECURITY_GEQ4 + ((r)*8U))
+#define RGXRISCVFW_BOOTLDR_CODE_REMAP_SECURE \
+	(RGXRISCVFW_GET_REMAP_SECURE(RGXRISCVFW_BOOTLDR_CODE_REGION))
+#define RGXRISCVFW_BOOTLDR_DATA_REMAP_SECURE \
+	(RGXRISCVFW_GET_REMAP_SECURE(RGXRISCVFW_BOOTLDR_DATA_REGION))
+#define RGX_GET_RISCV_REGS_BASE(psDevInfo)                                \
 	((RGX_GET_FEATURE_VALUE(psDevInfo, HOST_SECURITY_VERSION) >= 4) ? \
-	 (psDevInfo)->pvSecureRegsBaseKM : (psDevInfo)->pvRegsBaseKM)
+		 (psDevInfo)->pvSecureRegsBaseKM :                        \
+		 (psDevInfo)->pvRegsBaseKM)
 #else
 #define RGX_GET_RISCV_REGS_BASE(psDevInfo) ((psDevInfo)->pvRegsBaseKM)
 #endif
@@ -106,8 +110,7 @@ PVRSRV_ERROR RGXRiscvResume(PVRSRV_RGXDEV_INFO *psDevInfo);
 @Return         PVRSRV_ERROR
 ******************************************************************************/
 PVRSRV_ERROR RGXRiscvReadReg(PVRSRV_RGXDEV_INFO *psDevInfo,
-                             IMG_UINT32 ui32RegAddr,
-                             IMG_UINT32 *pui32Value);
+			     IMG_UINT32 ui32RegAddr, IMG_UINT32 *pui32Value);
 
 /*!
 *******************************************************************************
@@ -122,8 +125,7 @@ PVRSRV_ERROR RGXRiscvReadReg(PVRSRV_RGXDEV_INFO *psDevInfo,
 @Return         PVRSRV_ERROR
 ******************************************************************************/
 PVRSRV_ERROR RGXRiscvPollReg(PVRSRV_RGXDEV_INFO *psDevInfo,
-                             IMG_UINT32 ui32RegAddr,
-                             IMG_UINT32 ui32Value);
+			     IMG_UINT32 ui32RegAddr, IMG_UINT32 ui32Value);
 
 /*!
 *******************************************************************************
@@ -138,8 +140,7 @@ PVRSRV_ERROR RGXRiscvPollReg(PVRSRV_RGXDEV_INFO *psDevInfo,
 @Return         PVRSRV_ERROR
 ******************************************************************************/
 PVRSRV_ERROR RGXRiscvWriteReg(PVRSRV_RGXDEV_INFO *psDevInfo,
-                              IMG_UINT32 ui32RegAddr,
-                              IMG_UINT32 ui32Value);
+			      IMG_UINT32 ui32RegAddr, IMG_UINT32 ui32Value);
 
 /*!
 *******************************************************************************
@@ -153,9 +154,8 @@ PVRSRV_ERROR RGXRiscvWriteReg(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 @Return         PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR RGXRiscvPollMem(PVRSRV_RGXDEV_INFO *psDevInfo,
-                             IMG_UINT32 ui32Addr,
-                             IMG_UINT32 ui32Value);
+PVRSRV_ERROR RGXRiscvPollMem(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32Addr,
+			     IMG_UINT32 ui32Value);
 
 #if !defined(EMULATOR)
 /*!
@@ -171,9 +171,8 @@ PVRSRV_ERROR RGXRiscvPollMem(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 @Return         PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR RGXRiscvReadMem(PVRSRV_RGXDEV_INFO *psDevInfo,
-                             IMG_UINT32 ui32Addr,
-                             IMG_UINT32 *pui32Value);
+PVRSRV_ERROR RGXRiscvReadMem(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32Addr,
+			     IMG_UINT32 *pui32Value);
 
 /*!
 *******************************************************************************
@@ -188,8 +187,7 @@ PVRSRV_ERROR RGXRiscvReadMem(PVRSRV_RGXDEV_INFO *psDevInfo,
 @Return         PVRSRV_ERROR
 ******************************************************************************/
 PVRSRV_ERROR RGXRiscvWriteMem(PVRSRV_RGXDEV_INFO *psDevInfo,
-                              IMG_UINT32 ui32Addr,
-                              IMG_UINT32 ui32Value);
+			      IMG_UINT32 ui32Addr, IMG_UINT32 ui32Value);
 #endif /* !defined(EMULATOR) */
 
 /*!
@@ -208,8 +206,7 @@ PVRSRV_ERROR RGXRiscvWriteMem(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 @Return         PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR RGXRiscvDmiOp(PVRSRV_RGXDEV_INFO *psDevInfo,
-                           IMG_UINT64 *pui64DMI);
+PVRSRV_ERROR RGXRiscvDmiOp(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT64 *pui64DMI);
 
 #endif /* RGXFWRISCV_H */
 /******************************************************************************

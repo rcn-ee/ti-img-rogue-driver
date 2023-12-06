@@ -57,32 +57,23 @@ IMG_UINT32
 RAMemGetPageShift(void);
 
 PVRSRV_ERROR
-RAMemDoPhyContigPagesAlloc(RA_ARENA *pArena,
-                           size_t uiSize,
-                           PG_HANDLE *psMemHandle,
-                           IMG_DEV_PHYADDR *psDevPAddr,
-                           IMG_PID uiPid);
+RAMemDoPhyContigPagesAlloc(RA_ARENA *pArena, size_t uiSize,
+			   PG_HANDLE *psMemHandle, IMG_DEV_PHYADDR *psDevPAddr,
+			   IMG_PID uiPid);
 
-void
-RAMemDoPhyContigPagesFree(RA_ARENA *pArena,
-                          PG_HANDLE *psMemHandle);
+void RAMemDoPhyContigPagesFree(RA_ARENA *pArena, PG_HANDLE *psMemHandle);
 
 PVRSRV_ERROR
-RAMemPhyContigPagesMap(PHYS_HEAP *psPhysHeap,
-                  PG_HANDLE *psMemHandle,
-                  size_t uiSize, IMG_DEV_PHYADDR *psDevPAddr,
-                  void **pvPtr);
+RAMemPhyContigPagesMap(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle,
+		       size_t uiSize, IMG_DEV_PHYADDR *psDevPAddr,
+		       void **pvPtr);
 
-void
-RAMemPhyContigPagesUnmap(PHYS_HEAP *psPhysHeap,
-                    PG_HANDLE *psMemHandle,
-                    void *pvPtr);
+void RAMemPhyContigPagesUnmap(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle,
+			      void *pvPtr);
 
 PVRSRV_ERROR
-RAMemPhyContigPagesClean(PHYS_HEAP *psPhysHeap,
-                    PG_HANDLE *psMemHandle,
-                    IMG_UINT32 uiOffset,
-                    IMG_UINT32 uiLength);
+RAMemPhyContigPagesClean(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle,
+			 IMG_UINT32 uiOffset, IMG_UINT32 uiLength);
 
 /*
  * PhysmemNewRAMemRamBackedPMR
@@ -91,18 +82,12 @@ RAMemPhyContigPagesClean(PHYS_HEAP *psPhysHeap,
  * the PMR factory and is OS agnostic.
  */
 PVRSRV_ERROR
-PhysmemNewRAMemRamBackedPMR(PHYS_HEAP *psPhysHeap,
-                            RA_ARENA *pArena,
-                            CONNECTION_DATA *psConnection,
-                            IMG_DEVMEM_SIZE_T uiSize,
-                            IMG_UINT32 ui32NumPhysChunks,
-                            IMG_UINT32 ui32NumVirtChunks,
-                            IMG_UINT32 *pui32MappingTable,
-                            IMG_UINT32 uiLog2PageSize,
-                            PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                            const IMG_CHAR *pszAnnotation,
-                            IMG_PID uiPid,
-                            PMR **ppsPMRPtr,
-                            IMG_UINT32 ui32PDumpFlags);
+PhysmemNewRAMemRamBackedPMR(
+	PHYS_HEAP *psPhysHeap, RA_ARENA *pArena, CONNECTION_DATA *psConnection,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 uiLog2PageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	const IMG_CHAR *pszAnnotation, IMG_PID uiPid, PMR **ppsPMRPtr,
+	IMG_UINT32 ui32PDumpFlags);
 
 #endif /* PHYSMEM_RAMEM_H */

@@ -47,13 +47,14 @@
 
 struct pvr_exp_fence_context;
 
-struct pvr_exp_fence_context *pvr_exp_fence_context_create(const char *name,
-				const char *driver_name);
+struct pvr_exp_fence_context *
+pvr_exp_fence_context_create(const char *name, const char *driver_name);
 void pvr_exp_fence_context_destroy(struct pvr_exp_fence_context *fence_context);
-struct dma_fence *pvr_exp_fence_create(struct pvr_exp_fence_context *fence_context);
+struct dma_fence *
+pvr_exp_fence_create(struct pvr_exp_fence_context *fence_context);
 
 const char *pvr_exp_fence_context_name(struct pvr_exp_fence_context *fctx);
 void pvr_exp_fence_context_value_str(struct pvr_exp_fence_context *fctx,
-				    char *str, int size);
+				     char *str, int size);
 
 #endif /* !defined(__PVR_EXPORT_FENCES_H__) */

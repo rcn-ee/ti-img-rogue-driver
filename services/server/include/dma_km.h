@@ -58,24 +58,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "connection_server.h"
 
 PVRSRV_ERROR DmaDeviceParams(CONNECTION_DATA *psConnection,
-							 PVRSRV_DEVICE_NODE *psDevNode,
-							 IMG_UINT32 *ui32DmaBuffAlign,
-							 IMG_UINT32 *ui32DmaTransferMult);
+			     PVRSRV_DEVICE_NODE *psDevNode,
+			     IMG_UINT32 *ui32DmaBuffAlign,
+			     IMG_UINT32 *ui32DmaTransferMult);
 
-PVRSRV_ERROR DmaSparseMappingTable(PMR *psPMR,
-								   IMG_DEVMEM_OFFSET_T uiOffset,
-								   IMG_UINT32 ui32SizeInPages,
-								   IMG_BOOL *pbTable);
+PVRSRV_ERROR DmaSparseMappingTable(PMR *psPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+				   IMG_UINT32 ui32SizeInPages,
+				   IMG_BOOL *pbTable);
 
 PVRSRV_ERROR DmaTransfer(CONNECTION_DATA *psConnection,
-		    PVRSRV_DEVICE_NODE *psDevNode,
-			IMG_UINT32 uiNumDMAs,
-			PMR** ppsPMR,
-			IMG_UINT64 *puiAddress,
-			IMG_DEVMEM_OFFSET_T *puiOffset,
-			IMG_DEVMEM_SIZE_T *puiSize,
-			IMG_UINT32 uiFlags,
-			PVRSRV_TIMELINE iUpdateTimeline);
+			 PVRSRV_DEVICE_NODE *psDevNode, IMG_UINT32 uiNumDMAs,
+			 PMR **ppsPMR, IMG_UINT64 *puiAddress,
+			 IMG_DEVMEM_OFFSET_T *puiOffset,
+			 IMG_DEVMEM_SIZE_T *puiSize, IMG_UINT32 uiFlags,
+			 PVRSRV_TIMELINE iUpdateTimeline);
 
 PVRSRV_ERROR PVRSRVInitialiseDMA(PVRSRV_DEVICE_NODE *psDeviceNode);
 void PVRSRVDeInitialiseDMA(PVRSRV_DEVICE_NODE *psDeviceNode);

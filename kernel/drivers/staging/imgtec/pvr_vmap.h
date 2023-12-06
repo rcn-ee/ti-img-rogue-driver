@@ -47,10 +47,8 @@
 #include <linux/version.h>
 #include <linux/vmalloc.h>
 
-static inline void *pvr_vmap(struct page **pages,
-			     unsigned int count,
-			     __maybe_unused unsigned long flags,
-			     pgprot_t prot)
+static inline void *pvr_vmap(struct page **pages, unsigned int count,
+			     __maybe_unused unsigned long flags, pgprot_t prot)
 {
 #if !defined(CONFIG_64BIT) || defined(PVRSRV_FORCE_SLOWER_VMAP_ON_64BIT_BUILDS)
 	return vmap(pages, count, flags, prot);

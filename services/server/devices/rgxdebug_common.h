@@ -52,12 +52,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxdevice.h"
 #include "rgxfwmemctx.h"
 
-#define DD_NORMAL_INDENT   "    "
+#define DD_NORMAL_INDENT "    "
 
 #if defined(RGX_FEATURE_MIPS_BIT_MASK)
-extern const IMG_CHAR * const gapszMipsPermissionPTFlags[4];
-extern const IMG_CHAR * const gapszMipsCoherencyPTFlags[8];
-extern const IMG_CHAR * const gapszMipsDirtyGlobalValidPTFlags[8];
+extern const IMG_CHAR *const gapszMipsPermissionPTFlags[4];
+extern const IMG_CHAR *const gapszMipsCoherencyPTFlags[8];
+extern const IMG_CHAR *const gapszMipsDirtyGlobalValidPTFlags[8];
 #endif
 
 /**
@@ -67,12 +67,17 @@ extern const IMG_CHAR * const gapszMipsDirtyGlobalValidPTFlags[8];
  */
 
 #if defined(RGX_FW_IRQ_OS_COUNTERS)
-#define for_each_irq_cnt(ui32idx)   FOREACH_SUPPORTED_DRIVER(ui32idx)
+#define for_each_irq_cnt(ui32idx) FOREACH_SUPPORTED_DRIVER(ui32idx)
 
-#define get_irq_cnt_val(ui32Dest, ui32idx, psRgxDevInfo) \
-	do { \
-		extern const IMG_UINT32 gaui32FwOsIrqCntRegAddr[RGXFW_MAX_NUM_OSIDS]; \
-		ui32Dest = PVRSRV_VZ_MODE_IS(GUEST) ? 0 : OSReadHWReg32((psRgxDevInfo)->pvRegsBaseKM, gaui32FwOsIrqCntRegAddr[ui32idx]); \
+#define get_irq_cnt_val(ui32Dest, ui32idx, psRgxDevInfo)                      \
+	do {                                                                  \
+		extern const IMG_UINT32                                       \
+			gaui32FwOsIrqCntRegAddr[RGXFW_MAX_NUM_OSIDS];         \
+		ui32Dest = PVRSRV_VZ_MODE_IS(GUEST) ?                         \
+				   0 :                                        \
+				   OSReadHWReg32(                             \
+					   (psRgxDevInfo)->pvRegsBaseKM,      \
+					   gaui32FwOsIrqCntRegAddr[ui32idx]); \
 	} while (false)
 
 #define MSG_IRQ_CNT_TYPE "OS"
@@ -82,16 +87,20 @@ extern const IMG_CHAR * const gapszMipsDirtyGlobalValidPTFlags[8];
 #define for_each_irq_cnt(ui32idx) \
 	for (ui32idx = 0; ui32idx < RGXFW_THREAD_NUM; ui32idx++)
 
-#define get_irq_cnt_val(ui32Dest, ui32idx, psRgxDevInfo) \
-	do { \
-		RGXFwSharedMemCacheOpValue(psRgxDevInfo->psRGXFWIfFwOsData->aui32InterruptCount[ui32idx], \
-		                           INVALIDATE); \
-		ui32Dest = (psRgxDevInfo)->psRGXFWIfFwOsData->aui32InterruptCount[ui32idx]; \
+#define get_irq_cnt_val(ui32Dest, ui32idx, psRgxDevInfo)           \
+	do {                                                       \
+		RGXFwSharedMemCacheOpValue(                        \
+			psRgxDevInfo->psRGXFWIfFwOsData            \
+				->aui32InterruptCount[ui32idx],    \
+			INVALIDATE);                               \
+		ui32Dest = (psRgxDevInfo)                          \
+				   ->psRGXFWIfFwOsData             \
+				   ->aui32InterruptCount[ui32idx]; \
 	} while (false)
 #define MSG_IRQ_CNT_TYPE "Thread"
 #endif /* RGX_FW_IRQ_OS_COUNTERS */
 
-static inline void RGXDEBUG_PRINT_IRQ_COUNT(PVRSRV_RGXDEV_INFO* psRgxDevInfo)
+static inline void RGXDEBUG_PRINT_IRQ_COUNT(PVRSRV_RGXDEV_INFO *psRgxDevInfo)
 {
 #if defined(PVRSRV_NEED_PVR_DPF) && defined(DEBUG)
 	IMG_UINT32 ui32idx;
@@ -102,15 +111,17 @@ static inline void RGXDEBUG_PRINT_IRQ_COUNT(PVRSRV_RGXDEV_INFO* psRgxDevInfo)
 
 		get_irq_cnt_val(ui32IrqCnt, ui32idx, psRgxDevInfo);
 
-		PVR_DPF((DBGPRIV_VERBOSE, MSG_IRQ_CNT_TYPE
-		         " %u FW IRQ count = %u", ui32idx, ui32IrqCnt));
+		PVR_DPF((DBGPRIV_VERBOSE,
+			 MSG_IRQ_CNT_TYPE " %u FW IRQ count = %u", ui32idx,
+			 ui32IrqCnt));
 
 #if defined(RGX_FW_IRQ_OS_COUNTERS)
 		if (ui32idx == RGXFW_HOST_DRIVER_ID)
 #endif
 		{
-			PVR_DPF((DBGPRIV_VERBOSE, "Last sampled IRQ count in LISR = %u",
-			        (psRgxDevInfo)->aui32SampleIRQCount[ui32idx]));
+			PVR_DPF((DBGPRIV_VERBOSE,
+				 "Last sampled IRQ count in LISR = %u",
+				 (psRgxDevInfo)->aui32SampleIRQCount[ui32idx]));
 		}
 	}
 #endif /* PVRSRV_NEED_PVR_DPF */
@@ -134,8 +145,7 @@ static inline void RGXDEBUG_PRINT_IRQ_COUNT(PVRSRV_RGXDEV_INFO* psRgxDevInfo)
 
 ******************************************************************************/
 void RGXDumpFirmwareTrace(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile,
-				PVRSRV_RGXDEV_INFO  *psDevInfo);
+			  void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpFirmwareTraceBinary(PVRSRV_RGXDEV_INFO *psDevInfo,
 				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
@@ -144,59 +154,62 @@ void RGXDumpFirmwareTraceBinary(PVRSRV_RGXDEV_INFO *psDevInfo,
 				IMG_UINT32 ui32TID);
 
 void RGXDumpFirmwareTracePartial(PVRSRV_RGXDEV_INFO *psDevInfo,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile,
-				RGXFWIF_TRACEBUF *psRGXFWIfTraceBufCtl,
-				IMG_UINT32 ui32TID);
+				 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				 void *pvDumpDebugFile,
+				 RGXFWIF_TRACEBUF *psRGXFWIfTraceBufCtl,
+				 IMG_UINT32 ui32TID);
 
 void RGXDumpFirmwareTraceDecoded(PVRSRV_RGXDEV_INFO *psDevInfo,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile,
-				RGXFWIF_TRACEBUF *psRGXFWIfTraceBufCtl,
-				IMG_UINT32 ui32TID);
-
+				 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				 void *pvDumpDebugFile,
+				 RGXFWIF_TRACEBUF *psRGXFWIfTraceBufCtl,
+				 IMG_UINT32 ui32TID);
 
 /* Helper macros to emit data */
-#define REG32_FMTSPEC   "%-30s: 0x%08X"
-#define REG64_FMTSPEC   "%-30s: 0x%016" IMG_UINT64_FMTSPECX
-#define DDLOG32(R)      PVR_DUMPDEBUG_LOG(REG32_FMTSPEC, #R, OSReadHWReg32(pvRegsBaseKM, RGX_CR_##R));
-#define DDLOG64(R)      PVR_DUMPDEBUG_LOG(REG64_FMTSPEC, #R, OSReadHWReg64(pvRegsBaseKM, RGX_CR_##R));
-#define DDLOGUNCHECKED64(R)      PVR_DUMPDEBUG_LOG(REG64_FMTSPEC, #R, OSReadUncheckedHWReg64(pvRegsBaseKM, RGX_CR_##R));
-#define DDLOG32_DPX(R)  PVR_DUMPDEBUG_LOG(REG32_FMTSPEC, #R, OSReadHWReg32(pvRegsBaseKM, DPX_CR_##R));
-#define DDLOG64_DPX(R)  PVR_DUMPDEBUG_LOG(REG64_FMTSPEC, #R, OSReadHWReg64(pvRegsBaseKM, DPX_CR_##R));
-#define DDLOGVAL32(S,V) PVR_DUMPDEBUG_LOG(REG32_FMTSPEC, S, V);
+#define REG32_FMTSPEC "%-30s: 0x%08X"
+#define REG64_FMTSPEC "%-30s: 0x%016" IMG_UINT64_FMTSPECX
+#define DDLOG32(R)                           \
+	PVR_DUMPDEBUG_LOG(REG32_FMTSPEC, #R, \
+			  OSReadHWReg32(pvRegsBaseKM, RGX_CR_##R));
+#define DDLOG64(R)                           \
+	PVR_DUMPDEBUG_LOG(REG64_FMTSPEC, #R, \
+			  OSReadHWReg64(pvRegsBaseKM, RGX_CR_##R));
+#define DDLOGUNCHECKED64(R)                  \
+	PVR_DUMPDEBUG_LOG(REG64_FMTSPEC, #R, \
+			  OSReadUncheckedHWReg64(pvRegsBaseKM, RGX_CR_##R));
+#define DDLOG32_DPX(R)                       \
+	PVR_DUMPDEBUG_LOG(REG32_FMTSPEC, #R, \
+			  OSReadHWReg32(pvRegsBaseKM, DPX_CR_##R));
+#define DDLOG64_DPX(R)                       \
+	PVR_DUMPDEBUG_LOG(REG64_FMTSPEC, #R, \
+			  OSReadHWReg64(pvRegsBaseKM, DPX_CR_##R));
+#define DDLOGVAL32(S, V) PVR_DUMPDEBUG_LOG(REG32_FMTSPEC, S, V);
 
 PVRSRV_ERROR RGXDumpRISCVState(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-									  void *pvDumpDebugFile,
-									  PVRSRV_RGXDEV_INFO *psDevInfo);
+			       void *pvDumpDebugFile,
+			       PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpCoreRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			  void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpMulticoreRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			       void *pvDumpDebugFile,
+			       PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpClkRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			 void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpMMURegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			 void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpDMRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpSLCRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			 void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 void RGXDumpMiscRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+			  void *pvDumpDebugFile, PVRSRV_RGXDEV_INFO *psDevInfo);
 
 /*!
 *******************************************************************************
@@ -216,8 +229,8 @@ void RGXDumpMiscRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXDumpRGXRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-								 void *pvDumpDebugFile,
-								 PVRSRV_RGXDEV_INFO *psDevInfo);
+				 void *pvDumpDebugFile,
+				 PVRSRV_RGXDEV_INFO *psDevInfo);
 
 #if !defined(NO_HARDWARE)
 /*!
@@ -235,8 +248,8 @@ PVRSRV_ERROR RGXDumpRGXRegisters(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXReadMetaCoreReg(PVRSRV_RGXDEV_INFO *psDevInfo,
-                                IMG_UINT32 ui32RegAddr,
-                                IMG_UINT32 *pui32RegVal);
+				IMG_UINT32 ui32RegAddr,
+				IMG_UINT32 *pui32RegVal);
 
 /*!
 *******************************************************************************
@@ -255,8 +268,8 @@ PVRSRV_ERROR RGXReadMetaCoreReg(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 ******************************************************************************/
 PVRSRV_ERROR RGXValidateFWImage(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-						void *pvDumpDebugFile,
-						PVRSRV_RGXDEV_INFO *psDevInfo);
+				void *pvDumpDebugFile,
+				PVRSRV_RGXDEV_INFO *psDevInfo);
 #endif
 
 #if defined(SUPPORT_FW_VIEW_EXTRA_DEBUG)
@@ -295,9 +308,9 @@ PVRSRV_ERROR ValidateFWOnLoad(PVRSRV_RGXDEV_INFO *psDevInfo);
 
 ******************************************************************************/
 void RGXDumpRGXDebugSummary(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-					void *pvDumpDebugFile,
-					PVRSRV_RGXDEV_INFO *psDevInfo,
-					IMG_BOOL bRGXPoweredON);
+			    void *pvDumpDebugFile,
+			    PVRSRV_RGXDEV_INFO *psDevInfo,
+			    IMG_BOOL bRGXPoweredON);
 
 /*!
 *******************************************************************************
@@ -351,12 +364,11 @@ PVRSRV_ERROR RGXDebugDeinit(PVRSRV_RGXDEV_INFO *psDevInfo);
 
 ******************************************************************************/
 void RGXDocumentFwMapping(PVRSRV_RGXDEV_INFO *psDevInfo,
-                          DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                          void *pvDumpDebugFile,
-                          const IMG_UINT32 ui32FwVA,
-                          const IMG_CPU_PHYADDR sCpuPA,
-                          const IMG_DEV_PHYADDR sDevPA,
-                          const IMG_UINT64 ui64PTE);
+			  DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			  void *pvDumpDebugFile, const IMG_UINT32 ui32FwVA,
+			  const IMG_CPU_PHYADDR sCpuPA,
+			  const IMG_DEV_PHYADDR sDevPA,
+			  const IMG_UINT64 ui64PTE);
 
 /*!
 *******************************************************************************
@@ -373,8 +385,8 @@ void RGXDocumentFwMapping(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 ******************************************************************************/
 void RGXConvertOSTimestampToSAndNS(IMG_UINT64 ui64OSTimer,
-							IMG_UINT64 *pui64Seconds,
-							IMG_UINT64 *pui64Nanoseconds);
+				   IMG_UINT64 *pui64Seconds,
+				   IMG_UINT64 *pui64Nanoseconds);
 
 /*!
 *******************************************************************************
@@ -393,9 +405,8 @@ void RGXConvertOSTimestampToSAndNS(IMG_UINT64 ui64OSTimer,
 
 ******************************************************************************/
 void RGXDumpAllContextInfo(PVRSRV_RGXDEV_INFO *psDevInfo,
-                           DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                           void *pvDumpDebugFile,
-                           IMG_UINT32 ui32VerbLevel);
+			   DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			   void *pvDumpDebugFile, IMG_UINT32 ui32VerbLevel);
 
 /*!
 *******************************************************************************
@@ -414,18 +425,16 @@ void RGXDumpAllContextInfo(PVRSRV_RGXDEV_INFO *psDevInfo,
 
 ******************************************************************************/
 void RGXDumpFaultAddressHostView(MMU_FAULT_DATA *psFaultData,
-					DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-					void *pvDumpDebugFile,
-					const IMG_CHAR* pszIndent);
+				 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				 void *pvDumpDebugFile,
+				 const IMG_CHAR *pszIndent);
 
 void RGXDumpFaultInfo(PVRSRV_RGXDEV_INFO *psDevInfo,
-                      DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                      void *pvDumpDebugFile,
-					  const RGX_HWRINFO *psHWRInfo,
-                      IMG_UINT32 ui32ReadIndex,
-                      IMG_DEV_VIRTADDR *psFaultDevVAddr,
-                      IMG_DEV_PHYADDR *psPCDevPAddr,
-                      bool bPMFault,
-                      IMG_UINT32 ui32PageSize);
+		      DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+		      void *pvDumpDebugFile, const RGX_HWRINFO *psHWRInfo,
+		      IMG_UINT32 ui32ReadIndex,
+		      IMG_DEV_VIRTADDR *psFaultDevVAddr,
+		      IMG_DEV_PHYADDR *psPCDevPAddr, bool bPMFault,
+		      IMG_UINT32 ui32PageSize);
 
 #endif /* RGXDEBUG_COMMON_H */

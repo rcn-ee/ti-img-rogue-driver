@@ -54,288 +54,253 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RGX_OPTIONS_H
 #define RGX_OPTIONS_H
 
-#define OPTIONS_OPEN_SOURCE_EN					(0x1UL << 0)
-#define OPTIONS_PDUMP_EN						(0x1UL << 1)
-#define OPTIONS_SECURE_CONTEXT_SWITCH_EN		(0x1UL << 2)
-#define OPTIONS_SECURE_ALLOC_KM_EN				(0x1UL << 3)
-#define OPTIONS_RGX_EN							(0x1UL << 4)
-#define OPTIONS_SECURE_EXPORT_EN				(0x1UL << 5)
-#define OPTIONS_INSECURE_EXPORT_EN				(0x1UL << 6)
-#define OPTIONS_VFP_EN							(0x1UL << 7)
-#define OPTIONS_WORKLOAD_ESTIMATION_EN			(0x1UL << 8)
-#define OPTIONS_PDVFS_EN						(0x1UL << 9)
-#define OPTIONS_DEBUG_EN						(0x1UL << 10)
-#define OPTIONS_BUFFER_SYNC_EN					(0x1UL << 11)
-#define OPTIONS_AUTOVZ_EN						(0x1UL << 12)
-#define OPTIONS_AUTOVZ_HW_REGS_EN				(0x1UL << 13)
-#define OPTIONS_UNUSED2_EN						(0x1UL << 14)
-#define OPTIONS_VALIDATION_EN					(0x1UL << 15)
-#define OPTIONS_NO_HARDWARE_EN					(0x1UL << 16)
+#define OPTIONS_OPEN_SOURCE_EN (0x1UL << 0)
+#define OPTIONS_PDUMP_EN (0x1UL << 1)
+#define OPTIONS_SECURE_CONTEXT_SWITCH_EN (0x1UL << 2)
+#define OPTIONS_SECURE_ALLOC_KM_EN (0x1UL << 3)
+#define OPTIONS_RGX_EN (0x1UL << 4)
+#define OPTIONS_SECURE_EXPORT_EN (0x1UL << 5)
+#define OPTIONS_INSECURE_EXPORT_EN (0x1UL << 6)
+#define OPTIONS_VFP_EN (0x1UL << 7)
+#define OPTIONS_WORKLOAD_ESTIMATION_EN (0x1UL << 8)
+#define OPTIONS_PDVFS_EN (0x1UL << 9)
+#define OPTIONS_DEBUG_EN (0x1UL << 10)
+#define OPTIONS_BUFFER_SYNC_EN (0x1UL << 11)
+#define OPTIONS_AUTOVZ_EN (0x1UL << 12)
+#define OPTIONS_AUTOVZ_HW_REGS_EN (0x1UL << 13)
+#define OPTIONS_UNUSED2_EN (0x1UL << 14)
+#define OPTIONS_VALIDATION_EN (0x1UL << 15)
+#define OPTIONS_NO_HARDWARE_EN (0x1UL << 16)
 
-#define OPTIONS_PERCONTEXT_FREELIST_EN			(0x1UL << 31)
+#define OPTIONS_PERCONTEXT_FREELIST_EN (0x1UL << 31)
 
-#define RGX_BUILD_OPTIONS_MASK_KM				  \
-			(OPTIONS_OPEN_SOURCE_EN				| \
-			 OPTIONS_PDUMP_EN					| \
-			 OPTIONS_SECURE_CONTEXT_SWITCH_EN	| \
-			 OPTIONS_SECURE_ALLOC_KM_EN			| \
-			 OPTIONS_RGX_EN						| \
-			 OPTIONS_SECURE_EXPORT_EN			| \
-			 OPTIONS_INSECURE_EXPORT_EN			| \
-			 OPTIONS_VFP_EN						| \
-			 OPTIONS_WORKLOAD_ESTIMATION_EN		| \
-			 OPTIONS_PDVFS_EN					| \
-			 OPTIONS_DEBUG_EN					| \
-			 OPTIONS_BUFFER_SYNC_EN				| \
-			 OPTIONS_AUTOVZ_EN					| \
-			 OPTIONS_AUTOVZ_HW_REGS_EN			| \
-			 OPTIONS_VALIDATION_EN				| \
-			 OPTIONS_NO_HARDWARE_EN)
+#define RGX_BUILD_OPTIONS_MASK_KM                                        \
+	(OPTIONS_OPEN_SOURCE_EN | OPTIONS_PDUMP_EN |                     \
+	 OPTIONS_SECURE_CONTEXT_SWITCH_EN | OPTIONS_SECURE_ALLOC_KM_EN | \
+	 OPTIONS_RGX_EN | OPTIONS_SECURE_EXPORT_EN |                     \
+	 OPTIONS_INSECURE_EXPORT_EN | OPTIONS_VFP_EN |                   \
+	 OPTIONS_WORKLOAD_ESTIMATION_EN | OPTIONS_PDVFS_EN |             \
+	 OPTIONS_DEBUG_EN | OPTIONS_BUFFER_SYNC_EN | OPTIONS_AUTOVZ_EN | \
+	 OPTIONS_AUTOVZ_HW_REGS_EN | OPTIONS_VALIDATION_EN |             \
+	 OPTIONS_NO_HARDWARE_EN)
 
 #define RGX_BUILD_OPTIONS_MASK_FW \
-			(RGX_BUILD_OPTIONS_MASK_KM & \
-			 ~OPTIONS_BUFFER_SYNC_EN)
+	(RGX_BUILD_OPTIONS_MASK_KM & ~OPTIONS_BUFFER_SYNC_EN)
 
 /* Build options that the FW must have if the present on the KM */
-#define FW_OPTIONS_STRICT ((RGX_BUILD_OPTIONS_MASK_KM			| \
-							OPTIONS_PERCONTEXT_FREELIST_EN)		& \
-							~(OPTIONS_DEBUG_EN					| \
-							  OPTIONS_WORKLOAD_ESTIMATION_EN	| \
-							  OPTIONS_PDVFS_EN))
+#define FW_OPTIONS_STRICT                                               \
+	((RGX_BUILD_OPTIONS_MASK_KM | OPTIONS_PERCONTEXT_FREELIST_EN) & \
+	 ~(OPTIONS_DEBUG_EN | OPTIONS_WORKLOAD_ESTIMATION_EN |          \
+	   OPTIONS_PDVFS_EN))
 
 /* Build options that the UM must have if the present on the KM */
-#define UM_OPTIONS_STRICT ((RGX_BUILD_OPTIONS_MASK_KM			| \
-							OPTIONS_PERCONTEXT_FREELIST_EN)		& \
-							~(OPTIONS_DEBUG_EN					| \
-							  OPTIONS_WORKLOAD_ESTIMATION_EN	| \
-							  OPTIONS_OPEN_SOURCE_EN			| \
-							  OPTIONS_PDVFS_EN))
+#define UM_OPTIONS_STRICT                                               \
+	((RGX_BUILD_OPTIONS_MASK_KM | OPTIONS_PERCONTEXT_FREELIST_EN) & \
+	 ~(OPTIONS_DEBUG_EN | OPTIONS_WORKLOAD_ESTIMATION_EN |          \
+	   OPTIONS_OPEN_SOURCE_EN | OPTIONS_PDVFS_EN))
 
 /* Build options that the KM must have if the present on the UM */
-#define KM_OPTIONS_STRICT ((RGX_BUILD_OPTIONS_MASK_KM			| \
-							OPTIONS_PERCONTEXT_FREELIST_EN)		& \
-							~(OPTIONS_DEBUG_EN					| \
-							  OPTIONS_WORKLOAD_ESTIMATION_EN	| \
-							  OPTIONS_PDVFS_EN					| \
-							  OPTIONS_OPEN_SOURCE_EN			| \
-							  OPTIONS_BUFFER_SYNC_EN))
+#define KM_OPTIONS_STRICT                                               \
+	((RGX_BUILD_OPTIONS_MASK_KM | OPTIONS_PERCONTEXT_FREELIST_EN) & \
+	 ~(OPTIONS_DEBUG_EN | OPTIONS_WORKLOAD_ESTIMATION_EN |          \
+	   OPTIONS_PDVFS_EN | OPTIONS_OPEN_SOURCE_EN |                  \
+	   OPTIONS_BUFFER_SYNC_EN))
 
-#define OPEN_SOURCE_OPTION	"OPEN_SOURCE_DRIVER  "
+#define OPEN_SOURCE_OPTION "OPEN_SOURCE_DRIVER  "
 #if defined(SUPPORT_OPEN_SOURCE_DRIVER)
-	#define OPTIONS_BIT0		OPTIONS_OPEN_SOURCE_EN
-	#if OPTIONS_BIT0 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT0 OPTIONS_OPEN_SOURCE_EN
+#if OPTIONS_BIT0 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT0		0x0UL
+#define OPTIONS_BIT0 0x0UL
 #endif /* SUPPORT_OPEN_SOURCE_DRIVER */
 
-#define PDUMP_OPTION	"PDUMP  "
+#define PDUMP_OPTION "PDUMP  "
 #if defined(PDUMP)
-	#define OPTIONS_BIT1		OPTIONS_PDUMP_EN
-	#if OPTIONS_BIT1 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT1 OPTIONS_PDUMP_EN
+#if OPTIONS_BIT1 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT1		0x0UL
+#define OPTIONS_BIT1 0x0UL
 #endif /* PDUMP */
 
 #define SECURE_CONTEXT_SWITCH_OPTION "SECURE_CONTEXT_SWITCH "
 #if defined(SUPPORT_SECURE_CONTEXT_SWITCH)
-	#define OPTIONS_BIT2		OPTIONS_SECURE_CONTEXT_SWITCH_EN
-	#if OPTIONS_BIT2 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT2 OPTIONS_SECURE_CONTEXT_SWITCH_EN
+#if OPTIONS_BIT2 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT2		0x0UL
+#define OPTIONS_BIT2 0x0UL
 #endif /* SUPPORT_SECURE_CONTEXT_SWITCH */
 
 #define SECURE_ALLOC_KM_OPTION "SECURE_ALLOC_KM  "
 #if defined(SUPPORT_SECURE_ALLOC_KM)
-	#define OPTIONS_BIT3		OPTIONS_SECURE_ALLOC_KM_EN
-	#if OPTIONS_BIT3 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT3 OPTIONS_SECURE_ALLOC_KM_EN
+#if OPTIONS_BIT3 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT3 0x0UL
+#define OPTIONS_BIT3 0x0UL
 #endif /* SUPPORT_SECURE_ALLOC_KM */
 
-#define RGX_OPTION	" "
+#define RGX_OPTION " "
 #if defined(SUPPORT_RGX)
-	#define OPTIONS_BIT4		OPTIONS_RGX_EN
-	#if OPTIONS_BIT4 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT4 OPTIONS_RGX_EN
+#if OPTIONS_BIT4 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT4		0x0UL
+#define OPTIONS_BIT4 0x0UL
 #endif /* SUPPORT_RGX */
 
-#define SECURE_EXPORT_OPTION	"SECURE_EXPORTS  "
+#define SECURE_EXPORT_OPTION "SECURE_EXPORTS  "
 #if defined(SUPPORT_SECURE_EXPORT)
-	#define OPTIONS_BIT5		OPTIONS_SECURE_EXPORT_EN
-	#if OPTIONS_BIT5 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT5 OPTIONS_SECURE_EXPORT_EN
+#if OPTIONS_BIT5 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT5		0x0UL
+#define OPTIONS_BIT5 0x0UL
 #endif /* SUPPORT_SECURE_EXPORT */
 
-#define INSECURE_EXPORT_OPTION	"INSECURE_EXPORTS  "
+#define INSECURE_EXPORT_OPTION "INSECURE_EXPORTS  "
 #if defined(SUPPORT_INSECURE_EXPORT)
-	#define OPTIONS_BIT6		OPTIONS_INSECURE_EXPORT_EN
-	#if OPTIONS_BIT6 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT6 OPTIONS_INSECURE_EXPORT_EN
+#if OPTIONS_BIT6 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT6		0x0UL
+#define OPTIONS_BIT6 0x0UL
 #endif /* SUPPORT_INSECURE_EXPORT */
 
-#define VFP_OPTION	"VFP  "
+#define VFP_OPTION "VFP  "
 #if defined(SUPPORT_VFP)
-	#define OPTIONS_BIT7		OPTIONS_VFP_EN
-	#if OPTIONS_BIT7 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT7 OPTIONS_VFP_EN
+#if OPTIONS_BIT7 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT7		0x0UL
+#define OPTIONS_BIT7 0x0UL
 #endif /* SUPPORT_VFP */
 
-#define WORKLOAD_ESTIMATION_OPTION	"WORKLOAD_ESTIMATION  "
+#define WORKLOAD_ESTIMATION_OPTION "WORKLOAD_ESTIMATION  "
 #if defined(SUPPORT_WORKLOAD_ESTIMATION)
-	#define OPTIONS_BIT8		OPTIONS_WORKLOAD_ESTIMATION_EN
-	#if OPTIONS_BIT8 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT8 OPTIONS_WORKLOAD_ESTIMATION_EN
+#if OPTIONS_BIT8 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT8		0x0UL
+#define OPTIONS_BIT8 0x0UL
 #endif /* SUPPORT_WORKLOAD_ESTIMATION */
 
-#define PDVFS_OPTION	"PDVFS  "
+#define PDVFS_OPTION "PDVFS  "
 #if defined(SUPPORT_PDVFS)
-	#define OPTIONS_BIT9		OPTIONS_PDVFS_EN
-	#if OPTIONS_BIT9 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT9 OPTIONS_PDVFS_EN
+#if OPTIONS_BIT9 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT9		0x0UL
+#define OPTIONS_BIT9 0x0UL
 #endif /* SUPPORT_PDVFS */
 
-#define DEBUG_OPTION	"DEBUG  "
+#define DEBUG_OPTION "DEBUG  "
 #if defined(DEBUG)
-	#define OPTIONS_BIT10		OPTIONS_DEBUG_EN
-	#if OPTIONS_BIT10 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT10 OPTIONS_DEBUG_EN
+#if OPTIONS_BIT10 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT10		0x0UL
+#define OPTIONS_BIT10 0x0UL
 #endif /* DEBUG */
 
-#define BUFFER_SYNC_OPTION	"BUFFER_SYNC  "
+#define BUFFER_SYNC_OPTION "BUFFER_SYNC  "
 #if defined(SUPPORT_BUFFER_SYNC)
-	#define OPTIONS_BIT11		OPTIONS_BUFFER_SYNC_EN
-	#if OPTIONS_BIT11 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT11 OPTIONS_BUFFER_SYNC_EN
+#if OPTIONS_BIT11 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT11		0x0UL
+#define OPTIONS_BIT11 0x0UL
 #endif /* SUPPORT_BUFFER_SYNC */
 
-#define AUTOVZ_OPTION	"AUTOVZ  "
+#define AUTOVZ_OPTION "AUTOVZ  "
 #if defined(SUPPORT_AUTOVZ)
-	#define OPTIONS_BIT12		OPTIONS_AUTOVZ_EN
-	#if OPTIONS_BIT12 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT12 OPTIONS_AUTOVZ_EN
+#if OPTIONS_BIT12 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT12		0x0UL
+#define OPTIONS_BIT12 0x0UL
 #endif /* SUPPORT_AUTOVZ */
 
-#define AUTOVZ_HW_REGS_OPTION	"AUTOVZ_HW_REGS  "
+#define AUTOVZ_HW_REGS_OPTION "AUTOVZ_HW_REGS  "
 #if defined(SUPPORT_AUTOVZ_HW_REGS)
-	#define OPTIONS_BIT13		OPTIONS_AUTOVZ_HW_REGS_EN
-	#if OPTIONS_BIT13 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT13 OPTIONS_AUTOVZ_HW_REGS_EN
+#if OPTIONS_BIT13 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT13		0x0UL
+#define OPTIONS_BIT13 0x0UL
 #endif /* SUPPORT_AUTOVZ_HW_REGS */
 
 /* UNUSED bit, kept for rogue/volcanic compatibility */
-#define INTERNAL_UNUSED2_OPTION	"INTERNAL_UNUSED2  "
+#define INTERNAL_UNUSED2_OPTION "INTERNAL_UNUSED2  "
 #if defined(INTERNAL_UNUSED2)
-	#define OPTIONS_BIT14		OPTIONS_UNUSED2_EN
-	#if OPTIONS_BIT14 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT14 OPTIONS_UNUSED2_EN
+#if OPTIONS_BIT14 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT14		0x0UL
+#define OPTIONS_BIT14 0x0UL
 #endif
 
-#define VALIDATION_OPTION	"VALIDATION  "
+#define VALIDATION_OPTION "VALIDATION  "
 #if defined(SUPPORT_VALIDATION)
-	#define OPTIONS_BIT15		OPTIONS_VALIDATION_EN
-	#if OPTIONS_BIT15 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT15 OPTIONS_VALIDATION_EN
+#if OPTIONS_BIT15 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT15		0x0UL
+#define OPTIONS_BIT15 0x0UL
 #endif /* SUPPORT_VALIDATION */
 
-#define NO_HARDWARE_OPTION	"NO_HARDWARE  "
+#define NO_HARDWARE_OPTION "NO_HARDWARE  "
 #if defined(NO_HARDWARE)
-	#define OPTIONS_BIT16		OPTIONS_NO_HARDWARE_EN
-	#if OPTIONS_BIT16 > RGX_BUILD_OPTIONS_MASK_KM
-	#error "Bit exceeds reserved range"
-	#endif
+#define OPTIONS_BIT16 OPTIONS_NO_HARDWARE_EN
+#if OPTIONS_BIT16 > RGX_BUILD_OPTIONS_MASK_KM
+#error "Bit exceeds reserved range"
+#endif
 #else
-	#define OPTIONS_BIT16		0x0UL
+#define OPTIONS_BIT16 0x0UL
 #endif /* NO_HARDWARE */
 
-#define OPTIONS_BIT31		OPTIONS_PERCONTEXT_FREELIST_EN
+#define OPTIONS_BIT31 OPTIONS_PERCONTEXT_FREELIST_EN
 #if OPTIONS_BIT31 <= RGX_BUILD_OPTIONS_MASK_KM
 #error "Bit exceeds reserved range"
 #endif
 
-#define RGX_BUILD_OPTIONS_KM	\
-	(OPTIONS_BIT0				|\
-	 OPTIONS_BIT1				|\
-	 OPTIONS_BIT2				|\
-	 OPTIONS_BIT3				|\
-	 OPTIONS_BIT4				|\
-	 OPTIONS_BIT5				|\
-	 OPTIONS_BIT6				|\
-	 OPTIONS_BIT7				|\
-	 OPTIONS_BIT8				|\
-	 OPTIONS_BIT9				|\
-	 OPTIONS_BIT10				|\
-	 OPTIONS_BIT11				|\
-	 OPTIONS_BIT12				|\
-	 OPTIONS_BIT13				|\
-	 OPTIONS_BIT14				|\
-	 OPTIONS_BIT15				|\
+#define RGX_BUILD_OPTIONS_KM                                             \
+	(OPTIONS_BIT0 | OPTIONS_BIT1 | OPTIONS_BIT2 | OPTIONS_BIT3 |     \
+	 OPTIONS_BIT4 | OPTIONS_BIT5 | OPTIONS_BIT6 | OPTIONS_BIT7 |     \
+	 OPTIONS_BIT8 | OPTIONS_BIT9 | OPTIONS_BIT10 | OPTIONS_BIT11 |   \
+	 OPTIONS_BIT12 | OPTIONS_BIT13 | OPTIONS_BIT14 | OPTIONS_BIT15 | \
 	 OPTIONS_BIT16)
 
 #define RGX_BUILD_OPTIONS (RGX_BUILD_OPTIONS_KM | OPTIONS_BIT31)
 
-#define RGX_BUILD_OPTIONS_LIST			\
-	{									\
-		OPEN_SOURCE_OPTION,				\
-		PDUMP_OPTION,					\
-		SECURE_CONTEXT_SWITCH_OPTION,	\
-		SECURE_ALLOC_KM_OPTION,			\
-		RGX_OPTION,						\
-		SECURE_EXPORT_OPTION,			\
-		INSECURE_EXPORT_OPTION,			\
-		VFP_OPTION,						\
-		WORKLOAD_ESTIMATION_OPTION,		\
-		PDVFS_OPTION,					\
-		DEBUG_OPTION,					\
-		BUFFER_SYNC_OPTION,				\
-		AUTOVZ_OPTION,					\
-		AUTOVZ_HW_REGS_OPTION,			\
-		INTERNAL_UNUSED2_OPTION,		\
-		VALIDATION_OPTION,				\
-		NO_HARDWARE_OPTION				\
+#define RGX_BUILD_OPTIONS_LIST                                                \
+	{                                                                     \
+		OPEN_SOURCE_OPTION, PDUMP_OPTION,                             \
+			SECURE_CONTEXT_SWITCH_OPTION, SECURE_ALLOC_KM_OPTION, \
+			RGX_OPTION, SECURE_EXPORT_OPTION,                     \
+			INSECURE_EXPORT_OPTION, VFP_OPTION,                   \
+			WORKLOAD_ESTIMATION_OPTION, PDVFS_OPTION,             \
+			DEBUG_OPTION, BUFFER_SYNC_OPTION, AUTOVZ_OPTION,      \
+			AUTOVZ_HW_REGS_OPTION, INTERNAL_UNUSED2_OPTION,       \
+			VALIDATION_OPTION, NO_HARDWARE_OPTION                 \
 	}
 
 #endif /* RGX_OPTIONS_H */

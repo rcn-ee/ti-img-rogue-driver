@@ -50,8 +50,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "vz_vmm_pvz.h"
 
 #if (RGX_NUM_DRIVERS_SUPPORTED > 1)
-static PVRSRV_ERROR
-PvzConnectionValidate(void)
+static PVRSRV_ERROR PvzConnectionValidate(void)
 {
 	VMM_PVZ_CONNECTION *psVmmPvz;
 	PVRSRV_ERROR eError = PVRSRV_OK;
@@ -60,11 +59,11 @@ PvzConnectionValidate(void)
 	 * Acquire the underlying VM manager PVZ connection & validate it.
 	 */
 	psVmmPvz = PvzConnectionAcquire();
-	if (psVmmPvz == NULL)
-	{
+	if (psVmmPvz == NULL) {
 		PVR_DPF((PVR_DBG_ERROR,
-				"%s: %s PVZ config: Unable to acquire PVZ connection",
-				__func__, PVRSRV_VZ_MODE_IS(GUEST) ? "Guest" : "Host"));
+			 "%s: %s PVZ config: Unable to acquire PVZ connection",
+			 __func__,
+			 PVRSRV_VZ_MODE_IS(GUEST) ? "Guest" : "Host"));
 		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
 		goto e0;
 	}
@@ -97,11 +96,13 @@ PvzConnectionValidate(void)
 	 */
 	PVR_LOG(("Using dynamic PVZ bootstrap setup"));
 
-	if (!PVRSRV_VZ_MODE_IS(GUEST)           &&
-			 (psVmmPvz->sServerFuncTab.pfnMapDevPhysHeap      == NULL ||
-			  psVmmPvz->sServerFuncTab.pfnUnmapDevPhysHeap    == NULL))
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Host PVZ config: Functions for mapping a Guest's heaps not implemented\n", __func__));
+	if (!PVRSRV_VZ_MODE_IS(GUEST) &&
+	    (psVmmPvz->sServerFuncTab.pfnMapDevPhysHeap == NULL ||
+	     psVmmPvz->sServerFuncTab.pfnUnmapDevPhysHeap == NULL)) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Host PVZ config: Functions for mapping a Guest's heaps not implemented\n",
+			__func__));
 		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
 	}
 #endif
@@ -120,19 +121,23 @@ PVRSRV_ERROR PvzConnectionInit(void)
 #if (RGX_NUM_DRIVERS_SUPPORTED == 1)
 #if !defined(PVRSRV_NEED_PVR_DPF)
 	PVR_UNREFERENCED_PARAMETER(psPVRSRVData);
-# endif
-	PVR_DPF((PVR_DBG_ERROR, "This kernel driver does not support virtualization. Please rebuild with RGX_NUM_DRIVERS_SUPPORTED > 1"));
-	PVR_DPF((PVR_DBG_ERROR,	"Halting initialisation, cannot transition to %s mode",
-			psPVRSRVData->eDriverMode == DRIVER_MODE_HOST ? "host" : "guest"));
+#endif
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"This kernel driver does not support virtualization. Please rebuild with RGX_NUM_DRIVERS_SUPPORTED > 1"));
+	PVR_DPF((PVR_DBG_ERROR,
+		 "Halting initialisation, cannot transition to %s mode",
+		 psPVRSRVData->eDriverMode == DRIVER_MODE_HOST ? "host" :
+								 "guest"));
 	eError = PVRSRV_ERROR_NOT_SUPPORTED;
 	goto e0;
 #else
 
 	if ((psPVRSRVData->hPvzConnection != NULL) &&
-		(psPVRSRVData->hPvzConnectionLock != NULL))
-	{
+	    (psPVRSRVData->hPvzConnectionLock != NULL)) {
 		eError = PVRSRV_OK;
-		PVR_DPF((PVR_DBG_MESSAGE, "PVzConnection already initialised."));
+		PVR_DPF((PVR_DBG_MESSAGE,
+			 "PVzConnection already initialised."));
 		goto e0;
 	}
 
@@ -141,9 +146,9 @@ PVRSRV_ERROR PvzConnectionInit(void)
 	PVR_LOG_GOTO_IF_ERROR(eError, "OSLockCreate", e0);
 
 	/* Create VM manager para-virtualization connection */
-	eError = VMMCreatePvzConnection((VMM_PVZ_CONNECTION **)&psPVRSRVData->hPvzConnection);
-	if (eError != PVRSRV_OK)
-	{
+	eError = VMMCreatePvzConnection(
+		(VMM_PVZ_CONNECTION **)&psPVRSRVData->hPvzConnection);
+	if (eError != PVRSRV_OK) {
 		OSLockDestroy(psPVRSRVData->hPvzConnectionLock);
 		psPVRSRVData->hPvzConnectionLock = NULL;
 
@@ -164,9 +169,9 @@ void PvzConnectionDeInit(void)
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 
 	if ((psPVRSRVData->hPvzConnection == NULL) &&
-		(psPVRSRVData->hPvzConnectionLock == NULL))
-	{
-		PVR_DPF((PVR_DBG_MESSAGE, "PVzConnection already deinitialised."));
+	    (psPVRSRVData->hPvzConnectionLock == NULL)) {
+		PVR_DPF((PVR_DBG_MESSAGE,
+			 "PVzConnection already deinitialised."));
 		return;
 	}
 
@@ -177,7 +182,7 @@ void PvzConnectionDeInit(void)
 	psPVRSRVData->hPvzConnectionLock = NULL;
 }
 
-VMM_PVZ_CONNECTION* PvzConnectionAcquire(void)
+VMM_PVZ_CONNECTION *PvzConnectionAcquire(void)
 {
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 	PVR_ASSERT(psPVRSRVData->hPvzConnection != NULL);

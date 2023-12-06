@@ -79,13 +79,13 @@ DAMAGE.
 /*************************************************************************/ /*!
  EDID Information
 */ /**************************************************************************/
-#define EDID_SIGNATURE                      0x00ffffffffffff00ull
-#define EDID_BLOCK_SIZE                     128
-#define EDID_CHECKSUM                       0 // per VESA spec, 8 bit checksum of base block
-#define EDID_SLAVE_ADDRESS                  0x50
-#define EDID_SEGMENT_ADDRESS                0x00
-#define EDID_REFRESH_RATE                   60000
-#define EDID_I2C_TIMEOUT_MS                 1000
+#define EDID_SIGNATURE 0x00ffffffffffff00ull
+#define EDID_BLOCK_SIZE 128
+#define EDID_CHECKSUM 0 // per VESA spec, 8 bit checksum of base block
+#define EDID_SLAVE_ADDRESS 0x50
+#define EDID_SEGMENT_ADDRESS 0x00
+#define EDID_REFRESH_RATE 60000
+#define EDID_I2C_TIMEOUT_MS 1000
 
 static int hdmi_i2c_read(struct hdmi_device *hdmi, struct i2c_msg *msg)
 {
@@ -109,36 +109,48 @@ static int hdmi_i2c_read(struct hdmi_device *hdmi, struct i2c_msg *msg)
 
 	for (i = 0; i < msg->len; i++) {
 		/* Write 1 to clear interrupt status */
-		hdmi_write_reg32(hdmi, HDMI_IH_I2CM_STAT0_OFFSET,
+		hdmi_write_reg32(
+			hdmi, HDMI_IH_I2CM_STAT0_OFFSET,
 			SET_FIELD(HDMI_IH_I2CM_STAT0_I2CMASTERDONE_START,
-				HDMI_IH_I2CM_STAT0_I2CMASTERDONE_MASK, 1));
+				  HDMI_IH_I2CM_STAT0_I2CMASTERDONE_MASK, 1));
 
 		/* Setup EDID base address */
-		hdmi_write_reg32(hdmi, HDMI_I2CM_SLAVE_OFFSET, EDID_SLAVE_ADDRESS);
-		hdmi_write_reg32(hdmi, HDMI_I2CM_SEGADDR_OFFSET, EDID_SEGMENT_ADDRESS);
+		hdmi_write_reg32(hdmi, HDMI_I2CM_SLAVE_OFFSET,
+				 EDID_SLAVE_ADDRESS);
+		hdmi_write_reg32(hdmi, HDMI_I2CM_SEGADDR_OFFSET,
+				 EDID_SEGMENT_ADDRESS);
 
 		/* Address offset */
-		hdmi_write_reg32(hdmi, HDMI_I2CM_ADDRESS_OFFSET, hdmi->i2c->ddc_addr);
+		hdmi_write_reg32(hdmi, HDMI_I2CM_ADDRESS_OFFSET,
+				 hdmi->i2c->ddc_addr);
 
 		/* Set operation to normal read */
 		hdmi_write_reg32(hdmi, HDMI_I2CM_OPERATION_OFFSET,
-			SET_FIELD(HDMI_I2CM_OPERATION_RD_START,
-					HDMI_I2CM_OPERATION_RD_MASK, 1));
+				 SET_FIELD(HDMI_I2CM_OPERATION_RD_START,
+					   HDMI_I2CM_OPERATION_RD_MASK, 1));
 
 		intr_reg = hdmi_read_reg32(hdmi, HDMI_IH_I2CM_STAT0_OFFSET);
-		while (!IS_BIT_SET(intr_reg, HDMI_IH_I2CM_STAT0_I2CMASTERDONE_START) &&
-			   !IS_BIT_SET(intr_reg, HDMI_IH_I2CM_STAT0_I2CMASTERERROR_START)) {
-			intr_reg = hdmi_read_reg32(hdmi, HDMI_IH_I2CM_STAT0_OFFSET);
+		while (!IS_BIT_SET(intr_reg,
+				   HDMI_IH_I2CM_STAT0_I2CMASTERDONE_START) &&
+		       !IS_BIT_SET(intr_reg,
+				   HDMI_IH_I2CM_STAT0_I2CMASTERERROR_START)) {
+			intr_reg = hdmi_read_reg32(hdmi,
+						   HDMI_IH_I2CM_STAT0_OFFSET);
 			mdelay(1);
 			poll += 1;
 			if (poll > EDID_I2C_TIMEOUT_MS) {
-				dev_err(hdmi->dev, "%s: Timeout polling on I2CMasterDoneBit (STAT0: %d)\n", __func__, intr_reg);
+				dev_err(hdmi->dev,
+					"%s: Timeout polling on I2CMasterDoneBit (STAT0: %d)\n",
+					__func__, intr_reg);
 				return -ETIMEDOUT;
 			}
 		}
 
-		if (IS_BIT_SET(intr_reg, HDMI_IH_I2CM_STAT0_I2CMASTERERROR_START)) {
-			dev_err(hdmi->dev, "%s: I2C EDID read failed, Master error bit is set\n", __func__);
+		if (IS_BIT_SET(intr_reg,
+			       HDMI_IH_I2CM_STAT0_I2CMASTERERROR_START)) {
+			dev_err(hdmi->dev,
+				"%s: I2C EDID read failed, Master error bit is set\n",
+				__func__);
 			return -ETIMEDOUT;
 		}
 
@@ -155,10 +167,9 @@ static int hdmi_i2c_write(struct hdmi_device *hdmi, struct i2c_msg *msg)
 		hdmi->i2c->ddc_addr = msg->buf[0];
 
 	return 0;
-
 }
-static int hdmi_i2c_master_xfer(struct i2c_adapter *adap,
-					struct i2c_msg *msgs, int num)
+static int hdmi_i2c_master_xfer(struct i2c_adapter *adap, struct i2c_msg *msgs,
+				int num)
 {
 	struct hdmi_device *hdmi = i2c_get_adapdata(adap);
 	int i;
@@ -166,9 +177,12 @@ static int hdmi_i2c_master_xfer(struct i2c_adapter *adap,
 	for (i = 0; i < num; i++) {
 		struct i2c_msg *msg = &msgs[i];
 
-		hdmi_info(hdmi, "[msg: %d out of %d][len: %d][type: %s][addr: 0x%x][buf: %d]\n",
-			i+1, num, msg->len,
-			(msg->flags & I2C_M_RD) ? "read" : "write", msg->addr, msg->buf[0]);
+		hdmi_info(
+			hdmi,
+			"[msg: %d out of %d][len: %d][type: %s][addr: 0x%x][buf: %d]\n",
+			i + 1, num, msg->len,
+			(msg->flags & I2C_M_RD) ? "read" : "write", msg->addr,
+			msg->buf[0]);
 
 		if (msg->flags & I2C_M_RD)
 			hdmi_i2c_read(hdmi, msg);
@@ -185,8 +199,8 @@ static u32 hdmi_i2c_func(struct i2c_adapter *adapter)
 }
 
 static const struct i2c_algorithm hdmi_algo = {
-	.master_xfer	= hdmi_i2c_master_xfer,
-	.functionality	= hdmi_i2c_func,
+	.master_xfer = hdmi_i2c_master_xfer,
+	.functionality = hdmi_i2c_func,
 };
 
 int hdmi_i2c_init(struct hdmi_device *hdmi)
@@ -205,13 +219,14 @@ int hdmi_i2c_init(struct hdmi_device *hdmi)
 	hdmi->i2c->adap.dev.parent = hdmi->dev;
 	hdmi->i2c->adap.dev.of_node = hdmi->dev->of_node;
 	hdmi->i2c->adap.algo = &hdmi_algo;
-	snprintf(hdmi->i2c->adap.name, sizeof(hdmi->i2c->adap.name), "Plato HDMI");
+	snprintf(hdmi->i2c->adap.name, sizeof(hdmi->i2c->adap.name),
+		 "Plato HDMI");
 	i2c_set_adapdata(&hdmi->i2c->adap, hdmi);
 
 	ret = i2c_add_adapter(&hdmi->i2c->adap);
 	if (ret) {
 		dev_err(hdmi->dev, "Failed to add %s i2c adapter\n",
-							hdmi->i2c->adap.name);
+			hdmi->i2c->adap.name);
 		devm_kfree(hdmi->dev, hdmi->i2c);
 		return ret;
 	}
@@ -221,29 +236,32 @@ int hdmi_i2c_init(struct hdmi_device *hdmi)
 
 	/* Mask interrupts */
 	hdmi_write_reg32(hdmi, HDMI_I2CM_INT_OFFSET,
-		SET_FIELD(HDMI_I2CM_INT_DONE_MASK_START,
-				HDMI_I2CM_INT_DONE_MASK_MASK, 1) |
-		SET_FIELD(HDMI_I2CM_INT_READ_REQ_MASK_START,
-				HDMI_I2CM_INT_READ_REQ_MASK_MASK, 1));
+			 SET_FIELD(HDMI_I2CM_INT_DONE_MASK_START,
+				   HDMI_I2CM_INT_DONE_MASK_MASK, 1) |
+				 SET_FIELD(HDMI_I2CM_INT_READ_REQ_MASK_START,
+					   HDMI_I2CM_INT_READ_REQ_MASK_MASK,
+					   1));
 	hdmi_write_reg32(hdmi, HDMI_I2CM_CTLINT_OFFSET,
-		SET_FIELD(HDMI_I2CM_CTLINT_ARB_MASK_START,
-				HDMI_I2CM_CTLINT_ARB_MASK_START, 1) |
-		SET_FIELD(HDMI_I2CM_CTLINT_NACK_MASK_START,
-				HDMI_I2CM_CTLINT_NACK_MASK_START, 1));
+			 SET_FIELD(HDMI_I2CM_CTLINT_ARB_MASK_START,
+				   HDMI_I2CM_CTLINT_ARB_MASK_START, 1) |
+				 SET_FIELD(HDMI_I2CM_CTLINT_NACK_MASK_START,
+					   HDMI_I2CM_CTLINT_NACK_MASK_START,
+					   1));
 
 	hdmi_write_reg32(hdmi, HDMI_I2CM_DIV_OFFSET,
-		SET_FIELD(HDMI_I2CM_DIV_FAST_STD_MODE_START,
-				HDMI_I2CM_DIV_FAST_STD_MODE_START, 0));
+			 SET_FIELD(HDMI_I2CM_DIV_FAST_STD_MODE_START,
+				   HDMI_I2CM_DIV_FAST_STD_MODE_START, 0));
 
 	/* Re-enable interrupts */
 	hdmi_write_reg32(hdmi, HDMI_I2CM_INT_OFFSET,
-		SET_FIELD(HDMI_I2CM_INT_DONE_MASK_START,
-				HDMI_I2CM_INT_DONE_MASK_MASK, 0));
+			 SET_FIELD(HDMI_I2CM_INT_DONE_MASK_START,
+				   HDMI_I2CM_INT_DONE_MASK_MASK, 0));
 	hdmi_write_reg32(hdmi, HDMI_I2CM_CTLINT_OFFSET,
-		SET_FIELD(HDMI_I2CM_CTLINT_ARB_MASK_START,
-				HDMI_I2CM_CTLINT_ARB_MASK_START, 0) |
-		SET_FIELD(HDMI_I2CM_CTLINT_NACK_MASK_START,
-				HDMI_I2CM_CTLINT_NACK_MASK_START, 0));
+			 SET_FIELD(HDMI_I2CM_CTLINT_ARB_MASK_START,
+				   HDMI_I2CM_CTLINT_ARB_MASK_START, 0) |
+				 SET_FIELD(HDMI_I2CM_CTLINT_NACK_MASK_START,
+					   HDMI_I2CM_CTLINT_NACK_MASK_START,
+					   0));
 
 	hdmi_info(hdmi, "registered %s I2C bus driver\n", hdmi->i2c->adap.name);
 

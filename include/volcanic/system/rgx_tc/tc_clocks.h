@@ -85,17 +85,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * PVR_SRVKM_PARAMS="sys_mem_clk_speed=MEMORY_SPEED sys_core_clk_speed=CORE_SPEED sys_sysif_clk_speed=SYSIF_SPEED" /etc/init.d/rc.pvr start
  */
 
-#define RGX_TC_SYS_CLOCK_SPEED		(45000000) /*< Unused */
+#define RGX_TC_SYS_CLOCK_SPEED (45000000) /*< Unused */
 
 #if defined(TC_ODIN_27_5_254_2)
- #define RGX_TC_CORE_CLOCK_SPEED	(94000000)
- #define RGX_TC_MEM_CLOCK_SPEED		(40000000)
- #define RGX_TC_CLOCK_MULTIPLEX    (16)
+#define RGX_TC_CORE_CLOCK_SPEED (94000000)
+#define RGX_TC_MEM_CLOCK_SPEED (40000000)
+#define RGX_TC_CLOCK_MULTIPLEX (16)
 #else
- /* FPGA tcfvuquad with Odin */
- #define RGX_TC_CORE_CLOCK_SPEED	(50000000) /* 3.125MHz */
- #define RGX_TC_MEM_CLOCK_SPEED		(40000000) /* 3.75MHz */
- #define RGX_TC_CLOCK_MULTIPLEX    (1)
+/* FPGA tcfvuquad with Odin */
+#define RGX_TC_CORE_CLOCK_SPEED (50000000) /* 3.125MHz */
+#define RGX_TC_MEM_CLOCK_SPEED (40000000) /* 3.75MHz */
+#define RGX_TC_CLOCK_MULTIPLEX (1)
 #endif
 
 #endif /* if !defined(TC_CLOCKS_H) */

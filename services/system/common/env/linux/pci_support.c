@@ -49,12 +49,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pci_support.h"
 #include "allocmem.h"
 
-typedef	struct _PVR_PCI_DEV_TAG
-{
-	struct pci_dev		*psPCIDev;
-	HOST_PCI_INIT_FLAGS	ePCIFlags;
-	IMG_BOOL		abPCIResourceInUse[DEVICE_COUNT_RESOURCE];
-	int			iMTRR[DEVICE_COUNT_RESOURCE];
+typedef struct _PVR_PCI_DEV_TAG {
+	struct pci_dev *psPCIDev;
+	HOST_PCI_INIT_FLAGS ePCIFlags;
+	IMG_BOOL abPCIResourceInUse[DEVICE_COUNT_RESOURCE];
+	int iMTRR[DEVICE_COUNT_RESOURCE];
 } PVR_PCI_DEV;
 
 /*************************************************************************/ /*!
@@ -71,9 +70,9 @@ PVRSRV_PCI_DEV_HANDLE OSPCISetDev(void *pvPCICookie, HOST_PCI_INIT_FLAGS eFlags)
 	PVR_PCI_DEV *psPVRPCI;
 
 	psPVRPCI = OSAllocMem(sizeof(*psPVRPCI));
-	if (psPVRPCI == NULL)
-	{
-		printk(KERN_ERR "OSPCISetDev: Couldn't allocate PVR PCI structure\n");
+	if (psPVRPCI == NULL) {
+		printk(KERN_ERR
+		       "OSPCISetDev: Couldn't allocate PVR PCI structure\n");
 		return NULL;
 	}
 
@@ -81,35 +80,38 @@ PVRSRV_PCI_DEV_HANDLE OSPCISetDev(void *pvPCICookie, HOST_PCI_INIT_FLAGS eFlags)
 	psPVRPCI->ePCIFlags = eFlags;
 
 	err = pci_enable_device(psPVRPCI->psPCIDev);
-	if (err != 0)
-	{
-		printk(KERN_ERR "OSPCISetDev: Couldn't enable device (%d)\n", err);
+	if (err != 0) {
+		printk(KERN_ERR "OSPCISetDev: Couldn't enable device (%d)\n",
+		       err);
 		OSFreeMem(psPVRPCI);
 		return NULL;
 	}
 
-	if (psPVRPCI->ePCIFlags & HOST_PCI_INIT_FLAG_BUS_MASTER)	/* PRQA S 3358 */ /* misuse of enums */
+	if (psPVRPCI->ePCIFlags &
+	    HOST_PCI_INIT_FLAG_BUS_MASTER) /* PRQA S 3358 */ /* misuse of enums */
 	{
 		pci_set_master(psPVRPCI->psPCIDev);
 	}
 
-	if (psPVRPCI->ePCIFlags & HOST_PCI_INIT_FLAG_MSI)		/* PRQA S 3358 */ /* misuse of enums */
+	if (psPVRPCI->ePCIFlags &
+	    HOST_PCI_INIT_FLAG_MSI) /* PRQA S 3358 */ /* misuse of enums */
 	{
 #if defined(CONFIG_PCI_MSI)
 		err = pci_enable_msi(psPVRPCI->psPCIDev);
-		if (err != 0)
-		{
-			printk(KERN_ERR "OSPCISetDev: Couldn't enable MSI (%d)", err);
-			psPVRPCI->ePCIFlags &= ~HOST_PCI_INIT_FLAG_MSI;	/* PRQA S 1474,3358,4130 */ /* misuse of enums */
+		if (err != 0) {
+			printk(KERN_ERR "OSPCISetDev: Couldn't enable MSI (%d)",
+			       err);
+			psPVRPCI->ePCIFlags &= ~HOST_PCI_INIT_FLAG_MSI;
+				/* PRQA S 1474,3358,4130 */ /* misuse of enums */
 		}
 #else
-		printk(KERN_ERR "OSPCISetDev: MSI support not enabled in the kernel");
+		printk(KERN_ERR
+		       "OSPCISetDev: MSI support not enabled in the kernel");
 #endif
 	}
 
 	/* Initialise the PCI resource and MTRR tracking array */
-	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++)
-	{
+	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
 		psPVRPCI->abPCIResourceInUse[i] = IMG_FALSE;
 		psPVRPCI->iMTRR[i] = -1;
 	}
@@ -132,8 +134,7 @@ PVRSRV_PCI_DEV_HANDLE OSPCIAcquireDev(IMG_UINT16 ui16VendorID,
 	struct pci_dev *psPCIDev;
 
 	psPCIDev = pci_get_device(ui16VendorID, ui16DeviceID, NULL);
-	if (psPCIDev == NULL)
-	{
+	if (psPCIDev == NULL) {
 		return NULL;
 	}
 
@@ -152,8 +153,7 @@ PVRSRV_ERROR OSPCIIRQ(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 *pui32IRQ)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 
-	if (pui32IRQ == NULL)
-	{
+	if (pui32IRQ == NULL) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -163,8 +163,7 @@ PVRSRV_ERROR OSPCIIRQ(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 *pui32IRQ)
 }
 
 /* Functions supported by OSPCIAddrRangeFunc */
-enum HOST_PCI_ADDR_RANGE_FUNC
-{
+enum HOST_PCI_ADDR_RANGE_FUNC {
 	HOST_PCI_ADDR_RANGE_FUNC_LEN,
 	HOST_PCI_ADDR_RANGE_FUNC_START,
 	HOST_PCI_ADDR_RANGE_FUNC_END,
@@ -182,56 +181,50 @@ enum HOST_PCI_ADDR_RANGE_FUNC
 @Return		IMG_UINT32              Function dependent value
 */ /**************************************************************************/
 static IMG_UINT64 OSPCIAddrRangeFunc(enum HOST_PCI_ADDR_RANGE_FUNC eFunc,
-										 PVRSRV_PCI_DEV_HANDLE hPVRPCI,
-										 IMG_UINT32 ui32Index)
+				     PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+				     IMG_UINT32 ui32Index)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 
-	if (ui32Index >= DEVICE_COUNT_RESOURCE)
-	{
+	if (ui32Index >= DEVICE_COUNT_RESOURCE) {
 		printk(KERN_ERR "OSPCIAddrRangeFunc: Index out of range");
 		return 0;
 	}
 
-	switch (eFunc)
-	{
-		case HOST_PCI_ADDR_RANGE_FUNC_LEN:
-		{
-			return pci_resource_len(psPVRPCI->psPCIDev, ui32Index);
+	switch (eFunc) {
+	case HOST_PCI_ADDR_RANGE_FUNC_LEN: {
+		return pci_resource_len(psPVRPCI->psPCIDev, ui32Index);
+	}
+	case HOST_PCI_ADDR_RANGE_FUNC_START: {
+		return pci_resource_start(psPVRPCI->psPCIDev, ui32Index);
+	}
+	case HOST_PCI_ADDR_RANGE_FUNC_END: {
+		return pci_resource_end(psPVRPCI->psPCIDev, ui32Index);
+	}
+	case HOST_PCI_ADDR_RANGE_FUNC_REQUEST: {
+		int err = pci_request_region(
+			psPVRPCI->psPCIDev, (IMG_INT)ui32Index, PVRSRV_MODNAME);
+		if (err != 0) {
+			printk(KERN_ERR
+			       "OSPCIAddrRangeFunc: pci_request_region_failed (%d)",
+			       err);
+			return 0;
 		}
-		case HOST_PCI_ADDR_RANGE_FUNC_START:
-		{
-			return pci_resource_start(psPVRPCI->psPCIDev, ui32Index);
+		psPVRPCI->abPCIResourceInUse[ui32Index] = IMG_TRUE;
+		return 1;
+	}
+	case HOST_PCI_ADDR_RANGE_FUNC_RELEASE: {
+		if (psPVRPCI->abPCIResourceInUse[ui32Index]) {
+			pci_release_region(psPVRPCI->psPCIDev,
+					   (IMG_INT)ui32Index);
+			psPVRPCI->abPCIResourceInUse[ui32Index] = IMG_FALSE;
 		}
-		case HOST_PCI_ADDR_RANGE_FUNC_END:
-		{
-			return pci_resource_end(psPVRPCI->psPCIDev, ui32Index);
-		}
-		case HOST_PCI_ADDR_RANGE_FUNC_REQUEST:
-		{
-			int err = pci_request_region(psPVRPCI->psPCIDev, (IMG_INT)ui32Index, PVRSRV_MODNAME);
-			if (err != 0)
-			{
-				printk(KERN_ERR "OSPCIAddrRangeFunc: pci_request_region_failed (%d)", err);
-				return 0;
-			}
-			psPVRPCI->abPCIResourceInUse[ui32Index] = IMG_TRUE;
-			return 1;
-		}
-		case HOST_PCI_ADDR_RANGE_FUNC_RELEASE:
-		{
-			if (psPVRPCI->abPCIResourceInUse[ui32Index])
-			{
-				pci_release_region(psPVRPCI->psPCIDev, (IMG_INT)ui32Index);
-				psPVRPCI->abPCIResourceInUse[ui32Index] = IMG_FALSE;
-			}
-			return 1;
-		}
-		default:
-		{
-			printk(KERN_ERR "OSPCIAddrRangeFunc: Unknown function");
-			break;
-		}
+		return 1;
+	}
+	default: {
+		printk(KERN_ERR "OSPCIAddrRangeFunc: Unknown function");
+		break;
+	}
 	}
 
 	return 0;
@@ -245,9 +238,11 @@ static IMG_UINT64 OSPCIAddrRangeFunc(enum HOST_PCI_ADDR_RANGE_FUNC eFunc,
 @Return		IMG_UINT32              Length of address range or 0 if no
                                         such range
 */ /**************************************************************************/
-IMG_UINT64 OSPCIAddrRangeLen(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index)
+IMG_UINT64 OSPCIAddrRangeLen(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+			     IMG_UINT32 ui32Index)
 {
-	return OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_LEN, hPVRPCI, ui32Index);
+	return OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_LEN, hPVRPCI,
+				  ui32Index);
 }
 
 /*************************************************************************/ /*!
@@ -258,9 +253,11 @@ IMG_UINT64 OSPCIAddrRangeLen(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index
 @Return		IMG_UINT32              Start of address range or 0 if no
                                         such range
 */ /**************************************************************************/
-IMG_UINT64 OSPCIAddrRangeStart(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index)
+IMG_UINT64 OSPCIAddrRangeStart(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+			       IMG_UINT32 ui32Index)
 {
-	return OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_START, hPVRPCI, ui32Index);
+	return OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_START, hPVRPCI,
+				  ui32Index);
 }
 
 /*************************************************************************/ /*!
@@ -271,9 +268,11 @@ IMG_UINT64 OSPCIAddrRangeStart(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Ind
 @Return		IMG_UINT32              End of address range or 0 if no such
                                         range
 */ /**************************************************************************/
-IMG_UINT64 OSPCIAddrRangeEnd(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index)
+IMG_UINT64 OSPCIAddrRangeEnd(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+			     IMG_UINT32 ui32Index)
 {
-	return OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_END, hPVRPCI, ui32Index);
+	return OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_END, hPVRPCI,
+				  ui32Index);
 }
 
 /*************************************************************************/ /*!
@@ -284,14 +283,12 @@ IMG_UINT64 OSPCIAddrRangeEnd(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index
 @Return	        PVRSRV_ERROR	        Services error code
 */ /**************************************************************************/
 PVRSRV_ERROR OSPCIRequestAddrRange(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
-								   IMG_UINT32 ui32Index)
+				   IMG_UINT32 ui32Index)
 {
-	if (OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_REQUEST, hPVRPCI, ui32Index) == 0)
-	{
+	if (OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_REQUEST, hPVRPCI,
+			       ui32Index) == 0) {
 		return PVRSRV_ERROR_PCI_CALL_FAILED;
-	}
-	else
-	{
+	} else {
 		return PVRSRV_OK;
 	}
 }
@@ -303,14 +300,13 @@ PVRSRV_ERROR OSPCIRequestAddrRange(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
 @Input          ui32Index               Address range index
 @Return	        PVRSRV_ERROR	        Services error code
 */ /**************************************************************************/
-PVRSRV_ERROR OSPCIReleaseAddrRange(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index)
+PVRSRV_ERROR OSPCIReleaseAddrRange(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+				   IMG_UINT32 ui32Index)
 {
-	if (OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_RELEASE, hPVRPCI, ui32Index) == 0)
-	{
+	if (OSPCIAddrRangeFunc(HOST_PCI_ADDR_RANGE_FUNC_RELEASE, hPVRPCI,
+			       ui32Index) == 0) {
 		return PVRSRV_ERROR_PCI_CALL_FAILED;
-	}
-	else
-	{
+	} else {
 		return PVRSRV_OK;
 	}
 }
@@ -326,9 +322,8 @@ PVRSRV_ERROR OSPCIReleaseAddrRange(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui3
 @Return	        PVRSRV_ERROR	        Services error code
 */ /**************************************************************************/
 PVRSRV_ERROR OSPCIRequestAddrRegion(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
-									IMG_UINT32 ui32Index,
-									IMG_UINT64 uiOffset,
-									IMG_UINT64 uiLength)
+				    IMG_UINT32 ui32Index, IMG_UINT64 uiOffset,
+				    IMG_UINT64 uiLength)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 	resource_size_t start;
@@ -338,22 +333,18 @@ PVRSRV_ERROR OSPCIRequestAddrRegion(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
 	end = pci_resource_end(psPVRPCI->psPCIDev, ui32Index);
 
 	/* Check that the requested region is valid */
-	if ((start + uiOffset + uiLength - 1) > end)
-	{
+	if ((start + uiOffset + uiLength - 1) > end) {
 		return PVRSRV_ERROR_BAD_REGION_SIZE_MISMATCH;
 	}
 
-	if (pci_resource_flags(psPVRPCI->psPCIDev, ui32Index) & IORESOURCE_IO)
-	{
-		if (request_region(start + uiOffset, uiLength, PVRSRV_MODNAME) == NULL)
-		{
+	if (pci_resource_flags(psPVRPCI->psPCIDev, ui32Index) & IORESOURCE_IO) {
+		if (request_region(start + uiOffset, uiLength,
+				   PVRSRV_MODNAME) == NULL) {
 			return PVRSRV_ERROR_PCI_REGION_UNAVAILABLE;
 		}
-	}
-	else
-	{
-		if (request_mem_region(start + uiOffset, uiLength, PVRSRV_MODNAME) == NULL)
-		{
+	} else {
+		if (request_mem_region(start + uiOffset, uiLength,
+				       PVRSRV_MODNAME) == NULL) {
 			return PVRSRV_ERROR_PCI_REGION_UNAVAILABLE;
 		}
 	}
@@ -373,9 +364,8 @@ PVRSRV_ERROR OSPCIRequestAddrRegion(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
 @Return	        PVRSRV_ERROR	        Services error code
 */ /**************************************************************************/
 PVRSRV_ERROR OSPCIReleaseAddrRegion(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
-									IMG_UINT32 ui32Index,
-									IMG_UINT64 uiOffset,
-									IMG_UINT64 uiLength)
+				    IMG_UINT32 ui32Index, IMG_UINT64 uiOffset,
+				    IMG_UINT64 uiLength)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 	resource_size_t start;
@@ -385,17 +375,13 @@ PVRSRV_ERROR OSPCIReleaseAddrRegion(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
 	end = pci_resource_end(psPVRPCI->psPCIDev, ui32Index);
 
 	/* Check that the region is valid */
-	if ((start + uiOffset + uiLength - 1) > end)
-	{
+	if ((start + uiOffset + uiLength - 1) > end) {
 		return PVRSRV_ERROR_BAD_REGION_SIZE_MISMATCH;
 	}
 
-	if (pci_resource_flags(psPVRPCI->psPCIDev, ui32Index) & IORESOURCE_IO)
-	{
+	if (pci_resource_flags(psPVRPCI->psPCIDev, ui32Index) & IORESOURCE_IO) {
 		release_region(start + uiOffset, uiLength);
-	}
-	else
-	{
+	} else {
 		release_mem_region(start + uiOffset, uiLength);
 	}
 
@@ -414,23 +400,23 @@ PVRSRV_ERROR OSPCIReleaseDev(PVRSRV_PCI_DEV_HANDLE hPVRPCI)
 	int i;
 
 	/* Release all PCI regions that are currently in use */
-	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++)
-	{
-		if (psPVRPCI->abPCIResourceInUse[i])
-		{
+	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+		if (psPVRPCI->abPCIResourceInUse[i]) {
 			pci_release_region(psPVRPCI->psPCIDev, i);
 			psPVRPCI->abPCIResourceInUse[i] = IMG_FALSE;
 		}
 	}
 
 #if defined(CONFIG_PCI_MSI)
-	if (psPVRPCI->ePCIFlags & HOST_PCI_INIT_FLAG_MSI)		/* PRQA S 3358 */ /* misuse of enums */
+	if (psPVRPCI->ePCIFlags &
+	    HOST_PCI_INIT_FLAG_MSI) /* PRQA S 3358 */ /* misuse of enums */
 	{
 		pci_disable_msi(psPVRPCI->psPCIDev);
 	}
 #endif
 
-	if (psPVRPCI->ePCIFlags & HOST_PCI_INIT_FLAG_BUS_MASTER)	/* PRQA S 3358 */ /* misuse of enums */
+	if (psPVRPCI->ePCIFlags &
+	    HOST_PCI_INIT_FLAG_BUS_MASTER) /* PRQA S 3358 */ /* misuse of enums */
 	{
 		pci_clear_master(psPVRPCI->psPCIDev);
 	}
@@ -456,37 +442,40 @@ PVRSRV_ERROR OSPCISuspendDev(PVRSRV_PCI_DEV_HANDLE hPVRPCI)
 	int err;
 
 	/* Release all PCI regions that are currently in use */
-	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++)
-	{
-		if (psPVRPCI->abPCIResourceInUse[i])
-		{
+	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+		if (psPVRPCI->abPCIResourceInUse[i]) {
 			pci_release_region(psPVRPCI->psPCIDev, i);
 		}
 	}
 
 	err = pci_save_state(psPVRPCI->psPCIDev);
-	if (err != 0)
-	{
-		printk(KERN_ERR "OSPCISuspendDev: pci_save_state_failed (%d)", err);
+	if (err != 0) {
+		printk(KERN_ERR "OSPCISuspendDev: pci_save_state_failed (%d)",
+		       err);
 		return PVRSRV_ERROR_PCI_CALL_FAILED;
 	}
 
 	pci_disable_device(psPVRPCI->psPCIDev);
 
-	err = pci_set_power_state(psPVRPCI->psPCIDev, pci_choose_state(psPVRPCI->psPCIDev, PMSG_SUSPEND));
-	switch (err)
-	{
-		case 0:
-			break;
-		case -EIO:
-			printk(KERN_ERR "OSPCISuspendDev: device doesn't support PCI PM");
-			break;
-		case -EINVAL:
-			printk(KERN_ERR "OSPCISuspendDev: can't enter requested power state");
-			break;
-		default:
-			printk(KERN_ERR "OSPCISuspendDev: pci_set_power_state failed (%d)", err);
-			break;
+	err = pci_set_power_state(psPVRPCI->psPCIDev,
+				  pci_choose_state(psPVRPCI->psPCIDev,
+						   PMSG_SUSPEND));
+	switch (err) {
+	case 0:
+		break;
+	case -EIO:
+		printk(KERN_ERR
+		       "OSPCISuspendDev: device doesn't support PCI PM");
+		break;
+	case -EINVAL:
+		printk(KERN_ERR
+		       "OSPCISuspendDev: can't enter requested power state");
+		break;
+	default:
+		printk(KERN_ERR
+		       "OSPCISuspendDev: pci_set_power_state failed (%d)",
+		       err);
+		break;
 	}
 
 	return PVRSRV_OK;
@@ -504,43 +493,49 @@ PVRSRV_ERROR OSPCIResumeDev(PVRSRV_PCI_DEV_HANDLE hPVRPCI)
 	int err;
 	int i;
 
-	err = pci_set_power_state(psPVRPCI->psPCIDev, pci_choose_state(psPVRPCI->psPCIDev, PMSG_ON));
-	switch (err)
-	{
-		case 0:
-			break;
-		case -EIO:
-			printk(KERN_ERR "OSPCIResumeDev: device doesn't support PCI PM");
-			break;
-		case -EINVAL:
-			printk(KERN_ERR "OSPCIResumeDev: can't enter requested power state");
-			return PVRSRV_ERROR_UNKNOWN_POWER_STATE;
-		default:
-			printk(KERN_ERR "OSPCIResumeDev: pci_set_power_state failed (%d)", err);
-			return PVRSRV_ERROR_UNKNOWN_POWER_STATE;
+	err = pci_set_power_state(psPVRPCI->psPCIDev,
+				  pci_choose_state(psPVRPCI->psPCIDev,
+						   PMSG_ON));
+	switch (err) {
+	case 0:
+		break;
+	case -EIO:
+		printk(KERN_ERR
+		       "OSPCIResumeDev: device doesn't support PCI PM");
+		break;
+	case -EINVAL:
+		printk(KERN_ERR
+		       "OSPCIResumeDev: can't enter requested power state");
+		return PVRSRV_ERROR_UNKNOWN_POWER_STATE;
+	default:
+		printk(KERN_ERR
+		       "OSPCIResumeDev: pci_set_power_state failed (%d)",
+		       err);
+		return PVRSRV_ERROR_UNKNOWN_POWER_STATE;
 	}
 
 	pci_restore_state(psPVRPCI->psPCIDev);
 
 	err = pci_enable_device(psPVRPCI->psPCIDev);
-	if (err != 0)
-	{
-		printk(KERN_ERR "OSPCIResumeDev: Couldn't enable device (%d)", err);
+	if (err != 0) {
+		printk(KERN_ERR "OSPCIResumeDev: Couldn't enable device (%d)",
+		       err);
 		return PVRSRV_ERROR_PCI_CALL_FAILED;
 	}
 
-	if (psPVRPCI->ePCIFlags & HOST_PCI_INIT_FLAG_BUS_MASTER)	/* PRQA S 3358 */ /* misuse of enums */
+	if (psPVRPCI->ePCIFlags &
+	    HOST_PCI_INIT_FLAG_BUS_MASTER) /* PRQA S 3358 */ /* misuse of enums */
 		pci_set_master(psPVRPCI->psPCIDev);
 
 	/* Restore the PCI resource tracking array */
-	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++)
-	{
-		if (psPVRPCI->abPCIResourceInUse[i])
-		{
-			err = pci_request_region(psPVRPCI->psPCIDev, i, PVRSRV_MODNAME);
-			if (err != 0)
-			{
-				printk(KERN_ERR "OSPCIResumeDev: pci_request_region_failed (region %d, error %d)", i, err);
+	for (i = 0; i < DEVICE_COUNT_RESOURCE; i++) {
+		if (psPVRPCI->abPCIResourceInUse[i]) {
+			err = pci_request_region(psPVRPCI->psPCIDev, i,
+						 PVRSRV_MODNAME);
+			if (err != 0) {
+				printk(KERN_ERR
+				       "OSPCIResumeDev: pci_request_region_failed (region %d, error %d)",
+				       i, err);
 			}
 		}
 	}
@@ -557,20 +552,18 @@ PVRSRV_ERROR OSPCIResumeDev(PVRSRV_PCI_DEV_HANDLE hPVRPCI)
 @Return         PVRSRV_ERROR            Services error code
 */ /**************************************************************************/
 PVRSRV_ERROR OSPCIGetVendorDeviceIDs(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
-                                     IMG_UINT16 *pui16VendorID,
-                                     IMG_UINT16 *pui16DeviceID)
+				     IMG_UINT16 *pui16VendorID,
+				     IMG_UINT16 *pui16DeviceID)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 	struct pci_dev *psPCIDev;
 
-	if (psPVRPCI == NULL)
-	{
+	if (psPVRPCI == NULL) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	psPCIDev = psPVRPCI->psPCIDev;
-	if (psPCIDev == NULL)
-	{
+	if (psPCIDev == NULL) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -589,7 +582,8 @@ PVRSRV_ERROR OSPCIGetVendorDeviceIDs(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
 @Input          ui32Index               Address range index
 @Return	        PVRSRV_ERROR	        Services error code
 */ /**************************************************************************/
-PVRSRV_ERROR OSPCIClearResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index)
+PVRSRV_ERROR OSPCIClearResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+				     IMG_UINT32 ui32Index)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 	resource_size_t start, end;
@@ -600,14 +594,12 @@ PVRSRV_ERROR OSPCIClearResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 u
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
 	res = arch_io_reserve_memtype_wc(start, end - start);
-	if (res)
-	{
+	if (res) {
 		return PVRSRV_ERROR_PCI_CALL_FAILED;
 	}
 #endif
 	res = arch_phys_wc_add(start, end - start);
-	if (res < 0)
-	{
+	if (res < 0) {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 9, 0))
 		arch_io_free_memtype_wc(start, end - start);
 #endif
@@ -625,12 +617,12 @@ PVRSRV_ERROR OSPCIClearResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 u
 @Input          hPVRPCI                 PCI device handle
 @Input          ui32Index               Address range index
 */ /**************************************************************************/
-void OSPCIReleaseResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Index)
+void OSPCIReleaseResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI,
+			       IMG_UINT32 ui32Index)
 {
 	PVR_PCI_DEV *psPVRPCI = (PVR_PCI_DEV *)hPVRPCI;
 
-	if (psPVRPCI->iMTRR[ui32Index] >= 0)
-	{
+	if (psPVRPCI->iMTRR[ui32Index] >= 0) {
 		arch_phys_wc_del(psPVRPCI->iMTRR[ui32Index]);
 		psPVRPCI->iMTRR[ui32Index] = -1;
 
@@ -638,8 +630,10 @@ void OSPCIReleaseResourceMTRRs(PVRSRV_PCI_DEV_HANDLE hPVRPCI, IMG_UINT32 ui32Ind
 		{
 			resource_size_t start, end;
 
-			start = pci_resource_start(psPVRPCI->psPCIDev, ui32Index);
-			end = pci_resource_end(psPVRPCI->psPCIDev, ui32Index) + 1;
+			start = pci_resource_start(psPVRPCI->psPCIDev,
+						   ui32Index);
+			end = pci_resource_end(psPVRPCI->psPCIDev, ui32Index) +
+			      1;
 
 			arch_io_free_memtype_wc(start, end - start);
 		}
