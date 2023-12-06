@@ -50,7 +50,12 @@ endif
 MAKECMDGOALS ?= build
 .PHONY: $(MAKECMDGOALS)
 .SUFFIXES:
-.DEFAULT $(MAKECMDGOALS):
+.DEFAULT $(filter-out clang-format,$(MAKECMDGOALS)):
 	@$(if $(ALREADY_INVOKED_SUBMAKE),:,$(eval ALREADY_INVOKED_SUBMAKE := true)$(MAKE) --no-print-directory -C $(TOP)/build/linux/$(PVR_BUILD_DIR) $(MAKECMDGOALS) TOP=$(TOP))
 
 Makefile: ;
+
+clang-format: ;
+	find $(TOP) -name '*.[ch]' -type f \
+		-exec printf 'Formatting: %s\n' "{}" \; \
+		-exec clang-format -assume-filename="{}" -i "{}" \;
