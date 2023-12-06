@@ -43,14 +43,21 @@ TOP := $(patsubst %/,%,$(dir $(abspath $(lastword $(MAKEFILE_LIST)))))
 
 ALREADY_INVOKED_SUBMAKE :=
 ifeq ($(strip $(PVR_BUILD_DIR)),)
-$(info ** PVR_BUILD_DIR was empty or unset. This should be the name of a directory)
-$(info ** under build/linux, like: export PVR_BUILD_DIR=nohw_linux)
-$(error PVR_BUILD_DIR unset)
+ ifneq ($(strip $(MAKECMDGOALS)),clang-format)
+  $(info ** PVR_BUILD_DIR was empty or unset. This should be the name of a directory)
+  $(info ** under build/linux, like: export PVR_BUILD_DIR=nohw_linux)
+  $(error PVR_BUILD_DIR unset)
+ endif
 endif
 MAKECMDGOALS ?= build
 .PHONY: $(MAKECMDGOALS)
 .SUFFIXES:
-.DEFAULT $(MAKECMDGOALS):
+.DEFAULT $(filter-out clang-format,$(MAKECMDGOALS)):
 	@$(if $(ALREADY_INVOKED_SUBMAKE),:,$(eval ALREADY_INVOKED_SUBMAKE := true)$(MAKE) --no-print-directory -C $(TOP)/build/linux/$(PVR_BUILD_DIR) $(MAKECMDGOALS) TOP=$(TOP))
 
 Makefile: ;
+
+clang-format: ;
+	find $(TOP) -name '*.[ch]' -type f \
+		-exec printf 'Formatting: %s\n' "{}" \; \
+		-exec clang-format -assume-filename="{}" -i "{}" \;
