@@ -418,6 +418,22 @@ static PVRSRV_ERROR _DevPhysHeapFromFlags(PVRSRV_MEMALLOCFLAGS_T uiFlags,
 	return PVRSRV_OK;
 }
 
+static INLINE void _PromoteToCpuCached(PVRSRV_MEMALLOCFLAGS_T *puiFlags)
+{
+	if ((*puiFlags & (PVRSRV_MEMALLOCFLAG_CPU_READABLE |
+			  PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
+			  PVRSRV_MEMALLOCFLAG_KERNEL_CPU_MAPPABLE)) == 0) {
+		/* We don't need to upgrade if we don't map into the CPU */
+		return;
+	}
+
+	/* Clear the existing CPU cache flags */
+	*puiFlags &= ~(PVRSRV_MEMALLOCFLAG_CPU_CACHE_MODE_MASK);
+
+	/* Add CPU cached flags */
+	*puiFlags |= PVRSRV_MEMALLOCFLAG_CPU_CACHE_INCOHERENT;
+}
+
 PVRSRV_ERROR
 PhysmemNewRamBackedPMR_direct(
 	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
@@ -444,8 +460,15 @@ PhysmemNewRamBackedPMR_direct(
 	 */
 	PVR_UNREFERENCED_PARAMETER(uiAnnotationLength);
 
+	if (PVRSRVSystemSnoopingOfCPUCache(psDevNode->psDevConfig) &&
+	    psDevNode->pfnGetDeviceSnoopMode(psDevNode) ==
+		    PVRSRV_DEVICE_SNOOP_CPU_ONLY) {
+		_PromoteToCpuCached(&uiPMRFlags);
+	}
+
 	eError = PhysMemValidateParams(ui32NumPhysChunks, ui32NumVirtChunks,
 				       uiFlags, &uiLog2AllocPageSize, &uiSize);
+
 	PVR_RETURN_IF_ERROR(eError);
 
 #if defined(PVRSRV_SUPPORT_IPA_FEATURE)
