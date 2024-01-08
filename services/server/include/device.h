@@ -416,6 +416,8 @@ typedef struct _PVRSRV_DEVICE_NODE_ {
 		struct _PVRSRV_DEVICE_NODE_ *psDevNode,
 		IMG_BOOL bKernelMemoryCtx);
 
+	PVRSRV_DEVICE_SNOOP_MODE (*pfnGetDeviceSnoopMode)(struct _PVRSRV_DEVICE_NODE_ *psDevNode);
+
 	PVRSRV_DEVICE_CONFIG *psDevConfig;
 
 	/* device post-finalise compatibility check */

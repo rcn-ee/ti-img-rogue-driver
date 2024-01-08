@@ -1548,6 +1548,17 @@ static MMU_DEVICEATTRIBS *RGXDevMMUAttributes(PVRSRV_DEVICE_NODE *psDeviceNode,
 	return psMMUDevAttrs;
 }
 
+
+/*
+	RGXDevSnoopMode
+*/
+static PVRSRV_DEVICE_SNOOP_MODE RGXDevSnoopMode(PVRSRV_DEVICE_NODE *psDeviceNode)
+{
+	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
+
+	return PVRSRV_DEVICE_SNOOP_NONE;
+}
+
 /*
  * RGXInitDevPart2
  */
@@ -4664,6 +4675,7 @@ PVRSRV_ERROR RGXRegisterDevice(PVRSRV_DEVICE_NODE *psDeviceNode)
 
 	/* Callback for getting the MMU device attributes */
 	psDeviceNode->pfnGetMMUDeviceAttributes = RGXDevMMUAttributes;
+	psDeviceNode->pfnGetDeviceSnoopMode = RGXDevSnoopMode;
 	psDeviceNode->pfnMMUCacheInvalidate = RGXMMUCacheInvalidate;
 	psDeviceNode->pfnMMUCacheInvalidateKick = RGXMMUCacheInvalidateKick;
 #if defined(RGX_BRN71422_TARGET_HARDWARE_PHYSICAL_ADDR)
