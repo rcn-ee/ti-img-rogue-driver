@@ -54,6 +54,9 @@ ENABLE_EMULATED_LARGE_TEXTURES := 1
 
 SUPPORT_NATIVE_FENCE_SYNC := 1
 
+# HACK to circumvent buffer import issues for now
+SUPPORT_WRAP_EXTMEM := 0
+
 KERNEL_COMPONENTS := srvkm
 
 ifeq ($(PVR_REMVIEW),1)
