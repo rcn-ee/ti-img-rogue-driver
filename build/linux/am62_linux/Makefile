@@ -48,6 +48,9 @@ ifneq ($(SUPPORT_KMS),1)
 $(error This platform only supports window systems that use the standard Linux driver model.)
 endif
 
+# HACK to circumvent buffer import issues for now
+SUPPORT_WRAP_EXTMEM := 0
+
 NO_HARDWARE := 0
 PVR_LDM_PLATFORM_PRE_REGISTERED := 1
 
