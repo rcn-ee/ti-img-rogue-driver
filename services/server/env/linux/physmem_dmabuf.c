@@ -46,7 +46,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "physmem_dmabuf.h"
 #include "physmem_dmabuf_internal.h"
-#include "physmem.h"
 #include "pvrsrv.h"
 #include "pmr.h"
 
@@ -110,11 +109,6 @@ typedef struct _PMR_DMA_BUF_WRAPPER_ {
 	void *pvKernelMappingAddr;
 	PMR_SIZE_T uiKernelMappingLen;
 	POS_LOCK hKernelMappingLock;
-
-	/* device mapping */
-	IMG_UINT32 uiDeviceMappingRefCnt;
-	POS_LOCK hDeviceMappingLock;
-	struct sg_table *psTable;
 } PMR_DMA_BUF_WRAPPER;
 
 typedef struct _PMR_DMA_BUF_GEM_OBJ {
@@ -268,191 +262,7 @@ PVRDmaBufOpsMapCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
 		      struct dma_buf_attachment *psAttachment,
 		      enum dma_data_direction eDirection)
 {
-	PVRSRV_ERROR eError;
-	PMR *psPMR = psPMRWrapper->psPMR;
-	IMG_UINT uiNents;
-	IMG_DEVMEM_SIZE_T uiPhysSize, uiVirtSize;
-	IMG_UINT32 uiNumVirtPages;
-	void *pvPAddrData = NULL;
-	IMG_DEV_PHYADDR asPAddr[PMR_MAX_TRANSLATION_STACK_ALLOC],
-		*psPAddr = asPAddr;
-	IMG_BOOL abValid[PMR_MAX_TRANSLATION_STACK_ALLOC], *pbValid = abValid;
-	IMG_UINT32 i;
-	IMG_DEV_PHYADDR sPAddrPrev, sPAddrCurr;
-	struct sg_table *psTable;
-	struct scatterlist *psSg;
-	int iRet = 0;
-	IMG_UINT32 uiDevPageShift, uiDevPageSize;
-
-	OSLockAcquire(psPMRWrapper->hDeviceMappingLock);
-
-	psPMRWrapper->uiDeviceMappingRefCnt++;
-
-	if (psPMRWrapper->uiDeviceMappingRefCnt > 1) {
-		goto OkUnlock;
-	}
-
-	PVR_ASSERT(psPMRWrapper->psTable == NULL);
-
-	uiDevPageShift = PMR_GetLog2Contiguity(psPMR);
-	uiDevPageSize = 1u << uiDevPageShift;
-	uiVirtSize = PMR_LogicalSize(psPMR);
-	uiPhysSize = PMR_PhysicalSize(psPMR);
-	if (uiPhysSize == 0) {
-		PVR_DPF((PVR_DBG_ERROR, "invalid PMR size"));
-		goto ErrUnlockMapping;
-	}
-
-	PVR_DPF((PVR_DBG_MESSAGE,
-		 "%s(): mapping pmr: 0x%p@0x%" IMG_UINT64_FMTSPECx
-		 " from heap: \"%s\" with page size: 0x%x",
-		 __func__, psPMR, uiPhysSize, PhysHeapName(PMR_PhysHeap(psPMR)),
-		 uiDevPageSize));
-
-	uiNumVirtPages = uiVirtSize >> uiDevPageShift;
-
-	eError = PMRLockSysPhysAddresses(psPMR);
-	if (eError != PVRSRV_OK) {
-		PVR_LOG_IF_ERROR(eError, "PMRLockSysPhysAddresses");
-		iRet = PVRSRVToNativeError(eError);
-		goto ErrUnlockMapping;
-	}
-
-	PMR_SetLayoutFixed(psPMR, IMG_TRUE);
-
-	psTable = OSAllocZMem(sizeof(*psTable));
-	if (psTable == NULL) {
-		PVR_DPF((PVR_DBG_ERROR, "OSAllocMem.1() failed"));
-		iRet = -ENOMEM;
-		goto ErrUnlockPhysAddresses;
-	}
-
-	if (uiNumVirtPages > PMR_MAX_TRANSLATION_STACK_ALLOC) {
-		pvPAddrData = OSAllocMem(uiNumVirtPages *
-					 (sizeof(*psPAddr) + sizeof(*pbValid)));
-		if (pvPAddrData == NULL) {
-			PVR_DPF((PVR_DBG_ERROR, "OSAllocMem.2() failed"));
-			iRet = -ENOMEM;
-			goto ErrFreeTable;
-		}
-
-		psPAddr = IMG_OFFSET_ADDR(pvPAddrData, 0);
-		pbValid = IMG_OFFSET_ADDR(pvPAddrData,
-					  uiNumVirtPages * sizeof(*psPAddr));
-	}
-
-	eError = PMR_DevPhysAddr(psPMR, uiDevPageShift, uiNumVirtPages, 0,
-				 psPAddr, pbValid, DEVICE_USE);
-	if (eError != PVRSRV_OK) {
-		PVR_LOG_ERROR(eError, "PMR_DevPhysAddr");
-		iRet = PVRSRVToNativeError(eError);
-		goto ErrFreePAddrData;
-	}
-
-	/* Calculate how many contiguous regions there are in the PMR. This
-	 * value will be used to allocate one scatter list for every region. */
-
-	/* Find first valid physical address. */
-	for (i = 0; i < uiNumVirtPages && !pbValid[i]; i++)
-		;
-
-	sPAddrPrev = psPAddr[i];
-	uiNents = 1;
-
-	PVR_DPF((PVR_DBG_MESSAGE, "%s(): %03u paddr: 0x%" IMG_UINT64_FMTSPECx,
-		 __func__, i, sPAddrPrev.uiAddr));
-
-	/* Find the rest of the addresses. */
-	for (i = i + 1; i < uiNumVirtPages; i++) {
-		if (!pbValid[i]) {
-			continue;
-		}
-
-		sPAddrCurr = psPAddr[i];
-
-		PVR_DPF((PVR_DBG_MESSAGE,
-			 "%s(): %03u paddr: 0x%" IMG_UINT64_FMTSPECx
-			 ", pprev: 0x%" IMG_UINT64_FMTSPECx ", valid: %u",
-			 __func__, i, sPAddrCurr.uiAddr, sPAddrPrev.uiAddr,
-			 pbValid[i]));
-
-		if (sPAddrCurr.uiAddr != (sPAddrPrev.uiAddr + uiDevPageSize)) {
-			uiNents++;
-		}
-
-		sPAddrPrev = sPAddrCurr;
-	}
-
-	PVR_DPF((PVR_DBG_MESSAGE, "%s(): found %u contiguous regions", __func__,
-		 uiNents));
-
-	/* Allocate scatter lists from all of the contiguous regions. */
-
-	iRet = sg_alloc_table(psTable, uiNents, GFP_KERNEL);
-	if (iRet != 0) {
-		PVR_DPF((PVR_DBG_ERROR, "sg_alloc_table() failed with error %d",
-			 iRet));
-		goto ErrFreePAddrData;
-	}
-
-	/* Fill in all of the physical addresses and sizes for all of the
-	 * contiguous regions that were calculated. */
-
-	for (i = 0; i < uiNumVirtPages && !pbValid[i]; i++)
-		;
-
-	psSg = psTable->sgl;
-	sPAddrPrev = psPAddr[i];
-
-	sg_dma_address(psSg) = sPAddrPrev.uiAddr;
-	sg_dma_len(psSg) = uiDevPageSize;
-
-	for (i = i + 1; i < uiNumVirtPages; i++) {
-		if (!pbValid[i]) {
-			continue;
-		}
-
-		sPAddrCurr = psPAddr[i];
-
-		if (sPAddrCurr.uiAddr != (sPAddrPrev.uiAddr + uiDevPageSize)) {
-			psSg = sg_next(psSg);
-			PVR_ASSERT(psSg != NULL);
-
-			sg_dma_address(psSg) = sPAddrCurr.uiAddr;
-			sg_dma_len(psSg) = uiDevPageSize;
-		} else {
-			sg_dma_len(psSg) += uiDevPageSize;
-		}
-
-		sPAddrPrev = sPAddrCurr;
-	}
-
-	if (pvPAddrData != NULL) {
-		OSFreeMem(pvPAddrData);
-	}
-
-	psPMRWrapper->psTable = psTable;
-
-OkUnlock:
-	OSLockRelease(psPMRWrapper->hDeviceMappingLock);
-
-	return psPMRWrapper->psTable;
-
-ErrFreePAddrData:
-	if (pvPAddrData != NULL) {
-		OSFreeMem(pvPAddrData);
-	}
-ErrFreeTable:
-	OSFreeMem(psTable);
-ErrUnlockPhysAddresses : {
-	PVRSRV_ERROR eError2 = PMRUnlockSysPhysAddresses(psPMR);
-	PVR_LOG_IF_ERROR(eError2, "PMRUnlockSysPhysAddresses");
-}
-ErrUnlockMapping:
-	psPMRWrapper->uiKernelMappingRefCnt--;
-	OSLockRelease(psPMRWrapper->hDeviceMappingLock);
-
-	return ERR_PTR(iRet);
+	return ERR_PTR(-EINVAL);
 }
 
 static void PVRDmaBufOpsUnmapCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
@@ -460,34 +270,6 @@ static void PVRDmaBufOpsUnmapCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
 				    struct sg_table *psTable,
 				    enum dma_data_direction eDirection)
 {
-	PVRSRV_ERROR eError;
-
-	OSLockAcquire(psPMRWrapper->hDeviceMappingLock);
-
-	if (psPMRWrapper->uiDeviceMappingRefCnt == 0) {
-		PVR_DPF((PVR_DBG_ERROR,
-			 "reference count on mapping already 0"));
-		goto ErrUnlock;
-	}
-
-	psPMRWrapper->uiDeviceMappingRefCnt--;
-
-	if (psPMRWrapper->uiDeviceMappingRefCnt > 0) {
-		goto ErrUnlock;
-	}
-
-	dma_unmap_sg(psAttachment->dev, psTable->sgl, psTable->nents,
-		     eDirection);
-	sg_free_table(psTable);
-
-	eError = PMRUnlockSysPhysAddresses(psPMRWrapper->psPMR);
-	PVR_LOG_IF_ERROR(eError, "PMRUnlockSysPhysAddresses");
-
-	OSFreeMem(psPMRWrapper->psTable);
-	psPMRWrapper->psTable = NULL;
-
-ErrUnlock:
-	OSLockRelease(psPMRWrapper->hDeviceMappingLock);
 }
 
 static int PVRDmaBufOpsBeginCpuAccessCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
@@ -1361,7 +1143,6 @@ PhysmemCreateNewDmaBufBackedPMR(
 	struct sg_table *table;
 	IMG_UINT32 uiSglOffset;
 	IMG_CHAR pszAnnotation[DEVMEM_ANNOTATION_MAX_LEN];
-	IMG_UINT32 ui32ActualDmaBufPageCount;
 
 	bZeroOnAlloc = PVRSRV_CHECK_ZERO_ON_ALLOC(uiFlags);
 	bPoisonOnAlloc = PVRSRV_CHECK_POISON_ON_ALLOC(uiFlags);
@@ -1448,20 +1229,16 @@ PhysmemCreateNewDmaBufBackedPMR(
 		goto errUnmap;
 	}
 
-	/* Obtain actual page count of dma buf */
-	ui32ActualDmaBufPageCount = psAttachment->dmabuf->size / PAGE_SIZE;
-
-	if (WARN_ON(ui32ActualDmaBufPageCount <
-		    ui32NumPhysChunks * uiPagesPerChunk)) {
+	if (WARN_ON(ui32PageCount != ui32NumPhysChunks * uiPagesPerChunk)) {
 		PVR_DPF((PVR_DBG_ERROR,
-			 "%s: Requested physical chunks greater than "
-			 "number of physical dma buf pages",
+			 "%s: Requested physical chunks and actual "
+			 "number of physical dma buf pages don't match",
 			 __func__));
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
 		goto errUnmap;
 	}
 
-	psPrivData->ui32PhysPageCount = ui32ActualDmaBufPageCount;
+	psPrivData->ui32PhysPageCount = ui32PageCount;
 	psPrivData->psSgTable = table;
 	ui32PageCount = 0;
 	sg = table->sgl;
@@ -1586,7 +1363,6 @@ static void PhysmemDestroyPMRWrapper(PMR_DMA_BUF_WRAPPER *psPMRWrapper)
 	dma_resv_fini(&psPMRWrapper->sDmaResv);
 
 	OSLockDestroy(psPMRWrapper->hKernelMappingLock);
-	OSLockDestroy(psPMRWrapper->hDeviceMappingLock);
 	OSFreeMem(psPMRWrapper);
 }
 
@@ -1609,21 +1385,15 @@ static PVRSRV_ERROR PhysmemCreatePMRWrapper(PMR *psPMR,
 	psPMRWrapper->psPMR = psPMR;
 
 	eError = OSLockCreate(&psPMRWrapper->hKernelMappingLock);
-	PVR_LOG_GOTO_IF_ERROR(eError, "OSLockCreate.1",
-			      fail_kernel_mapping_lock_create);
-
-	eError = OSLockCreate(&psPMRWrapper->hDeviceMappingLock);
-	PVR_LOG_GOTO_IF_ERROR(eError, "OSLockCreate.2",
-			      fail_device_mapping_lock_create);
+	PVR_LOG_GOTO_IF_ERROR(eError, "OSLockCreate", fail_lock_create);
 
 	dma_resv_init(&psPMRWrapper->sDmaResv);
 
 	*ppsPMRWrapper = psPMRWrapper;
 
 	return PVRSRV_OK;
-fail_device_mapping_lock_create:
-	OSLockDestroy(psPMRWrapper->hKernelMappingLock);
-fail_kernel_mapping_lock_create:
+
+fail_lock_create:
 	OSFreeMem(psPMRWrapper);
 fail_alloc_mem:
 	return eError;
@@ -1994,8 +1764,33 @@ PhysmemImportSparseDmaBuf(
 		return PVRSRV_OK;
 	}
 
-	{ /* Parameter validation - Mapping table entries*/
+	/* Do we want this to be a sparse PMR? */
+	if (ui32NumVirtChunks > 1) {
 		IMG_UINT32 i;
+
+		/* Parameter validation */
+		if (psDmaBuf->size != (uiChunkSize * ui32NumPhysChunks) ||
+		    uiChunkSize != PAGE_SIZE ||
+		    ui32NumPhysChunks > ui32NumVirtChunks) {
+			PVR_DPF((
+				PVR_DBG_ERROR,
+				"%s: Requesting sparse buffer: "
+				"uiChunkSize (" IMG_DEVMEM_SIZE_FMTSPEC
+				") must be equal to "
+				"OS page size (%lu). uiChunkSize * ui32NumPhysChunks "
+				"(" IMG_DEVMEM_SIZE_FMTSPEC ") must"
+				" be equal to the buffer size (" IMG_SIZE_FMTSPEC
+				"). "
+				"ui32NumPhysChunks (%u) must be lesser or equal to "
+				"ui32NumVirtChunks (%u)",
+				__func__, uiChunkSize, PAGE_SIZE,
+				uiChunkSize * ui32NumPhysChunks, psDmaBuf->size,
+				ui32NumPhysChunks, ui32NumVirtChunks));
+			PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_INVALID_PARAMS,
+					    errUnlockAndDMAPut);
+		}
+
+		/* Parameter validation - Mapping table entries*/
 		for (i = 0; i < ui32NumPhysChunks; i++) {
 			if (pui32MappingTable[i] > ui32NumVirtChunks) {
 				PVR_DPF((PVR_DBG_ERROR,
@@ -2010,32 +1805,9 @@ PhysmemImportSparseDmaBuf(
 						    errUnlockAndDMAPut);
 			}
 		}
-	}
-
-	/* Do we want this to be a sparse PMR? */
-	if (ui32NumVirtChunks > 1) {
-		/* Parameter validation */
-		if (psDmaBuf->size < (uiChunkSize * ui32NumPhysChunks) ||
-		    uiChunkSize != PAGE_SIZE) {
-			PVR_DPF((
-				PVR_DBG_ERROR,
-				"%s: Requesting sparse buffer: "
-				"uiChunkSize (" IMG_DEVMEM_SIZE_FMTSPEC
-				") must be equal to "
-				"OS page size (%lu). uiChunkSize * ui32NumPhysChunks "
-				"(" IMG_DEVMEM_SIZE_FMTSPEC ") must"
-				" not be greater than the buffer size (" IMG_SIZE_FMTSPEC
-				").",
-				__func__, uiChunkSize, PAGE_SIZE,
-				uiChunkSize * ui32NumPhysChunks,
-				psDmaBuf->size));
-			PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_INVALID_PARAMS,
-					    errUnlockAndDMAPut);
-		}
 	} else {
-		/* if ui32NumPhysChunks == 0 then pui32MappingTable == NULL
-		 * this is handled by the generated bridge code.
-		 * Because ui32NumPhysChunks is set to 1 below, we don't allow NULL array */
+		/* if ui32NumPhysChunks == 0 pui32MappingTable is NULL and because
+		 * is ui32NumPhysChunks is set to 1 below we don't allow NULL array */
 		if (pui32MappingTable == NULL) {
 			PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_INVALID_PARAMS,
 					    errUnlockAndDMAPut);
@@ -2045,16 +1817,6 @@ PhysmemImportSparseDmaBuf(
 		uiChunkSize = psDmaBuf->size;
 		ui32NumPhysChunks = 1;
 		ui32NumVirtChunks = 1;
-	}
-
-	{
-		IMG_DEVMEM_SIZE_T uiSize = ui32NumVirtChunks * uiChunkSize;
-		IMG_UINT32 uiLog2PageSize = PAGE_SHIFT; /* log2(uiChunkSize) */
-		eError = PhysMemValidateParams(ui32NumPhysChunks,
-					       ui32NumVirtChunks, uiFlags,
-					       &uiLog2PageSize, &uiSize);
-		PVR_LOG_GOTO_IF_ERROR(eError, "PhysMemValidateParams",
-				      errUnlockAndDMAPut);
 	}
 
 	psAttachment =
