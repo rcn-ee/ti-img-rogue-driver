@@ -1682,8 +1682,8 @@ PVRSRV_ERROR RGXInitDevPart2(PVRSRV_DEVICE_NODE *psDeviceNode,
 		(1 << psDevInfo->sDevFeatureCfg.ui32MAXRACCount) - 1;
 #endif
 
-	/* Assume system layer has turned power on by this point, required before powering device */
-	psDeviceNode->eCurrentSysPowerState = PVRSRV_SYS_POWER_STATE_ON;
+	/* Power on the GPU domain, if the system hasn't done it yet */
+	PVRSRVSetSystemPowerState(psDeviceNode->psDevConfig, PVRSRV_SYS_POWER_STATE_ON);
 
 	PDUMPCOMMENT(psDeviceNode, "RGX Initialisation Part 2");
 
@@ -3612,6 +3612,10 @@ static void DevPart2DeInitRGX(PVRSRV_DEVICE_NODE *psDeviceNode)
 
 	/* Remove the device from the power manager */
 	PVRSRVRemovePowerDevice(psDeviceNode);
+
+	/* Transition to system power OFF */
+	PVR_ASSERT(psDeviceNode->psDevConfig);
+	PVRSRVSetSystemPowerState(psDeviceNode->psDevConfig, PVRSRV_SYS_POWER_STATE_OFF);
 
 	psDevInfo->pfnGetGpuUtilStats = NULL;
 	if (psDevInfo->hGPUUtilLock != NULL) {

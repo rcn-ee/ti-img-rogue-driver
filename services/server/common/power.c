@@ -672,6 +672,117 @@ PVRSRVDevicePrePowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
 			    PVRSRV_POWER_FLAGS ePwrFlags)
 {
 	PVRSRV_DEV_POWER_STATE eCurrentPowerState;
+	IMG_UINT64 ui64DevTimer1 = 0;
+	IMG_UINT64 ui64DevTimer2 = 0;
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(eNewPowerState != PVRSRV_DEV_POWER_STATE_DEFAULT);
+
+	eCurrentPowerState = OSAtomicRead(&psPowerDevice->eCurrentPowerState);
+
+	if (psPowerDevice->pfnDevicePrePower != NULL)
+	{
+		ui64DevTimer1 = PVRSRVProcessStatsGetTimeNs();
+
+		/* Call the device's power callback. */
+		eError = psPowerDevice->pfnDevicePrePower(psPowerDevice->psDevNode,
+												  eNewPowerState,
+												  eCurrentPowerState,
+												  ePwrFlags);
+
+		ui64DevTimer2 = PVRSRVProcessStatsGetTimeNs();
+
+		PVR_RETURN_IF_ERROR(eError);
+	}
+
+	_InsertPowerTimeStatistic(psPowerDevice, 0ULL, 0ULL,
+							 ui64DevTimer1, ui64DevTimer2,
+							 BITMASK_HAS(ePwrFlags, PVRSRV_POWER_FLAGS_FORCED),
+							 eNewPowerState == PVRSRV_DEV_POWER_STATE_ON,
+							 IMG_TRUE);
+
+	return PVRSRV_OK;
+}
+
+/*!
+******************************************************************************
+
+ @Function	PVRSRVDevicePostPowerStateKM
+
+ @Description
+
+ Perform device-specific processing required after a power transition
+
+ @Input		psPowerDevice : Power device
+ @Input		eNewPowerState : New power state
+ @Input		ePwrFlags : Power state change flags
+
+ @Return	PVRSRV_ERROR
+
+******************************************************************************/
+static
+PVRSRV_ERROR PVRSRVDevicePostPowerStateKM(PVRSRV_POWER_DEV			*psPowerDevice,
+										  PVRSRV_DEV_POWER_STATE	eNewPowerState,
+										  PVRSRV_POWER_FLAGS		ePwrFlags)
+{
+	PVRSRV_DEV_POWER_STATE eCurrentPowerState;
+	IMG_UINT64 ui64DevTimer1 = 0;
+	IMG_UINT64 ui64DevTimer2 = 0;
+	PVRSRV_ERROR eError;
+
+	PVR_ASSERT(eNewPowerState != PVRSRV_DEV_POWER_STATE_DEFAULT);
+
+	eCurrentPowerState = OSAtomicRead(&psPowerDevice->eCurrentPowerState);
+
+	if (psPowerDevice->pfnDevicePostPower != NULL)
+	{
+		ui64DevTimer1 = PVRSRVProcessStatsGetTimeNs();
+
+		/* Call the device's power callback. */
+		eError = psPowerDevice->pfnDevicePostPower(psPowerDevice->psDevNode,
+												   eNewPowerState,
+												   eCurrentPowerState,
+												   ePwrFlags);
+
+		ui64DevTimer2 = PVRSRVProcessStatsGetTimeNs();
+
+		PVR_RETURN_IF_ERROR(eError);
+	}
+
+	_InsertPowerTimeStatistic(psPowerDevice, 0ULL, 0ULL,
+							 ui64DevTimer1, ui64DevTimer2,
+							 BITMASK_HAS(ePwrFlags, PVRSRV_POWER_FLAGS_FORCED),
+							 eNewPowerState == PVRSRV_DEV_POWER_STATE_ON,
+							 IMG_FALSE);
+
+	PVRSRVSetDeviceCurrentPowerState(psPowerDevice, eNewPowerState);
+
+	return PVRSRV_OK;
+}
+
+/*!
+******************************************************************************
+
+ @Function	PVRSRVDeviceSystemPrePowerStateKM
+
+ @Description
+
+ Perform device and system-specific processing required before a power
+ transition
+
+ @Input		psPowerDevice : Power device
+ @Input		eNewPowerState : New power state
+ @Input		ePwrFlags : Power state change flags
+
+ @Return	PVRSRV_ERROR
+
+******************************************************************************/
+static
+PVRSRV_ERROR PVRSRVDeviceSystemPrePowerStateKM(PVRSRV_POWER_DEV			*psPowerDevice,
+											   PVRSRV_DEV_POWER_STATE	eNewPowerState,
+											   PVRSRV_POWER_FLAGS		ePwrFlags)
+{
+	PVRSRV_DEV_POWER_STATE eCurrentPowerState;
 	IMG_UINT64 ui64SysTimer1 = 0;
 	IMG_UINT64 ui64SysTimer2 = 0;
 	IMG_UINT64 ui64DevTimer1 = 0;
@@ -753,11 +864,12 @@ ErrRestorePowerState:
 /*!
 ******************************************************************************
 
- @Function	PVRSRVDevicePostPowerStateKM
+ @Function	PVRSRVDeviceSystemPostPowerStateKM
 
  @Description
 
- Perform device-specific processing required after a power transition
+ Perform device and system-specific processing required after a power
+ transition
 
  @Input		psPowerDevice : Power device
  @Input		eNewPowerState : New power state
@@ -767,7 +879,7 @@ ErrRestorePowerState:
 
 ******************************************************************************/
 static PVRSRV_ERROR
-PVRSRVDevicePostPowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
+PVRSRVDeviceSystemPostPowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
 			     PVRSRV_DEV_POWER_STATE eNewPowerState,
 			     PVRSRV_POWER_FLAGS ePwrFlags)
 {
@@ -909,6 +1021,8 @@ PVRSRVSetDeviceSystemPowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
 		OSAtomicRead(&psDeviceNode->eHealthStatus);
 #endif
 
+	PVRSRV_DATA*    psPVRSRVData = PVRSRVGetPVRSRVData();
+	PVRSRV_POWER_DEV *psPowerDevice;
 	PVRSRV_DEV_POWER_STATE eNewDevicePowerState =
 		_IsSystemStatePowered(eNewSysPowerState) ?
 			PVRSRV_DEV_POWER_STATE_DEFAULT :
@@ -927,6 +1041,7 @@ PVRSRVSetDeviceSystemPowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
 
 	/* Prevent simultaneous SetPowerStateKM calls */
 	_PVRSRVForcedPowerLock(psDeviceNode);
+	psPowerDevice = psDeviceNode->psPowerDev;
 
 	/* No power transition requested, so do nothing */
 	if (eNewSysPowerState == psDeviceNode->eCurrentSysPowerState) {
@@ -953,12 +1068,42 @@ PVRSRVSetDeviceSystemPowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
 		}
 	}
 
-	eError = PVRSRVSetDevicePowerStateKM(psDeviceNode, eNewDevicePowerState,
-					     ePwrFlags |
-						     PVRSRV_POWER_FLAGS_FORCED);
-	if (eError != PVRSRV_OK) {
+	/* Call power function if the state change or if this is an OS request. */
+	if (OSAtomicRead(&psPowerDevice->eCurrentPowerState) != eNewDevicePowerState ||
+	    BITMASK_ANY(ePwrFlags, PVRSRV_POWER_FLAGS_OSPM_SUSPEND_REQ | PVRSRV_POWER_FLAGS_OSPM_RESUME_REQ))
+	{
+		eError = PVRSRVDeviceSystemPrePowerStateKM(psPowerDevice,
+												   eNewDevicePowerState,
+												   ePwrFlags);
 		uiStage = 2;
-		goto ErrorExit;
+		PVR_GOTO_IF_ERROR(eError, ErrorExit);
+
+		eError = PVRSRVDeviceSystemPostPowerStateKM(psPowerDevice,
+													eNewDevicePowerState,
+													ePwrFlags);
+		PVR_GOTO_IF_ERROR(eError, ErrorExit);
+
+		/* Signal Device Watchdog Thread about power mode change. */
+		if (eNewDevicePowerState == PVRSRV_DEV_POWER_STATE_ON)
+		{
+			psPVRSRVData->ui32DevicesWatchdogPwrTrans++;
+#if !defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+			if (psPVRSRVData->ui32DevicesWatchdogTimeout == DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT)
+#endif
+			{
+				eError = OSEventObjectSignal(psPVRSRVData->hDevicesWatchdogEvObj);
+				PVR_LOG_IF_ERROR(eError, "OSEventObjectSignal");
+			}
+		}
+#if defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
+		else if (eNewDevicePowerState == PVRSRV_DEV_POWER_STATE_OFF)
+		{
+			/* signal watchdog thread and give it a chance to switch to
+			 * longer / infinite wait time */
+			eError = OSEventObjectSignal(psPVRSRVData->hDevicesWatchdogEvObj);
+			PVR_LOG_IF_ERROR(eError, "OSEventObjectSignal");
+		}
+#endif /* defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP) */
 	}
 
 	psDeviceNode->eCurrentSysPowerState = eNewSysPowerState;
@@ -1101,6 +1246,8 @@ PVRSRV_ERROR PVRSRVRegisterPowerDevice(
 void PVRSRVRemovePowerDevice(PPVRSRV_DEVICE_NODE psDeviceNode)
 {
 	if (psDeviceNode->psPowerDev) {
+		/* RGX device/firmware should now be powered down */
+		PVR_ASSERT( PVRSRVIsDevicePowered(psDeviceNode) == IMG_FALSE );
 		OSFreeMem(psDeviceNode->psPowerDev);
 		psDeviceNode->psPowerDev = NULL;
 	}
