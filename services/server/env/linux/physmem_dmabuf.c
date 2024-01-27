@@ -129,7 +129,7 @@ static PVRSRV_ERROR _PMRKMap(PMR_DMA_BUF_WRAPPER *psPMRWrapper, size_t uiSize,
 
 	OSLockAcquire(psPMRWrapper->hKernelMappingLock);
 
-	if (psPMRWrapper->uiKernelMappingRefCnt++ == 0) {
+	if (psPMRWrapper->uiKernelMappingRefCnt == 0) {
 		PVR_ASSERT(psPMRWrapper->hKernelMappingHandle == NULL);
 		PVR_ASSERT(psPMRWrapper->pvKernelMappingAddr == NULL);
 
@@ -155,10 +155,9 @@ static PVRSRV_ERROR _PMRKMap(PMR_DMA_BUF_WRAPPER *psPMRWrapper, size_t uiSize,
 	}
 
 	*pvAddr = psPMRWrapper->pvKernelMappingAddr;
+	++(psPMRWrapper->uiKernelMappingRefCnt);
 
 ErrReleaseLock:
-	psPMRWrapper->uiKernelMappingRefCnt--;
-
 	OSLockRelease(psPMRWrapper->hKernelMappingLock);
 
 	return eError;
@@ -168,7 +167,10 @@ static void _PMRKUnmap(PMR_DMA_BUF_WRAPPER *psPMRWrapper)
 {
 	OSLockAcquire(psPMRWrapper->hKernelMappingLock);
 
-	if (--psPMRWrapper->uiKernelMappingRefCnt == 0) {
+	if (psPMRWrapper->uiKernelMappingRefCnt != 0)
+		--(psPMRWrapper->uiKernelMappingRefCnt);
+
+	if (psPMRWrapper->uiKernelMappingRefCnt == 0) {
 		PVRSRV_ERROR eError;
 
 		PVR_ASSERT(psPMRWrapper->hKernelMappingHandle != NULL);
