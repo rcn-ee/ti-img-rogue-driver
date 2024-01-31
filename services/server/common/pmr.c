@@ -2101,9 +2101,9 @@ PMR_DevPhysAddr(const PMR *psPMR, IMG_UINT32 ui32Log2PageSize,
 	IMG_UINT32 ui32IPAHeapPolicyValue; /* Phys-heap default policy value */
 	IMG_UINT32 ui32IPAHeapClearMask; /* Phys-heap ClearMask bitmask */
 	IMG_UINT64
-		ui64IPAPolicy; /* IPAPolicy value to be applied to physical address(es) */
+	ui64IPAPolicy; /* IPAPolicy value to be applied to physical address(es) */
 	IMG_UINT64
-		ui64IPAClearMask; /* IPAClearMask to be applied to physical address(es) */
+	ui64IPAClearMask; /* IPAClearMask to be applied to physical address(es) */
 #else
 	PVR_UNREFERENCED_PARAMETER(ePMRUsage);
 #endif
@@ -3266,6 +3266,12 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 	IMG_DEV_PHYADDR *pasDevAddrPtr;
 	IMG_BOOL *pbPageIsValid;
 #endif
+	PVRSRV_DEVICE_NODE *psDevNode =
+		PhysHeapDeviceNode(psPageListPMR->psPhysHeap);
+	IMG_BOOL bCPUCacheSnoop =
+		(PVRSRVSystemSnoopingOfCPUCache(psDevNode->psDevConfig) &&
+		 psDevNode->pfnGetDeviceSnoopMode(psDevNode) ==
+			 PVRSRV_DEVICE_SNOOP_CPU_ONLY);
 
 	uiWordSize = PMR_PM_WORD_SIZE;
 
@@ -3315,9 +3321,9 @@ PMRWritePMPageList(/* Target PMR, offset, and length */
 	}
 
 	/* the PMR into which we are writing must not be user CPU cacheable: */
-	if (PVRSRV_CHECK_CPU_CACHE_INCOHERENT(uiFlags) ||
-	    PVRSRV_CHECK_CPU_CACHE_COHERENT(uiFlags) ||
-	    PVRSRV_CHECK_CPU_CACHED(uiFlags)) {
+	if (!bCPUCacheSnoop && (PVRSRV_CHECK_CPU_CACHE_INCOHERENT(uiFlags) ||
+				PVRSRV_CHECK_CPU_CACHE_COHERENT(uiFlags) ||
+				PVRSRV_CHECK_CPU_CACHED(uiFlags))) {
 		PVR_DPF((
 			PVR_DBG_ERROR,
 			"Masked flags = 0x%" PVRSRV_MEMALLOCFLAGS_FMTSPEC,
