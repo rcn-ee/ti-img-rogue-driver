@@ -182,9 +182,9 @@ static inline void pvr_fence_cleanup(void)
 {
 	/*
 	 * Ensure all PVR fence contexts have been destroyed, by flushing
-	 * the global workqueue.
+	 * the global native sync workqueue
 	 */
-	flush_scheduled_work();
+	flush_workqueue(NativeSyncGetFenceStatusWq());
 }
 
 #if defined(PVR_FENCE_DEBUG)
