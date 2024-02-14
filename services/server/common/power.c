@@ -787,19 +787,6 @@ PVRSRVDeviceSystemPrePowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
 
 	eCurrentPowerState = OSAtomicRead(&psPowerDevice->eCurrentPowerState);
 
-	if (psPowerDevice->pfnDevicePrePower != NULL) {
-		ui64DevTimer1 = PVRSRVProcessStatsGetTimeNs();
-
-		/* Call the device's power callback. */
-		eError = psPowerDevice->pfnDevicePrePower(
-			psPowerDevice->psDevNode, eNewPowerState,
-			eCurrentPowerState, ePwrFlags);
-
-		ui64DevTimer2 = PVRSRVProcessStatsGetTimeNs();
-
-		PVR_RETURN_IF_ERROR(eError);
-	}
-
 	/* Do any required system-layer processing. */
 	if (psPowerDevice->pfnSystemPrePower != NULL) {
 		ui64SysTimer1 = PVRSRVProcessStatsGetTimeNs();
@@ -817,6 +804,19 @@ PVRSRVDeviceSystemPrePowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
 		ui64SysTimer2 = PVRSRVProcessStatsGetTimeNs();
 
 		PVR_GOTO_IF_ERROR(eError, ErrRestorePowerState);
+	}
+
+	if (psPowerDevice->pfnDevicePrePower != NULL) {
+		ui64DevTimer1 = PVRSRVProcessStatsGetTimeNs();
+
+		/* Call the device's power callback. */
+		eError = psPowerDevice->pfnDevicePrePower(
+			psPowerDevice->psDevNode, eNewPowerState,
+			eCurrentPowerState, ePwrFlags);
+
+		ui64DevTimer2 = PVRSRVProcessStatsGetTimeNs();
+
+		PVR_RETURN_IF_ERROR(eError);
 	}
 
 	_InsertPowerTimeStatistic(
@@ -888,6 +888,19 @@ PVRSRVDeviceSystemPostPowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
 
 	eCurrentPowerState = OSAtomicRead(&psPowerDevice->eCurrentPowerState);
 
+	if (psPowerDevice->pfnDevicePostPower != NULL) {
+		ui64DevTimer1 = PVRSRVProcessStatsGetTimeNs();
+
+		/* Call the device's power callback. */
+		eError = psPowerDevice->pfnDevicePostPower(
+			psPowerDevice->psDevNode, eNewPowerState,
+			eCurrentPowerState, ePwrFlags);
+
+		ui64DevTimer2 = PVRSRVProcessStatsGetTimeNs();
+
+		PVR_RETURN_IF_ERROR(eError);
+	}
+
 	/* Do any required system-layer processing. */
 	if (psPowerDevice->pfnSystemPostPower != NULL) {
 		ui64SysTimer1 = PVRSRVProcessStatsGetTimeNs();
@@ -903,19 +916,6 @@ PVRSRVDeviceSystemPostPowerStateKM(PVRSRV_POWER_DEV *psPowerDevice,
 			ePwrFlags);
 
 		ui64SysTimer2 = PVRSRVProcessStatsGetTimeNs();
-
-		PVR_RETURN_IF_ERROR(eError);
-	}
-
-	if (psPowerDevice->pfnDevicePostPower != NULL) {
-		ui64DevTimer1 = PVRSRVProcessStatsGetTimeNs();
-
-		/* Call the device's power callback. */
-		eError = psPowerDevice->pfnDevicePostPower(
-			psPowerDevice->psDevNode, eNewPowerState,
-			eCurrentPowerState, ePwrFlags);
-
-		ui64DevTimer2 = PVRSRVProcessStatsGetTimeNs();
 
 		PVR_RETURN_IF_ERROR(eError);
 	}
@@ -1019,7 +1019,7 @@ PVRSRVSetDeviceSystemPowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
 	PVRSRV_POWER_DEV *psPowerDevice;
 	PVRSRV_DEV_POWER_STATE eNewDevicePowerState =
 		_IsSystemStatePowered(eNewSysPowerState) ?
-			PVRSRV_DEV_POWER_STATE_DEFAULT :
+			PVRSRV_DEV_POWER_STATE_ON :
 			PVRSRV_DEV_POWER_STATE_OFF;
 
 	/* If setting devices to default state, force idle all devices whose default state is off */
