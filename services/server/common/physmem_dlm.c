@@ -51,16 +51,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem_dlm.h"
 
 typedef struct PHYSMEM_DLM_DATA_TAG {
-	RA_ARENA           *psRA;
-	IMG_CPU_PHYADDR    sStartAddr;
-	IMG_DEV_PHYADDR    sCardBase;
-	IMG_UINT64         uiSize;
-	IMG_UINT32         uiLog2PMBSize;
+	RA_ARENA *psRA;
+	IMG_CPU_PHYADDR sStartAddr;
+	IMG_DEV_PHYADDR sCardBase;
+	IMG_UINT64 uiSize;
+	IMG_UINT32 uiLog2PMBSize;
 } PHYSMEM_DLM_DATA;
 
 /* PMB (Physical Memory Block) */
-struct _PMB_
-{
+struct _PMB_ {
 	RA_ARENA *pArena;
 	RA_BASE_T uiBase;
 	RA_LENGTH_T uiSize;
@@ -72,26 +71,18 @@ struct _PMB_
  * Creates a new PMB used to represent a block of memory
  * obtained from a DLM heap.
  */
-static
-PVRSRV_ERROR PMBCreatePMB(RA_ARENA *pArena,
-                          RA_LENGTH_T uiSize,
-                          RA_LENGTH_T uiAlignment,
-                          const IMG_CHAR *pszAnnotation,
-                          PMB **ppsPMB)
+static PVRSRV_ERROR PMBCreatePMB(RA_ARENA *pArena, RA_LENGTH_T uiSize,
+				 RA_LENGTH_T uiAlignment,
+				 const IMG_CHAR *pszAnnotation, PMB **ppsPMB)
 {
 	PVRSRV_ERROR eError;
-	PMB* psPMB = OSAllocMem(sizeof(*psPMB));
+	PMB *psPMB = OSAllocMem(sizeof(*psPMB));
 	PVR_LOG_GOTO_IF_NOMEM(psPMB, eError, error_Return);
 
-	eError = RA_Alloc(pArena,
-	                  uiSize,
-	                  RA_NO_IMPORT_MULTIPLIER,
-	                  0,                         /* No flags */
-	                  uiAlignment,
-	                  pszAnnotation,
-	                  &psPMB->uiBase,
-	                  &psPMB->uiSize,
-	                  NULL);                     /* No private handle */
+	eError = RA_Alloc(pArena, uiSize, RA_NO_IMPORT_MULTIPLIER,
+			  0, /* No flags */
+			  uiAlignment, pszAnnotation, &psPMB->uiBase,
+			  &psPMB->uiSize, NULL); /* No private handle */
 	PVR_LOG_GOTO_IF_ERROR(eError, "RA_Alloc", error_FreePMB);
 
 	psPMB->pArena = pArena;
@@ -107,8 +98,7 @@ error_Return:
 	return eError;
 }
 
-void
-PMBDestroy(PMB *psPMB)
+void PMBDestroy(PMB *psPMB)
 {
 	PVR_LOG_RETURN_VOID_IF_FALSE(psPMB, "psPMB NULL");
 
@@ -116,13 +106,10 @@ PMBDestroy(PMB *psPMB)
 	OSFreeMem(psPMB);
 }
 
-
-const IMG_CHAR *
-PMBGetAnnotation(PMB *psPMB)
+const IMG_CHAR *PMBGetAnnotation(PMB *psPMB)
 {
-	if (psPMB == NULL)
-	{
-		PVR_DPF((PVR_DBG_ERROR,"psPMB in %s",__func__));
+	if (psPMB == NULL) {
+		PVR_DPF((PVR_DBG_ERROR, "psPMB in %s", __func__));
 		return "";
 	}
 
@@ -132,11 +119,11 @@ PMBGetAnnotation(PMB *psPMB)
 /* DLM */
 
 static void PFNGetLocalRamMemStats(PHEAP_IMPL_DATA pvImplData,
-                                 IMG_UINT64 *pui64TotalSize,
-                                 IMG_UINT64 *pui64FreeSize)
+				   IMG_UINT64 *pui64TotalSize,
+				   IMG_UINT64 *pui64FreeSize)
 {
 	RA_USAGE_STATS sRAUsageStats;
-	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA*)pvImplData;
+	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA *)pvImplData;
 	PVR_LOG_RETURN_VOID_IF_FALSE(pvImplData, "pvImplData NULL");
 
 	RA_Get_Usage_Stats(psDLMData->psRA, &sRAUsageStats);
@@ -150,11 +137,10 @@ static void PFNGetLocalRamMemStats(PHEAP_IMPL_DATA pvImplData,
 * has set it for the referenced heap.
 * It will not fail if the psDevPAddr is invalid.
 */
-static PVRSRV_ERROR
-PFNGetDevPAddr(PHEAP_IMPL_DATA pvImplData,
-			 IMG_DEV_PHYADDR *psDevPAddr)
+static PVRSRV_ERROR PFNGetDevPAddr(PHEAP_IMPL_DATA pvImplData,
+				   IMG_DEV_PHYADDR *psDevPAddr)
 {
-	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA*)pvImplData;
+	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA *)pvImplData;
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pvImplData != NULL, "pvImplData");
 
 	*psDevPAddr = psDLMData->sCardBase;
@@ -167,11 +153,10 @@ PFNGetDevPAddr(PHEAP_IMPL_DATA pvImplData,
 * has set it for the referenced heap.
 * It will not fail if the psCpuPAddr is invalid.
 */
-static PVRSRV_ERROR
-PFNGetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
-			 IMG_CPU_PHYADDR *psCpuPAddr)
+static PVRSRV_ERROR PFNGetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
+				   IMG_CPU_PHYADDR *psCpuPAddr)
 {
-	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA*)pvImplData;
+	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA *)pvImplData;
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pvImplData != NULL, "pvImplData");
 
 	*psCpuPAddr = psDLMData->sStartAddr;
@@ -179,11 +164,9 @@ PFNGetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR
-PFNGetSize(PHEAP_IMPL_DATA pvImplData,
-		 IMG_UINT64 *puiSize)
+static PVRSRV_ERROR PFNGetSize(PHEAP_IMPL_DATA pvImplData, IMG_UINT64 *puiSize)
 {
-	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA*)pvImplData;
+	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA *)pvImplData;
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pvImplData != NULL, "pvImplData");
 
 	*puiSize = psDLMData->uiSize;
@@ -191,41 +174,36 @@ PFNGetSize(PHEAP_IMPL_DATA pvImplData,
 	return PVRSRV_OK;
 }
 
-static IMG_UINT32
-PFNGetPageShift(void)
+static IMG_UINT32 PFNGetPageShift(void)
 {
 	return PVRSRV_4K_PAGE_SIZE_ALIGNSHIFT;
 }
 
-static PVRSRV_ERROR
-CreateArenas(PHYSMEM_DLM_DATA *psDLMData, IMG_CHAR *pszLabel, PHYS_HEAP_POLICY uiPolicy)
+static PVRSRV_ERROR CreateArenas(PHYSMEM_DLM_DATA *psDLMData,
+				 IMG_CHAR *pszLabel, PHYS_HEAP_POLICY uiPolicy)
 {
-	psDLMData->psRA = RA_Create_With_Span(pszLabel,
-	                             OSGetPageShift(),
-	                             psDLMData->sStartAddr.uiAddr,
-	                             psDLMData->sCardBase.uiAddr,
-	                             psDLMData->uiSize,
-	                             RA_POLICY_DEFAULT);
+	psDLMData->psRA = RA_Create_With_Span(pszLabel, OSGetPageShift(),
+					      psDLMData->sStartAddr.uiAddr,
+					      psDLMData->sCardBase.uiAddr,
+					      psDLMData->uiSize,
+					      RA_POLICY_DEFAULT);
 	PVR_LOG_RETURN_IF_NOMEM(psDLMData->psRA, "RA_Create_With_Span");
 
 	return PVRSRV_OK;
 }
 
-static void
-DestroyArenas(PHYSMEM_DLM_DATA *psDLMData)
+static void DestroyArenas(PHYSMEM_DLM_DATA *psDLMData)
 {
 	/* Remove RAs and RA names for dedicated local memory */
-	if (psDLMData->psRA)
-	{
+	if (psDLMData->psRA) {
 		RA_Delete(psDLMData->psRA);
 		psDLMData->psRA = NULL;
 	}
 }
 
-static void
-PFNDestroyImplData(PHEAP_IMPL_DATA pvImplData)
+static void PFNDestroyImplData(PHEAP_IMPL_DATA pvImplData)
 {
-	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA*)pvImplData;
+	PHYSMEM_DLM_DATA *psDLMData = (PHYSMEM_DLM_DATA *)pvImplData;
 	PVR_LOG_RETURN_VOID_IF_FALSE(pvImplData, "pvImplData NULL");
 
 	DestroyArenas(pvImplData);
@@ -234,38 +212,35 @@ PFNDestroyImplData(PHEAP_IMPL_DATA pvImplData)
 }
 
 static PVRSRV_ERROR
-PFNPhysmemNewLocalRamBackedPMB(PHYS_HEAP *psPhysHeap,
-                            IMG_DEVMEM_SIZE_T uiSize,
-                            const IMG_CHAR *pszAnnotation,
-                            PMB **ppPMBPtr,
-                            RA_BASE_T *puiBase,
-                            RA_LENGTH_T *puiSize)
+PFNPhysmemNewLocalRamBackedPMB(PHYS_HEAP *psPhysHeap, IMG_DEVMEM_SIZE_T uiSize,
+			       const IMG_CHAR *pszAnnotation, PMB **ppPMBPtr,
+			       RA_BASE_T *puiBase, RA_LENGTH_T *puiSize)
 {
 	PVRSRV_ERROR eError;
 	PHYSMEM_DLM_DATA *psDLMData;
-	PMB* pPMB;
+	PMB *pPMB;
 
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psPhysHeap != NULL, "psPhysHeap");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pszAnnotation != NULL, "pszAnnotation");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(ppPMBPtr != NULL, "ppPMBPtr");
 
 	/* Check size is aligned to page size */
-	if (uiSize & ((1 << PFNGetPageShift()) - 1ULL))
-	{
+	if (uiSize & ((1 << PFNGetPageShift()) - 1ULL)) {
 		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: uiSize %" IMG_UINT64_FMTSPEC " is not aligned to page size: %u",
-		         __func__,
-		         uiSize,
-		         1 << PFNGetPageShift()));
+			 "%s: uiSize %" IMG_UINT64_FMTSPEC
+			 " is not aligned to page size: %u",
+			 __func__, uiSize, 1 << PFNGetPageShift()));
 		return PVRSRV_ERROR_PMB_NOT_PAGE_MULTIPLE;
 	}
 
 	PVR_ASSERT(PhysHeapGetType(psPhysHeap) == PHYS_HEAP_TYPE_DLM_BAR ||
-	           PhysHeapGetType(psPhysHeap) == PHYS_HEAP_TYPE_DLM_PRIV);
+		   PhysHeapGetType(psPhysHeap) == PHYS_HEAP_TYPE_DLM_PRIV);
 
-	psDLMData = (PHYSMEM_DLM_DATA*)PhysHeapGetImplData(psPhysHeap);
+	psDLMData = (PHYSMEM_DLM_DATA *)PhysHeapGetImplData(psPhysHeap);
 
-	eError = PMBCreatePMB(psDLMData->psRA, uiSize, IMG_UINT64_C(1) << psDLMData->uiLog2PMBSize, pszAnnotation, &pPMB);
+	eError = PMBCreatePMB(psDLMData->psRA, uiSize,
+			      IMG_UINT64_C(1) << psDLMData->uiLog2PMBSize,
+			      pszAnnotation, &pPMB);
 	PVR_LOG_GOTO_IF_ERROR(eError, "PMBCreatePMB", error_Return);
 
 	*ppPMBPtr = pPMB;
@@ -278,8 +253,7 @@ error_Return:
 	return eError;
 }
 
-static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs =
-{
+static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs = {
 	.pfnDestroyData = &PFNDestroyImplData,
 	.pfnGetDevPAddr = &PFNGetDevPAddr,
 	.pfnGetCPUPAddr = &PFNGetCPUPAddr,
@@ -290,11 +264,9 @@ static PHEAP_IMPL_FUNCS _sPHEAPImplFuncs =
 };
 
 PVRSRV_ERROR
-PhysmemCreateHeapDLM(PVRSRV_DEVICE_NODE *psDevNode,
-                     PHYS_HEAP_POLICY uiPolicy,
-                     PHYS_HEAP_CONFIG *psConfig,
-                     IMG_CHAR *pszLabel,
-                     PHYS_HEAP **ppsPhysHeap)
+PhysmemCreateHeapDLM(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		     PHYS_HEAP_CONFIG *psConfig, IMG_CHAR *pszLabel,
+		     PHYS_HEAP **ppsPhysHeap)
 {
 	PHYSMEM_DLM_DATA *psDLMData;
 	PHYS_HEAP *psPhysHeap;
@@ -305,7 +277,7 @@ PhysmemCreateHeapDLM(PVRSRV_DEVICE_NODE *psDevNode,
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pszLabel != NULL, "pszLabel");
 
 	PVR_ASSERT(psConfig->eType == PHYS_HEAP_TYPE_DLM_BAR ||
-	           psConfig->eType == PHYS_HEAP_TYPE_DLM_PRIV);
+		   psConfig->eType == PHYS_HEAP_TYPE_DLM_PRIV);
 
 	psDLMData = OSAllocMem(sizeof(*psDLMData));
 	PVR_LOG_RETURN_IF_NOMEM(psDLMData, "OSAllocMem");
@@ -315,21 +287,19 @@ PhysmemCreateHeapDLM(PVRSRV_DEVICE_NODE *psDevNode,
 	psDLMData->uiSize = PhysHeapConfigGetSize(psConfig);
 	psDLMData->uiLog2PMBSize = psConfig->uConfig.sDLM.ui32Log2PMBSize;
 
-	PVR_LOG_RETURN_IF_INVALID_PARAM(psDLMData->uiLog2PMBSize >= OSGetPageShift(), "ui32Log2PMBSize must be greater than or equal to OSPageSize");
+	PVR_LOG_RETURN_IF_INVALID_PARAM(
+		psDLMData->uiLog2PMBSize >= OSGetPageShift(),
+		"ui32Log2PMBSize must be greater than or equal to OSPageSize");
 
-	eError = PhysHeapCreate(psDevNode,
-							psConfig,
-							uiPolicy,
-							(PHEAP_IMPL_DATA)psDLMData,
-							&_sPHEAPImplFuncs,
-							&psPhysHeap);
+	eError = PhysHeapCreate(psDevNode, psConfig, uiPolicy,
+				(PHEAP_IMPL_DATA)psDLMData, &_sPHEAPImplFuncs,
+				&psPhysHeap);
 	PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreate", error_FreeDlmData);
 
 	eError = CreateArenas(psDLMData, pszLabel, uiPolicy);
 	PVR_LOG_GOTO_IF_ERROR(eError, "CreateArenas", error_FreePhysHeap);
 
-	if (ppsPhysHeap != NULL)
-	{
+	if (ppsPhysHeap != NULL) {
 		*ppsPhysHeap = psPhysHeap;
 	}
 

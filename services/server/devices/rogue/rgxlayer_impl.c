@@ -50,30 +50,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(PDUMP)
 #if defined(__linux__)
- #include <linux/version.h>
+#include <linux/version.h>
 
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
-  #include <linux/stdarg.h>
- #else
-  #include <stdarg.h>
- #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+#include <linux/stdarg.h>
 #else
- #include <stdarg.h>
+#include <stdarg.h>
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#else
+#include <stdarg.h>
 #endif /* __linux__ */
 #endif
 
-
-#define MAX_NUM_COHERENCY_TESTS  (10)
+#define MAX_NUM_COHERENCY_TESTS (10)
 IMG_BOOL RGXDoFWSlaveBoot(const void *hPrivate)
 {
 	PVRSRV_RGXDEV_INFO *psDevInfo;
 	PVRSRV_DEVICE_NODE *psDeviceNode;
 
 	PVR_ASSERT(hPrivate != NULL);
-	psDevInfo = ((RGX_LAYER_PARAMS*)hPrivate)->psDevInfo;
+	psDevInfo = ((RGX_LAYER_PARAMS *)hPrivate)->psDevInfo;
 
-	if (psDevInfo->ui32CoherencyTestsDone >= MAX_NUM_COHERENCY_TESTS)
-	{
+	if (psDevInfo->ui32CoherencyTestsDone >= MAX_NUM_COHERENCY_TESTS) {
 		return IMG_FALSE;
 	}
 
@@ -109,65 +107,65 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 	IMG_BOOL bSubTestPassed = IMG_FALSE;
 #endif
 	enum TEST_TYPE {
-		CPU_WRITE_GPU_READ_SM=0, GPU_WRITE_CPU_READ_SM,
-		CPU_WRITE_GPU_READ_SH,   GPU_WRITE_CPU_READ_SH
+		CPU_WRITE_GPU_READ_SM = 0,
+		GPU_WRITE_CPU_READ_SM,
+		CPU_WRITE_GPU_READ_SH,
+		GPU_WRITE_CPU_READ_SH
 	} eTestType;
 
 	PVR_ASSERT(hPrivate != NULL);
-	psDevInfo = ((RGX_LAYER_PARAMS*)hPrivate)->psDevInfo;
+	psDevInfo = ((RGX_LAYER_PARAMS *)hPrivate)->psDevInfo;
 
 	PVR_LOG(("Starting fabric coherency test ....."));
 
 	{
 		/* Bypass the SLC when IO coherency is enabled */
 		ui32SLCCTRL = RGXReadReg32(hPrivate, RGX_CR_SLC_CTRL_BYPASS);
-		RGXWriteReg32(hPrivate,
-				RGX_CR_SLC_CTRL_BYPASS,
-				ui32SLCCTRL | RGX_CR_SLC_CTRL_BYPASS_BYP_CC_EN);
+		RGXWriteReg32(hPrivate, RGX_CR_SLC_CTRL_BYPASS,
+			      ui32SLCCTRL | RGX_CR_SLC_CTRL_BYPASS_BYP_CC_EN);
 	}
 
 	/* Size and align are 'expanded' because we request an export align allocation */
-	eError = DevmemExportalignAdjustSizeAndAlign(DevmemGetHeapLog2PageSize(psDevInfo->psFirmwareMainHeap),
-	                                             &uiFabricCohTestBlockSize,
-	                                             &uiFabricCohTestBlockAlign);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-				"DevmemExportalignAdjustSizeAndAlign() error: %s, exiting",
-				PVRSRVGetErrorString(eError)));
+	eError = DevmemExportalignAdjustSizeAndAlign(
+		DevmemGetHeapLog2PageSize(psDevInfo->psFirmwareMainHeap),
+		&uiFabricCohTestBlockSize, &uiFabricCohTestBlockAlign);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"DevmemExportalignAdjustSizeAndAlign() error: %s, exiting",
+			PVRSRVGetErrorString(eError)));
 		goto e0;
 	}
 
 	/* Allocate, acquire cpu address and set firmware address */
-	eError = DevmemFwAllocateExportable(psDevInfo->psDeviceNode,
-										uiFabricCohTestBlockSize,
-										uiFabricCohTestBlockAlign,
-										PVRSRV_MEMALLOCFLAG_DEVICE_FLAG(PMMETA_PROTECT) |
-										PVRSRV_MEMALLOCFLAG_KERNEL_CPU_MAPPABLE |
-										PVRSRV_MEMALLOCFLAG_ZERO_ON_ALLOC |
-										PVRSRV_MEMALLOCFLAG_GPU_CACHE_COHERENT |
-										PVRSRV_MEMALLOCFLAG_CPU_CACHE_INCOHERENT |
-										PVRSRV_MEMALLOCFLAG_GPU_READABLE |
-										PVRSRV_MEMALLOCFLAG_GPU_WRITEABLE |
-										PVRSRV_MEMALLOCFLAG_CPU_READABLE |
-										PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
-										PVRSRV_MEMALLOCFLAG_PHYS_HEAP_HINT(FW_MAIN),
-										"FwExFabricCoherencyTestBuffer",
-										&psFabricCohTestBufferMemDesc);
-	if (eError != PVRSRV_OK)
-	{
+	eError = DevmemFwAllocateExportable(
+		psDevInfo->psDeviceNode, uiFabricCohTestBlockSize,
+		uiFabricCohTestBlockAlign,
+		PVRSRV_MEMALLOCFLAG_DEVICE_FLAG(PMMETA_PROTECT) |
+			PVRSRV_MEMALLOCFLAG_KERNEL_CPU_MAPPABLE |
+			PVRSRV_MEMALLOCFLAG_ZERO_ON_ALLOC |
+			PVRSRV_MEMALLOCFLAG_GPU_CACHE_COHERENT |
+			PVRSRV_MEMALLOCFLAG_CPU_CACHE_INCOHERENT |
+			PVRSRV_MEMALLOCFLAG_GPU_READABLE |
+			PVRSRV_MEMALLOCFLAG_GPU_WRITEABLE |
+			PVRSRV_MEMALLOCFLAG_CPU_READABLE |
+			PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
+			PVRSRV_MEMALLOCFLAG_PHYS_HEAP_HINT(FW_MAIN),
+		"FwExFabricCoherencyTestBuffer", &psFabricCohTestBufferMemDesc);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-				"DevmemFwAllocateExportable() error: %s, exiting",
-				PVRSRVGetErrorString(eError)));
+			 "DevmemFwAllocateExportable() error: %s, exiting",
+			 PVRSRVGetErrorString(eError)));
 		goto e0;
 	}
 
-	eError = DevmemAcquireCpuVirtAddr(psFabricCohTestBufferMemDesc, (void **) &pui32FabricCohTestBufferCpuVA);
-	if (eError != PVRSRV_OK)
-	{
+	eError = DevmemAcquireCpuVirtAddr(
+		psFabricCohTestBufferMemDesc,
+		(void **)&pui32FabricCohTestBufferCpuVA);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-				"DevmemAcquireCpuVirtAddr() error: %s, exiting",
-				PVRSRVGetErrorString(eError)));
+			 "DevmemAcquireCpuVirtAddr() error: %s, exiting",
+			 PVRSRVGetErrorString(eError)));
 		goto e1;
 	}
 
@@ -175,58 +173,68 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 	   This segment is the only one configured correctly out of reset (when this test is meant to be executed) */
 
 	eError = RGXSetFirmwareAddress(&sFabricCohTestBufferDevVA,
-						  psFabricCohTestBufferMemDesc,
-						  0,
-						  RFW_FWADDR_FLAG_NONE);
+				       psFabricCohTestBufferMemDesc, 0,
+				       RFW_FWADDR_FLAG_NONE);
 	PVR_LOG_GOTO_IF_ERROR(eError, "RGXSetFirmwareAddress", e2);
 
 	/* Undo most of the FW mappings done by RGXSetFirmwareAddress */
-	sFabricCohTestBufferDevVA.ui32Addr &= ~RGXFW_SEGMMU_DATA_META_CACHE_MASK;
-	sFabricCohTestBufferDevVA.ui32Addr &= ~RGXFW_SEGMMU_DATA_VIVT_SLC_CACHE_MASK;
+	sFabricCohTestBufferDevVA.ui32Addr &=
+		~RGXFW_SEGMMU_DATA_META_CACHE_MASK;
+	sFabricCohTestBufferDevVA.ui32Addr &=
+		~RGXFW_SEGMMU_DATA_VIVT_SLC_CACHE_MASK;
 	sFabricCohTestBufferDevVA.ui32Addr -= RGXFW_SEGMMU_DATA_BASE_ADDRESS;
 
 	/* Map the buffer in the bootloader segment as uncached */
 	sFabricCohTestBufferDevVA.ui32Addr |= RGXFW_BOOTLDR_META_ADDR;
 	sFabricCohTestBufferDevVA.ui32Addr |= RGXFW_SEGMMU_DATA_META_UNCACHED;
 
-	for (eTestType = CPU_WRITE_GPU_READ_SH; eTestType <= GPU_WRITE_CPU_READ_SH && bExit == IMG_FALSE; eTestType++)
-	{
+	for (eTestType = CPU_WRITE_GPU_READ_SH;
+	     eTestType <= GPU_WRITE_CPU_READ_SH && bExit == IMG_FALSE;
+	     eTestType++) {
 		IMG_CPU_PHYADDR sCpuPhyAddr;
 		IMG_BOOL bValid;
 		PMR *psPMR;
 
 		/* Acquire underlying PMR CpuPA in preparation for cache maintenance */
-		(void) DevmemLocalGetImportHandle(psFabricCohTestBufferMemDesc, (void**)&psPMR);
-		eError = PMR_CpuPhysAddr(psPMR, OSGetPageShift(), 1, 0, &sCpuPhyAddr, &bValid);
-		if (eError != PVRSRV_OK || bValid == IMG_FALSE)
-		{
+		(void)DevmemLocalGetImportHandle(psFabricCohTestBufferMemDesc,
+						 (void **)&psPMR);
+		eError = PMR_CpuPhysAddr(psPMR, OSGetPageShift(), 1, 0,
+					 &sCpuPhyAddr, &bValid);
+		if (eError != PVRSRV_OK || bValid == IMG_FALSE) {
 			PVR_DPF((PVR_DBG_ERROR,
-					"PMR_CpuPhysAddr error: %s, exiting",
-					PVRSRVGetErrorString(eError)));
+				 "PMR_CpuPhysAddr error: %s, exiting",
+				 PVRSRVGetErrorString(eError)));
 			bExit = IMG_TRUE;
 			continue;
 		}
 
 		/* Here we do two passes mostly to account for the effects of using a different
 		   seed (i.e. ui32OddEvenSeed) value to read and write */
-		for (ui32OddEven = 1; ui32OddEven < 3 && bExit == IMG_FALSE; ui32OddEven++)
-		{
+		for (ui32OddEven = 1; ui32OddEven < 3 && bExit == IMG_FALSE;
+		     ui32OddEven++) {
 			IMG_UINT32 i;
 
 #if defined(DEBUG)
-			switch (eTestType)
-			{
+			switch (eTestType) {
 			case CPU_WRITE_GPU_READ_SM:
-				PVR_LOG(("CPU:Write/GPU:Read Snoop Miss Test: starting [run #%u]", ui32OddEven));
+				PVR_LOG((
+					"CPU:Write/GPU:Read Snoop Miss Test: starting [run #%u]",
+					ui32OddEven));
 				break;
 			case GPU_WRITE_CPU_READ_SM:
-				PVR_LOG(("GPU:Write/CPU:Read Snoop Miss Test: starting [run #%u]", ui32OddEven));
+				PVR_LOG((
+					"GPU:Write/CPU:Read Snoop Miss Test: starting [run #%u]",
+					ui32OddEven));
 				break;
 			case CPU_WRITE_GPU_READ_SH:
-				PVR_LOG(("CPU:Write/GPU:Read Snoop Hit  Test: starting [run #%u]", ui32OddEven));
+				PVR_LOG((
+					"CPU:Write/GPU:Read Snoop Hit  Test: starting [run #%u]",
+					ui32OddEven));
 				break;
 			case GPU_WRITE_CPU_READ_SH:
-				PVR_LOG(("GPU:Write/CPU:Read Snoop Hit  Test: starting [run #%u]", ui32OddEven));
+				PVR_LOG((
+					"GPU:Write/CPU:Read Snoop Hit  Test: starting [run #%u]",
+					ui32OddEven));
 				break;
 			default:
 				PVR_LOG(("Internal error, exiting test"));
@@ -237,8 +245,7 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 #endif
 
 			/* Do multiple sub-dword cache line tests */
-			for (i = 0; i < 2 && bExit == IMG_FALSE; i++)
-			{
+			for (i = 0; i < 2 && bExit == IMG_FALSE; i++) {
 				IMG_UINT32 ui32FWAddr;
 				IMG_UINT32 ui32FWValue;
 				IMG_UINT32 ui32FWValue2;
@@ -248,59 +255,73 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 				IMG_UINT32 ui32Offset = i * sizeof(IMG_UINT32);
 
 				/* Calculate next address and seed value to write/read from slave-port */
-				ui32FWAddr = sFabricCohTestBufferDevVA.ui32Addr + ui32Offset;
-				sCpuPhyAddrStart.uiAddr = sCpuPhyAddr.uiAddr + ui32Offset;
+				ui32FWAddr =
+					sFabricCohTestBufferDevVA.ui32Addr +
+					ui32Offset;
+				sCpuPhyAddrStart.uiAddr =
+					sCpuPhyAddr.uiAddr + ui32Offset;
 				sCpuPhyAddrEnd.uiAddr = sCpuPhyAddrStart.uiAddr;
 				ui32OddEvenSeed += 1;
 
-				if (eTestType == GPU_WRITE_CPU_READ_SM || eTestType == GPU_WRITE_CPU_READ_SH)
-				{
+				if (eTestType == GPU_WRITE_CPU_READ_SM ||
+				    eTestType == GPU_WRITE_CPU_READ_SH) {
 					/* Clean dcache to ensure there is no stale data in dcache that might over-write
 					   what we are about to write via slave-port here because if it drains from the CPU
 					   dcache before we read it, it would corrupt what we are going to read back via
 					   the CPU */
-					sCpuPhyAddrEnd.uiAddr += sizeof(IMG_UINT32);
-					CacheOpExec(psDevInfo->psDeviceNode,
-							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset,
-							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset + sizeof(IMG_UINT32),
-							sCpuPhyAddrStart,
-							sCpuPhyAddrEnd,
-							PVRSRV_CACHE_OP_FLUSH);
+					sCpuPhyAddrEnd.uiAddr +=
+						sizeof(IMG_UINT32);
+					CacheOpExec(
+						psDevInfo->psDeviceNode,
+						(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+							ui32Offset,
+						(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+							ui32Offset +
+							sizeof(IMG_UINT32),
+						sCpuPhyAddrStart,
+						sCpuPhyAddrEnd,
+						PVRSRV_CACHE_OP_FLUSH);
 
 					/* Calculate a new value to write */
 					ui32FWValue = i + ui32OddEvenSeed;
 
 					/* Write the value using the RGX slave-port interface */
-					eError = RGXWriteFWModuleAddr(psDevInfo, ui32FWAddr, ui32FWValue);
-					if (eError != PVRSRV_OK)
-					{
-						PVR_DPF((PVR_DBG_ERROR,
-						         "RGXWriteFWModuleAddr error: %s, exiting",
-						          PVRSRVGetErrorString(eError)));
+					eError = RGXWriteFWModuleAddr(
+						psDevInfo, ui32FWAddr,
+						ui32FWValue);
+					if (eError != PVRSRV_OK) {
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"RGXWriteFWModuleAddr error: %s, exiting",
+							PVRSRVGetErrorString(
+								eError)));
 						bExit = IMG_TRUE;
 						continue;
 					}
 
 					/* Read back value using RGX slave-port interface, this is used
 					   as a sort of memory barrier for the above write */
-					eError = RGXReadFWModuleAddr(psDevInfo, ui32FWAddr, &ui32FWValue2);
-					if (eError != PVRSRV_OK)
-					{
-						PVR_DPF((PVR_DBG_ERROR,
-						         "RGXReadFWModuleAddr error: %s, exiting",
-						         PVRSRVGetErrorString(eError)));
+					eError = RGXReadFWModuleAddr(
+						psDevInfo, ui32FWAddr,
+						&ui32FWValue2);
+					if (eError != PVRSRV_OK) {
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"RGXReadFWModuleAddr error: %s, exiting",
+							PVRSRVGetErrorString(
+								eError)));
 						bExit = IMG_TRUE;
 						continue;
-					}
-					else if (ui32FWValue != ui32FWValue2)
-					{
+					} else if (ui32FWValue !=
+						   ui32FWValue2) {
 						/* Fatal error, we should abort */
-						PVR_DPF((PVR_DBG_ERROR,
-								"At Offset: %d, RAW via SlavePort failed: expected: %x, got: %x",
-								i,
-								ui32FWValue,
-								ui32FWValue2));
-						eError = PVRSRV_ERROR_INIT_FAILURE;
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"At Offset: %d, RAW via SlavePort failed: expected: %x, got: %x",
+							i, ui32FWValue,
+							ui32FWValue2));
+						eError =
+							PVRSRV_ERROR_INIT_FAILURE;
 						bExit = IMG_TRUE;
 						continue;
 					}
@@ -310,16 +331,19 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 					   Previously there was snooping of device cache, where prefetching done by the CPU
 					   would reflect the most up to date datum writing by GPU into said location,
 					   that is to say prefetching was coherent so CPU d-flush was not needed */
-					sCpuPhyAddrEnd.uiAddr += sizeof(IMG_UINT32);
-					CacheOpExec(psDevInfo->psDeviceNode,
-							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset,
-							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset + sizeof(IMG_UINT32),
-							sCpuPhyAddrStart,
-							sCpuPhyAddrEnd,
-							PVRSRV_CACHE_OP_INVALIDATE);
-				}
-				else
-				{
+					sCpuPhyAddrEnd.uiAddr +=
+						sizeof(IMG_UINT32);
+					CacheOpExec(
+						psDevInfo->psDeviceNode,
+						(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+							ui32Offset,
+						(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+							ui32Offset +
+							sizeof(IMG_UINT32),
+						sCpuPhyAddrStart,
+						sCpuPhyAddrEnd,
+						PVRSRV_CACHE_OP_INVALIDATE);
+				} else {
 					IMG_UINT32 ui32RAWCpuValue;
 
 					/* Ensures line is in dcache */
@@ -327,117 +351,148 @@ PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate)
 
 					/* Dirty allocation in dcache */
 					ui32RAWCpuValue = i + ui32OddEvenSeed;
-					pui32FabricCohTestBufferCpuVA[i] = i + ui32OddEvenSeed;
+					pui32FabricCohTestBufferCpuVA[i] =
+						i + ui32OddEvenSeed;
 
 					/* Flush possible cpu store-buffer(ing) on LMA */
-					OSWriteMemoryBarrier(&pui32FabricCohTestBufferCpuVA[i]);
+					OSWriteMemoryBarrier(
+						&pui32FabricCohTestBufferCpuVA
+							[i]);
 
-					if (eTestType == CPU_WRITE_GPU_READ_SM)
-					{
+					if (eTestType ==
+					    CPU_WRITE_GPU_READ_SM) {
 						/* Flush dcache to force subsequent incoming CPU-bound snoop to miss so
 						   memory is coherent before the SlavePort reads */
-						sCpuPhyAddrEnd.uiAddr += sizeof(IMG_UINT32);
-						CacheOpExec(psDevInfo->psDeviceNode,
-								(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset,
-								(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset + sizeof(IMG_UINT32),
-								sCpuPhyAddrStart,
-								sCpuPhyAddrEnd,
-								PVRSRV_CACHE_OP_FLUSH);
+						sCpuPhyAddrEnd.uiAddr +=
+							sizeof(IMG_UINT32);
+						CacheOpExec(
+							psDevInfo->psDeviceNode,
+							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+								ui32Offset,
+							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+								ui32Offset +
+								sizeof(IMG_UINT32),
+							sCpuPhyAddrStart,
+							sCpuPhyAddrEnd,
+							PVRSRV_CACHE_OP_FLUSH);
 					}
 
 					/* Read back value using RGX slave-port interface */
-					eError = RGXReadFWModuleAddr(psDevInfo, ui32FWAddr, &ui32FWValue);
-					if (eError != PVRSRV_OK)
-					{
-						PVR_DPF((PVR_DBG_ERROR,
-								"RGXReadFWModuleAddr error: %s, exiting",
-								PVRSRVGetErrorString(eError)));
+					eError = RGXReadFWModuleAddr(
+						psDevInfo, ui32FWAddr,
+						&ui32FWValue);
+					if (eError != PVRSRV_OK) {
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"RGXReadFWModuleAddr error: %s, exiting",
+							PVRSRVGetErrorString(
+								eError)));
 						bExit = IMG_TRUE;
 						continue;
 					}
 
 					/* Being mostly paranoid here, verify that CPU RAW operation is valid
 					   after the above slave port read */
-					sCpuPhyAddrEnd.uiAddr += sizeof(IMG_UINT32);
-					CacheOpExec(psDevInfo->psDeviceNode,
-							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset,
-							(IMG_CHAR *)pui32FabricCohTestBufferCpuVA + ui32Offset + sizeof(IMG_UINT32),
-							sCpuPhyAddrStart,
-							sCpuPhyAddrEnd,
-							PVRSRV_CACHE_OP_FLUSH);
-					if (pui32FabricCohTestBufferCpuVA[i] != ui32RAWCpuValue)
-					{
+					sCpuPhyAddrEnd.uiAddr +=
+						sizeof(IMG_UINT32);
+					CacheOpExec(
+						psDevInfo->psDeviceNode,
+						(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+							ui32Offset,
+						(IMG_CHAR *)pui32FabricCohTestBufferCpuVA +
+							ui32Offset +
+							sizeof(IMG_UINT32),
+						sCpuPhyAddrStart,
+						sCpuPhyAddrEnd,
+						PVRSRV_CACHE_OP_FLUSH);
+					if (pui32FabricCohTestBufferCpuVA[i] !=
+					    ui32RAWCpuValue) {
 						/* Fatal error, we should abort */
-						PVR_DPF((PVR_DBG_ERROR,
-								"At Offset: %d, RAW by CPU failed: expected: %x, got: %x",
-								i,
-								ui32RAWCpuValue,
-								pui32FabricCohTestBufferCpuVA[i]));
-						eError = PVRSRV_ERROR_INIT_FAILURE;
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"At Offset: %d, RAW by CPU failed: expected: %x, got: %x",
+							i, ui32RAWCpuValue,
+							pui32FabricCohTestBufferCpuVA
+								[i]));
+						eError =
+							PVRSRV_ERROR_INIT_FAILURE;
 						bExit = IMG_TRUE;
 						continue;
 					}
 				}
 
 				/* Compare to see if sub-test passed */
-				if (pui32FabricCohTestBufferCpuVA[i] == ui32FWValue)
-				{
+				if (pui32FabricCohTestBufferCpuVA[i] ==
+				    ui32FWValue) {
 #if defined(DEBUG)
 					bSubTestPassed = IMG_TRUE;
 #endif
-				}
-				else
-				{
+				} else {
 					bFullTestPassed = IMG_FALSE;
 					eError = PVRSRV_ERROR_INIT_FAILURE;
 #if defined(DEBUG)
 					bSubTestPassed = IMG_FALSE;
 #endif
-					if (ui32LastFWValue != ui32FWValue)
-					{
+					if (ui32LastFWValue != ui32FWValue) {
 #if defined(DEBUG)
-						PVR_LOG(("At Offset: %d, Expected: %x, Got: %x",
-								 i,
-								 (eTestType & 0x1) ? ui32FWValue : pui32FabricCohTestBufferCpuVA[i],
-								 (eTestType & 0x1) ? pui32FabricCohTestBufferCpuVA[i] : ui32FWValue));
+						PVR_LOG((
+							"At Offset: %d, Expected: %x, Got: %x",
+							i,
+							(eTestType & 0x1) ?
+								ui32FWValue :
+								pui32FabricCohTestBufferCpuVA
+									[i],
+							(eTestType & 0x1) ?
+								pui32FabricCohTestBufferCpuVA
+									[i] :
+								ui32FWValue));
 #endif
-					}
-					else
-					{
-						PVR_DPF((PVR_DBG_ERROR,
-								"test encountered unexpected error, exiting"));
-						eError = PVRSRV_ERROR_INIT_FAILURE;
+					} else {
+						PVR_DPF((
+							PVR_DBG_ERROR,
+							"test encountered unexpected error, exiting"));
+						eError =
+							PVRSRV_ERROR_INIT_FAILURE;
 						bExit = IMG_TRUE;
 						continue;
 					}
 				}
 
-				ui32LastFWValue = (eTestType & 0x1) ? ui32FWValue : pui32FabricCohTestBufferCpuVA[i];
+				ui32LastFWValue =
+					(eTestType & 0x1) ?
+						ui32FWValue :
+						pui32FabricCohTestBufferCpuVA[i];
 			}
 
 #if defined(DEBUG)
-			if (bExit)
-			{
+			if (bExit) {
 				continue;
 			}
 
-			switch (eTestType)
-			{
+			switch (eTestType) {
 			case CPU_WRITE_GPU_READ_SM:
-				PVR_LOG(("CPU:Write/GPU:Read Snoop Miss Test: completed [run #%u]: %s",
-						 ui32OddEven, bSubTestPassed ? "PASSED" : "FAILED"));
+				PVR_LOG((
+					"CPU:Write/GPU:Read Snoop Miss Test: completed [run #%u]: %s",
+					ui32OddEven,
+					bSubTestPassed ? "PASSED" : "FAILED"));
 				break;
 			case GPU_WRITE_CPU_READ_SM:
-				PVR_LOG(("GPU:Write/CPU:Read Snoop Miss Test: completed [run #%u]: %s",
-						 ui32OddEven, bSubTestPassed ? "PASSED" : "FAILED"));
+				PVR_LOG((
+					"GPU:Write/CPU:Read Snoop Miss Test: completed [run #%u]: %s",
+					ui32OddEven,
+					bSubTestPassed ? "PASSED" : "FAILED"));
 				break;
 			case CPU_WRITE_GPU_READ_SH:
-				PVR_LOG(("CPU:Write/GPU:Read Snoop Hit Test: completed [run #%u]: %s",
-						 ui32OddEven, bSubTestPassed ? "PASSED" : "FAILED"));
+				PVR_LOG((
+					"CPU:Write/GPU:Read Snoop Hit Test: completed [run #%u]: %s",
+					ui32OddEven,
+					bSubTestPassed ? "PASSED" : "FAILED"));
 				break;
 			case GPU_WRITE_CPU_READ_SH:
-				PVR_LOG(("GPU:Write/CPU:Read Snoop Hit Test: completed [run #%u]: %s",
-						 ui32OddEven, bSubTestPassed ? "PASSED" : "FAILED"));
+				PVR_LOG((
+					"GPU:Write/CPU:Read Snoop Hit Test: completed [run #%u]: %s",
+					ui32OddEven,
+					bSubTestPassed ? "PASSED" : "FAILED"));
 				break;
 			default:
 				PVR_LOG(("Internal error, exiting test"));
@@ -455,20 +510,16 @@ e2:
 e1:
 	DevmemFwUnmapAndFree(psDevInfo, psFabricCohTestBufferMemDesc);
 
-e0:
-	{
-		/* Restore SLC bypass settings */
-		RGXWriteReg32(hPrivate, RGX_CR_SLC_CTRL_BYPASS, ui32SLCCTRL);
-	}
+e0: {
+	/* Restore SLC bypass settings */
+	RGXWriteReg32(hPrivate, RGX_CR_SLC_CTRL_BYPASS, ui32SLCCTRL);
+}
 
-	bFullTestPassed = bExit ? IMG_FALSE: bFullTestPassed;
-	if (bFullTestPassed)
-	{
+	bFullTestPassed = bExit ? IMG_FALSE : bFullTestPassed;
+	if (bFullTestPassed) {
 		PVR_LOG(("fabric coherency test: PASSED"));
 		psDevInfo->ui32CoherencyTestsDone = MAX_NUM_COHERENCY_TESTS + 1;
-	}
-	else
-	{
+	} else {
 		PVR_LOG(("fabric coherency test: FAILED"));
 		psDevInfo->ui32CoherencyTestsDone++;
 	}

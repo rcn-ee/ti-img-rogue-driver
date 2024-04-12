@@ -53,11 +53,12 @@ int pvr_sync_close_common(void *connection_data);
 void *pvr_sync_get_api_priv_common(struct file *file);
 
 #if defined(USE_PVRSYNC_DEVNODE)
-#define PVR_SYNC_IOCTL_DISPATCH_DECL(name) \
-	int pvr_sync_ioctl_common_ ## name(struct file *file, void __user *user_data)
+#define PVR_SYNC_IOCTL_DISPATCH_DECL(name)                  \
+	int pvr_sync_ioctl_common_##name(struct file *file, \
+					 void __user *user_data)
 #else /* defined(USE_PVRSYNC_DEVNODE) */
 #define PVR_SYNC_IOCTL_DISPATCH_DECL(name) \
-	int pvr_sync_ioctl_common_ ## name(struct file *file, void *user_data)
+	int pvr_sync_ioctl_common_##name(struct file *file, void *user_data)
 #endif /* defined(USE_PVRSYNC_DEVNODE) */
 
 PVR_SYNC_IOCTL_DISPATCH_DECL(rename);
@@ -77,8 +78,7 @@ bool pvr_sync_set_private_data(void *connection_data,
 struct pvr_sync_file_data *
 pvr_sync_connection_private_data(void *connection_data);
 
-struct pvr_sync_file_data *
-pvr_sync_get_private_data(struct file *file);
+struct pvr_sync_file_data *pvr_sync_get_private_data(struct file *file);
 
 bool pvr_sync_is_timeline(struct file *file);
 

@@ -55,20 +55,18 @@ extern "C" {
  * Keys passed to the comparison function are only guaranteed to be aligned on
  * an uintptr_t boundary.
  */
-typedef IMG_UINT32 HASH_FUNC(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen);
+typedef IMG_UINT32 HASH_FUNC(size_t uKeySize, void *pKey,
+			     IMG_UINT32 uHashTabLen);
 typedef IMG_BOOL HASH_KEY_COMP(size_t uKeySize, void *pKey1, void *pKey2);
 
 typedef struct _HASH_TABLE_ HASH_TABLE;
 
-typedef PVRSRV_ERROR (*HASH_pfnCallback) (
-	uintptr_t k,
-	uintptr_t v,
-	void* pvPriv
-);
+typedef PVRSRV_ERROR (*HASH_pfnCallback)(uintptr_t k, uintptr_t v,
+					 void *pvPriv);
 
 #if defined(DEBUG)
 #else
-#define HASH_CREATE(LEN)		HASH_Create(LEN)
+#define HASH_CREATE(LEN) HASH_Create(LEN)
 #endif
 
 /*************************************************************************/ /*!
@@ -80,7 +78,8 @@ typedef PVRSRV_ERROR (*HASH_pfnCallback) (
 @Input          uHashTabLen  The length of the hash table.
 @Return         The hash value.
 */ /**************************************************************************/
-IMG_UINT32 HASH_Func_Default(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen);
+IMG_UINT32 HASH_Func_Default(size_t uKeySize, void *pKey,
+			     IMG_UINT32 uHashTabLen);
 
 /*************************************************************************/ /*!
 @Function       HASH_Key_Comp_Default
@@ -105,13 +104,19 @@ IMG_BOOL HASH_Key_Comp_Default(size_t uKeySize, void *pKey1, void *pKey2);
 @Input          pfnKeyComp   Pointer to key comparison function.
 @Return         NULL or hash table handle.
 */ /**************************************************************************/
-HASH_TABLE * HASH_Create_Extended_Int(IMG_UINT32 uInitialLen, size_t uKeySize, HASH_FUNC *pfnHashFunc, HASH_KEY_COMP *pfnKeyComp);
+HASH_TABLE *HASH_Create_Extended_Int(IMG_UINT32 uInitialLen, size_t uKeySize,
+				     HASH_FUNC *pfnHashFunc,
+				     HASH_KEY_COMP *pfnKeyComp);
 #if defined(DEBUG)
-#define HASH_Create_Extended(LEN, KS, FUN, CMP)		HASH_Create_Extended_Debug(LEN, KS, FUN, CMP, __FILE__, __LINE__)
-HASH_TABLE * HASH_Create_Extended_Debug (IMG_UINT32 uInitialLen, size_t uKeySize, HASH_FUNC *pfnHashFunc, HASH_KEY_COMP *pfnKeyComp,
-										 const char *file, const unsigned int line);
+#define HASH_Create_Extended(LEN, KS, FUN, CMP) \
+	HASH_Create_Extended_Debug(LEN, KS, FUN, CMP, __FILE__, __LINE__)
+HASH_TABLE *HASH_Create_Extended_Debug(IMG_UINT32 uInitialLen, size_t uKeySize,
+				       HASH_FUNC *pfnHashFunc,
+				       HASH_KEY_COMP *pfnKeyComp,
+				       const char *file,
+				       const unsigned int line);
 #else
-#define HASH_Create_Extended	HASH_Create_Extended_Int
+#define HASH_Create_Extended HASH_Create_Extended_Int
 #endif
 
 /*************************************************************************/ /*!
@@ -124,12 +129,13 @@ HASH_TABLE * HASH_Create_Extended_Debug (IMG_UINT32 uInitialLen, size_t uKeySize
                              in the hash table, not its size in bytes.
 @Return         NULL or hash table handle.
 */ /**************************************************************************/
-HASH_TABLE * HASH_Create_Int(IMG_UINT32 uInitialLen);
+HASH_TABLE *HASH_Create_Int(IMG_UINT32 uInitialLen);
 #if defined(DEBUG)
-#define HASH_Create(LEN)		HASH_Create_Debug(LEN, __FILE__, __LINE__)
-HASH_TABLE * HASH_Create_Debug (IMG_UINT32 uInitialLen, const char *file, const unsigned int line);
+#define HASH_Create(LEN) HASH_Create_Debug(LEN, __FILE__, __LINE__)
+HASH_TABLE *HASH_Create_Debug(IMG_UINT32 uInitialLen, const char *file,
+			      const unsigned int line);
 #else
-#define HASH_Create				HASH_Create_Int
+#define HASH_Create HASH_Create_Int
 #endif
 
 /*************************************************************************/ /*!
@@ -225,7 +231,8 @@ uintptr_t HASH_Retrieve(HASH_TABLE *pHash, uintptr_t k);
 .                            entry in the hash table
 @Return         Callback error if any, otherwise PVRSRV_OK
 */ /**************************************************************************/
-PVRSRV_ERROR HASH_Iterate(HASH_TABLE *pHash, HASH_pfnCallback pfnCallback, void* args);
+PVRSRV_ERROR HASH_Iterate(HASH_TABLE *pHash, HASH_pfnCallback pfnCallback,
+			  void *args);
 
 #ifdef HASH_TRACE
 /*************************************************************************/ /*!

@@ -55,8 +55,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 extern void *regbank;
 
-__printf(2, 3)
-void RGXCommentLog(const void *hPrivate, const IMG_CHAR *pszString, ...)
+__printf(2, 3) void RGXCommentLog(const void *hPrivate,
+				  const IMG_CHAR *pszString, ...)
 {
 	IMG_CHAR szBuffer[512];
 	va_list argList;
@@ -68,8 +68,8 @@ void RGXCommentLog(const void *hPrivate, const IMG_CHAR *pszString, ...)
 	pr_notice("TEE_DDK: %s\n", szBuffer);
 }
 
-__printf(2, 3)
-void RGXErrorLog(const void *hPrivate, const IMG_CHAR *pszString, ...)
+__printf(2, 3) void RGXErrorLog(const void *hPrivate, const IMG_CHAR *pszString,
+				...)
 {
 	IMG_CHAR szBuffer[512];
 	va_list argList;
@@ -81,30 +81,23 @@ void RGXErrorLog(const void *hPrivate, const IMG_CHAR *pszString, ...)
 	pr_err("TEE_DDK ERROR: %s\n", szBuffer);
 }
 
-void RGXMemCopy(const void *hPrivate,
-                void *pvDst,
-                void *pvSrc,
-                size_t uiSize)
+void RGXMemCopy(const void *hPrivate, void *pvDst, void *pvSrc, size_t uiSize)
 {
 	volatile const char *pcSrc = pvSrc;
 	volatile char *pcDst = pvDst;
 
-	while (uiSize)
-	{
+	while (uiSize) {
 		*pcDst++ = *pcSrc++;
 		uiSize--;
 	}
 }
 
-void RGXMemSet(const void *hPrivate,
-               void *pvDst,
-               IMG_UINT8 ui8Value,
-               size_t uiSize)
+void RGXMemSet(const void *hPrivate, void *pvDst, IMG_UINT8 ui8Value,
+	       size_t uiSize)
 {
 	volatile char *pcDst = pvDst;
 
-	while (uiSize)
-	{
+	while (uiSize) {
 		*pcDst++ = ui8Value;
 		uiSize--;
 	}
@@ -113,32 +106,34 @@ void RGXMemSet(const void *hPrivate,
 IMG_INT32 RGXDeviceGetFeatureValue(const void *hPrivate, IMG_UINT64 ui64Feature)
 {
 #if defined(RGXCONFIG_KM_35_V_408_101_H)
-	switch (ui64Feature)
-	{
-		case 0x2:
-			return 0;
-		case 0xF:
-			return 4;
-		case 0x8:
-			return 1;
-		case 0x19:
-			return 1;
-		default:
-			RGXErrorLog(hPrivate, "%s UNEXPECTED FEATURE VALUE CHECK: 0x%llX !\n", __func__, ui64Feature);
-			return 0;
+	switch (ui64Feature) {
+	case 0x2:
+		return 0;
+	case 0xF:
+		return 4;
+	case 0x8:
+		return 1;
+	case 0x19:
+		return 1;
+	default:
+		RGXErrorLog(hPrivate,
+			    "%s UNEXPECTED FEATURE VALUE CHECK: 0x%llX !\n",
+			    __func__, ui64Feature);
+		return 0;
 	}
 #elif defined(RGXCONFIG_KM_70_V_2448_1041_H)
-	switch (ui64Feature)
-	{
-		case 0x2:
-			return 0;
-		case 0xF:
-			return 4;
-		case 0x8:
-			return 3;
-		default:
-			RGXErrorLog(hPrivate, "%s UNEXPECTED FEATURE VALUE CHECK: 0x%llX !\n", __func__, ui64Feature);
-			return 0;
+	switch (ui64Feature) {
+	case 0x2:
+		return 0;
+	case 0xF:
+		return 4;
+	case 0x8:
+		return 3;
+	default:
+		RGXErrorLog(hPrivate,
+			    "%s UNEXPECTED FEATURE VALUE CHECK: 0x%llX !\n",
+			    __func__, ui64Feature);
+		return 0;
 	}
 #else
 #error "SUPPORT FOR THIS CONFIG NOT ADDED TO TEE-DDK."
@@ -147,18 +142,19 @@ IMG_INT32 RGXDeviceGetFeatureValue(const void *hPrivate, IMG_UINT64 ui64Feature)
 
 IMG_BOOL RGXDeviceHasFeature(const void *hPrivate, IMG_UINT64 ui64Feature)
 {
-#if defined(RGXCONFIG_KM_35_V_408_101_H) || defined(RGXCONFIG_KM_70_V_2448_1041_H)
-	switch (ui64Feature)
-	{
-		case 0x20000000000:
-		case 0x1000000:
-		case 0x80000000000:
-			return true;
-		case 0x400000000:
-			return false;
-		default:
-			RGXErrorLog(hPrivate, "%s UNEXPECTED FEATURE CHECK: 0x%llX !\n", __func__, ui64Feature);
-			return false;
+#if defined(RGXCONFIG_KM_35_V_408_101_H) || \
+	defined(RGXCONFIG_KM_70_V_2448_1041_H)
+	switch (ui64Feature) {
+	case 0x20000000000:
+	case 0x1000000:
+	case 0x80000000000:
+		return true;
+	case 0x400000000:
+		return false;
+	default:
+		RGXErrorLog(hPrivate, "%s UNEXPECTED FEATURE CHECK: 0x%llX !\n",
+			    __func__, ui64Feature);
+		return false;
 	}
 #else
 #error "SUPPORT FOR THIS CONFIG NOT ADDED TO TEE-DDK."
@@ -168,7 +164,8 @@ IMG_BOOL RGXDeviceHasFeature(const void *hPrivate, IMG_UINT64 ui64Feature)
 IMG_BOOL RGXDeviceHasErnBrn(const void *hPrivate, IMG_UINT64 ui64ErnsBrns)
 {
 #if defined(RGXCORE_KM_70_2_2448_1041_H) || defined(RGXCORE_KM_35_3_408_101_H)
-	RGXErrorLog(hPrivate, "%s UNEXPECTED FEATURE CHECK: 0x%llX !\n", __func__, ui64ErnsBrns);
+	RGXErrorLog(hPrivate, "%s UNEXPECTED FEATURE CHECK: 0x%llX !\n",
+		    __func__, ui64ErnsBrns);
 #else
 #error "SUPPORT FOR THIS CORE NOT ADDED TO TEE-DDK."
 #endif
@@ -181,43 +178,43 @@ IMG_UINT32 RGXGetFWCorememSize(const void *hPrivate)
 	return RGX_FEATURE_META_COREMEM_SIZE * 1024;
 }
 
-void RGXWriteReg32(const void *hPrivate,
-                   IMG_UINT32 ui32RegAddr,
-                   IMG_UINT32 ui32RegValue)
+void RGXWriteReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+		   IMG_UINT32 ui32RegValue)
 {
-	writel((IMG_UINT32)(ui32RegValue), (IMG_BYTE __iomem *)(regbank) + (ui32RegAddr));
+	writel((IMG_UINT32)(ui32RegValue),
+	       (IMG_BYTE __iomem *)(regbank) + (ui32RegAddr));
 }
 
-
-void RGXWriteReg64(const void *hPrivate,
-                   IMG_UINT32 ui32RegAddr,
-                   IMG_UINT64 ui64RegValue)
+void RGXWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+		   IMG_UINT64 ui64RegValue)
 {
-	IMG_UINT64 _off  = ui32RegAddr;
-	IMG_UINT64 _val  = ui64RegValue;
+	IMG_UINT64 _off = ui32RegAddr;
+	IMG_UINT64 _val = ui64RegValue;
 
-	writel((IMG_UINT32)((_val) & 0xffffffff), (IMG_BYTE __iomem *)(regbank) + (_off));
-	writel((IMG_UINT32)(((IMG_UINT64)(_val) >> 32) & 0xffffffff), (IMG_BYTE __iomem *)(regbank) + (_off) + 4);
+	writel((IMG_UINT32)((_val) & 0xffffffff),
+	       (IMG_BYTE __iomem *)(regbank) + (_off));
+	writel((IMG_UINT32)(((IMG_UINT64)(_val) >> 32) & 0xffffffff),
+	       (IMG_BYTE __iomem *)(regbank) + (_off) + 4);
 }
 
-IMG_UINT32 RGXReadReg32(const void *hPrivate,
-                        IMG_UINT32 ui32RegAddr)
+IMG_UINT32 RGXReadReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr)
 {
 	return readl((IMG_BYTE __iomem *)(regbank) + (ui32RegAddr));
 }
 
-IMG_UINT64 RGXReadReg64(const void *hPrivate,
-                        IMG_UINT32 ui32RegAddr)
+IMG_UINT64 RGXReadReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr)
 {
-	IMG_UINT64 _off  = ui32RegAddr;
+	IMG_UINT64 _off = ui32RegAddr;
 
-	return (IMG_UINT64)(((IMG_UINT64)(readl((IMG_BYTE __iomem *)(regbank) + (_off) + 4)) << 32) | readl((IMG_BYTE __iomem *)(regbank) + (_off)));
+	return (IMG_UINT64)(((IMG_UINT64)(readl((IMG_BYTE __iomem *)(regbank) +
+						(_off) + 4))
+			     << 32) |
+			    readl((IMG_BYTE __iomem *)(regbank) + (_off)));
 }
 
-IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate,
-                                   IMG_UINT32 ui32RegAddr,
-                                   IMG_UINT64 ui64RegValue,
-                                   IMG_UINT64 ui64RegKeepMask)
+IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+				   IMG_UINT64 ui64RegValue,
+				   IMG_UINT64 ui64RegKeepMask)
 {
 	IMG_UINT64 uiRegValue = RGXReadReg64(NULL, ui32RegAddr);
 
@@ -228,25 +225,24 @@ IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate,
 	return 0;
 }
 
-PVRSRV_ERROR RGXPollReg32(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT32 ui32RegValue,
-                          IMG_UINT32 ui32RegMask)
+PVRSRV_ERROR RGXPollReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT32 ui32RegValue, IMG_UINT32 ui32RegMask)
 {
 	IMG_UINT32 ui32ActualValue = 0xFFFFFFFFU;
 	IMG_UINT64 uiOffset, uiStart, uiCurrent;
 	IMG_INT32 iNotLastLoop;
 
-	for (uiOffset = 0, uiStart = sched_clock(), uiCurrent = uiStart + 1, iNotLastLoop = 1;
-		((uiCurrent - uiStart + uiOffset) < (POLL_TIMEOUT_NS)) || iNotLastLoop--;
-		uiCurrent = sched_clock(),
-		uiOffset = uiCurrent < uiStart ? IMG_UINT64_MAX - uiStart : uiOffset,
-		uiStart = uiCurrent < uiStart ? 0 : uiStart)
-	{
+	for (uiOffset = 0, uiStart = sched_clock(), uiCurrent = uiStart + 1,
+	    iNotLastLoop = 1;
+	     ((uiCurrent - uiStart + uiOffset) < (POLL_TIMEOUT_NS)) ||
+	     iNotLastLoop--;
+	     uiCurrent = sched_clock(),
+	    uiOffset = uiCurrent < uiStart ? IMG_UINT64_MAX - uiStart :
+					     uiOffset,
+	    uiStart = uiCurrent < uiStart ? 0 : uiStart) {
 		ui32ActualValue = RGXReadReg32(hPrivate, ui32RegAddr);
 
-		if (ui32ActualValue == ui32RegValue)
-		{
+		if (ui32ActualValue == ui32RegValue) {
 			return PVRSRV_OK;
 		}
 
@@ -256,25 +252,24 @@ PVRSRV_ERROR RGXPollReg32(const void *hPrivate,
 	return PVRSRV_ERROR_TIMEOUT;
 }
 
-PVRSRV_ERROR RGXPollReg64(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT64 ui64RegValue,
-                          IMG_UINT64 ui64RegMask)
+PVRSRV_ERROR RGXPollReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT64 ui64RegValue, IMG_UINT64 ui64RegMask)
 {
 	IMG_UINT64 ui64ActualValue = 0xFFFFFFFFFFFFFFFFU;
 	IMG_UINT64 uiOffset, uiStart, uiCurrent;
 	IMG_INT32 iNotLastLoop;
 
-	for (uiOffset = 0, uiStart = sched_clock(), uiCurrent = uiStart + 1, iNotLastLoop = 1;
-		((uiCurrent - uiStart + uiOffset) < (POLL_TIMEOUT_NS)) || iNotLastLoop--;
-		uiCurrent = sched_clock(),
-		uiOffset = uiCurrent < uiStart ? IMG_UINT64_MAX - uiStart : uiOffset,
-		uiStart = uiCurrent < uiStart ? 0 : uiStart)
-	{
+	for (uiOffset = 0, uiStart = sched_clock(), uiCurrent = uiStart + 1,
+	    iNotLastLoop = 1;
+	     ((uiCurrent - uiStart + uiOffset) < (POLL_TIMEOUT_NS)) ||
+	     iNotLastLoop--;
+	     uiCurrent = sched_clock(),
+	    uiOffset = uiCurrent < uiStart ? IMG_UINT64_MAX - uiStart :
+					     uiOffset,
+	    uiStart = uiCurrent < uiStart ? 0 : uiStart) {
 		ui64ActualValue = RGXReadReg64(hPrivate, ui32RegAddr);
 
-		if (ui64ActualValue == ui64RegValue)
-		{
+		if (ui64ActualValue == ui64RegValue) {
 			return PVRSRV_OK;
 		}
 
@@ -289,9 +284,8 @@ void RGXSetPoweredState(const void *hPrivate, IMG_BOOL bPowered)
 	/* not needed here */
 }
 
-void RGXWaitCycles(const void *hPrivate,
-                   IMG_UINT32 ui32Cycles,
-                   IMG_UINT32 ui32WaitUs)
+void RGXWaitCycles(const void *hPrivate, IMG_UINT32 ui32Cycles,
+		   IMG_UINT32 ui32WaitUs)
 {
 	udelay(ui32WaitUs);
 }
@@ -323,16 +317,19 @@ IMG_UINT32 RGXGetDeviceCacheLineSize(const void *hPrivate)
 	return RGX_FEATURE_SLC_CACHE_LINE_SIZE_BITS;
 }
 
-void RGXAcquireBootCodeAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootCodeAddr)
+void RGXAcquireBootCodeAddr(const void *hPrivate,
+			    IMG_DEV_VIRTADDR *psBootCodeAddr)
 {
 	psBootCodeAddr->uiAddr = RGX_FIRMWARE_RAW_HEAP_BASE;
 }
 
-void RGXAcquireBootDataAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootDataAddr)
+void RGXAcquireBootDataAddr(const void *hPrivate,
+			    IMG_DEV_VIRTADDR *psBootDataAddr)
 {
 }
 
-void *RGXCalculateHostFWDataAddress(const void *hPrivate, void *pvHostFWDataAddr)
+void *RGXCalculateHostFWDataAddress(const void *hPrivate,
+				    void *pvHostFWDataAddr)
 {
 #if defined(RGX_FEATURE_RISCV_FW_PROCESSOR)
 #error "RISC-V FW CPUs must implement RGXCalculateHostFWDataAddress() in the TEE."
@@ -343,22 +340,20 @@ void *RGXCalculateHostFWDataAddress(const void *hPrivate, void *pvHostFWDataAddr
 IMG_BOOL RGXDeviceAckIrq(const void *hPrivate)
 {
 	/* Clear all interrupts before shutdown. */
-	RGXWriteReg32(NULL,
-	              RGX_CR_IRQ_OS0_EVENT_STATUS,
-	              RGX_CR_IRQ_OS0_EVENT_CLEAR_SOURCE_CLRMSK);
+	RGXWriteReg32(NULL, RGX_CR_IRQ_OS0_EVENT_STATUS,
+		      RGX_CR_IRQ_OS0_EVENT_CLEAR_SOURCE_CLRMSK);
 
 	return true;
 }
 
 IMG_UINT64 RGXMMUInitRangeValue(IMG_UINT32 ui32MMURange)
 {
-	switch (ui32MMURange)
-	{
-		case 0:
-			return 0x6ffffdc000;
-		case 3:
-			return 0x3ffff80000;
-		default:
-			return 0;
+	switch (ui32MMURange) {
+	case 0:
+		return 0x6ffffdc000;
+	case 3:
+		return 0x3ffff80000;
+	default:
+		return 0;
 	}
 }

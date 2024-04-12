@@ -66,9 +66,9 @@ static inline u32 nulldisp_drm_fb_format(struct drm_framebuffer *fb)
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0))
 	return fb->format->format;
-#else	/* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)) */
+#else /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)) */
 	return fb->pixel_format;
-#endif	/* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)) */
+#endif /* (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 11, 0)) */
 }
 
 static inline u64 nulldisp_drm_fb_modifier(struct drm_framebuffer *fb)

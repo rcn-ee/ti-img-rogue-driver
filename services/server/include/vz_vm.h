@@ -53,8 +53,7 @@ PVRSRV_ERROR PvzOnVmOnline(IMG_UINT32 ui32DriverID, IMG_UINT32 ui32DevID);
 PVRSRV_ERROR PvzOnVmOffline(IMG_UINT32 ui32DriverID, IMG_UINT32 ui32DevID);
 
 PVRSRV_ERROR PvzVMMConfigure(VMM_CONF_PARAM eVMMParamType,
-							 IMG_UINT32 ui32ParamValue,
-							 IMG_UINT32 ui32DevID);
+			     IMG_UINT32 ui32ParamValue, IMG_UINT32 ui32DevID);
 
 #endif /* VZ_VM_H */
 

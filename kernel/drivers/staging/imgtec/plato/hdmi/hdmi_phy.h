@@ -77,6 +77,7 @@ DAMAGE.
 int phy_init(struct hdmi_device *hdmi);
 int phy_power_down(struct hdmi_device *hdmi);
 int phy_wait_lock(struct hdmi_device *hdmi);
-void phy_configure_mode(struct hdmi_device *hdmi, struct drm_display_mode *mode);
+void phy_configure_mode(struct hdmi_device *hdmi,
+			struct drm_display_mode *mode);
 
 #endif

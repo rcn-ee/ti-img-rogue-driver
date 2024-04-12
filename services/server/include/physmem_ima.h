@@ -66,12 +66,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Return         PVRSRV_ERROR  PVRSRV_OK or error code
 */ /**************************************************************************/
 PVRSRV_ERROR
-PhysmemCreateHeapIMA(PVRSRV_DEVICE_NODE *psDevNode,
-                     PHYS_HEAP_POLICY uiPolicy,
-                     PHYS_HEAP_CONFIG *psConfig,
-                     IMG_CHAR *pszLabel,
-                     PHYS_HEAP *psDLMHeap,
-                     IMG_UINT32 uiLog2PMBSize,
-                     PHYS_HEAP **ppsPhysHeap);
+PhysmemCreateHeapIMA(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		     PHYS_HEAP_CONFIG *psConfig, IMG_CHAR *pszLabel,
+		     PHYS_HEAP *psDLMHeap, IMG_UINT32 uiLog2PMBSize,
+		     PHYS_HEAP **ppsPhysHeap);
 
 #endif /* PHYSMEM_IMA_H_ */

@@ -83,13 +83,11 @@ void CPUMappingHistoryDeInit(void);
  @input       ui32PageCount     - The number of pages mapped.
  @Return      None
 ******************************************************************************/
-void InsertMappingRecord(const IMG_CHAR *pszAnnotation,
-                         IMG_PID uiPID,
-                         IMG_CPU_VIRTADDR pvAddress,
-                         IMG_CPU_PHYADDR sCpuPhyAddr,
-                         IMG_UINT32 ui32CPUCacheFlags,
-                         size_t uiMapOffset,
-                         IMG_UINT32 ui32PageCount);
+void InsertMappingRecord(const IMG_CHAR *pszAnnotation, IMG_PID uiPID,
+			 IMG_CPU_VIRTADDR pvAddress,
+			 IMG_CPU_PHYADDR sCpuPhyAddr,
+			 IMG_UINT32 ui32CPUCacheFlags, size_t uiMapOffset,
+			 IMG_UINT32 ui32PageCount);
 
 /*!
 *******************************************************************************
@@ -107,9 +105,8 @@ void InsertMappingRecord(const IMG_CHAR *pszAnnotation,
  @Return      None
 ******************************************************************************/
 void InsertUnMappingRecord(IMG_CPU_VIRTADDR pvAddress,
-                           IMG_CPU_PHYADDR sCpuPhyAddr,
-                           IMG_UINT32 ui32CPUCacheFlags,
-                           IMG_UINT32 ui32PageCount);
-
+			   IMG_CPU_PHYADDR sCpuPhyAddr,
+			   IMG_UINT32 ui32CPUCacheFlags,
+			   IMG_UINT32 ui32PageCount);
 
 #endif /* PHYSMEM_CPUMAP_HISTORY_H_ */

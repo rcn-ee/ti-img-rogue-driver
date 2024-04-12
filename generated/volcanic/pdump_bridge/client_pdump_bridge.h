@@ -54,40 +54,30 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_pdump_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpImageDescriptor(IMG_HANDLE hBridge,
-						     IMG_HANDLE hDevmemCtx,
-						     IMG_UINT32 ui32StringSize,
-						     const IMG_CHAR * puiFileName,
-						     IMG_DEV_VIRTADDR sDataDevAddr,
-						     IMG_UINT32 ui32DataSize,
-						     IMG_UINT32 ui32LogicalWidth,
-						     IMG_UINT32 ui32LogicalHeight,
-						     IMG_UINT32 ui32PhysicalWidth,
-						     IMG_UINT32 ui32PhysicalHeight,
-						     PDUMP_PIXEL_FORMAT ePixelFormat,
-						     IMG_MEMLAYOUT eMemLayout,
-						     IMG_FB_COMPRESSION eFBCompression,
-						     const IMG_UINT32 * pui32FBCClearColour,
-						     PDUMP_FBC_SWIZZLE eeFBCSwizzle,
-						     IMG_DEV_VIRTADDR sHeaderDevAddr,
-						     IMG_UINT32 ui32HeaderSize,
-						     IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpImageDescriptor(
+	IMG_HANDLE hBridge, IMG_HANDLE hDevmemCtx, IMG_UINT32 ui32StringSize,
+	const IMG_CHAR *puiFileName, IMG_DEV_VIRTADDR sDataDevAddr,
+	IMG_UINT32 ui32DataSize, IMG_UINT32 ui32LogicalWidth,
+	IMG_UINT32 ui32LogicalHeight, IMG_UINT32 ui32PhysicalWidth,
+	IMG_UINT32 ui32PhysicalHeight, PDUMP_PIXEL_FORMAT ePixelFormat,
+	IMG_MEMLAYOUT eMemLayout, IMG_FB_COMPRESSION eFBCompression,
+	const IMG_UINT32 *pui32FBCClearColour, PDUMP_FBC_SWIZZLE eeFBCSwizzle,
+	IMG_DEV_VIRTADDR sHeaderDevAddr, IMG_UINT32 ui32HeaderSize,
+	IMG_UINT32 ui32PDumpFlags);
 
 IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpComment(IMG_HANDLE hBridge,
 						   IMG_UINT32 ui32CommentSize,
-						   IMG_CHAR * puiComment, IMG_UINT32 ui32Flags);
+						   IMG_CHAR *puiComment,
+						   IMG_UINT32 ui32Flags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpSetFrame(IMG_HANDLE hBridge, IMG_UINT32 ui32Frame);
+IMG_INTERNAL PVRSRV_ERROR BridgePVRSRVPDumpSetFrame(IMG_HANDLE hBridge,
+						    IMG_UINT32 ui32Frame);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpDataDescriptor(IMG_HANDLE hBridge,
-						    IMG_HANDLE hDevmemCtx,
-						    IMG_UINT32 ui32StringSize,
-						    const IMG_CHAR * puiFileName,
-						    IMG_DEV_VIRTADDR sDataDevAddr,
-						    IMG_UINT32 ui32DataSize,
-						    IMG_UINT32 ui32HeaderType,
-						    IMG_UINT32 ui32ElementType,
-						    IMG_UINT32 ui32ElementCount,
-						    IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpDataDescriptor(
+	IMG_HANDLE hBridge, IMG_HANDLE hDevmemCtx, IMG_UINT32 ui32StringSize,
+	const IMG_CHAR *puiFileName, IMG_DEV_VIRTADDR sDataDevAddr,
+	IMG_UINT32 ui32DataSize, IMG_UINT32 ui32HeaderType,
+	IMG_UINT32 ui32ElementType, IMG_UINT32 ui32ElementCount,
+	IMG_UINT32 ui32PDumpFlags);
 
 #endif /* CLIENT_PDUMP_BRIDGE_H */

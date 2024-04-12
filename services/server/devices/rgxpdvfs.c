@@ -50,16 +50,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define USEC_TO_MSEC 1000
 
-PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32MaxOPPPoint)
+PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo,
+				    IMG_UINT32 ui32MaxOPPPoint)
 {
-	RGXFWIF_KCCB_CMD		sGPCCBCmd;
-	PVRSRV_ERROR			eError;
-	IMG_UINT32				ui32CmdKCCBSlot;
+	RGXFWIF_KCCB_CMD sGPCCBCmd;
+	PVRSRV_ERROR eError;
+	IMG_UINT32 ui32CmdKCCBSlot;
 
-	PVRSRV_VZ_RET_IF_MODE(GUEST, DEVINFO, psDevInfo, PVRSRV_ERROR_NOT_SUPPORTED);
+	PVRSRV_VZ_RET_IF_MODE(GUEST, DEVINFO, psDevInfo,
+			      PVRSRV_ERROR_NOT_SUPPORTED);
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return PVRSRV_OK;
 	}
@@ -71,30 +72,30 @@ PVRSRV_ERROR PDVFSLimitMaxFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui
 	/* Submit command to the firmware.  */
 	LOOP_UNTIL_TIMEOUT_US(MAX_HW_TIME_US)
 	{
-		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo,
-		                                      &sGPCCBCmd,
-		                                      PDUMP_FLAGS_CONTINUOUS,
-		                                      &ui32CmdKCCBSlot);
-		if (eError != PVRSRV_ERROR_RETRY)
-		{
+		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo, &sGPCCBCmd,
+						      PDUMP_FLAGS_CONTINUOUS,
+						      &ui32CmdKCCBSlot);
+		if (eError != PVRSRV_ERROR_RETRY) {
 			break;
 		}
-		OSWaitus(MAX_HW_TIME_US/WAIT_TRY_COUNT);
-	} END_LOOP_UNTIL_TIMEOUT_US();
+		OSWaitus(MAX_HW_TIME_US / WAIT_TRY_COUNT);
+	}
+	END_LOOP_UNTIL_TIMEOUT_US();
 
 	return eError;
 }
 
-PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32MinOPPPoint)
+PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo,
+				    IMG_UINT32 ui32MinOPPPoint)
 {
-	RGXFWIF_KCCB_CMD		sGPCCBCmd;
-	PVRSRV_ERROR			eError;
-	IMG_UINT32				ui32CmdKCCBSlot;
+	RGXFWIF_KCCB_CMD sGPCCBCmd;
+	PVRSRV_ERROR eError;
+	IMG_UINT32 ui32CmdKCCBSlot;
 
-	PVRSRV_VZ_RET_IF_MODE(GUEST, DEVINFO, psDevInfo, PVRSRV_ERROR_NOT_SUPPORTED);
+	PVRSRV_VZ_RET_IF_MODE(GUEST, DEVINFO, psDevInfo,
+			      PVRSRV_ERROR_NOT_SUPPORTED);
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return PVRSRV_OK;
 	}
@@ -106,16 +107,15 @@ PVRSRV_ERROR PDVFSLimitMinFrequency(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui
 	/* Submit command to the firmware.  */
 	LOOP_UNTIL_TIMEOUT_US(MAX_HW_TIME_US)
 	{
-		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo,
-		                                      &sGPCCBCmd,
-		                                      PDUMP_FLAGS_CONTINUOUS,
-		                                      &ui32CmdKCCBSlot);
-		if (eError != PVRSRV_ERROR_RETRY)
-		{
+		eError = RGXSendCommandAndGetKCCBSlot(psDevInfo, &sGPCCBCmd,
+						      PDUMP_FLAGS_CONTINUOUS,
+						      &ui32CmdKCCBSlot);
+		if (eError != PVRSRV_ERROR_RETRY) {
 			break;
 		}
-		OSWaitus(MAX_HW_TIME_US/WAIT_TRY_COUNT);
-	} END_LOOP_UNTIL_TIMEOUT_US();
+		OSWaitus(MAX_HW_TIME_US / WAIT_TRY_COUNT);
+	}
+	END_LOOP_UNTIL_TIMEOUT_US();
 
 	return eError;
 }
@@ -131,14 +131,13 @@ void RGXPDVFSCheckCoreClkRateChange(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	IMG_UINT32 ui32CoreClkRate = *psDevInfo->pui32RGXFWIFCoreClkRate;
 
-	if (!_PDVFSEnabled())
-	{
+	if (!_PDVFSEnabled()) {
 		/* No error message to avoid excessive messages */
 		return;
 	}
 
-	if (ui32CoreClkRate != 0 && psDevInfo->ui32CoreClkRateSnapshot != ui32CoreClkRate)
-	{
+	if (ui32CoreClkRate != 0 &&
+	    psDevInfo->ui32CoreClkRateSnapshot != ui32CoreClkRate) {
 		psDevInfo->ui32CoreClkRateSnapshot = ui32CoreClkRate;
 		RGX_PROCESS_CORE_CLK_RATE_CHANGE(psDevInfo, ui32CoreClkRate);
 	}

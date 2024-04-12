@@ -54,15 +54,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_synctracking_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgeSyncRecordRemoveByHandle(IMG_HANDLE hBridge, IMG_HANDLE hhRecord);
+IMG_INTERNAL PVRSRV_ERROR BridgeSyncRecordRemoveByHandle(IMG_HANDLE hBridge,
+							 IMG_HANDLE hhRecord);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeSyncRecordAdd(IMG_HANDLE hBridge,
-					      IMG_HANDLE * phhRecord,
-					      IMG_HANDLE hhServerSyncPrimBlock,
-					      IMG_UINT32 ui32ui32FwBlockAddr,
-					      IMG_UINT32 ui32ui32SyncOffset,
-					      IMG_BOOL bbServerSync,
-					      IMG_UINT32 ui32ClassNameSize,
-					      const IMG_CHAR * puiClassName);
+IMG_INTERNAL PVRSRV_ERROR BridgeSyncRecordAdd(
+	IMG_HANDLE hBridge, IMG_HANDLE *phhRecord,
+	IMG_HANDLE hhServerSyncPrimBlock, IMG_UINT32 ui32ui32FwBlockAddr,
+	IMG_UINT32 ui32ui32SyncOffset, IMG_BOOL bbServerSync,
+	IMG_UINT32 ui32ClassNameSize, const IMG_CHAR *puiClassName);
 
 #endif /* CLIENT_SYNCTRACKING_BRIDGE_H */

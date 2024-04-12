@@ -44,7 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef RGXHEAPCONFIG_65273_H
 #define RGXHEAPCONFIG_65273_H
 
-#define RGX_HEAP_SIZE_64KiB      IMG_UINT64_C(0x0000010000)
+#define RGX_HEAP_SIZE_64KiB IMG_UINT64_C(0x0000010000)
 
 /*
 	RGX Device Virtual Address Space Definitions
@@ -70,53 +70,50 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	sorts and are above the heaps in that range.
 */
 
-
 /* 0x00_0000_0000 ************************************************************/
 
 /* 0x00_0001_0000 - 0x00_3FFF_FFFF **/
-	/* HWBRN65273 workaround requires TQ memory to start at 64 KiB and use a
+/* HWBRN65273 workaround requires TQ memory to start at 64 KiB and use a
 	 * unique single 0.99GiB PCE entry. */
-	#define RGX_TQ3DPARAMETERS_BRN_65273_HEAP_BASE  IMG_UINT64_C(0x0000010000)
-	#define RGX_TQ3DPARAMETERS_BRN_65273_HEAP_SIZE  (RGX_HEAP_SIZE_1GiB - RGX_HEAP_SIZE_64KiB)
+#define RGX_TQ3DPARAMETERS_BRN_65273_HEAP_BASE IMG_UINT64_C(0x0000010000)
+#define RGX_TQ3DPARAMETERS_BRN_65273_HEAP_SIZE \
+	(RGX_HEAP_SIZE_1GiB - RGX_HEAP_SIZE_64KiB)
 
 /* 0x65_C000_0000 - 0x66_3FFF_FFFF **/
-	/* HWBRN65273 workaround requires General Heap to use a unique PCE entry for each GiB in range */
-	#define RGX_GENERAL_BRN_65273_HEAP_BASE         IMG_UINT64_C(0x65C0000000)
-	#define RGX_GENERAL_BRN_65273_HEAP_SIZE         RGX_HEAP_SIZE_2GiB
+/* HWBRN65273 workaround requires General Heap to use a unique PCE entry for each GiB in range */
+#define RGX_GENERAL_BRN_65273_HEAP_BASE IMG_UINT64_C(0x65C0000000)
+#define RGX_GENERAL_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_2GiB
 
 /* 0x73_C000_0000 - 0x74_3FFF_FFFF **/
-	/* HWBRN65273 workaround requires Non4K memory to use a unique PCE entry for each GiB in range */
-	#define RGX_GENERAL_NON4K_BRN_65273_HEAP_BASE   IMG_UINT64_C(0x73C0000000)
-	#define RGX_GENERAL_NON4K_BRN_65273_HEAP_SIZE   RGX_HEAP_SIZE_2GiB
-
+/* HWBRN65273 workaround requires Non4K memory to use a unique PCE entry for each GiB in range */
+#define RGX_GENERAL_NON4K_BRN_65273_HEAP_BASE IMG_UINT64_C(0x73C0000000)
+#define RGX_GENERAL_NON4K_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_2GiB
 
 /* 0x80_0000_0000 ************************************************************/
 
 /* 0xA8_0000_0000 - 0xA8_3FFF_FFFF **/
-	/* HWBRN65273 workaround requires PDS memory to use a unique single 1GiB PCE entry. */
-	#define RGX_PDSCODEDATA_BRN_65273_HEAP_BASE     IMG_UINT64_C(0xA800000000)
-	#define RGX_PDSCODEDATA_BRN_65273_HEAP_SIZE     RGX_HEAP_SIZE_1GiB
+/* HWBRN65273 workaround requires PDS memory to use a unique single 1GiB PCE entry. */
+#define RGX_PDSCODEDATA_BRN_65273_HEAP_BASE IMG_UINT64_C(0xA800000000)
+#define RGX_PDSCODEDATA_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_1GiB
 
 /* 0xBA_0000_0000 - 0xBA_3FFF_FFFF **/
-	/* HWBRN65273 workaround requires USC memory to use a unique single 1GiB PCE entry. */
-	#define RGX_USCCODE_BRN_65273_HEAP_BASE         IMG_UINT64_C(0xBA00000000)
-	#define RGX_USCCODE_BRN_65273_HEAP_SIZE         RGX_HEAP_SIZE_1GiB
-
+/* HWBRN65273 workaround requires USC memory to use a unique single 1GiB PCE entry. */
+#define RGX_USCCODE_BRN_65273_HEAP_BASE IMG_UINT64_C(0xBA00000000)
+#define RGX_USCCODE_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_1GiB
 
 /* 0xC0_0000_0000 ************************************************************/
 
 /* 0xE4_0000_0000 - 0xE4_001F_FFFF **/
-	/* HWBRN65273 workaround requires USC memory to use a unique single 1GiB PCE entry. */
-	#define RGX_VISIBILITY_TEST_BRN_65273_HEAP_BASE IMG_UINT64_C(0xE400000000)
-	#define RGX_VISIBILITY_TEST_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_2MiB
+/* HWBRN65273 workaround requires USC memory to use a unique single 1GiB PCE entry. */
+#define RGX_VISIBILITY_TEST_BRN_65273_HEAP_BASE IMG_UINT64_C(0xE400000000)
+#define RGX_VISIBILITY_TEST_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_2MiB
 
 /* 0xF8_0000_0000 - 0xF9_FFFF_FFFF **/
-	/* HWBRN65273 workaround requires two Region Header buffers 4GiB apart. */
-	#define RGX_MMU_INIA_BRN_65273_HEAP_BASE        IMG_UINT64_C(0xF800000000)
-	#define RGX_MMU_INIA_BRN_65273_HEAP_SIZE        RGX_HEAP_SIZE_1GiB
-	#define RGX_MMU_INIB_BRN_65273_HEAP_BASE        IMG_UINT64_C(0xF900000000)
-	#define RGX_MMU_INIB_BRN_65273_HEAP_SIZE        RGX_HEAP_SIZE_1GiB
-
+/* HWBRN65273 workaround requires two Region Header buffers 4GiB apart. */
+#define RGX_MMU_INIA_BRN_65273_HEAP_BASE IMG_UINT64_C(0xF800000000)
+#define RGX_MMU_INIA_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_1GiB
+#define RGX_MMU_INIB_BRN_65273_HEAP_BASE IMG_UINT64_C(0xF900000000)
+#define RGX_MMU_INIB_BRN_65273_HEAP_SIZE RGX_HEAP_SIZE_1GiB
 
 /* 0xFF_FFFF_FFFF ************************************************************/
 

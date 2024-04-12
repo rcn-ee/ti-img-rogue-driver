@@ -44,7 +44,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(CONNECTION_SERVER_H)
 #define CONNECTION_SERVER_H
 
-
 #include "img_types.h"
 #include "img_defs.h"
 #include "handle.h"
@@ -57,32 +56,31 @@ extern IMG_UINT32 gui32HandleDataFreeCounter;
 /* Set the maximum time the freeing of the resources can keep the lock */
 #define CONNECTION_DEFERRED_CLEANUP_TIMESLICE_NS (3000 * 1000) /* 3ms */
 
-typedef struct _CONNECTION_DATA_
-{
-	PVRSRV_HANDLE_BASE		*psHandleBase;
-	PROCESS_HANDLE_BASE		*psProcessHandleBase;
-	struct _SYNC_CONNECTION_DATA_	*psSyncConnectionData;
-	struct _PDUMP_CONNECTION_DATA_	*psPDumpConnectionData;
+typedef struct _CONNECTION_DATA_ {
+	PVRSRV_HANDLE_BASE *psHandleBase;
+	PROCESS_HANDLE_BASE *psProcessHandleBase;
+	struct _SYNC_CONNECTION_DATA_ *psSyncConnectionData;
+	struct _PDUMP_CONNECTION_DATA_ *psPDumpConnectionData;
 
 	/* Holds the client flags supplied at connection time */
-	IMG_UINT32          ui32ClientFlags;
+	IMG_UINT32 ui32ClientFlags;
 
 	/*
 	 * OS specific data can be stored via this handle.
 	 * See osconnection_server.h for a generic mechanism
 	 * for initialising this field.
 	 */
-	IMG_HANDLE          hOsPrivateData;
+	IMG_HANDLE hOsPrivateData;
 
 #define PVRSRV_CONNECTION_PROCESS_NAME_LEN (16)
-	IMG_PID             pid;
-	IMG_PID				vpid;
-	IMG_UINT32			tid;
-	IMG_CHAR            pszProcName[PVRSRV_CONNECTION_PROCESS_NAME_LEN];
+	IMG_PID pid;
+	IMG_PID vpid;
+	IMG_UINT32 tid;
+	IMG_CHAR pszProcName[PVRSRV_CONNECTION_PROCESS_NAME_LEN];
 
-	IMG_HANDLE          hProcessStats;
+	IMG_HANDLE hProcessStats;
 
-	IMG_HANDLE          hClientTLStream;
+	IMG_HANDLE hClientTLStream;
 
 #if defined(SUPPORT_CUSTOM_OSID_EMISSION)
 	/*
@@ -91,25 +89,25 @@ typedef struct _CONNECTION_DATA_
 	 * These control where the connection's memory allocation is sourced from.
 	 * ui32OSid, ui32OSidReg range from 0..(GPUVIRT_VALIDATION_NUM_OS - 1).
 	 */
-	IMG_UINT32          ui32OSid;
-	IMG_UINT32          ui32OSidReg;
-	IMG_BOOL            bOSidAxiProtReg;
-#endif	/* defined(SUPPORT_CUSTOM_OSID_EMISSION) */
+	IMG_UINT32 ui32OSid;
+	IMG_UINT32 ui32OSidReg;
+	IMG_BOOL bOSidAxiProtReg;
+#endif /* defined(SUPPORT_CUSTOM_OSID_EMISSION) */
 
 #if defined(SUPPORT_DMA_TRANSFER)
-	IMG_BOOL            bAcceptDmaRequests;
-	ATOMIC_T            ui32NumDmaTransfersInFlight;
-	POS_LOCK            hDmaReqLock;
-	IMG_HANDLE          hDmaEventObject;
+	IMG_BOOL bAcceptDmaRequests;
+	ATOMIC_T ui32NumDmaTransfersInFlight;
+	POS_LOCK hDmaReqLock;
+	IMG_HANDLE hDmaEventObject;
 #endif
 	/* Structure which is hooked into the cleanup thread work list */
 	PVRSRV_CLEANUP_THREAD_WORK sCleanupThreadFn;
 
-	DLLIST_NODE         sConnectionListNode;
+	DLLIST_NODE sConnectionListNode;
 
 	/* List navigation for deferred freeing of connection data */
-	struct _CONNECTION_DATA_	**ppsThis;
-	struct _CONNECTION_DATA_	*psNext;
+	struct _CONNECTION_DATA_ **ppsThis;
+	struct _CONNECTION_DATA_ *psNext;
 } CONNECTION_DATA;
 
 #include "osconnection_server.h"
@@ -129,14 +127,14 @@ void PVRSRVCommonConnectionDisconnect(void *pvPrivData);
 IMG_PID PVRSRVGetPurgeConnectionPid(void);
 
 void PVRSRVConnectionDebugNotify(PVRSRV_DEVICE_NODE *psDevNode,
-                                 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                                 void *pvDumpDebugFile);
+				 DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				 void *pvDumpDebugFile);
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PVRSRVConnectionPrivateData)
 #endif
-static INLINE
-IMG_HANDLE PVRSRVConnectionPrivateData(CONNECTION_DATA *psConnection)
+static INLINE IMG_HANDLE
+PVRSRVConnectionPrivateData(CONNECTION_DATA *psConnection)
 {
 	return (psConnection != NULL) ? psConnection->hOsPrivateData : NULL;
 }

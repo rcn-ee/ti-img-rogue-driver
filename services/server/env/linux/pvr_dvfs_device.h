@@ -46,7 +46,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "opaque_types.h"
 #include "pvrsrv_error.h"
 
-
 PVRSRV_ERROR InitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode);
 
 void DeinitDVFS(PPVRSRV_DEVICE_NODE psDeviceNode);

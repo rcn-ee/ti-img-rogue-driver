@@ -63,9 +63,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Return         PVRSRV_OK      on success, a failure code otherwise.
 */ /**************************************************************************/
 PVRSRV_ERROR OSSecureExport(const IMG_CHAR *pszName,
-                            PVRSRV_ERROR (*pfnReleaseFunc)(void *),
-                            void *pvData,
-                            IMG_SECURE_TYPE *phSecure);
+			    PVRSRV_ERROR (*pfnReleaseFunc)(void *),
+			    void *pvData, IMG_SECURE_TYPE *phSecure);
 
 /*************************************************************************/ /*!
 @Function       OSSecureImport

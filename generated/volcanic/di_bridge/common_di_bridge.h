@@ -54,27 +54,25 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_tlcommon.h"
 #include "pvr_dicommon.h"
 
-#define PVRSRV_BRIDGE_DI_CMD_FIRST			0
-#define PVRSRV_BRIDGE_DI_DICREATECONTEXT			PVRSRV_BRIDGE_DI_CMD_FIRST+0
-#define PVRSRV_BRIDGE_DI_DIDESTROYCONTEXT			PVRSRV_BRIDGE_DI_CMD_FIRST+1
-#define PVRSRV_BRIDGE_DI_DIREADENTRY			PVRSRV_BRIDGE_DI_CMD_FIRST+2
-#define PVRSRV_BRIDGE_DI_DIWRITEENTRY			PVRSRV_BRIDGE_DI_CMD_FIRST+3
-#define PVRSRV_BRIDGE_DI_DILISTALLENTRIES			PVRSRV_BRIDGE_DI_CMD_FIRST+4
-#define PVRSRV_BRIDGE_DI_CMD_LAST			(PVRSRV_BRIDGE_DI_CMD_FIRST+4)
+#define PVRSRV_BRIDGE_DI_CMD_FIRST 0
+#define PVRSRV_BRIDGE_DI_DICREATECONTEXT PVRSRV_BRIDGE_DI_CMD_FIRST + 0
+#define PVRSRV_BRIDGE_DI_DIDESTROYCONTEXT PVRSRV_BRIDGE_DI_CMD_FIRST + 1
+#define PVRSRV_BRIDGE_DI_DIREADENTRY PVRSRV_BRIDGE_DI_CMD_FIRST + 2
+#define PVRSRV_BRIDGE_DI_DIWRITEENTRY PVRSRV_BRIDGE_DI_CMD_FIRST + 3
+#define PVRSRV_BRIDGE_DI_DILISTALLENTRIES PVRSRV_BRIDGE_DI_CMD_FIRST + 4
+#define PVRSRV_BRIDGE_DI_CMD_LAST (PVRSRV_BRIDGE_DI_CMD_FIRST + 4)
 
 /*******************************************
             DICreateContext
  *******************************************/
 
 /* Bridge in structure for DICreateContext */
-typedef struct PVRSRV_BRIDGE_IN_DICREATECONTEXT_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DICREATECONTEXT_TAG {
 	IMG_CHAR *puiStreamName;
 } __packed PVRSRV_BRIDGE_IN_DICREATECONTEXT;
 
 /* Bridge out structure for DICreateContext */
-typedef struct PVRSRV_BRIDGE_OUT_DICREATECONTEXT_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DICREATECONTEXT_TAG {
 	IMG_HANDLE hContext;
 	IMG_CHAR *puiStreamName;
 	PVRSRV_ERROR eError;
@@ -85,14 +83,12 @@ typedef struct PVRSRV_BRIDGE_OUT_DICREATECONTEXT_TAG
  *******************************************/
 
 /* Bridge in structure for DIDestroyContext */
-typedef struct PVRSRV_BRIDGE_IN_DIDESTROYCONTEXT_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DIDESTROYCONTEXT_TAG {
 	IMG_HANDLE hContext;
 } __packed PVRSRV_BRIDGE_IN_DIDESTROYCONTEXT;
 
 /* Bridge out structure for DIDestroyContext */
-typedef struct PVRSRV_BRIDGE_OUT_DIDESTROYCONTEXT_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DIDESTROYCONTEXT_TAG {
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_DIDESTROYCONTEXT;
 
@@ -101,8 +97,7 @@ typedef struct PVRSRV_BRIDGE_OUT_DIDESTROYCONTEXT_TAG
  *******************************************/
 
 /* Bridge in structure for DIReadEntry */
-typedef struct PVRSRV_BRIDGE_IN_DIREADENTRY_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DIREADENTRY_TAG {
 	IMG_UINT64 ui64Offset;
 	IMG_UINT64 ui64Size;
 	IMG_HANDLE hContext;
@@ -110,8 +105,7 @@ typedef struct PVRSRV_BRIDGE_IN_DIREADENTRY_TAG
 } __packed PVRSRV_BRIDGE_IN_DIREADENTRY;
 
 /* Bridge out structure for DIReadEntry */
-typedef struct PVRSRV_BRIDGE_OUT_DIREADENTRY_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DIREADENTRY_TAG {
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_DIREADENTRY;
 
@@ -120,8 +114,7 @@ typedef struct PVRSRV_BRIDGE_OUT_DIREADENTRY_TAG
  *******************************************/
 
 /* Bridge in structure for DIWriteEntry */
-typedef struct PVRSRV_BRIDGE_IN_DIWRITEENTRY_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DIWRITEENTRY_TAG {
 	IMG_HANDLE hContext;
 	const IMG_CHAR *puiEntryPath;
 	const IMG_CHAR *puiValue;
@@ -129,8 +122,7 @@ typedef struct PVRSRV_BRIDGE_IN_DIWRITEENTRY_TAG
 } __packed PVRSRV_BRIDGE_IN_DIWRITEENTRY;
 
 /* Bridge out structure for DIWriteEntry */
-typedef struct PVRSRV_BRIDGE_OUT_DIWRITEENTRY_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DIWRITEENTRY_TAG {
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_DIWRITEENTRY;
 
@@ -139,14 +131,12 @@ typedef struct PVRSRV_BRIDGE_OUT_DIWRITEENTRY_TAG
  *******************************************/
 
 /* Bridge in structure for DIListAllEntries */
-typedef struct PVRSRV_BRIDGE_IN_DILISTALLENTRIES_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DILISTALLENTRIES_TAG {
 	IMG_HANDLE hContext;
 } __packed PVRSRV_BRIDGE_IN_DILISTALLENTRIES;
 
 /* Bridge out structure for DIListAllEntries */
-typedef struct PVRSRV_BRIDGE_OUT_DILISTALLENTRIES_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DILISTALLENTRIES_TAG {
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_DILISTALLENTRIES;
 

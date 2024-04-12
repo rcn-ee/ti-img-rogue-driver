@@ -44,7 +44,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define DKP_IMPL_H
 
 typedef IMG_HANDLE PVRDKF_DKP_HANDLE;
-typedef PVRDKF_DKP_HANDLE * PPVRDKF_DKP_HANDLE;
+typedef PVRDKF_DKP_HANDLE *PPVRDKF_DKP_HANDLE;
 
 /*! @Function DKP_PFN_SHOW
  *
@@ -66,16 +66,17 @@ typedef PVRDKF_DKP_HANDLE * PPVRDKF_DKP_HANDLE;
  *                     the data key/value pairs to only those that are relevant
  *                     to this instance.
  */
-typedef void (DKP_PFN_SHOW)(struct _PVRSRV_DEVICE_NODE_ *psDevNode, int pid,
-                            IMG_HANDLE hPrivData);
+typedef void(DKP_PFN_SHOW)(struct _PVRSRV_DEVICE_NODE_ *psDevNode, int pid,
+			   IMG_HANDLE hPrivData);
 
 typedef IMG_UINT32 DKP_CONNECTION_FLAGS;
 
-#define DKP_CONNECTION_FLAG_SYNC        BIT(0)
-#define DKP_CONNECTION_FLAG_SERVICES    BIT(1)
+#define DKP_CONNECTION_FLAG_SYNC BIT(0)
+#define DKP_CONNECTION_FLAG_SERVICES BIT(1)
 
-#define DKP_CONNECTION_FLAG_INVALID     IMG_UINT32_C(0)
-#define DKP_CONNECTION_FLAG_ALL (DKP_CONNECTION_FLAG_SYNC | DKP_CONNECTION_FLAG_SERVICES)
+#define DKP_CONNECTION_FLAG_INVALID IMG_UINT32_C(0)
+#define DKP_CONNECTION_FLAG_ALL \
+	(DKP_CONNECTION_FLAG_SYNC | DKP_CONNECTION_FLAG_SERVICES)
 
 /* @Function PVRSRVRegisterDKP
  *
@@ -95,11 +96,10 @@ typedef IMG_UINT32 DKP_CONNECTION_FLAGS;
  *
  * @Returns  PVRSRV_ERROR
  */
-PVRSRV_ERROR PVRSRVRegisterDKP(IMG_HANDLE hPrivData,
-                               const char *pszDKPName,
-                               DKP_PFN_SHOW *psShowPfn,
-                               DKP_CONNECTION_FLAGS ui32Filter,
-                               PPVRDKF_DKP_HANDLE phDkpHandle);
+PVRSRV_ERROR PVRSRVRegisterDKP(IMG_HANDLE hPrivData, const char *pszDKPName,
+			       DKP_PFN_SHOW *psShowPfn,
+			       DKP_CONNECTION_FLAGS ui32Filter,
+			       PPVRDKF_DKP_HANDLE phDkpHandle);
 
 /* @Function PVRSRVUnRegisterDKP
  *
@@ -113,8 +113,7 @@ PVRSRV_ERROR PVRSRVRegisterDKP(IMG_HANDLE hPrivData,
  * @Returns  PVRSRV_ERROR
  */
 PVRSRV_ERROR PVRSRVUnRegisterDKP(IMG_HANDLE hPrivData,
-                                 PVRDKF_DKP_HANDLE hDkpHandle);
-
+				 PVRDKF_DKP_HANDLE hDkpHandle);
 
 /* @Function PVRDKPOutput
  * Wrapper function which passes the printf-style arguments to the registered
@@ -126,15 +125,14 @@ PVRSRV_ERROR PVRSRVUnRegisterDKP(IMG_HANDLE hPrivData,
  */
 void PVRDKPOutput(IMG_HANDLE hPrivData, const char *fmt, ...) __printf(2, 3);
 
-
 #if !defined(__linux__) || defined(INTEGRITY_OS) || defined(__QNXNTO__)
 
 /* Stub routines follow */
 static inline PVRSRV_ERROR PVRSRVRegisterDKP(IMG_HANDLE hPrivData,
-                                             const char *pszDKPName,
-                                             DKP_PFN_SHOW *psShowPfn,
-                                             DKP_CONNECTION_FLAGS ui32Filter,
-                                             PPVRDKF_DKP_HANDLE phDkpHandle)
+					     const char *pszDKPName,
+					     DKP_PFN_SHOW *psShowPfn,
+					     DKP_CONNECTION_FLAGS ui32Filter,
+					     PPVRDKF_DKP_HANDLE phDkpHandle)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	PVR_UNREFERENCED_PARAMETER(pszDKPName);
@@ -145,7 +143,7 @@ static inline PVRSRV_ERROR PVRSRVRegisterDKP(IMG_HANDLE hPrivData,
 }
 
 static inline PVRSRV_ERROR PVRSRVUnRegisterDKP(IMG_HANDLE hPrivData,
-                                               PVRDKF_DKP_HANDLE hDkpHandle)
+					       PVRDKF_DKP_HANDLE hDkpHandle)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	PVR_UNREFERENCED_PARAMETER(hDkpHandle);
@@ -153,7 +151,8 @@ static inline PVRSRV_ERROR PVRSRVUnRegisterDKP(IMG_HANDLE hPrivData,
 	return PVRSRV_ERROR_NOT_SUPPORTED;
 }
 
-static inline void PVRDKPOutput(IMG_HANDLE hPrivData, const char *fmt, ...) __printf(2, 3)
+static inline void PVRDKPOutput(IMG_HANDLE hPrivData, const char *fmt, ...)
+	__printf(2, 3)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	PVR_UNREFERENCED_PARAMETER(fmt);

@@ -69,8 +69,7 @@ pvr_buffer_sync_context_create(struct device *dev, const char *name);
  * pvr_buffer_sync_context_destroy() - frees a buffer sync context
  * @ctx: buffer sync context
  */
-void
-pvr_buffer_sync_context_destroy(struct pvr_buffer_sync_context *ctx);
+void pvr_buffer_sync_context_destroy(struct pvr_buffer_sync_context *ctx);
 
 /**
  * pvr_buffer_sync_resolve_and_create_fences() - create checkpoints from
@@ -90,16 +89,13 @@ pvr_buffer_sync_context_destroy(struct pvr_buffer_sync_context *ctx);
  *
  * Return: 0 on success or an error code otherwise.
  */
-int
-pvr_buffer_sync_resolve_and_create_fences(struct pvr_buffer_sync_context *ctx,
-					  PSYNC_CHECKPOINT_CONTEXT sync_checkpoint_ctx,
-					  u32 nr_pmrs,
-					  struct _PMR_ **pmrs,
-					  u32 *pmr_flags,
-					  u32 *nr_fence_checkpoints_out,
-					  PSYNC_CHECKPOINT **fence_checkpoints_out,
-					  PSYNC_CHECKPOINT *update_checkpoint_out,
-					  struct pvr_buffer_sync_append_data **data_out);
+int pvr_buffer_sync_resolve_and_create_fences(
+	struct pvr_buffer_sync_context *ctx,
+	PSYNC_CHECKPOINT_CONTEXT sync_checkpoint_ctx, u32 nr_pmrs,
+	struct _PMR_ **pmrs, u32 *pmr_flags, u32 *nr_fence_checkpoints_out,
+	PSYNC_CHECKPOINT **fence_checkpoints_out,
+	PSYNC_CHECKPOINT *update_checkpoint_out,
+	struct pvr_buffer_sync_append_data **data_out);
 
 /**
  * pvr_buffer_sync_kick_succeeded() - cleans up after a successful kick
@@ -109,8 +105,7 @@ pvr_buffer_sync_resolve_and_create_fences(struct pvr_buffer_sync_context *ctx,
  *
  * Should only be called following pvr_buffer_sync_resolve_and_create_fences().
  */
-void
-pvr_buffer_sync_kick_succeeded(struct pvr_buffer_sync_append_data *data);
+void pvr_buffer_sync_kick_succeeded(struct pvr_buffer_sync_append_data *data);
 
 /**
  * pvr_buffer_sync_kick_failed() - cleans up after a failed kick operation
@@ -119,7 +114,6 @@ pvr_buffer_sync_kick_succeeded(struct pvr_buffer_sync_append_data *data);
  *
  * Should only be called following pvr_buffer_sync_resolve_and_create_fences().
  */
-void
-pvr_buffer_sync_kick_failed(struct pvr_buffer_sync_append_data *data);
+void pvr_buffer_sync_kick_failed(struct pvr_buffer_sync_append_data *data);
 
 #endif /* PVR_BUFFER_SYNC_H */

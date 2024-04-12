@@ -54,11 +54,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxfwimageutils.h"
 #include "rgxstartstop.h"
 
-
 static void *fwcode, *fwdata, *fwcorememcode, *fwcorememdata;
 void *regbank = NULL;
 
-PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_TD_FW_PARAMS *psTDFWParams)
+PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData,
+			      PVRSRV_TD_FW_PARAMS *psTDFWParams)
 {
 	SYS_DATA *psSysData = hSysData;
 	PVRSRV_ERROR eError;
@@ -67,80 +67,81 @@ PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_TD_FW_PARAMS *psTDFWPa
 	RGX_FW_INFO_HEADER sFWInfoHeader;
 	IMG_UINT64 ui64FwBinarySize;
 
-	if (psSysData == NULL)
-	{
+	if (psSysData == NULL) {
 		goto exit;
 	}
 
-	RGXGetFWImageAllocSize(NULL,
-	                       psTDFWParams->pvFirmware,
-	                       psTDFWParams->ui32FirmwareSize,
-	                       &fwcodesize,
-	                       &fwdatasize,
-	                       &fwcorememcodesize,
-	                       &fwcorememdatasize,
-	                       &sFWInfoHeader);
+	RGXGetFWImageAllocSize(NULL, psTDFWParams->pvFirmware,
+			       psTDFWParams->ui32FirmwareSize, &fwcodesize,
+			       &fwdatasize, &fwcorememcodesize,
+			       &fwcorememdatasize, &sFWInfoHeader);
 
-	ui64FwBinarySize = (fwcodesize+fwdatasize+fwcorememcodesize+fwcorememdatasize);
-	if (psSysData->ui64FwPrivateHeapSize < ui64FwBinarySize)
-	{
+	ui64FwBinarySize = (fwcodesize + fwdatasize + fwcorememcodesize +
+			    fwcorememdatasize);
+	if (psSysData->ui64FwPrivateHeapSize < ui64FwBinarySize) {
 		eError = PVRSRV_ERROR_INSUFFICIENT_PHYS_HEAP_MEMORY;
-		RGXErrorLog(NULL, "%s: Firmware Private heap to small to fit the Fw binary"
-		                  " (heap=0x%llX; required=0x%llX)", __func__,
-		                   psSysData->ui64FwPrivateHeapSize, ui64FwBinarySize);
+		RGXErrorLog(
+			NULL,
+			"%s: Firmware Private heap to small to fit the Fw binary"
+			" (heap=0x%llX; required=0x%llX)",
+			__func__, psSysData->ui64FwPrivateHeapSize,
+			ui64FwBinarySize);
 		goto exit;
 	}
 
 	fwcodepa = psSysData->ui64FwHeapCpuBase;
 	fwcode = (void __iomem *)ioremap(fwcodepa, fwcodesize);
-	if (fwcode == NULL)
-	{
-		RGXErrorLog(NULL, "%s: failed to allocate fwcode memory", __func__);
+	if (fwcode == NULL) {
+		RGXErrorLog(NULL, "%s: failed to allocate fwcode memory",
+			    __func__);
 		goto exit;
 	}
 	memset(fwcode, 0, fwcodesize);
 
 	fwdatapa = psSysData->ui64FwHeapCpuBase +
-	           (psTDFWParams->uFWP.sMeta.sFWDataDevVAddr.uiAddr - FWHEAP_GPU_VA);
+		   (psTDFWParams->uFWP.sMeta.sFWDataDevVAddr.uiAddr -
+		    FWHEAP_GPU_VA);
 	fwdata = (void __iomem *)ioremap(fwdatapa, fwdatasize);
-	if (fwdata == NULL)
-	{
+	if (fwdata == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
-		RGXErrorLog(NULL, "%s: failed to allocate fwdata memory", __func__);
+		RGXErrorLog(NULL, "%s: failed to allocate fwdata memory",
+			    __func__);
 		goto fwdata_fail;
 	}
 	memset(fwdata, 0, fwdatasize);
 
-	fwcorememcodepa = psSysData->ui64FwHeapCpuBase +
-	                  (psTDFWParams->uFWP.sMeta.sFWCorememCodeDevVAddr.uiAddr - FWHEAP_GPU_VA);
-	fwcorememcode = (void __iomem *)ioremap(fwcorememcodepa, fwcorememcodesize);
-	if (fwcorememcode == NULL)
-	{
+	fwcorememcodepa =
+		psSysData->ui64FwHeapCpuBase +
+		(psTDFWParams->uFWP.sMeta.sFWCorememCodeDevVAddr.uiAddr -
+		 FWHEAP_GPU_VA);
+	fwcorememcode =
+		(void __iomem *)ioremap(fwcorememcodepa, fwcorememcodesize);
+	if (fwcorememcode == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
-		RGXErrorLog(NULL, "%s: failed to allocate fwcorememcode memory", __func__);
+		RGXErrorLog(NULL, "%s: failed to allocate fwcorememcode memory",
+			    __func__);
 		goto fwcorememcode_fail;
 	}
 	memset(fwcorememcode, 0, fwcorememcodesize);
 
-	fwcorememdatapa = psSysData->ui64FwHeapCpuBase +
-	                  (psTDFWParams->uFWP.sMeta.sFWCorememDataDevVAddr.uiAddr - FWHEAP_GPU_VA);
-	fwcorememdata = (void __iomem *)ioremap(fwcorememdatapa, fwcorememdatasize);
-	if (fwcorememdata == NULL)
-	{
+	fwcorememdatapa =
+		psSysData->ui64FwHeapCpuBase +
+		(psTDFWParams->uFWP.sMeta.sFWCorememDataDevVAddr.uiAddr -
+		 FWHEAP_GPU_VA);
+	fwcorememdata =
+		(void __iomem *)ioremap(fwcorememdatapa, fwcorememdatasize);
+	if (fwcorememdata == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
-		RGXErrorLog(NULL, "%s: failed to allocate fwcorememdata memory", __func__);
+		RGXErrorLog(NULL, "%s: failed to allocate fwcorememdata memory",
+			    __func__);
 		goto fwcorememdata_fail;
 	}
 	memset(fwcorememdata, 0, fwcorememdatasize);
 
 	/* Load the FW code in secure memory */
-	eError = RGXProcessFWImage(NULL,
-	                           psTDFWParams->pvFirmware,
-	                           fwcode,
-	                           fwdata,
-	                           fwcorememcode,
-	                           fwcorememdata,
-	                           &psTDFWParams->uFWP);
+	eError = RGXProcessFWImage(NULL, psTDFWParams->pvFirmware, fwcode,
+				   fwdata, fwcorememcode, fwcorememdata,
+				   &psTDFWParams->uFWP);
 
 	iounmap(fwcorememdata);
 fwcorememdata_fail:
@@ -153,12 +154,14 @@ exit:
 	return eError;
 }
 
-PVRSRV_ERROR TEE_SetPowerParams(IMG_HANDLE hSysData, PVRSRV_TD_POWER_PARAMS *psTDPowerParams)
+PVRSRV_ERROR TEE_SetPowerParams(IMG_HANDLE hSysData,
+				PVRSRV_TD_POWER_PARAMS *psTDPowerParams)
 {
 	SYS_DATA *psSysData = hSysData;
 
 	return (psSysData->ui32SysDataSize == sizeof(SYS_DATA)) ?
-	        PVRSRV_OK : PVRSRV_ERROR_BAD_PARAM_SIZE;
+		       PVRSRV_OK :
+		       PVRSRV_ERROR_BAD_PARAM_SIZE;
 }
 
 PVRSRV_ERROR TEE_RGXStart(IMG_HANDLE hSysData)
@@ -166,17 +169,17 @@ PVRSRV_ERROR TEE_RGXStart(IMG_HANDLE hSysData)
 	PVRSRV_ERROR eErr;
 	SYS_DATA *psSysData = hSysData;
 
-	regbank = (void __iomem *)ioremap(psSysData->ui64GpuRegisterBase, FPGA_RGX_REG_SIZE);
-	if (regbank == NULL)
-	{
+	regbank = (void __iomem *)ioremap(psSysData->ui64GpuRegisterBase,
+					  FPGA_RGX_REG_SIZE);
+	if (regbank == NULL) {
 		RGXErrorLog(NULL, "%s: failed to map regbank memory", __func__);
 		return PVRSRV_ERROR_BAD_MAPPING;
 	}
 
 	eErr = PVRSRVConfigureMMU(psSysData);
-	if (eErr != PVRSRV_OK)
-	{
-		RGXErrorLog(NULL, "%s: PVRSRVConfigureMMU() failed (%u)", __func__, eErr);
+	if (eErr != PVRSRV_OK) {
+		RGXErrorLog(NULL, "%s: PVRSRVConfigureMMU() failed (%u)",
+			    __func__, eErr);
 		return eErr;
 	}
 

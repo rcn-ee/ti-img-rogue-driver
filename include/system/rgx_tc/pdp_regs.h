@@ -45,31 +45,31 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  PCI Device Information
 */ /**************************************************************************/
 
-#define DCPDP_VENDOR_ID_POWERVR			(0x1010)
+#define DCPDP_VENDOR_ID_POWERVR (0x1010)
 
-#define DCPDP_DEVICE_ID_PCI_APOLLO_FPGA		(0x1CF1)
-#define DCPDP_DEVICE_ID_PCIE_APOLLO_FPGA	(0x1CF2)
+#define DCPDP_DEVICE_ID_PCI_APOLLO_FPGA (0x1CF1)
+#define DCPDP_DEVICE_ID_PCIE_APOLLO_FPGA (0x1CF2)
 
 /*************************************************************************/ /*!
  PCI Device Base Address Information
 */ /**************************************************************************/
 
 /* PLL and PDP registers on base address register 0 */
-#define DCPDP_REG_PCI_BASENUM			(0)
+#define DCPDP_REG_PCI_BASENUM (0)
 
-#define DCPDP_PCI_PLL_REG_OFFSET		(0x1000)
-#define DCPDP_PCI_PLL_REG_SIZE			(0x0400)
+#define DCPDP_PCI_PLL_REG_OFFSET (0x1000)
+#define DCPDP_PCI_PLL_REG_SIZE (0x0400)
 
-#define DCPDP_PCI_PDP_REG_OFFSET		(0xC000)
-#define DCPDP_PCI_PDP_REG_SIZE			(0x2000)
+#define DCPDP_PCI_PDP_REG_OFFSET (0xC000)
+#define DCPDP_PCI_PDP_REG_SIZE (0x2000)
 
 /*************************************************************************/ /*!
  Misc register information
 */ /**************************************************************************/
 
 /* This information isn't captured in tcf_rgbpdp_regs.h so define it here */
-#define DCPDP_STR1SURF_FORMAT_ARGB8888		(0xE)
-#define DCPDP_STR1ADDRCTRL_BASE_ADDR_SHIFT	(4)
-#define DCPDP_STR1POSN_STRIDE_SHIFT		(4)
+#define DCPDP_STR1SURF_FORMAT_ARGB8888 (0xE)
+#define DCPDP_STR1ADDRCTRL_BASE_ADDR_SHIFT (4)
+#define DCPDP_STR1POSN_STRIDE_SHIFT (4)
 
 #endif /* !defined(__PDP_REGS_H__) */

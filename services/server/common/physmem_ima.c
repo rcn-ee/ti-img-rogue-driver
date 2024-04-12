@@ -57,30 +57,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem_ramem.h"
 
 typedef struct PHYSMEM_IMA_DATA_TAG {
-	RA_ARENA           *psRA;
-	PHYS_HEAP          *pDLMHeap;
-	IMG_UINT32          uiLog2PMBSize;
-	IMG_UINT32          uiReservedPMBs;
-	PMB               **ppsReservedPMBs;
+	RA_ARENA *psRA;
+	PHYS_HEAP *pDLMHeap;
+	IMG_UINT32 uiLog2PMBSize;
+	IMG_UINT32 uiReservedPMBs;
+	PMB **ppsReservedPMBs;
 } PHYSMEM_IMA_DATA;
 
-static PVRSRV_ERROR
-IMAGetDevPAddr(PHEAP_IMPL_DATA pvImplData,
-               IMG_DEV_PHYADDR *psDevPAddr)
+static PVRSRV_ERROR IMAGetDevPAddr(PHEAP_IMPL_DATA pvImplData,
+				   IMG_DEV_PHYADDR *psDevPAddr)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
-	RA_ARENA_ITERATOR *psRAIter = RA_IteratorAcquire(psIMAData->psRA, IMG_FALSE);
-	RA_ITERATOR_DATA sData = {0};
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
+	RA_ARENA_ITERATOR *psRAIter =
+		RA_IteratorAcquire(psIMAData->psRA, IMG_FALSE);
+	RA_ITERATOR_DATA sData = { 0 };
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	PVR_LOG_RETURN_IF_NOMEM(psRAIter, "RA_IteratorAcquire");
 
-	if (!RA_IteratorNext(psRAIter, &sData))
-	{
-		PVR_LOG_GOTO_WITH_ERROR("RA_IteratorNext",
-		                        eError,
-		                        PVRSRV_ERROR_FAILED_TO_GET_PHYS_ADDR,
-		                        err_free_iter);
+	if (!RA_IteratorNext(psRAIter, &sData)) {
+		PVR_LOG_GOTO_WITH_ERROR("RA_IteratorNext", eError,
+					PVRSRV_ERROR_FAILED_TO_GET_PHYS_ADDR,
+					err_free_iter);
 	}
 
 	psDevPAddr->uiAddr = sData.uiAddr;
@@ -90,30 +88,23 @@ err_free_iter:
 	return eError;
 }
 
-static PVRSRV_ERROR
-IMAGetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
-               IMG_CPU_PHYADDR *psCpuPAddr)
+static PVRSRV_ERROR IMAGetCPUPAddr(PHEAP_IMPL_DATA pvImplData,
+				   IMG_CPU_PHYADDR *psCpuPAddr)
 {
 	IMG_DEV_PHYADDR sDevPAddr;
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
 	PVRSRV_ERROR eError = IMAGetDevPAddr(pvImplData, &sDevPAddr);
 	PVR_LOG_RETURN_IF_ERROR(eError, "IMAGetDevPAddr");
 
-	PhysHeapDevPAddrToCpuPAddr(
-		psIMAData->pDLMHeap,
-		1,
-		psCpuPAddr,
-		&sDevPAddr
-	);
+	PhysHeapDevPAddrToCpuPAddr(psIMAData->pDLMHeap, 1, psCpuPAddr,
+				   &sDevPAddr);
 
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR
-IMAGetSize(PHEAP_IMPL_DATA pvImplData,
-           IMG_UINT64 *puiSize)
+static PVRSRV_ERROR IMAGetSize(PHEAP_IMPL_DATA pvImplData, IMG_UINT64 *puiSize)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
 	RA_USAGE_STATS sRAUsageStats;
 
 	RA_Get_Usage_Stats(psIMAData->psRA, &sRAUsageStats);
@@ -124,10 +115,10 @@ IMAGetSize(PHEAP_IMPL_DATA pvImplData,
 }
 
 static void IMAPhysmemGetRAMemRamMemStats(PHEAP_IMPL_DATA pvImplData,
-                                          IMG_UINT64 *pui64TotalSize,
-                                          IMG_UINT64 *pui64FreeSize)
+					  IMG_UINT64 *pui64TotalSize,
+					  IMG_UINT64 *pui64FreeSize)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
 	RA_USAGE_STATS sRAUsageStats;
 
 	RA_Get_Usage_Stats(psIMAData->psRA, &sRAUsageStats);
@@ -146,50 +137,44 @@ static void IMAPhysmemGetRAMemRamMemStats(PHEAP_IMPL_DATA pvImplData,
  * freed.
  * */
 static IMG_BOOL IMAGetHeapSpansStringIter(PHEAP_IMPL_DATA pvImplData,
-                                          IMG_CHAR *ppszStrBuf,
-                                          IMG_UINT32 uiStrBufSize,
-                                          void **ppvIterHandle)
+					  IMG_CHAR *ppszStrBuf,
+					  IMG_UINT32 uiStrBufSize,
+					  void **ppvIterHandle)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
-	RA_ITERATOR_DATA sData = {0};
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
+	RA_ITERATOR_DATA sData = { 0 };
 	PVRSRV_ERROR eError;
 	IMG_BOOL bIter = IMG_FALSE;
 
 	/* If we haven't been given an IterHandle */
-	if (!*ppvIterHandle)
-	{
+	if (!*ppvIterHandle) {
 		*ppvIterHandle = RA_IteratorAcquire(psIMAData->psRA, IMG_TRUE);
 		PVR_LOG_GOTO_IF_NOMEM(*ppvIterHandle, eError, return_false);
 	}
 
 	bIter = RA_IteratorNextSpan(*ppvIterHandle, &sData);
-	if (bIter)
-	{
-		IMG_DEV_PHYADDR sRangeBase = {sData.uiAddr};
+	if (bIter) {
+		IMG_DEV_PHYADDR sRangeBase = { sData.uiAddr };
 		IMG_CPU_PHYADDR sCPURangeBase;
 		IMG_UINT64 uiRangeSize = sData.uiSize;
 		IMG_INT32 iCount;
 
-		PhysHeapDevPAddrToCpuPAddr(
-			psIMAData->pDLMHeap,
-			1,
-			&sCPURangeBase,
-			&sRangeBase
-		);
+		PhysHeapDevPAddrToCpuPAddr(psIMAData->pDLMHeap, 1,
+					   &sCPURangeBase, &sRangeBase);
 
-		iCount = OSSNPrintf(ppszStrBuf,
-							uiStrBufSize,
-							"                            " /* padding */
-							"CPU PA Base: " CPUPHYADDR_UINT_FMTSPEC", "
-							"GPU PA Base: 0x%08"IMG_UINT64_FMTSPECx", "
-							"Size: %"IMG_UINT64_FMTSPEC"B",
-							CPUPHYADDR_FMTARG(sCPURangeBase.uiAddr),
-							sRangeBase.uiAddr,
-							uiRangeSize);
-		if (!(0 < iCount && iCount < (IMG_INT32)uiStrBufSize))
-		{
-			PVR_DPF((PVR_DBG_ERROR, "OSSNPrintf in %s(), "
-			                        "Heap Span print may be corrupt!", __func__));
+		iCount = OSSNPrintf(ppszStrBuf, uiStrBufSize,
+				    "                            " /* padding */
+				    "CPU PA Base: " CPUPHYADDR_UINT_FMTSPEC ", "
+				    "GPU PA Base: 0x%08" IMG_UINT64_FMTSPECx
+				    ", "
+				    "Size: %" IMG_UINT64_FMTSPEC "B",
+				    CPUPHYADDR_FMTARG(sCPURangeBase.uiAddr),
+				    sRangeBase.uiAddr, uiRangeSize);
+		if (!(0 < iCount && iCount < (IMG_INT32)uiStrBufSize)) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "OSSNPrintf in %s(), "
+				 "Heap Span print may be corrupt!",
+				 __func__));
 		}
 		return IMG_TRUE;
 	}
@@ -201,27 +186,23 @@ return_false:
 	return IMG_FALSE;
 }
 
-static void
-IMAGetHeapDLMBacking(PHEAP_IMPL_DATA pvImplData,
-                     PHYS_HEAP **psDLMPhysHeap)
+static void IMAGetHeapDLMBacking(PHEAP_IMPL_DATA pvImplData,
+				 PHYS_HEAP **psDLMPhysHeap)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
 	*psDLMPhysHeap = psIMAData->pDLMHeap;
 }
 
 /* When uiSize > DLM PMB size, allocates a single physically contiguous Huge PMB to satisfy the import.
  * A huge PMB is a PMB with a size larger than the DLM PMB size (1 << psIMAData->uiLog2PMBSize).
  * The requested import size will be rounded up to a multiple of the DLM PMB size. */
-static PVRSRV_ERROR IMAImportDLMAllocHuge(RA_PERARENA_HANDLE hArenaHandle,
-                                          RA_LENGTH_T uiSize,
-                                          RA_FLAGS_T uiFlags,
-                                          RA_LENGTH_T uBaseAlignment,
-                                          const IMG_CHAR *pszAnnotation,
-                                          RA_BASE_T *puiBase,
-                                          RA_LENGTH_T *puiActualSize,
-                                          RA_PERISPAN_HANDLE *phPriv)
+static PVRSRV_ERROR
+IMAImportDLMAllocHuge(RA_PERARENA_HANDLE hArenaHandle, RA_LENGTH_T uiSize,
+		      RA_FLAGS_T uiFlags, RA_LENGTH_T uBaseAlignment,
+		      const IMG_CHAR *pszAnnotation, RA_BASE_T *puiBase,
+		      RA_LENGTH_T *puiActualSize, RA_PERISPAN_HANDLE *phPriv)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*) hArenaHandle;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)hArenaHandle;
 	PHYS_HEAP *psPhysHeap = psIMAData->pDLMHeap;
 	PMB *pPMB;
 	IMG_UINT64 uiPMBSizeBytes;
@@ -233,14 +214,11 @@ static PVRSRV_ERROR IMAImportDLMAllocHuge(RA_PERARENA_HANDLE hArenaHandle,
 	/* Round up the allocation size to the nearest multiple of the
 	 * DLM PMB size (1 << psIMAData->uiLog2PMBSize).
 	 * If this is greater than DLM PMB size, a huge PMB will be imported. */
-	uiPMBSizeBytes = PVR_ALIGN(uiSize, IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize);
+	uiPMBSizeBytes =
+		PVR_ALIGN(uiSize, IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize);
 
-	eError = PhysHeapCreatePMB(psPhysHeap,
-	                           uiPMBSizeBytes,
-	                           pszAnnotation,
-	                           &pPMB,
-	                           puiBase,
-	                           puiActualSize);
+	eError = PhysHeapCreatePMB(psPhysHeap, uiPMBSizeBytes, pszAnnotation,
+				   &pPMB, puiBase, puiActualSize);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysHeapCreatePMB");
 
 	*phPriv = pPMB;
@@ -258,16 +236,13 @@ static PVRSRV_ERROR IMAImportDLMAllocHuge(RA_PERARENA_HANDLE hArenaHandle,
  * imp_free callback. This strategy relies on RA_POLICY_ALLOC_ALLOW_NONCONTIG
  * and that all spans in the IMA heap are all the same size of 1 PMB, otherwise
  * we might add a span that is not used, invalidating the invariants of the RA. */
-static PVRSRV_ERROR IMAImportDLMAllocMulti(RA_PERARENA_HANDLE hArenaHandle,
-                                           RA_LENGTH_T uiSize,
-                                           RA_FLAGS_T uiFlags,
-                                           RA_LENGTH_T uBaseAlignment,
-                                           const IMG_CHAR *pszAnnotation,
-                                           RA_BASE_T *puiBase,
-                                           RA_LENGTH_T *puiActualSize,
-                                           RA_PERISPAN_HANDLE *phPriv)
+static PVRSRV_ERROR
+IMAImportDLMAllocMulti(RA_PERARENA_HANDLE hArenaHandle, RA_LENGTH_T uiSize,
+		       RA_FLAGS_T uiFlags, RA_LENGTH_T uBaseAlignment,
+		       const IMG_CHAR *pszAnnotation, RA_BASE_T *puiBase,
+		       RA_LENGTH_T *puiActualSize, RA_PERISPAN_HANDLE *phPriv)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*) hArenaHandle;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)hArenaHandle;
 	PHYS_HEAP *psPhysHeap = psIMAData->pDLMHeap;
 	RA_BASE_T auiBases[1];
 	RA_BASE_T *puiBases;
@@ -283,13 +258,13 @@ static PVRSRV_ERROR IMAImportDLMAllocMulti(RA_PERARENA_HANDLE hArenaHandle,
 
 	/* Round up the allocation size to the nearest multiple of the
 	 * DLM PMB size (1 << psIMAData->uiLog2PMBSize). */
-	uiRequestSize = PVR_ALIGN(uiSize, IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize);
+	uiRequestSize =
+		PVR_ALIGN(uiSize, IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize);
 	/* Get the number of PMBs required to make the allocation. */
 	uiPMBCount = uiRequestSize >> psIMAData->uiLog2PMBSize;
 
 	/* Try use auiBases instead of allocating a new array if possible. */
-	if (uiPMBCount > ARRAY_SIZE(auiBases))
-	{
+	if (uiPMBCount > ARRAY_SIZE(auiBases)) {
 		puiBases = OSAllocMemNoStats(uiPMBCount * sizeof(*puiBases));
 		PVR_LOG_RETURN_IF_NOMEM(puiBases, "puiBases");
 	} else {
@@ -297,37 +272,33 @@ static PVRSRV_ERROR IMAImportDLMAllocMulti(RA_PERARENA_HANDLE hArenaHandle,
 	}
 
 	/* We always create at least 1 PMB, so create the extras first. */
-	for (i = 0; i < (uiPMBCount - 1); i++)
-	{
+	for (i = 0; i < (uiPMBCount - 1); i++) {
 		IMG_BOOL bResult;
-		eError = PhysHeapCreatePMB(psPhysHeap,
-		                           IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize,
-		                           pszAnnotation,
-		                           &psPMB,
-		                           &puiBases[i],
-		                           puiActualSize);
-		PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreatePMB", err_FreePMBs);
+		eError = PhysHeapCreatePMB(
+			psPhysHeap, IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize,
+			pszAnnotation, &psPMB, &puiBases[i], puiActualSize);
+		PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreatePMB",
+				      err_FreePMBs);
 		/* Add this new PMB to the RA so it can be used after the import is finished.
 		 * This is run during the import callback, so the IMA-RA has been locked. */
-		bResult = RA_AddImportUnlocked(psIMAData->psRA, puiBases[i], *puiActualSize, uiFlags, psPMB);
-		PVR_LOG_GOTO_IF_FALSE(bResult, "Failed to RA_AddImport the PMB", err_FreeSinglePMB);
+		bResult = RA_AddImportUnlocked(psIMAData->psRA, puiBases[i],
+					       *puiActualSize, uiFlags, psPMB);
+		PVR_LOG_GOTO_IF_FALSE(bResult, "Failed to RA_AddImport the PMB",
+				      err_FreeSinglePMB);
 	}
 
 	/* Create the PMB that will be returned from the import callback. */
 	eError = PhysHeapCreatePMB(psPhysHeap,
-	                           IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize,
-	                           pszAnnotation,
-	                           &psPMB,
-	                           &puiBases[i],
-	                           puiActualSize);
+				   IMG_UINT64_C(1) << psIMAData->uiLog2PMBSize,
+				   pszAnnotation, &psPMB, &puiBases[i],
+				   puiActualSize);
 	PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreatePMB", err_FreePMBs);
 
 	/* The last PMB that is has not been added to the IMA-RA yet. */
 	*phPriv = psPMB;
 	*puiBase = puiBases[i];
 
-	if (puiBases != auiBases)
-	{
+	if (puiBases != auiBases) {
 		OSFreeMemNoStats(puiBases);
 	}
 	return PVRSRV_OK;
@@ -338,25 +309,22 @@ err_FreeSinglePMB:
 /* Free i PMBs from the array. */
 err_FreePMBs:
 	uiPMBCount = i;
-	for (i = 0; i < uiPMBCount; i++)
-	{
+	for (i = 0; i < uiPMBCount; i++) {
 		/* This is run during the import callback, so the IMA-RA has been locked.
 		 * This will cause the free callback to be called for each PMB. */
 		RA_FreeUnlocked(psIMAData->psRA, puiBases[i]);
 	}
 
-	if (puiBases != auiBases)
-	{
+	if (puiBases != auiBases) {
 		OSFreeMemNoStats(puiBases);
 	}
 	return eError;
 }
 
-static void IMAImportDLMFree(RA_PERARENA_HANDLE hArenaHandle,
-                             RA_BASE_T uiBase,
-                             RA_PERISPAN_HANDLE hPriv)
+static void IMAImportDLMFree(RA_PERARENA_HANDLE hArenaHandle, RA_BASE_T uiBase,
+			     RA_PERISPAN_HANDLE hPriv)
 {
-	PMB *pPMB = (PMB*) hPriv;
+	PMB *pPMB = (PMB *)hPriv;
 	PVR_ASSERT(pPMB != NULL);
 
 	PVR_UNREFERENCED_PARAMETER(hArenaHandle);
@@ -365,14 +333,11 @@ static void IMAImportDLMFree(RA_PERARENA_HANDLE hArenaHandle,
 	PMBDestroy(pPMB);
 }
 
-static void
-FreeReservedMemory(PHYSMEM_IMA_DATA *psIMAData)
+static void FreeReservedMemory(PHYSMEM_IMA_DATA *psIMAData)
 {
 	IMG_UINT32 i;
-	if (psIMAData->ppsReservedPMBs)
-	{
-		for (i = 0; i < psIMAData->uiReservedPMBs; i++)
-		{
+	if (psIMAData->ppsReservedPMBs) {
+		for (i = 0; i < psIMAData->uiReservedPMBs; i++) {
 			/* The PMBs will be RA_Free'd by RA_Delete,
 			 * so it doesn't need to be done manually */
 			PMBDestroy(psIMAData->ppsReservedPMBs[i]);
@@ -381,10 +346,9 @@ FreeReservedMemory(PHYSMEM_IMA_DATA *psIMAData)
 	}
 }
 
-static PVRSRV_ERROR
-AllocateReservedMemory(PHYSMEM_IMA_DATA *psIMAData,
-                       PHYS_HEAP_POLICY uiPolicy,
-                       IMG_UINT32 uiReservedPMBs)
+static PVRSRV_ERROR AllocateReservedMemory(PHYSMEM_IMA_DATA *psIMAData,
+					   PHYS_HEAP_POLICY uiPolicy,
+					   IMG_UINT32 uiReservedPMBs)
 {
 	PVRSRV_ERROR eError;
 	IMG_BOOL bSuccess;
@@ -396,8 +360,7 @@ AllocateReservedMemory(PHYSMEM_IMA_DATA *psIMAData,
 	RA_BASE_T uiBase;
 	RA_LENGTH_T uiReserveActSize;
 
-	if (uiReservedPMBs == 0)
-	{
+	if (uiReservedPMBs == 0) {
 		psIMAData->uiReservedPMBs = 0;
 		psIMAData->ppsReservedPMBs = NULL;
 		return PVRSRV_OK;
@@ -406,34 +369,31 @@ AllocateReservedMemory(PHYSMEM_IMA_DATA *psIMAData,
 	/* If we do not support non-contiguous, we can allocate a single huge PMB.
 	 * We cannot do this for non-contiguous as IMAImportDLMAllocMulti requires all spans in the IMA-RA
 	 * to be exactly the same: 1 << psIMAData->uiLog2PMBSize. */
-	if ((uiPolicy & PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK) != PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG)
-	{
+	if ((uiPolicy & PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK) !=
+	    PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG) {
 		uiPMBSize *= uiPMBCount;
 		uiPMBCount = 1;
 	}
 
 	/* Count the number of PMBs that have been successfully created. */
 	psIMAData->uiReservedPMBs = 0;
-	psIMAData->ppsReservedPMBs = OSAllocMem(uiPMBCount * sizeof(*psIMAData->ppsReservedPMBs));
+	psIMAData->ppsReservedPMBs =
+		OSAllocMem(uiPMBCount * sizeof(*psIMAData->ppsReservedPMBs));
 	PVR_LOG_RETURN_IF_NOMEM(psIMAData->ppsReservedPMBs, "OSAllocMem");
 
-	for (i = 0; i < uiPMBCount; i++)
-	{
-		eError = PhysHeapCreatePMB(psIMAData->pDLMHeap,
-		                           uiPMBSize,
-		                           "PMB Reserved",
-		                           &psIMAData->ppsReservedPMBs[i],
-		                           &uiBase,
-		                           &uiReserveActSize);
-		PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreatePMB", err_FreeReserved);
+	for (i = 0; i < uiPMBCount; i++) {
+		eError = PhysHeapCreatePMB(psIMAData->pDLMHeap, uiPMBSize,
+					   "PMB Reserved",
+					   &psIMAData->ppsReservedPMBs[i],
+					   &uiBase, &uiReserveActSize);
+		PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreatePMB",
+				      err_FreeReserved);
 
 		psIMAData->uiReservedPMBs++;
 
-		bSuccess = RA_Add(psIMAData->psRA,
-		                  uiBase,
-		                  uiReserveActSize,
-		                  0,
-		                  (RA_PERISPAN_HANDLE) psIMAData->ppsReservedPMBs[i]);
+		bSuccess = RA_Add(
+			psIMAData->psRA, uiBase, uiReserveActSize, 0,
+			(RA_PERISPAN_HANDLE)psIMAData->ppsReservedPMBs[i]);
 		PVR_LOG_GOTO_IF_FALSE(bSuccess, "RA_Add", err_FreeReserved);
 	}
 
@@ -444,32 +404,30 @@ err_FreeReserved:
 	return eError;
 }
 
-static PVRSRV_ERROR
-CreateIMAArena(PHYSMEM_IMA_DATA *psIMAData,
-               IMG_CHAR *pszLabel,
-               PHYS_HEAP_POLICY uiPolicy,
-               IMG_UINT32 uiReservedPMBs)
+static PVRSRV_ERROR CreateIMAArena(PHYSMEM_IMA_DATA *psIMAData,
+				   IMG_CHAR *pszLabel,
+				   PHYS_HEAP_POLICY uiPolicy,
+				   IMG_UINT32 uiReservedPMBs)
 {
 	/* In practice an IMA heap only differs from LMA in the fact it can import more memory
 	 * when it has expended its current extent. */
 
 	/* If non contiguous mapping is available then we should allow that for an IMA heap.*/
 	IMG_UINT32 ui32RAPolicy =
-	    ((uiPolicy & PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK) == PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG)
-	    ? RA_POLICY_ALLOC_ALLOW_NONCONTIG : RA_POLICY_DEFAULT;
+		((uiPolicy & PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG_MASK) ==
+		 PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG) ?
+			RA_POLICY_ALLOC_ALLOW_NONCONTIG :
+			RA_POLICY_DEFAULT;
 	PVRSRV_ERROR eError;
 
 	PVR_ASSERT(psIMAData != NULL);
 
-	psIMAData->psRA = RA_Create(pszLabel,
-	                            OSGetPageShift(),
-	                            RA_LOCKCLASS_2,
-	                            (ui32RAPolicy == RA_POLICY_ALLOC_ALLOW_NONCONTIG)
-	                            ? IMAImportDLMAllocMulti
-	                            : IMAImportDLMAllocHuge,
-	                            IMAImportDLMFree,
-	                            psIMAData,
-	                            ui32RAPolicy);
+	psIMAData->psRA =
+		RA_Create(pszLabel, OSGetPageShift(), RA_LOCKCLASS_2,
+			  (ui32RAPolicy == RA_POLICY_ALLOC_ALLOW_NONCONTIG) ?
+				  IMAImportDLMAllocMulti :
+				  IMAImportDLMAllocHuge,
+			  IMAImportDLMFree, psIMAData, ui32RAPolicy);
 	PVR_LOG_RETURN_IF_NOMEM(psIMAData->psRA, "RA_Create");
 
 	eError = AllocateReservedMemory(psIMAData, uiPolicy, uiReservedPMBs);
@@ -483,8 +441,7 @@ err_ra_free:
 	return eError;
 }
 
-static void
-DestroyIMAArena(PHYSMEM_IMA_DATA *psIMAData)
+static void DestroyIMAArena(PHYSMEM_IMA_DATA *psIMAData)
 {
 	PVR_ASSERT(psIMAData != NULL);
 
@@ -495,42 +452,39 @@ DestroyIMAArena(PHYSMEM_IMA_DATA *psIMAData)
 	FreeReservedMemory(psIMAData);
 
 	/* Remove RAs and RA names for local card memory */
-	if (psIMAData->psRA)
-	{
+	if (psIMAData->psRA) {
 		RA_Delete(psIMAData->psRA);
 		psIMAData->psRA = NULL;
 	}
 }
 
-static void
-IMADestroyImplData(PHEAP_IMPL_DATA pvImplData)
+static void IMADestroyImplData(PHEAP_IMPL_DATA pvImplData)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)pvImplData;
+	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA *)pvImplData;
 
 	DestroyIMAArena(pvImplData);
 
 	OSFreeMem(psIMAData);
 }
 
-static PVRSRV_ERROR
-PhysmemGetArenaIMA(PHYS_HEAP *psPhysHeap,
-                   RA_ARENA **ppsArena)
+static PVRSRV_ERROR PhysmemGetArenaIMA(PHYS_HEAP *psPhysHeap,
+				       RA_ARENA **ppsArena)
 {
-	PHYSMEM_IMA_DATA *psIMAData = (PHYSMEM_IMA_DATA*)PhysHeapGetImplData(psPhysHeap);
+	PHYSMEM_IMA_DATA *psIMAData =
+		(PHYSMEM_IMA_DATA *)PhysHeapGetImplData(psPhysHeap);
 
-	PVR_LOG_RETURN_IF_FALSE(psIMAData != NULL, "psIMAData", PVRSRV_ERROR_NOT_IMPLEMENTED);
+	PVR_LOG_RETURN_IF_FALSE(psIMAData != NULL, "psIMAData",
+				PVRSRV_ERROR_NOT_IMPLEMENTED);
 
 	*ppsArena = psIMAData->psRA;
 
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR
-IMAPhyContigPagesAlloc(PHYS_HEAP *psPhysHeap,
-                       size_t uiSize,
-                       PG_HANDLE *psMemHandle,
-                       IMG_DEV_PHYADDR *psDevPAddr,
-                       IMG_PID uiPid)
+static PVRSRV_ERROR IMAPhyContigPagesAlloc(PHYS_HEAP *psPhysHeap, size_t uiSize,
+					   PG_HANDLE *psMemHandle,
+					   IMG_DEV_PHYADDR *psDevPAddr,
+					   IMG_PID uiPid)
 {
 	PVRSRV_ERROR eError;
 
@@ -545,38 +499,29 @@ IMAPhyContigPagesAlloc(PHYS_HEAP *psPhysHeap,
 	ui32Log2NumPages = OSGetOrder(uiSize);
 	uiSize = (1 << ui32Log2NumPages) * OSGetPageSize();
 
-	eError = RAMemDoPhyContigPagesAlloc(pArena, uiSize, psDevNode, psMemHandle,
-	                                    psDevPAddr, uiPid);
+	eError = RAMemDoPhyContigPagesAlloc(pArena, uiSize, psDevNode,
+					    psMemHandle, psDevPAddr, uiPid);
 	PVR_LOG_IF_ERROR(eError, "LocalDoPhyContigPagesAlloc");
 
 	return eError;
 }
 
-static void
-IMAPhyContigPagesFree(PHYS_HEAP *psPhysHeap,
-                      PG_HANDLE *psMemHandle)
+static void IMAPhyContigPagesFree(PHYS_HEAP *psPhysHeap, PG_HANDLE *psMemHandle)
 {
-	RA_ARENA	*pArena;
+	RA_ARENA *pArena;
 
 	PhysmemGetArenaIMA(psPhysHeap, &pArena);
 
-	RAMemDoPhyContigPagesFree(pArena,
-	                          psMemHandle);
+	RAMemDoPhyContigPagesFree(pArena, psMemHandle);
 }
 
-static PVRSRV_ERROR
-IMAPhysmemNewRAMemRamBackedPMR(PHYS_HEAP *psPhysHeap,
-                               CONNECTION_DATA *psConnection,
-                               IMG_DEVMEM_SIZE_T uiSize,
-                               IMG_UINT32 ui32NumPhysChunks,
-                               IMG_UINT32 ui32NumVirtChunks,
-                               IMG_UINT32 *pui32MappingTable,
-                               IMG_UINT32 uiLog2AllocPageSize,
-                               PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                               const IMG_CHAR *pszAnnotation,
-                               IMG_PID uiPid,
-                               PMR **ppsPMRPtr,
-                               IMG_UINT32 ui32PDumpFlags)
+static PVRSRV_ERROR IMAPhysmemNewRAMemRamBackedPMR(
+	PHYS_HEAP *psPhysHeap, CONNECTION_DATA *psConnection,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32NumPhysChunks,
+	IMG_UINT32 ui32NumVirtChunks, IMG_UINT32 *pui32MappingTable,
+	IMG_UINT32 uiLog2AllocPageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+	const IMG_CHAR *pszAnnotation, IMG_PID uiPid, PMR **ppsPMRPtr,
+	IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 	RA_ARENA *pArena;
@@ -584,26 +529,16 @@ IMAPhysmemNewRAMemRamBackedPMR(PHYS_HEAP *psPhysHeap,
 	eError = PhysmemGetArenaIMA(psPhysHeap, &pArena);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysmemGetArenaIMA");
 
-	eError = PhysmemNewRAMemRamBackedPMR(psPhysHeap,
-	                                     pArena,
-	                                     psConnection,
-	                                     uiSize,
-	                                     ui32NumPhysChunks,
-	                                     ui32NumVirtChunks,
-	                                     pui32MappingTable,
-	                                     uiLog2AllocPageSize,
-	                                     uiFlags,
-	                                     pszAnnotation,
-	                                     uiPid,
-	                                     ppsPMRPtr,
-	                                     ui32PDumpFlags);
+	eError = PhysmemNewRAMemRamBackedPMR(
+		psPhysHeap, pArena, psConnection, uiSize, ui32NumPhysChunks,
+		ui32NumVirtChunks, pui32MappingTable, uiLog2AllocPageSize,
+		uiFlags, pszAnnotation, uiPid, ppsPMRPtr, ui32PDumpFlags);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysmemNewLocalRamBackedPMR");
 
 	return PVRSRV_OK;
 }
 
-static PHEAP_IMPL_FUNCS _sPHEAPImplFuncsIMA =
-{
+static PHEAP_IMPL_FUNCS _sPHEAPImplFuncsIMA = {
 	.pfnDestroyData = &IMADestroyImplData,
 	.pfnGetDevPAddr = &IMAGetDevPAddr,
 	.pfnGetCPUPAddr = &IMAGetCPUPAddr,
@@ -621,47 +556,40 @@ static PHEAP_IMPL_FUNCS _sPHEAPImplFuncsIMA =
 };
 
 PVRSRV_ERROR
-PhysmemCreateHeapIMA(PVRSRV_DEVICE_NODE *psDevNode,
-                     PHYS_HEAP_POLICY uiPolicy,
-                     PHYS_HEAP_CONFIG *psConfig,
-                     IMG_CHAR *pszLabel,
-                     PHYS_HEAP *psDLMHeap,
-                     IMG_UINT32 uiLog2PMBSize,
-                     PHYS_HEAP **ppsPhysHeap)
+PhysmemCreateHeapIMA(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		     PHYS_HEAP_CONFIG *psConfig, IMG_CHAR *pszLabel,
+		     PHYS_HEAP *psDLMHeap, IMG_UINT32 uiLog2PMBSize,
+		     PHYS_HEAP **ppsPhysHeap)
 {
 	PHYSMEM_IMA_DATA *psIMAData;
 	PHYS_HEAP *psPhysHeap;
-	IMG_UINT32 uiPMBStartingMultiple = psConfig->uConfig.sIMA.ui32PMBStartingMultiple;
+	IMG_UINT32 uiPMBStartingMultiple =
+		psConfig->uConfig.sIMA.ui32PMBStartingMultiple;
 	PVRSRV_ERROR eError;
 
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psDevNode != NULL, "psDevNode");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(psConfig != NULL, "psConfig");
 	PVR_LOG_RETURN_IF_INVALID_PARAM(pszLabel != NULL, "pszLabel");
 
-	PVR_ASSERT(psConfig->eType == PHYS_HEAP_TYPE_IMA_BAR || psConfig->eType == PHYS_HEAP_TYPE_IMA_PRIV);
+	PVR_ASSERT(psConfig->eType == PHYS_HEAP_TYPE_IMA_BAR ||
+		   psConfig->eType == PHYS_HEAP_TYPE_IMA_PRIV);
 
 	psIMAData = OSAllocMem(sizeof(*psIMAData));
 	PVR_LOG_RETURN_IF_NOMEM(psIMAData, "OSAllocMem");
 
-	eError = PhysHeapCreate(psDevNode,
-							psConfig,
-							uiPolicy,
-							(PHEAP_IMPL_DATA)psIMAData,
-							&_sPHEAPImplFuncsIMA,
-							&psPhysHeap);
+	eError = PhysHeapCreate(psDevNode, psConfig, uiPolicy,
+				(PHEAP_IMPL_DATA)psIMAData,
+				&_sPHEAPImplFuncsIMA, &psPhysHeap);
 	PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapCreate", err_free_ima_data);
 
 	psIMAData->pDLMHeap = psDLMHeap;
 	psIMAData->uiLog2PMBSize = uiLog2PMBSize;
 
-	eError = CreateIMAArena(psIMAData,
-	                        pszLabel,
-	                        uiPolicy,
-	                        uiPMBStartingMultiple);
+	eError = CreateIMAArena(psIMAData, pszLabel, uiPolicy,
+				uiPMBStartingMultiple);
 	PVR_LOG_GOTO_IF_ERROR(eError, "CreateIMAArena", err_free_physheap);
 
-	if (ppsPhysHeap != NULL)
-	{
+	if (ppsPhysHeap != NULL) {
 		*ppsPhysHeap = psPhysHeap;
 	}
 

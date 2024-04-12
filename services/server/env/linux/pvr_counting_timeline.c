@@ -53,9 +53,9 @@
 	do {                                                             \
 		if (pfnDumpDebugPrintf)                                  \
 			pfnDumpDebugPrintf(pvDumpDebugFile, fmt,         \
-					   ## __VA_ARGS__);              \
+					   ##__VA_ARGS__);               \
 		else                                                     \
-			pr_err(fmt "\n", ## __VA_ARGS__);                \
+			pr_err(fmt "\n", ##__VA_ARGS__);                 \
 	} while (0)
 
 struct pvr_counting_fence_timeline {
@@ -78,32 +78,26 @@ struct pvr_counting_fence {
 };
 
 void pvr_counting_fence_timeline_dump_timeline(
-	void *data,
-	DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
+	void *data, DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
 	void *dump_debug_file)
 {
-
 	struct pvr_counting_fence_timeline *timeline =
-		(struct pvr_counting_fence_timeline *) data;
+		(struct pvr_counting_fence_timeline *)data;
 	unsigned long flags;
 
 	spin_lock_irqsave(&timeline->active_fences_lock, flags);
 
-	PVR_DUMPDEBUG_LOG(dump_debug_printf,
-					  dump_debug_file,
-					  "TL:%s SeqNum: %llu/%llu",
-					  pvr_sw_fence_context_name(
-							  timeline->context),
-					  timeline->current_value,
-					  timeline->next_value);
+	PVR_DUMPDEBUG_LOG(dump_debug_printf, dump_debug_file,
+			  "TL:%s SeqNum: %llu/%llu",
+			  pvr_sw_fence_context_name(timeline->context),
+			  timeline->current_value, timeline->next_value);
 
 	spin_unlock_irqrestore(&timeline->active_fences_lock, flags);
 }
 
-static void
-pvr_counting_fence_timeline_debug_request(void *data, u32 verbosity,
-			DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-			void *pvDumpDebugFile)
+static void pvr_counting_fence_timeline_debug_request(
+	void *data, u32 verbosity, DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+	void *pvDumpDebugFile)
 {
 	struct pvr_counting_fence_timeline *timeline =
 		(struct pvr_counting_fence_timeline *)data;
@@ -121,8 +115,8 @@ pvr_counting_fence_timeline_debug_request(void *data, u32 verbosity,
 				  value, timeline->current_value);
 		list_for_each_entry(obj, &timeline->active_fences,
 				    active_list_entry) {
-			obj->fence->ops->fence_value_str(obj->fence,
-							 value, sizeof(value));
+			obj->fence->ops->fence_value_str(obj->fence, value,
+							 sizeof(value));
 			PVR_DUMPDEBUG_LOG(pfnDumpDebugPrintf, pvDumpDebugFile,
 					  " @%s: val=%llu", value, obj->value);
 		}
@@ -130,8 +124,8 @@ pvr_counting_fence_timeline_debug_request(void *data, u32 verbosity,
 	}
 }
 
-struct pvr_counting_fence_timeline *pvr_counting_fence_timeline_create(
-	const char *name)
+struct pvr_counting_fence_timeline *
+pvr_counting_fence_timeline_create(const char *name)
 {
 	PVRSRV_ERROR srv_err;
 	struct pvr_counting_fence_timeline *timeline =
@@ -140,19 +134,17 @@ struct pvr_counting_fence_timeline *pvr_counting_fence_timeline_create(
 	if (!timeline)
 		goto err_out;
 
-	timeline->context = pvr_sw_fence_context_create(name,
-							"pvr_sw_sync");
+	timeline->context = pvr_sw_fence_context_create(name, "pvr_sw_sync");
 	if (!timeline->context)
 		goto err_free_timeline;
 
 	srv_err = PVRSRVRegisterDriverDbgRequestNotify(
-				&timeline->dbg_request_handle,
-				pvr_counting_fence_timeline_debug_request,
-				DEBUG_REQUEST_LINUXFENCE,
-				timeline);
+		&timeline->dbg_request_handle,
+		pvr_counting_fence_timeline_debug_request,
+		DEBUG_REQUEST_LINUXFENCE, timeline);
 	if (srv_err != PVRSRV_OK) {
 		pr_err("%s: failed to register debug request callback (%s)\n",
-			   __func__, PVRSRVGetErrorString(srv_err));
+		       __func__, PVRSRVGetErrorString(srv_err));
 		goto err_free_timeline_ctx;
 	}
 
@@ -190,9 +182,8 @@ void pvr_counting_fence_timeline_force_complete(
 #endif
 
 	list_for_each_safe(entry, tmp, &timeline->active_fences) {
-		struct pvr_counting_fence *fence =
-			list_entry(entry, struct pvr_counting_fence,
-			active_list_entry);
+		struct pvr_counting_fence *fence = list_entry(
+			entry, struct pvr_counting_fence, active_list_entry);
 		dma_fence_signal(fence->fence);
 		dma_fence_put(fence->fence);
 		fence->fence = NULL;
@@ -202,8 +193,7 @@ void pvr_counting_fence_timeline_force_complete(
 	spin_unlock_irqrestore(&timeline->active_fences_lock, flags);
 }
 
-static void pvr_counting_fence_timeline_destroy(
-	struct kref *kref)
+static void pvr_counting_fence_timeline_destroy(struct kref *kref)
 {
 	struct pvr_counting_fence_timeline *timeline =
 		container_of(kref, struct pvr_counting_fence_timeline, kref);
@@ -222,8 +212,8 @@ void pvr_counting_fence_timeline_put(
 	kref_put(&timeline->kref, pvr_counting_fence_timeline_destroy);
 }
 
-struct pvr_counting_fence_timeline *pvr_counting_fence_timeline_get(
-	struct pvr_counting_fence_timeline *timeline)
+struct pvr_counting_fence_timeline *
+pvr_counting_fence_timeline_get(struct pvr_counting_fence_timeline *timeline)
 {
 	if (!timeline)
 		return NULL;
@@ -231,8 +221,9 @@ struct pvr_counting_fence_timeline *pvr_counting_fence_timeline_get(
 	return timeline;
 }
 
-struct dma_fence *pvr_counting_fence_create(
-	struct pvr_counting_fence_timeline *timeline, u64 *sync_pt_idx)
+struct dma_fence *
+pvr_counting_fence_create(struct pvr_counting_fence_timeline *timeline,
+			  u64 *sync_pt_idx)
 {
 	unsigned long flags;
 	struct dma_fence *sw_fence;
@@ -276,7 +267,7 @@ bool pvr_counting_fence_timeline_inc(
 
 	spin_lock_irqsave(&timeline->active_fences_lock, flags);
 
-	if (timeline->current_value == timeline->next_value-1) {
+	if (timeline->current_value == timeline->next_value - 1) {
 		res = false;
 		goto exit_unlock;
 	}
@@ -287,9 +278,8 @@ bool pvr_counting_fence_timeline_inc(
 		*sync_pt_idx = timeline->current_value;
 
 	list_for_each_safe(entry, tmp, &timeline->active_fences) {
-		struct pvr_counting_fence *fence =
-			list_entry(entry, struct pvr_counting_fence,
-			active_list_entry);
+		struct pvr_counting_fence *fence = list_entry(
+			entry, struct pvr_counting_fence, active_list_entry);
 		if (fence->value <= timeline->current_value) {
 			dma_fence_signal(fence->fence);
 			dma_fence_put(fence->fence);

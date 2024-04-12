@@ -50,7 +50,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if defined(__GNUC__)
 #if defined(__x86_64__)
 
-	#define PVR_CTZLL __builtin_ctzll
+#define PVR_CTZLL __builtin_ctzll
 #endif
 #endif
 
@@ -60,7 +60,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #if defined(__GNUC__)
 #if defined(__x86_64__) || defined(__i386__) || defined(__aarch64__) || \
-					defined(__arm__) || defined(__mips)
+	defined(__arm__) || defined(__mips)
 
 #define PVR_CLZLL __builtin_clzll
 

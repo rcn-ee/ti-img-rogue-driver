@@ -54,19 +54,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgx_bridge.h"
 #include "pvrsrv_sync_km.h"
 
-#define PVRSRV_BRIDGE_DMA_CMD_FIRST			0
-#define PVRSRV_BRIDGE_DMA_DMATRANSFER			PVRSRV_BRIDGE_DMA_CMD_FIRST+0
-#define PVRSRV_BRIDGE_DMA_DMASPARSEMAPPINGTABLE			PVRSRV_BRIDGE_DMA_CMD_FIRST+1
-#define PVRSRV_BRIDGE_DMA_DMADEVICEPARAMS			PVRSRV_BRIDGE_DMA_CMD_FIRST+2
-#define PVRSRV_BRIDGE_DMA_CMD_LAST			(PVRSRV_BRIDGE_DMA_CMD_FIRST+2)
+#define PVRSRV_BRIDGE_DMA_CMD_FIRST 0
+#define PVRSRV_BRIDGE_DMA_DMATRANSFER PVRSRV_BRIDGE_DMA_CMD_FIRST + 0
+#define PVRSRV_BRIDGE_DMA_DMASPARSEMAPPINGTABLE PVRSRV_BRIDGE_DMA_CMD_FIRST + 1
+#define PVRSRV_BRIDGE_DMA_DMADEVICEPARAMS PVRSRV_BRIDGE_DMA_CMD_FIRST + 2
+#define PVRSRV_BRIDGE_DMA_CMD_LAST (PVRSRV_BRIDGE_DMA_CMD_FIRST + 2)
 
 /*******************************************
             DmaTransfer
  *******************************************/
 
 /* Bridge in structure for DmaTransfer */
-typedef struct PVRSRV_BRIDGE_IN_DMATRANSFER_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DMATRANSFER_TAG {
 	IMG_UINT64 *pui64Address;
 	IMG_DEVMEM_OFFSET_T *puiOffset;
 	IMG_DEVMEM_SIZE_T *puiSize;
@@ -77,8 +76,7 @@ typedef struct PVRSRV_BRIDGE_IN_DMATRANSFER_TAG
 } __packed PVRSRV_BRIDGE_IN_DMATRANSFER;
 
 /* Bridge out structure for DmaTransfer */
-typedef struct PVRSRV_BRIDGE_OUT_DMATRANSFER_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DMATRANSFER_TAG {
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_DMATRANSFER;
 
@@ -87,8 +85,7 @@ typedef struct PVRSRV_BRIDGE_OUT_DMATRANSFER_TAG
  *******************************************/
 
 /* Bridge in structure for DmaSparseMappingTable */
-typedef struct PVRSRV_BRIDGE_IN_DMASPARSEMAPPINGTABLE_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DMASPARSEMAPPINGTABLE_TAG {
 	IMG_DEVMEM_OFFSET_T uiOffset;
 	IMG_HANDLE hPMR;
 	IMG_BOOL *pbTable;
@@ -96,8 +93,7 @@ typedef struct PVRSRV_BRIDGE_IN_DMASPARSEMAPPINGTABLE_TAG
 } __packed PVRSRV_BRIDGE_IN_DMASPARSEMAPPINGTABLE;
 
 /* Bridge out structure for DmaSparseMappingTable */
-typedef struct PVRSRV_BRIDGE_OUT_DMASPARSEMAPPINGTABLE_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DMASPARSEMAPPINGTABLE_TAG {
 	IMG_BOOL *pbTable;
 	PVRSRV_ERROR eError;
 } __packed PVRSRV_BRIDGE_OUT_DMASPARSEMAPPINGTABLE;
@@ -107,14 +103,12 @@ typedef struct PVRSRV_BRIDGE_OUT_DMASPARSEMAPPINGTABLE_TAG
  *******************************************/
 
 /* Bridge in structure for DmaDeviceParams */
-typedef struct PVRSRV_BRIDGE_IN_DMADEVICEPARAMS_TAG
-{
+typedef struct PVRSRV_BRIDGE_IN_DMADEVICEPARAMS_TAG {
 	IMG_UINT32 ui32EmptyStructPlaceholder;
 } __packed PVRSRV_BRIDGE_IN_DMADEVICEPARAMS;
 
 /* Bridge out structure for DmaDeviceParams */
-typedef struct PVRSRV_BRIDGE_OUT_DMADEVICEPARAMS_TAG
-{
+typedef struct PVRSRV_BRIDGE_OUT_DMADEVICEPARAMS_TAG {
 	PVRSRV_ERROR eError;
 	IMG_UINT32 ui32DmaBuffAlign;
 	IMG_UINT32 ui32DmaTransferMult;

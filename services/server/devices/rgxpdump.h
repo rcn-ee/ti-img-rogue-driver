@@ -62,9 +62,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
-                                          PVRSRV_DEVICE_NODE * psDeviceNode,
-                                          IMG_UINT32 ui32PDumpFlags);
+PVRSRV_ERROR PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA *psConnection,
+					  PVRSRV_DEVICE_NODE *psDeviceNode,
+					  IMG_UINT32 ui32PDumpFlags);
 
 #if defined(SUPPORT_VALIDATION)
 /*!
@@ -77,9 +77,10 @@ PVRSRV_ERROR PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVPDumpComputeCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
-                                                   PVRSRV_DEVICE_NODE * psDeviceNode,
-                                                   IMG_UINT32 ui32PDumpFlags);
+PVRSRV_ERROR
+PVRSRVPDumpComputeCRCSignatureCheckKM(CONNECTION_DATA *psConnection,
+				      PVRSRV_DEVICE_NODE *psDeviceNode,
+				      IMG_UINT32 ui32PDumpFlags);
 #endif
 
 /*!
@@ -94,9 +95,9 @@ PVRSRV_ERROR PVRSRVPDumpComputeCRCSignatureCheckKM(CONNECTION_DATA * psConnectio
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
-                                            PVRSRV_DEVICE_NODE * psDeviceNode,
-                                            IMG_UINT32 ui32PDumpFlags);
+PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA *psConnection,
+					    PVRSRV_DEVICE_NODE *psDeviceNode,
+					    IMG_UINT32 ui32PDumpFlags);
 
 /*!
 *******************************************************************************
@@ -111,9 +112,9 @@ PVRSRV_ERROR PVRSRVPDumpCRCSignatureCheckKM(CONNECTION_DATA * psConnection,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVPDumpValCheckPreCommandKM(CONNECTION_DATA * psConnection,
-                                             PVRSRV_DEVICE_NODE * psDeviceNode,
-                                             IMG_UINT32 ui32PDumpFlags);
+PVRSRV_ERROR PVRSRVPDumpValCheckPreCommandKM(CONNECTION_DATA *psConnection,
+					     PVRSRV_DEVICE_NODE *psDeviceNode,
+					     IMG_UINT32 ui32PDumpFlags);
 
 /*!
 *******************************************************************************
@@ -128,9 +129,9 @@ PVRSRV_ERROR PVRSRVPDumpValCheckPreCommandKM(CONNECTION_DATA * psConnection,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVPDumpValCheckPostCommandKM(CONNECTION_DATA * psConnection,
-                                              PVRSRV_DEVICE_NODE * psDeviceNode,
-                                              IMG_UINT32 ui32PDumpFlags);
+PVRSRV_ERROR PVRSRVPDumpValCheckPostCommandKM(CONNECTION_DATA *psConnection,
+					      PVRSRV_DEVICE_NODE *psDeviceNode,
+					      IMG_UINT32 ui32PDumpFlags);
 
 /*!
 *******************************************************************************
@@ -144,9 +145,9 @@ PVRSRV_ERROR PVRSRVPDumpValCheckPostCommandKM(CONNECTION_DATA * psConnection,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVPDumpTraceBufferKM(CONNECTION_DATA * psConnection,
-                                      PVRSRV_DEVICE_NODE *psDeviceNode,
-                                      IMG_UINT32 ui32PDumpFlags);
+PVRSRV_ERROR PVRSRVPDumpTraceBufferKM(CONNECTION_DATA *psConnection,
+				      PVRSRV_DEVICE_NODE *psDeviceNode,
+				      IMG_UINT32 ui32PDumpFlags);
 
 /*!
 *******************************************************************************
@@ -160,19 +161,14 @@ PVRSRV_ERROR PVRSRVPDumpTraceBufferKM(CONNECTION_DATA * psConnection,
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDeviceNode,
-									IMG_UINT32 ui32HeaderSize,
-									IMG_UINT32 ui32DataSize,
-									IMG_UINT32 ui32LogicalWidth,
-									IMG_UINT32 ui32LogicalHeight,
-									IMG_UINT32 ui32PhysicalWidth,
-									IMG_UINT32 ui32PhysicalHeight,
-									PDUMP_PIXEL_FORMAT ePixFmt,
-									IMG_MEMLAYOUT eMemLayout,
-									IMG_FB_COMPRESSION eFBCompression,
-									const IMG_UINT32 *paui32FBCClearColour,
-									PDUMP_FBC_SWIZZLE eFBCSwizzle,
-									IMG_PBYTE abyPDumpDesc);
+PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(
+	PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT32 ui32HeaderSize,
+	IMG_UINT32 ui32DataSize, IMG_UINT32 ui32LogicalWidth,
+	IMG_UINT32 ui32LogicalHeight, IMG_UINT32 ui32PhysicalWidth,
+	IMG_UINT32 ui32PhysicalHeight, PDUMP_PIXEL_FORMAT ePixFmt,
+	IMG_MEMLAYOUT eMemLayout, IMG_FB_COMPRESSION eFBCompression,
+	const IMG_UINT32 *paui32FBCClearColour, PDUMP_FBC_SWIZZLE eFBCSwizzle,
+	IMG_PBYTE abyPDumpDesc);
 
 /*!
 *******************************************************************************
@@ -186,22 +182,19 @@ PVRSRV_ERROR RGXPDumpPrepareOutputImageDescriptorHdr(PVRSRV_DEVICE_NODE *psDevic
  @Return   PVRSRV_ERROR
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPDumpPrepareOutputDataDescriptorHdr(PVRSRV_DEVICE_NODE *psDeviceNode,
-									IMG_UINT32 ui32HeaderType,
-									IMG_UINT32 ui32DataSize,
-									IMG_UINT32 ui32ElementType,
-									IMG_UINT32 ui32ElementCount,
-									IMG_PBYTE pbyPDumpDataHdr);
+PVRSRV_ERROR RGXPDumpPrepareOutputDataDescriptorHdr(
+	PVRSRV_DEVICE_NODE *psDeviceNode, IMG_UINT32 ui32HeaderType,
+	IMG_UINT32 ui32DataSize, IMG_UINT32 ui32ElementType,
+	IMG_UINT32 ui32ElementCount, IMG_PBYTE pbyPDumpDataHdr);
 
 #else /* PDUMP */
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PVRSRVPDumpSignatureBufferKM)
 #endif
-static INLINE PVRSRV_ERROR
-PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
-                             PVRSRV_DEVICE_NODE *psDeviceNode,
-                             IMG_UINT32 ui32PDumpFlags)
+static INLINE PVRSRV_ERROR PVRSRVPDumpSignatureBufferKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_UINT32 ui32PDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);
@@ -212,10 +205,9 @@ PVRSRVPDumpSignatureBufferKM(CONNECTION_DATA * psConnection,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(PVRSRVPDumpTraceBufferKM)
 #endif
-static INLINE PVRSRV_ERROR
-PVRSRVPDumpTraceBufferKM(CONNECTION_DATA * psConnection,
-                         PVRSRV_DEVICE_NODE *psDeviceNode,
-                         IMG_UINT32 ui32PDumpFlags)
+static INLINE PVRSRV_ERROR PVRSRVPDumpTraceBufferKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_UINT32 ui32PDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psConnection);
 	PVR_UNREFERENCED_PARAMETER(psDeviceNode);

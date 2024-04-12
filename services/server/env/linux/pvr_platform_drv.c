@@ -62,7 +62,6 @@
 #include "pvrmodule.h"
 #include "sysinfo.h"
 
-
 /* This header must always be included last */
 #include "kernel_compatibility.h"
 
@@ -99,9 +98,10 @@ static const struct kernel_param_ops pvr_num_devices_ops = {
 #define STRINGIFY(s) STR(s)
 
 module_param_cb(num_devices, &pvr_num_devices_ops, &pvr_num_devices, 0444);
-MODULE_PARM_DESC(num_devices,
-		 "Number of platform devices to register (default: 1 - max: "
-		 STRINGIFY(PVRSRV_MAX_DEVICES) ")");
+MODULE_PARM_DESC(
+	num_devices,
+	"Number of platform devices to register (default: 1 - max: " STRINGIFY(
+		PVRSRV_MAX_DEVICES) ")");
 #endif /* defined(NO_HARDWARE) */
 #endif /* defined(MODULE) && !defined(PVR_LDM_PLATFORM_PRE_REGISTERED) */
 
@@ -133,8 +133,8 @@ static int pvr_devices_register(void)
 	for (i = 0; i < pvr_num_devices; i++) {
 		pvr_devices[i] = platform_device_register_full(&pvr_dev_info);
 		if (IS_ERR(pvr_devices[i])) {
-			DRM_ERROR("unable to register device %u (err=%ld)\n",
-				  i, PTR_ERR(pvr_devices[i]));
+			DRM_ERROR("unable to register device %u (err=%ld)\n", i,
+				  PTR_ERR(pvr_devices[i]));
 			pvr_devices[i] = NULL;
 			return -ENODEV;
 		}
@@ -196,12 +196,10 @@ static int pvr_probe(struct platform_device *pdev)
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0))
 	DRM_INFO("Initialized %s %d.%d.%d %s on minor %d\n",
-		pvr_drm_platform_driver.name,
-		pvr_drm_platform_driver.major,
-		pvr_drm_platform_driver.minor,
-		pvr_drm_platform_driver.patchlevel,
-		pvr_drm_platform_driver.date,
-		ddev->primary->index);
+		 pvr_drm_platform_driver.name, pvr_drm_platform_driver.major,
+		 pvr_drm_platform_driver.minor,
+		 pvr_drm_platform_driver.patchlevel,
+		 pvr_drm_platform_driver.date, ddev->primary->index);
 #endif
 	return 0;
 
@@ -209,7 +207,7 @@ err_drm_dev_unload:
 	pvr_drm_unload(ddev);
 err_drm_dev_put:
 	drm_dev_put(ddev);
-	return	ret;
+	return ret;
 }
 
 static int pvr_remove(struct platform_device *pdev)
@@ -241,7 +239,9 @@ static void pvr_shutdown(struct platform_device *pdev)
 
 static const struct of_device_id pvr_of_ids[] = {
 #if defined(SYS_RGX_OF_COMPATIBLE)
-	{ .compatible = SYS_RGX_OF_COMPATIBLE, },
+	{
+		.compatible = SYS_RGX_OF_COMPATIBLE,
+	},
 #endif
 	{},
 };
@@ -266,7 +266,7 @@ static struct platform_device_id pvr_platform_ids[] = {
 #if defined(SYS_RGX_DEV_NAME_3)
 	{ SYS_RGX_DEV_NAME_3, 0 },
 #endif
-	{ }
+	{}
 };
 
 #if !defined(CHROMIUMOS_KERNEL)

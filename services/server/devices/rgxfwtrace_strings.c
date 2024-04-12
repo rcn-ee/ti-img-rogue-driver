@@ -47,8 +47,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* The tuple pairs that will be generated using XMacros will be stored here.
  * This macro definition must match the definition of SFids in rgx_fwif_sf.h
  */
-const RGXKM_STID_FMT SFs[]= {
-#define X(a, b, c, d, e) { RGXFW_LOG_CREATESFID(a,b,e), d },
+const RGXKM_STID_FMT SFs[] = {
+#define X(a, b, c, d, e) { RGXFW_LOG_CREATESFID(a, b, e), d },
 	RGXFW_LOG_SFIDLIST
 #undef X
 };

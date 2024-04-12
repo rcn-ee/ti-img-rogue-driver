@@ -51,7 +51,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //#include "physmem.h"
 
 void SysRGXErrorNotify(IMG_HANDLE hSysData,
-                       PVRSRV_ROBUSTNESS_NOTIFY_DATA *psErrorData)
+		       PVRSRV_ROBUSTNESS_NOTIFY_DATA *psErrorData)
 {
 	PVR_UNREFERENCED_PARAMETER(hSysData);
 
@@ -59,70 +59,65 @@ void SysRGXErrorNotify(IMG_HANDLE hSysData,
 	{
 		IMG_UINT32 ui32DgbLvl;
 
-		switch (psErrorData->eResetReason)
-		{
-			case RGX_CONTEXT_RESET_REASON_NONE:
-			case RGX_CONTEXT_RESET_REASON_GUILTY_LOCKUP:
-			case RGX_CONTEXT_RESET_REASON_INNOCENT_LOCKUP:
-			case RGX_CONTEXT_RESET_REASON_GUILTY_OVERRUNING:
-			case RGX_CONTEXT_RESET_REASON_INNOCENT_OVERRUNING:
-			case RGX_CONTEXT_RESET_REASON_HARD_CONTEXT_SWITCH:
-			case RGX_CONTEXT_RESET_REASON_GPU_ECC_OK:
-			case RGX_CONTEXT_RESET_REASON_FW_ECC_OK:
-			{
-				ui32DgbLvl = PVR_DBG_MESSAGE;
-				break;
-			}
-			case RGX_CONTEXT_RESET_REASON_GPU_ECC_HWR:
-			case RGX_CONTEXT_RESET_REASON_FW_EXEC_ERR:
-			{
-				ui32DgbLvl = PVR_DBG_WARNING;
-				break;
-			}
-			case RGX_CONTEXT_RESET_REASON_WGP_CHECKSUM:
-			case RGX_CONTEXT_RESET_REASON_TRP_CHECKSUM:
-			case RGX_CONTEXT_RESET_REASON_FW_ECC_ERR:
-			case RGX_CONTEXT_RESET_REASON_FW_WATCHDOG:
-			case RGX_CONTEXT_RESET_REASON_FW_PAGEFAULT:
-			case RGX_CONTEXT_RESET_REASON_HOST_WDG_FW_ERR:
-			case RGX_CONTEXT_PVRIC_SIGNATURE_MISMATCH:
-			{
-				ui32DgbLvl = PVR_DBG_ERROR;
-				break;
-			}
-			default:
-			{
-				PVR_ASSERT(false && "Unhandled reset reason");
-				ui32DgbLvl = PVR_DBG_ERROR;
-				break;
-			}
-		}
-
-		if (psErrorData->pid > 0)
-		{
-			PVRSRVDebugPrintf(ui32DgbLvl, __FILE__, __LINE__, " PID %d experienced error %d",
-					 psErrorData->pid, psErrorData->eResetReason);
-		}
-		else
-		{
-			PVRSRVDebugPrintf(ui32DgbLvl, __FILE__, __LINE__, " Device experienced error %d",
-					 psErrorData->eResetReason);
-		}
-
-		switch (psErrorData->eResetReason)
-		{
-			case RGX_CONTEXT_RESET_REASON_WGP_CHECKSUM:
-			case RGX_CONTEXT_RESET_REASON_TRP_CHECKSUM:
-			{
-				PVRSRVDebugPrintf(ui32DgbLvl, __FILE__, __LINE__, "   ExtJobRef 0x%x, DM %d",
-						 psErrorData->uErrData.sChecksumErrData.ui32ExtJobRef,
-						 psErrorData->uErrData.sChecksumErrData.eDM);
+		switch (psErrorData->eResetReason) {
+		case RGX_CONTEXT_RESET_REASON_NONE:
+		case RGX_CONTEXT_RESET_REASON_GUILTY_LOCKUP:
+		case RGX_CONTEXT_RESET_REASON_INNOCENT_LOCKUP:
+		case RGX_CONTEXT_RESET_REASON_GUILTY_OVERRUNING:
+		case RGX_CONTEXT_RESET_REASON_INNOCENT_OVERRUNING:
+		case RGX_CONTEXT_RESET_REASON_HARD_CONTEXT_SWITCH:
+		case RGX_CONTEXT_RESET_REASON_GPU_ECC_OK:
+		case RGX_CONTEXT_RESET_REASON_FW_ECC_OK: {
+			ui32DgbLvl = PVR_DBG_MESSAGE;
 			break;
-			}
-			default:
-			{
-				break;
-			}
+		}
+		case RGX_CONTEXT_RESET_REASON_GPU_ECC_HWR:
+		case RGX_CONTEXT_RESET_REASON_FW_EXEC_ERR: {
+			ui32DgbLvl = PVR_DBG_WARNING;
+			break;
+		}
+		case RGX_CONTEXT_RESET_REASON_WGP_CHECKSUM:
+		case RGX_CONTEXT_RESET_REASON_TRP_CHECKSUM:
+		case RGX_CONTEXT_RESET_REASON_FW_ECC_ERR:
+		case RGX_CONTEXT_RESET_REASON_FW_WATCHDOG:
+		case RGX_CONTEXT_RESET_REASON_FW_PAGEFAULT:
+		case RGX_CONTEXT_RESET_REASON_HOST_WDG_FW_ERR:
+		case RGX_CONTEXT_PVRIC_SIGNATURE_MISMATCH: {
+			ui32DgbLvl = PVR_DBG_ERROR;
+			break;
+		}
+		default: {
+			PVR_ASSERT(false && "Unhandled reset reason");
+			ui32DgbLvl = PVR_DBG_ERROR;
+			break;
+		}
+		}
+
+		if (psErrorData->pid > 0) {
+			PVRSRVDebugPrintf(ui32DgbLvl, __FILE__, __LINE__,
+					  " PID %d experienced error %d",
+					  psErrorData->pid,
+					  psErrorData->eResetReason);
+		} else {
+			PVRSRVDebugPrintf(ui32DgbLvl, __FILE__, __LINE__,
+					  " Device experienced error %d",
+					  psErrorData->eResetReason);
+		}
+
+		switch (psErrorData->eResetReason) {
+		case RGX_CONTEXT_RESET_REASON_WGP_CHECKSUM:
+		case RGX_CONTEXT_RESET_REASON_TRP_CHECKSUM: {
+			PVRSRVDebugPrintf(
+				ui32DgbLvl, __FILE__, __LINE__,
+				"   ExtJobRef 0x%x, DM %d",
+				psErrorData->uErrData.sChecksumErrData
+					.ui32ExtJobRef,
+				psErrorData->uErrData.sChecksumErrData.eDM);
+			break;
+		}
+		default: {
+			break;
+		}
 		}
 	}
 #else
@@ -140,27 +135,26 @@ IMG_UINT64 SysRestrictGpuLocalPhysheap(IMG_UINT64 uiHeapSize)
 
 	OSCreateAppHintState(&pvAppHintState);
 	OSGetAppHintUINT32(APPHINT_NO_DEVICE, pvAppHintState,
-	                     RestrictGpuLocalPhysHeapSizeMB, &uiCurrentHeapSizeMB,
-						 &uiForcedHeapSizeMB);
+			   RestrictGpuLocalPhysHeapSizeMB, &uiCurrentHeapSizeMB,
+			   &uiForcedHeapSizeMB);
 	OSFreeAppHintState(pvAppHintState);
 
 	uiForcedHeapSizeBytes = MB2B((IMG_UINT64)uiForcedHeapSizeMB);
 
-	if (uiForcedHeapSizeMB == 0)
-	{
+	if (uiForcedHeapSizeMB == 0) {
 		/* Apphint wasn't set, just return current heapsize */
 		return uiHeapSize;
 	}
 
-	if (uiForcedHeapSizeBytes > uiHeapSize)
-	{
-		PVR_DPF((PVR_DBG_WARNING,"GPU_LOCAL Forced heap value greater than possible heap size. "
-								 "Given: %llu Available: %llu. Reverting to default.",
-								 uiForcedHeapSizeBytes, uiHeapSize));
-	}
-	else
-	{
-		PVR_LOG(("RestrictGpuLocalPhysHeapSizeMB applied GPU_LOCAL Size Bytes: %llu", uiForcedHeapSizeBytes));
+	if (uiForcedHeapSizeBytes > uiHeapSize) {
+		PVR_DPF((PVR_DBG_WARNING,
+			 "GPU_LOCAL Forced heap value greater than possible heap size. "
+			 "Given: %llu Available: %llu. Reverting to default.",
+			 uiForcedHeapSizeBytes, uiHeapSize));
+	} else {
+		PVR_LOG((
+			"RestrictGpuLocalPhysHeapSizeMB applied GPU_LOCAL Size Bytes: %llu",
+			uiForcedHeapSizeBytes));
 	}
 
 	return uiForcedHeapSizeBytes;
@@ -178,8 +172,8 @@ IMG_BOOL SysRestrictGpuLocalAddPrivateHeap(void)
 
 	OSCreateAppHintState(&pvAppHintState);
 	OSGetAppHintUINT32(APPHINT_NO_DEVICE, pvAppHintState,
-	                     RestrictGpuLocalPhysHeapSizeMB, &uiCurrentHeapSizeMB,
-						 &uiForcedHeapSizeMB);
+			   RestrictGpuLocalPhysHeapSizeMB, &uiCurrentHeapSizeMB,
+			   &uiForcedHeapSizeMB);
 	OSFreeAppHintState(pvAppHintState);
 
 	return uiForcedHeapSizeMB ? IMG_TRUE : IMG_FALSE;
@@ -190,20 +184,21 @@ IMG_BOOL SysRestrictGpuLocalAddPrivateHeap(void)
 
 IMG_BOOL SysDefaultToCpuLocalHeap(void)
 {
-//#if (TC_MEMORY_CONFIG == TC_MEMORY_HYBRID)
+	//#if (TC_MEMORY_CONFIG == TC_MEMORY_HYBRID)
 	void *pvAppHintState = NULL;
 	IMG_BOOL bAppHintDefault = IMG_FALSE;
 	IMG_BOOL bSetToCPULocal = IMG_FALSE;
 
 	OSCreateAppHintState(&pvAppHintState);
 	OSGetAppHintBOOL(APPHINT_NO_DEVICE, pvAppHintState,
-			PhysHeapHybridDefault2CpuLocal, &bAppHintDefault, &bSetToCPULocal);
+			 PhysHeapHybridDefault2CpuLocal, &bAppHintDefault,
+			 &bSetToCPULocal);
 	OSFreeAppHintState(pvAppHintState);
 
 	return bSetToCPULocal;
-//#else
-//	return IMG_FALSE;
-//#endif
+	//#else
+	//	return IMG_FALSE;
+	//#endif
 }
 /******************************************************************************
  End of file (sysconfig_cmn.c)

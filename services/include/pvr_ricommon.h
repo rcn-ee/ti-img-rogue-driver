@@ -51,7 +51,7 @@ extern "C" {
 #include "img_defs.h"
 
 /*! Maximum text string length including the null byte */
-#define PRVSRVRI_MAX_TEXT_LENGTH	20U
+#define PRVSRVRI_MAX_TEXT_LENGTH 20U
 
 /* PID used to hold PMR allocations which are driver-wide (i.e. have a lifetime
  * longer than an application process)
@@ -60,10 +60,11 @@ extern "C" {
 
 /* Flags passed over RIWriteMEMDESCEntry in uiImportFlags and uiSuballocFlags
  * fields. */
-#define PVR_RI_BRIDGE_FLAG_NONE     0
-#define PVR_RI_BRIDGE_FLAG_IMPORT   (1 << 0) /* Passed in uiImportFlags field */
-#define PVR_RI_BRIDGE_FLAG_FWKMD    (1 << 1) /* Passed in uiImportFlags field */
-#define PVR_RI_BRIDGE_FLAG_SUBALLOC (1 << 0) /* Passed in uiSuballocFlags field */
+#define PVR_RI_BRIDGE_FLAG_NONE 0
+#define PVR_RI_BRIDGE_FLAG_IMPORT (1 << 0) /* Passed in uiImportFlags field */
+#define PVR_RI_BRIDGE_FLAG_FWKMD (1 << 1) /* Passed in uiImportFlags field */
+#define PVR_RI_BRIDGE_FLAG_SUBALLOC \
+	(1 << 0) /* Passed in uiSuballocFlags field */
 
 #if defined(__cplusplus)
 }

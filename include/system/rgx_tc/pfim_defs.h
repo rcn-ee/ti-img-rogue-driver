@@ -44,23 +44,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define _PFIM_DEFS_H_
 
 /* Supported FBC modes */
-#define ODIN_PFIM_MOD_LINEAR       (0x00)
-#define ODIN_PFIM_FBCDC_8X8_V12    (0x01)
-#define ODIN_PFIM_FBCDC_16X4_V12   (0x02)
-#define ODIN_PFIM_FBCDC_MAX        (0x03)
+#define ODIN_PFIM_MOD_LINEAR (0x00)
+#define ODIN_PFIM_FBCDC_8X8_V12 (0x01)
+#define ODIN_PFIM_FBCDC_16X4_V12 (0x02)
+#define ODIN_PFIM_FBCDC_MAX (0x03)
 
 /* Supported pixel formats */
-#define ODN_PFIM_PIXFMT_NONE       (0x00)
-#define ODN_PFIM_PIXFMT_ARGB8888   (0x0C)
-#define ODN_PFIM_PIXFMT_RGB565     (0x05)
+#define ODN_PFIM_PIXFMT_NONE (0x00)
+#define ODN_PFIM_PIXFMT_ARGB8888 (0x0C)
+#define ODN_PFIM_PIXFMT_RGB565 (0x05)
 
 /* Tile types */
-#define ODN_PFIM_TILETYPE_8X8      (0x01)
-#define ODN_PFIM_TILETYPE_16X4     (0x02)
-#define ODN_PFIM_TILETYPE_32x2     (0x03)
+#define ODN_PFIM_TILETYPE_8X8 (0x01)
+#define ODN_PFIM_TILETYPE_16X4 (0x02)
+#define ODN_PFIM_TILETYPE_32x2 (0x03)
 
-#define PFIM_ROUNDUP(X, Y)         (((X) + ((Y) - 1U)) & ~((Y) - 1U))
-#define PFIM_RND_TAG               (0x10)
+#define PFIM_ROUNDUP(X, Y) (((X) + ((Y)-1U)) & ~((Y)-1U))
+#define PFIM_RND_TAG (0x10)
 
 #endif /* _PFIM_DEFS_H_ */
 

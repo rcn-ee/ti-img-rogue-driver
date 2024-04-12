@@ -47,7 +47,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "img_types.h"
 
-void WorkEstInitRay(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
-void WorkEstDeInitRay(PVRSRV_RGXDEV_INFO *psDevInfo, WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstInitRay(PVRSRV_RGXDEV_INFO *psDevInfo,
+		    WORKEST_HOST_DATA *psWorkEstData);
+void WorkEstDeInitRay(PVRSRV_RGXDEV_INFO *psDevInfo,
+		      WORKEST_HOST_DATA *psWorkEstData);
 
 #endif /* RGXWORKEST_RAY_H */

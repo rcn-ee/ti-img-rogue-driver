@@ -48,13 +48,12 @@
 #include "tcf_pll.h"
 
 /* Map a register to the "pll-regs" region */
-#define PLL_REG(n) ((n) - TCF_PLL_PLL_PDP_CLK0)
+#define PLL_REG(n) ((n)-TCF_PLL_PLL_PDP_CLK0)
 
-bool pdp_apollo_clocks_set(struct device *dev,
-			   void __iomem *pdp_reg, void __iomem *pll_reg,
-			   u32 clock_in_mhz,
-			   void __iomem *odn_core_reg,
-			   u32 hdisplay, u32 vdisplay)
+bool pdp_apollo_clocks_set(struct device *dev, void __iomem *pdp_reg,
+			   void __iomem *pll_reg, u32 clock_in_mhz,
+			   void __iomem *odn_core_reg, u32 hdisplay,
+			   u32 vdisplay)
 {
 	/*
 	 * Setup TCF_CR_PLL_PDP_CLK1TO5 based on the main clock speed
@@ -96,8 +95,8 @@ void pdp_apollo_set_syncgen_enabled(struct device *dev, void __iomem *pdp_reg,
 #endif
 
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_SYNCCTRL);
-	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0,
-			      SYNCACTIVE_SHIFT, SYNCACTIVE_MASK);
+	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0, SYNCACTIVE_SHIFT,
+			      SYNCACTIVE_MASK);
 	pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_SYNCCTRL, value);
 }
 
@@ -111,8 +110,8 @@ void pdp_apollo_set_powerdwn_enabled(struct device *dev, void __iomem *pdp_reg,
 #endif
 
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_SYNCCTRL);
-	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0,
-			      POWERDN_SHIFT, POWERDN_MASK);
+	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0, POWERDN_SHIFT,
+			      POWERDN_MASK);
 	pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_SYNCCTRL, value);
 }
 
@@ -126,8 +125,8 @@ void pdp_apollo_set_vblank_enabled(struct device *dev, void __iomem *pdp_reg,
 #endif
 
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_INTENAB);
-	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0,
-			      INTEN_VBLNK0_SHIFT, INTEN_VBLNK0_MASK);
+	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0, INTEN_VBLNK0_SHIFT,
+			      INTEN_VBLNK0_MASK);
 	pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_INTENAB, value);
 }
 
@@ -139,8 +138,8 @@ bool pdp_apollo_check_and_clear_vblank(struct device *dev,
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_INTSTAT);
 
 	if (REG_VALUE_GET(value, INTS_VBLNK0_SHIFT, INTS_VBLNK0_MASK)) {
-		value = REG_VALUE_SET(0, 0x1,
-				      INTCLR_VBLNK0_SHIFT, INTCLR_VBLNK0_MASK);
+		value = REG_VALUE_SET(0, 0x1, INTCLR_VBLNK0_SHIFT,
+				      INTCLR_VBLNK0_MASK);
 		pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_INTCLEAR, value);
 		return true;
 	}
@@ -153,8 +152,8 @@ void pdp_apollo_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 	u32 value;
 
 #ifdef PDP_VERBOSE
-	dev_info(dev, "Set plane %u: %s\n",
-		 plane, enable ? "enable" : "disable");
+	dev_info(dev, "Set plane %u: %s\n", plane,
+		 enable ? "enable" : "disable");
 #endif
 
 	if (plane > 0) {
@@ -163,8 +162,8 @@ void pdp_apollo_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 	}
 
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_STR1ADDRCTRL);
-	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0,
-			      STR1STREN_SHIFT, STR1STREN_MASK);
+	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0, STR1STREN_SHIFT,
+			      STR1STREN_MASK);
 	pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_STR1ADDRCTRL, value);
 }
 
@@ -178,10 +177,9 @@ void pdp_apollo_reset_planes(struct device *dev, void __iomem *pdp_reg)
 }
 
 void pdp_apollo_set_surface(struct device *dev, void __iomem *pdp_reg,
-			    u32 plane, u32 address,
-			    u32 posx, u32 posy,
-			    u32 width, u32 height, u32 stride,
-			    u32 format, u32 alpha, bool blend)
+			    u32 plane, u32 address, u32 posx, u32 posy,
+			    u32 width, u32 height, u32 stride, u32 format,
+			    u32 alpha, bool blend)
 {
 	u32 value;
 
@@ -198,12 +196,11 @@ void pdp_apollo_set_surface(struct device *dev, void __iomem *pdp_reg,
 
 	/* Size & format */
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_STR1SURF);
-	value = REG_VALUE_SET(value, width - 1,
-			      STR1WIDTH_SHIFT, STR1WIDTH_MASK);
-	value = REG_VALUE_SET(value, height - 1,
-			      STR1HEIGHT_SHIFT, STR1HEIGHT_MASK);
-	value = REG_VALUE_SET(value, format,
-			      STR1PIXFMT_SHIFT, STR1PIXFMT_MASK);
+	value = REG_VALUE_SET(value, width - 1, STR1WIDTH_SHIFT,
+			      STR1WIDTH_MASK);
+	value = REG_VALUE_SET(value, height - 1, STR1HEIGHT_SHIFT,
+			      STR1HEIGHT_MASK);
+	value = REG_VALUE_SET(value, format, STR1PIXFMT_SHIFT, STR1PIXFMT_MASK);
 	pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_STR1SURF, value);
 	/* Stride */
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_PDP_STR1POSN);
@@ -213,8 +210,7 @@ void pdp_apollo_set_surface(struct device *dev, void __iomem *pdp_reg,
 	pdp_wreg32(pdp_reg, TCF_RGBPDP_PVR_PDP_STR1POSN, value);
 	/* Disable interlaced output */
 	value = pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_STR1ADDRCTRL);
-	value = REG_VALUE_SET(value, 0x0,
-			      STR1INTFIELD_SHIFT,
+	value = REG_VALUE_SET(value, 0x0, STR1INTFIELD_SHIFT,
 			      STR1INTFIELD_MASK);
 	/* Frame buffer base address */
 	value = REG_VALUE_SET(value,
@@ -224,24 +220,22 @@ void pdp_apollo_set_surface(struct device *dev, void __iomem *pdp_reg,
 }
 
 void pdp_apollo_mode_set(struct device *dev, void __iomem *pdp_reg,
-			 u32 h_display, u32 v_display,
-			 u32 hbps, u32 ht, u32 has,
-			 u32 hlbs, u32 hfps, u32 hrbs,
-			 u32 vbps, u32 vt, u32 vas,
-			 u32 vtbs, u32 vfps, u32 vbbs,
+			 u32 h_display, u32 v_display, u32 hbps, u32 ht,
+			 u32 has, u32 hlbs, u32 hfps, u32 hrbs, u32 vbps,
+			 u32 vt, u32 vas, u32 vtbs, u32 vfps, u32 vbbs,
 			 bool nhsync, bool nvsync)
 {
 	u32 value;
 
 	dev_info(dev, "Set mode: %dx%d\n", h_display, v_display);
 #ifdef PDP_VERBOSE
-	dev_info(dev, " ht: %d hbps %d has %d hlbs %d hfps %d hrbs %d\n",
-		 ht, hbps, has, hlbs, hfps, hrbs);
-	dev_info(dev, " vt: %d vbps %d vas %d vtbs %d vfps %d vbbs %d\n",
-		 vt, vbps, vas, vtbs, vfps, vbbs);
+	dev_info(dev, " ht: %d hbps %d has %d hlbs %d hfps %d hrbs %d\n", ht,
+		 hbps, has, hlbs, hfps, hrbs);
+	dev_info(dev, " vt: %d vbps %d vas %d vtbs %d vfps %d vbbs %d\n", vt,
+		 vbps, vas, vtbs, vfps, vbbs);
 #endif
 
-/*
+	/*
  * This gets set in dc_pdp_common.c, but hasn't been necessary here.
  *
  * if (pdp_rreg32(pdp_reg, TCF_RGBPDP_PVR_TCF_RGBPDP_STRCTRL)
@@ -315,7 +309,7 @@ void pdp_apollo_mode_set(struct device *dev, void __iomem *pdp_reg,
 	/* Set up polarities of sync/blank */
 	value = REG_VALUE_SET(0, 0x1, BLNKPOL_SHIFT, BLNKPOL_MASK);
 
-/*
+	/*
  * Enable this if you want vblnk1. You also need to change to vblnk1
  * in the interrupt handler.
  *

@@ -64,7 +64,7 @@ typedef struct OS_FW_IMAGE_t OS_FW_IMAGE;
 
 #if defined(__linux__)
 
-bool OSVerifyFirmware(OS_FW_IMAGE* psFWImage);
+bool OSVerifyFirmware(OS_FW_IMAGE *psFWImage);
 
 #endif
 
@@ -120,9 +120,9 @@ bool OSVerifyFirmware(OS_FW_IMAGE* psFWImage);
                                                         cannot be verified.
 */ /**************************************************************************/
 PVRSRV_ERROR OSLoadFirmware(PVRSRV_DEVICE_NODE *psDeviceNode,
-                            const IMG_CHAR *pszBVNCString,
-                            bool (*pfnVerifyFirmware)(OS_FW_IMAGE*),
-                            OS_FW_IMAGE **ppsFWImage);
+			    const IMG_CHAR *pszBVNCString,
+			    bool (*pfnVerifyFirmware)(OS_FW_IMAGE *),
+			    OS_FW_IMAGE **ppsFWImage);
 
 /*************************************************************************/ /*!
 @Function     OSFirmwareData
@@ -132,7 +132,7 @@ PVRSRV_ERROR OSLoadFirmware(PVRSRV_DEVICE_NODE *psDeviceNode,
 @Input        psFWImage  Private data opaque handle
 @Return       void*      Ptr to FW binary image to start on GPU.
 */ /**************************************************************************/
-const void* OSFirmwareData(OS_FW_IMAGE *psFWImage);
+const void *OSFirmwareData(OS_FW_IMAGE *psFWImage);
 
 /*************************************************************************/ /*!
 @Function     OSFirmwareSize

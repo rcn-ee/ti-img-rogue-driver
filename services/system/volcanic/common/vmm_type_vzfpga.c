@@ -50,37 +50,39 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "vmm_impl.h"
 #include "vmm_pvz_server.h"
 
-static PVRSRV_ERROR
-GetDriverIDFromHeapBase(IMG_UINT64 ui64Addr, IMG_UINT32 *pui32DriverID)
+static PVRSRV_ERROR GetDriverIDFromHeapBase(IMG_UINT64 ui64Addr,
+					    IMG_UINT32 *pui32DriverID)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
-	IMG_DEV_PHYADDR sHostFwHeapBaseDevPA = {0};
+	IMG_DEV_PHYADDR sHostFwHeapBaseDevPA = { 0 };
 	PHYS_HEAP *psHostFwHeap = NULL;
 	PVRSRV_DEVICE_NODE *psHostDevNode = PVRSRVGetDeviceInstance(0);
 
 	PVR_LOG_RETURN_IF_FALSE((psHostDevNode != NULL),
-							"Host Device Node not initialised.",
-							PVRSRV_ERROR_NO_DEVICENODE_FOUND);
+				"Host Device Node not initialised.",
+				PVRSRV_ERROR_NO_DEVICENODE_FOUND);
 
-	psHostFwHeap = psHostDevNode->apsPhysHeap[FIRST_PHYSHEAP_MAPPED_TO_FW_MAIN_DEVMEM];
+	psHostFwHeap =
+		psHostDevNode
+			->apsPhysHeap[FIRST_PHYSHEAP_MAPPED_TO_FW_MAIN_DEVMEM];
 	PVR_LOG_RETURN_IF_FALSE((psHostFwHeap != NULL),
-							"Host Fw heap not initialised.",
-							PVRSRV_ERROR_PHYSHEAP_ID_INVALID);
+				"Host Fw heap not initialised.",
+				PVRSRV_ERROR_PHYSHEAP_ID_INVALID);
 
 	eErr = PhysHeapGetDevPAddr(psHostFwHeap, &sHostFwHeapBaseDevPA);
 	PVR_LOG_RETURN_IF_ERROR(eErr, "PhysHeapGetDevPAddr");
 
-	*pui32DriverID = (ui64Addr - sHostFwHeapBaseDevPA.uiAddr) / PVRSRV_APPHINT_GUESTFWHEAPSTRIDE;
-	PVR_LOG_RETURN_IF_FALSE((*pui32DriverID >= RGXFW_GUEST_DRIVER_ID_START) &&
-							(*pui32DriverID < RGX_NUM_DRIVERS_SUPPORTED),
-							"Invalid Guest DriverID",
-							PVRSRV_ERROR_INVALID_PVZ_OSID);
+	*pui32DriverID = (ui64Addr - sHostFwHeapBaseDevPA.uiAddr) /
+			 PVRSRV_APPHINT_GUESTFWHEAPSTRIDE;
+	PVR_LOG_RETURN_IF_FALSE(
+		(*pui32DriverID >= RGXFW_GUEST_DRIVER_ID_START) &&
+			(*pui32DriverID < RGX_NUM_DRIVERS_SUPPORTED),
+		"Invalid Guest DriverID", PVRSRV_ERROR_INVALID_PVZ_OSID);
 
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR
-VZFPGAMapDevPhysHeap(IMG_UINT64 ui64Size,
+static PVRSRV_ERROR VZFPGAMapDevPhysHeap(IMG_UINT64 ui64Size,
 					 IMG_UINT64 ui64Addr)
 {
 	PVRSRV_ERROR eErr = PVRSRV_OK;
@@ -92,23 +94,21 @@ VZFPGAMapDevPhysHeap(IMG_UINT64 ui64Size,
 	eErr = PvzServerOnVmOnline(ui32GuestDriverID, 0);
 	PVR_LOG_RETURN_IF_ERROR(eErr, "PvzServerOnVmOnline");
 
-	eErr = PvzServerMapDevPhysHeap(ui32GuestDriverID, 0, ui64Size, ui64Addr);
+	eErr = PvzServerMapDevPhysHeap(ui32GuestDriverID, 0, ui64Size,
+				       ui64Addr);
 	PVR_LOG_RETURN_IF_ERROR(eErr, "PvzServerMapDevPhysHeap");
 
 	return eErr;
 }
 
-static PVRSRV_ERROR
-VZFPGAUnmapDevPhysHeap(void)
+static PVRSRV_ERROR VZFPGAUnmapDevPhysHeap(void)
 {
 	IMG_UINT32 ui32ID;
 
 	/* During shutdown, the Guests will be deinitialised in reverse order */
-	for (ui32ID=(RGX_NUM_DRIVERS_SUPPORTED-1);
-		 ui32ID >= RGXFW_HOST_DRIVER_ID; ui32ID--)
-	{
-		if (IsVmOnline(ui32ID, 0))
-		{
+	for (ui32ID = (RGX_NUM_DRIVERS_SUPPORTED - 1);
+	     ui32ID >= RGXFW_HOST_DRIVER_ID; ui32ID--) {
+		if (IsVmOnline(ui32ID, 0)) {
 			PvzServerUnmapDevPhysHeap(ui32ID, 0);
 			PvzServerOnVmOffline(ui32ID, 0);
 			break;
@@ -149,16 +149,18 @@ static VMM_PVZ_CONNECTION gsVZFPGAPvz =
 };
 
 PVRSRV_ERROR VMMCreatePvzConnection(VMM_PVZ_CONNECTION **psPvzConnection,
-									PVRSRV_DEVICE_CONFIG *psDevConfig)
+				    PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevConfig);
-	PVR_LOG_RETURN_IF_FALSE((NULL != psPvzConnection), "VMMCreatePvzConnection", PVRSRV_ERROR_INVALID_PARAMS);
+	PVR_LOG_RETURN_IF_FALSE((NULL != psPvzConnection),
+				"VMMCreatePvzConnection",
+				PVRSRV_ERROR_INVALID_PARAMS);
 	*psPvzConnection = &gsVZFPGAPvz;
 	return PVRSRV_OK;
 }
 
 void VMMDestroyPvzConnection(VMM_PVZ_CONNECTION *psPvzConnection,
-							 PVRSRV_DEVICE_CONFIG *psDevConfig)
+			     PVRSRV_DEVICE_CONFIG *psDevConfig)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevConfig);
 	PVR_LOG_IF_FALSE((NULL != psPvzConnection), "VMMDestroyPvzConnection");

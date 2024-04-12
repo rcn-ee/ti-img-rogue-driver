@@ -48,8 +48,8 @@ void LinuxDeinitPhysmem(void);
 
 #if defined(SUPPORT_LINUX_OSPAGE_MIGRATION)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 0, 0))
-int LinuxRegisterMigrateCallbacks(struct file* filp);
-void LinuxDeregisterMigrateCallbacks(struct file* filp);
+int LinuxRegisterMigrateCallbacks(struct file *filp);
+void LinuxDeregisterMigrateCallbacks(struct file *filp);
 #endif
 #endif
 

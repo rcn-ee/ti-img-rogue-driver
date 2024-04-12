@@ -42,60 +42,55 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef TEE_RGX_H
 #define TEE_RGX_H
 
-void RGXWriteReg32(const void *hPrivate,
-                   IMG_UINT32 ui32RegAddr,
-                   IMG_UINT32 ui32RegValue);
+void RGXWriteReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+		   IMG_UINT32 ui32RegValue);
 
-void RGXWriteReg64(const void *hPrivate,
-                   IMG_UINT32 ui32RegAddr,
-                   IMG_UINT64 ui64RegValue);
+void RGXWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+		   IMG_UINT64 ui64RegValue);
 
-IMG_UINT32 RGXReadReg32(const void *hPrivate,
-                        IMG_UINT32 ui32RegAddr);
+IMG_UINT32 RGXReadReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr);
 
-IMG_UINT64 RGXReadReg64(const void *hPrivate,
-                        IMG_UINT32 ui32RegAddr);
+IMG_UINT64 RGXReadReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr);
 
-IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate,
-                                   IMG_UINT32 ui32RegAddr,
-                                   IMG_UINT64 ui64RegValue,
-                                   IMG_UINT64 ui64RegKeepMask);
+IMG_UINT32 RGXReadModifyWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+				   IMG_UINT64 ui64RegValue,
+				   IMG_UINT64 ui64RegKeepMask);
 
-PVRSRV_ERROR RGXPollReg32(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT32 ui32RegValue,
-                          IMG_UINT32 ui32RegMask);
+PVRSRV_ERROR RGXPollReg32(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT32 ui32RegValue, IMG_UINT32 ui32RegMask);
 
-PVRSRV_ERROR RGXPollReg64(const void *hPrivate,
-                          IMG_UINT32 ui32RegAddr,
-                          IMG_UINT64 ui64RegValue,
-                          IMG_UINT64 ui64RegMask);
+PVRSRV_ERROR RGXPollReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
+			  IMG_UINT64 ui64RegValue, IMG_UINT64 ui64RegMask);
 
 PVRSRV_ERROR RGXWriteMetaRegThroughSP(const void *hPrivate,
-                                      IMG_UINT32 ui32RegAddr,
-                                      IMG_UINT32 ui32RegValue);
+				      IMG_UINT32 ui32RegAddr,
+				      IMG_UINT32 ui32RegValue);
 
 PVRSRV_ERROR RGXReadMetaRegThroughSP(const void *hPrivate,
-                                     IMG_UINT32 ui32RegAddr,
-                                     IMG_UINT32* ui32RegValue);
+				     IMG_UINT32 ui32RegAddr,
+				     IMG_UINT32 *ui32RegValue);
 
 void RGXSetPoweredState(const void *hPrivate, IMG_BOOL bPowered);
-void RGXWaitCycles(const void *hPrivate,
-                   IMG_UINT32 ui32Cycles,
-                   IMG_UINT32 ui32WaitUs);
+void RGXWaitCycles(const void *hPrivate, IMG_UINT32 ui32Cycles,
+		   IMG_UINT32 ui32WaitUs);
 
 void RGXAcquireKernelMMUPC(const void *hPrivate, IMG_DEV_PHYADDR *psPCAddr);
 IMG_BOOL RGXDoFWSlaveBoot(const void *hPrivate);
 PVRSRV_ERROR RGXFabricCoherencyTest(const void *hPrivate);
 IMG_UINT32 RGXGetDeviceSLCBanks(const void *hPrivate);
 IMG_UINT32 RGXGetDeviceCacheLineSize(const void *hPrivate);
-void RGXAcquireBootCodeAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootCodeAddr);
-void *RGXCalculateHostFWDataAddress(const void *hPrivate, void *pvHostFWDataAddr);
-void RGXAcquireBootDataAddr(const void *hPrivate, IMG_DEV_VIRTADDR *psBootDataAddr);
+void RGXAcquireBootCodeAddr(const void *hPrivate,
+			    IMG_DEV_VIRTADDR *psBootCodeAddr);
+void *RGXCalculateHostFWDataAddress(const void *hPrivate,
+				    void *pvHostFWDataAddr);
+void RGXAcquireBootDataAddr(const void *hPrivate,
+			    IMG_DEV_VIRTADDR *psBootDataAddr);
 IMG_BOOL RGXDeviceAckIrq(const void *hPrivate);
 IMG_UINT64 RGXMMUInitRangeValue(IMG_UINT32 ui32MMURange);
 
-__printf(2, 3) void RGXCommentLog(const void *hPrivate, const IMG_CHAR *pszString, ...);
-__printf(2, 3) void RGXErrorLog(const void *hPrivate, const IMG_CHAR *pszString, ...);
+__printf(2, 3) void RGXCommentLog(const void *hPrivate,
+				  const IMG_CHAR *pszString, ...);
+__printf(2, 3) void RGXErrorLog(const void *hPrivate, const IMG_CHAR *pszString,
+				...);
 
 #endif

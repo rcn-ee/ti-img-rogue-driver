@@ -26,7 +26,7 @@
 
 #include "mt8173_mfgsys.h"
 
-static const char * const top_mfg_clk_name[] = {
+static const char *const top_mfg_clk_name[] = {
 	"mfg_mem_in_sel",
 	"mfg_axi_in_sel",
 	"top_axi",
@@ -164,7 +164,8 @@ int mtk_mfg_freq_set(struct mtk_mfg *mfg, unsigned long freq)
 
 	ret = clk_prepare_enable(mfg->top_mfg);
 	if (ret) {
-		dev_err(mfg->dev, "enable and prepare top_mfg failed, %d\n", ret);
+		dev_err(mfg->dev, "enable and prepare top_mfg failed, %d\n",
+			ret);
 		return ret;
 	}
 
@@ -180,7 +181,8 @@ int mtk_mfg_freq_set(struct mtk_mfg *mfg, unsigned long freq)
 
 	ret = clk_set_parent(mfg->top_mfg, mfg->top_mmpll);
 	if (ret)
-		dev_err(mfg->dev, "Set clk parent to top_mmpll failed, %d\n", ret);
+		dev_err(mfg->dev, "Set clk parent to top_mmpll failed, %d\n",
+			ret);
 
 unprepare_top_mfg:
 	clk_disable_unprepare(mfg->top_mfg);
@@ -197,8 +199,8 @@ int mtk_mfg_volt_set(struct mtk_mfg *mfg, int volt)
 
 	ret = regulator_set_voltage(mfg->vgpu, volt, volt);
 	if (ret != 0) {
-		dev_err(mfg->dev, "Set voltage to %u uV failed, %d\n",
-			volt, ret);
+		dev_err(mfg->dev, "Set voltage to %u uV failed, %d\n", volt,
+			ret);
 		return ret;
 	}
 
@@ -214,8 +216,8 @@ static int mtk_mfg_bind_device_resource(struct mtk_mfg *mfg)
 	int i;
 	struct resource *res;
 
-	mfg->top_clk = devm_kcalloc(dev, MAX_TOP_MFG_CLK,
-				    sizeof(*mfg->top_clk), GFP_KERNEL);
+	mfg->top_clk = devm_kcalloc(dev, MAX_TOP_MFG_CLK, sizeof(*mfg->top_clk),
+				    GFP_KERNEL);
 	if (!mfg->top_clk)
 		return -ENOMEM;
 

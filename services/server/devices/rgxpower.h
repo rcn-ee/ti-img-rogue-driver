@@ -49,7 +49,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "servicesext.h"
 #include "rgxdevice.h"
 
-
 /*!
 ******************************************************************************
 
@@ -66,10 +65,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPrePowerState(PPVRSRV_DEVICE_NODE		psDeviceNode,
-							  PVRSRV_DEV_POWER_STATE	eNewPowerState,
-							  PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-							  PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXPrePowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
+			      PVRSRV_DEV_POWER_STATE eNewPowerState,
+			      PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+			      PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -87,10 +86,10 @@ PVRSRV_ERROR RGXPrePowerState(PPVRSRV_DEVICE_NODE		psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPostPowerState(PPVRSRV_DEVICE_NODE		psDeviceNode,
-							   PVRSRV_DEV_POWER_STATE	eNewPowerState,
-							   PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-							   PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXPostPowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
+			       PVRSRV_DEV_POWER_STATE eNewPowerState,
+			       PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+			       PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -108,10 +107,10 @@ PVRSRV_ERROR RGXPostPowerState(PPVRSRV_DEVICE_NODE		psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXVzPrePowerState(PPVRSRV_DEVICE_NODE		psDeviceNode,
-								PVRSRV_DEV_POWER_STATE	eNewPowerState,
-								PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-								PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXVzPrePowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
+				PVRSRV_DEV_POWER_STATE eNewPowerState,
+				PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+				PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -129,10 +128,10 @@ PVRSRV_ERROR RGXVzPrePowerState(PPVRSRV_DEVICE_NODE		psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXVzPostPowerState(PPVRSRV_DEVICE_NODE	psDeviceNode,
-								 PVRSRV_DEV_POWER_STATE	eNewPowerState,
-								 PVRSRV_DEV_POWER_STATE	eCurrentPowerState,
-								 PVRSRV_POWER_FLAGS		ePwrFlags);
+PVRSRV_ERROR RGXVzPostPowerState(PPVRSRV_DEVICE_NODE psDeviceNode,
+				 PVRSRV_DEV_POWER_STATE eNewPowerState,
+				 PVRSRV_DEV_POWER_STATE eCurrentPowerState,
+				 PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*!
 ******************************************************************************
@@ -149,8 +148,8 @@ PVRSRV_ERROR RGXVzPostPowerState(PPVRSRV_DEVICE_NODE	psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPreClockSpeedChange(PPVRSRV_DEVICE_NODE		psDeviceNode,
-									PVRSRV_DEV_POWER_STATE	eCurrentPowerState);
+PVRSRV_ERROR RGXPreClockSpeedChange(PPVRSRV_DEVICE_NODE psDeviceNode,
+				    PVRSRV_DEV_POWER_STATE eCurrentPowerState);
 
 /*!
 ******************************************************************************
@@ -167,9 +166,8 @@ PVRSRV_ERROR RGXPreClockSpeedChange(PPVRSRV_DEVICE_NODE		psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXPostClockSpeedChange(PPVRSRV_DEVICE_NODE	psDeviceNode,
-									 PVRSRV_DEV_POWER_STATE	eCurrentPowerState);
-
+PVRSRV_ERROR RGXPostClockSpeedChange(PPVRSRV_DEVICE_NODE psDeviceNode,
+				     PVRSRV_DEV_POWER_STATE eCurrentPowerState);
 
 #if defined(SUPPORT_FW_CORE_CLK_RATE_CHANGE_NOTIFY)
 #if defined(SUPPORT_PDVFS) && (PDVFS_COM == PDVFS_COM_HOST)
@@ -184,8 +182,10 @@ PVRSRV_ERROR RGXPostClockSpeedChange(PPVRSRV_DEVICE_NODE	psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CoreClockRate);
-#define RGX_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk)  RGXProcessCoreClkChangeRequest(devinfo, clk)
+PVRSRV_ERROR RGXProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo,
+					    IMG_UINT32 ui32CoreClockRate);
+#define RGX_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk) \
+	RGXProcessCoreClkChangeRequest(devinfo, clk)
 
 #else
 /*!
@@ -199,8 +199,10 @@ PVRSRV_ERROR RGXProcessCoreClkChangeRequest(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_U
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo, IMG_UINT32 ui32CoreClockRate);
-#define RGX_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk)  RGXProcessCoreClkChangeNotification(devinfo, clk)
+PVRSRV_ERROR RGXProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo,
+						 IMG_UINT32 ui32CoreClockRate);
+#define RGX_PROCESS_CORE_CLK_RATE_CHANGE(devinfo, clk) \
+	RGXProcessCoreClkChangeNotification(devinfo, clk)
 #endif
 #endif /* SUPPORT_FW_CORE_CLK_RATE_CHANGE_NOTIFY */
 
@@ -220,7 +222,7 @@ PVRSRV_ERROR RGXProcessCoreClkChangeNotification(PVRSRV_RGXDEV_INFO *psDevInfo, 
 
 ******************************************************************************/
 PVRSRV_ERROR RGXPowUnitsChange(PPVRSRV_DEVICE_NODE psDeviceNode,
-                               IMG_UINT32 ui32PowUnits);
+			       IMG_UINT32 ui32PowUnits);
 
 /*!
 ******************************************************************************
@@ -242,9 +244,9 @@ PVRSRV_ERROR RGXPowUnitsChange(PPVRSRV_DEVICE_NODE psDeviceNode,
  @Return   PVRSRV_ERROR :
 
 ******************************************************************************/
-PVRSRV_ERROR RGXAPMLatencyChange(PPVRSRV_DEVICE_NODE	psDeviceNode,
-				IMG_UINT32				ui32ActivePMLatencyms,
-				IMG_BOOL				bActivePMLatencyPersistant);
+PVRSRV_ERROR RGXAPMLatencyChange(PPVRSRV_DEVICE_NODE psDeviceNode,
+				 IMG_UINT32 ui32ActivePMLatencyms,
+				 IMG_BOOL bActivePMLatencyPersistant);
 
 /*!
 ******************************************************************************
@@ -276,7 +278,7 @@ PVRSRV_ERROR RGXActivePowerRequest(PPVRSRV_DEVICE_NODE psDeviceNode);
 
 ******************************************************************************/
 PVRSRV_ERROR RGXForcedIdleRequest(PPVRSRV_DEVICE_NODE psDeviceNode,
-                                  IMG_BOOL bDeviceOffPermitted);
+				  IMG_BOOL bDeviceOffPermitted);
 
 /*!
 ******************************************************************************
@@ -295,8 +297,8 @@ PVRSRV_ERROR RGXCancelForcedIdleRequest(PPVRSRV_DEVICE_NODE psDeviceNode);
 #if defined(SUPPORT_VALIDATION)
 #if defined(PVR_ARCH_VOLCANIC)
 PVRSRV_ERROR RGXPowerDomainInitState(RGX_POWER_UNITS_STATE *psState,
-									 IMG_UINT32 ui32MaxPowUnitsCount,
-									 IMG_UINT32 ui32PowUnitsPerSPUGranularity);
+				     IMG_UINT32 ui32MaxPowUnitsCount,
+				     IMG_UINT32 ui32PowUnitsPerSPUGranularity);
 
 void RGXPowerDomainDeInitState(RGX_POWER_UNITS_STATE *psState);
 #endif

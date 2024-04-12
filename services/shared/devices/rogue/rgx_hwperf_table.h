@@ -57,16 +57,16 @@ typedef struct RGXFW_HWPERF_CNTBLK_TYPE_MODEL_ RGXFW_HWPERF_CNTBLK_TYPE_MODEL;
 
 /* Function pointer type for functions to check dynamic power state of
  * counter block instance. Used only in firmware. */
-typedef bool (*PFN_RGXFW_HWPERF_CNTBLK_POWERED)(
-		RGX_HWPERF_CNTBLK_ID eBlkType,
-		IMG_UINT8 ui8UnitId);
+typedef bool (*PFN_RGXFW_HWPERF_CNTBLK_POWERED)(RGX_HWPERF_CNTBLK_ID eBlkType,
+						IMG_UINT8 ui8UnitId);
 
 #if defined(__KERNEL__)
 /* Counter block run-time info */
-typedef struct
-{
-	IMG_UINT32 ui32IndirectReg;          /* 0 if direct type otherwise the indirect control register to select indirect unit */
-	IMG_UINT32 ui32NumUnits;             /* Number of instances of this block type in the core */
+typedef struct {
+	IMG_UINT32
+	ui32IndirectReg; /* 0 if direct type otherwise the indirect control register to select indirect unit */
+	IMG_UINT32
+	ui32NumUnits; /* Number of instances of this block type in the core */
 } RGX_HWPERF_CNTBLK_RT_INFO;
 #endif
 
@@ -76,9 +76,8 @@ typedef struct
  * Values in the psRtInfo output parameter are only valid if true returned.
  */
 typedef IMG_BOOL (*PFN_RGXFW_HWPERF_CNTBLK_PRESENT)(
-		const struct RGXFW_HWPERF_CNTBLK_TYPE_MODEL_* psBlkTypeDesc,
-		const void *pvDev_km,
-		void *pvRtInfo);
+	const struct RGXFW_HWPERF_CNTBLK_TYPE_MODEL_ *psBlkTypeDesc,
+	const void *pvDev_km, void *pvRtInfo);
 
 /* This structure encodes properties of a type of performance counter block.
  * The structure is sometimes referred to as a block type descriptor. These
@@ -88,26 +87,33 @@ typedef IMG_BOOL (*PFN_RGXFW_HWPERF_CNTBLK_PRESENT)(
  * Each direct block has a unique type descriptor and each indirect group has
  * a type descriptor.
  */
-struct RGXFW_HWPERF_CNTBLK_TYPE_MODEL_
-{
+struct RGXFW_HWPERF_CNTBLK_TYPE_MODEL_ {
 	/* Could use RGXFW_ALIGN_DCACHEL here but then we would waste 40% of the cache line? */
-	IMG_UINT32 ui32CntBlkIdBase;         /* The starting block id for this block type */
-	IMG_UINT32 ui32IndirectReg;          /* 0 if direct type otherwise the indirect control register to select indirect unit */
-	IMG_UINT32 ui32PerfReg;              /* RGX_CR_*_PERF register for this block type */
-	IMG_UINT32 ui32Select0BaseReg;       /* RGX_CR_*_PERF_SELECT0 register for this block type */
-	IMG_UINT32 ui32Counter0BaseReg;      /* RGX_CR_*_PERF_COUNTER_0 register for this block type */
-	IMG_UINT8  ui8NumCounters;          /* Number of counters in this block type */
-	IMG_UINT8  ui8NumUnits;             /* Number of instances of this block type in the core */
-	IMG_UINT8  ui8SelectRegModeShift;   /* Mode field shift value of select registers */
-	IMG_UINT8  ui8SelectRegOffsetShift; /* Interval between select registers, either 8 bytes or 16, hence << 3 or << 4 */
-	const IMG_CHAR *pszBlockNameComment;             /* Name of the PERF register. Used while dumping the perf counters to pdumps */
-	PFN_RGXFW_HWPERF_CNTBLK_POWERED pfnIsBlkPowered; /* A function to determine dynamic power state for the block type */
-	PFN_RGXFW_HWPERF_CNTBLK_PRESENT pfnIsBlkPresent; /* A function to determine presence on RGX Device at run-time */
+	IMG_UINT32
+	ui32CntBlkIdBase; /* The starting block id for this block type */
+	IMG_UINT32
+	ui32IndirectReg; /* 0 if direct type otherwise the indirect control register to select indirect unit */
+	IMG_UINT32 ui32PerfReg; /* RGX_CR_*_PERF register for this block type */
+	IMG_UINT32
+	ui32Select0BaseReg; /* RGX_CR_*_PERF_SELECT0 register for this block type */
+	IMG_UINT32
+	ui32Counter0BaseReg; /* RGX_CR_*_PERF_COUNTER_0 register for this block type */
+	IMG_UINT8 ui8NumCounters; /* Number of counters in this block type */
+	IMG_UINT8 ui8NumUnits; /* Number of instances of this block type in the core */
+	IMG_UINT8 ui8SelectRegModeShift; /* Mode field shift value of select registers */
+	IMG_UINT8 ui8SelectRegOffsetShift; /* Interval between select registers, either 8 bytes or 16, hence << 3 or << 4 */
+	const IMG_CHAR *
+		pszBlockNameComment; /* Name of the PERF register. Used while dumping the perf counters to pdumps */
+	PFN_RGXFW_HWPERF_CNTBLK_POWERED
+	pfnIsBlkPowered; /* A function to determine dynamic power state for the block type */
+	PFN_RGXFW_HWPERF_CNTBLK_PRESENT
+	pfnIsBlkPresent; /* A function to determine presence on RGX Device at run-time */
 };
 
 /*****************************************************************************/
 
-IMG_INTERNAL IMG_UINT32 RGXGetHWPerfBlockConfig(const RGXFW_HWPERF_CNTBLK_TYPE_MODEL **ppsModel);
+IMG_INTERNAL IMG_UINT32
+RGXGetHWPerfBlockConfig(const RGXFW_HWPERF_CNTBLK_TYPE_MODEL **ppsModel);
 
 #endif /* RGX_HWPERF_TABLE_H */
 

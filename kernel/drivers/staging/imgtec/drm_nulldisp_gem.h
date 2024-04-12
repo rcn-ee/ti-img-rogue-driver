@@ -94,36 +94,28 @@ struct dma_buf *nulldisp_gem_prime_export(struct drm_device *dev,
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 4, 0))
-struct dma_resv *
-nulldisp_gem_prime_res_obj(struct drm_gem_object *obj);
+struct dma_resv *nulldisp_gem_prime_res_obj(struct drm_gem_object *obj);
 #endif
 
-int nulldisp_gem_dumb_create(struct drm_file *file,
-			     struct drm_device *dev,
+int nulldisp_gem_dumb_create(struct drm_file *file, struct drm_device *dev,
 			     struct drm_mode_create_dumb *args);
 
-int nulldisp_gem_dumb_map_offset(struct drm_file *file,
-				 struct drm_device *dev,
-				 uint32_t handle,
-				 uint64_t *offset);
+int nulldisp_gem_dumb_map_offset(struct drm_file *file, struct drm_device *dev,
+				 uint32_t handle, uint64_t *offset);
 
 /* internal interfaces */
 struct dma_resv *nulldisp_gem_get_resv(struct drm_gem_object *obj);
 
-int nulldisp_gem_object_mmap_ioctl(struct drm_device *dev,
-				   void *data,
+int nulldisp_gem_object_mmap_ioctl(struct drm_device *dev, void *data,
 				   struct drm_file *file);
 
-int nulldisp_gem_object_cpu_prep_ioctl(struct drm_device *dev,
-				       void *data,
+int nulldisp_gem_object_cpu_prep_ioctl(struct drm_device *dev, void *data,
 				       struct drm_file *file);
 
-int nulldisp_gem_object_cpu_fini_ioctl(struct drm_device *dev,
-				       void *data,
+int nulldisp_gem_object_cpu_fini_ioctl(struct drm_device *dev, void *data,
 				       struct drm_file *file);
 
-int nulldisp_gem_object_create_ioctl(struct drm_device *dev,
-				     void *data,
+int nulldisp_gem_object_create_ioctl(struct drm_device *dev, void *data,
 				     struct drm_file *file);
 
-#endif	/* !defined(__DRM_NULLDISP_H__) */
+#endif /* !defined(__DRM_NULLDISP_H__) */

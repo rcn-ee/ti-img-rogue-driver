@@ -58,64 +58,49 @@ PVRSRV_ERROR DevicememHistoryDeviceInit(PVRSRV_DEVICE_NODE *psDevNode);
 PVRSRV_ERROR DevicememHistoryDeviceCreate(PVRSRV_DEVICE_NODE *psDevNode);
 void DevicememHistoryDeviceDestroy(PVRSRV_DEVICE_NODE *psDevNode);
 
-PVRSRV_ERROR DevicememHistoryMapKM(PMR *psPMR,
-							IMG_UINT32 ui32Offset,
-							IMG_DEV_VIRTADDR sDevVAddr,
-							IMG_DEVMEM_SIZE_T uiSize,
-							const char szName[DEVMEM_ANNOTATION_MAX_LEN],
-							IMG_UINT32 ui32PageSize,
-							IMG_UINT32 ui32AllocationIndex,
-							IMG_UINT32 *pui32AllocationIndexOut);
+PVRSRV_ERROR DevicememHistoryMapKM(PMR *psPMR, IMG_UINT32 ui32Offset,
+				   IMG_DEV_VIRTADDR sDevVAddr,
+				   IMG_DEVMEM_SIZE_T uiSize,
+				   const char szName[DEVMEM_ANNOTATION_MAX_LEN],
+				   IMG_UINT32 ui32PageSize,
+				   IMG_UINT32 ui32AllocationIndex,
+				   IMG_UINT32 *pui32AllocationIndexOut);
 
-PVRSRV_ERROR DevicememHistoryUnmapKM(PMR *psPMR,
-							IMG_UINT32 ui32Offset,
-							IMG_DEV_VIRTADDR sDevVAddr,
-							IMG_DEVMEM_SIZE_T uiSize,
-							const char szName[DEVMEM_ANNOTATION_MAX_LEN],
-							IMG_UINT32 ui32PageSize,
-							IMG_UINT32 ui32AllocationIndex,
-							IMG_UINT32 *pui32AllocationIndexOut);
+PVRSRV_ERROR
+DevicememHistoryUnmapKM(PMR *psPMR, IMG_UINT32 ui32Offset,
+			IMG_DEV_VIRTADDR sDevVAddr, IMG_DEVMEM_SIZE_T uiSize,
+			const char szName[DEVMEM_ANNOTATION_MAX_LEN],
+			IMG_UINT32 ui32PageSize, IMG_UINT32 ui32AllocationIndex,
+			IMG_UINT32 *pui32AllocationIndexOut);
 
-PVRSRV_ERROR DevicememHistoryMapVRangeKM(CONNECTION_DATA *psConnection,
-							PVRSRV_DEVICE_NODE *psDeviceNode,
-							IMG_DEV_VIRTADDR sBaseDevVAddr,
-							IMG_UINT32 ui32StartPage,
-							IMG_UINT32 ui32NumPages,
-							IMG_DEVMEM_SIZE_T uiAllocSize,
-							const IMG_CHAR szName[DEVMEM_ANNOTATION_MAX_LEN],
-							IMG_UINT32 ui32Log2PageSize,
-							IMG_UINT32 ui32AllocationIndex,
-							IMG_UINT32 *ui32AllocationIndexOut);
+PVRSRV_ERROR DevicememHistoryMapVRangeKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_DEV_VIRTADDR sBaseDevVAddr, IMG_UINT32 ui32StartPage,
+	IMG_UINT32 ui32NumPages, IMG_DEVMEM_SIZE_T uiAllocSize,
+	const IMG_CHAR szName[DEVMEM_ANNOTATION_MAX_LEN],
+	IMG_UINT32 ui32Log2PageSize, IMG_UINT32 ui32AllocationIndex,
+	IMG_UINT32 *ui32AllocationIndexOut);
 
-PVRSRV_ERROR DevicememHistoryUnmapVRangeKM(CONNECTION_DATA *psConnection,
-							PVRSRV_DEVICE_NODE *psDeviceNode,
-							IMG_DEV_VIRTADDR sBaseDevVAddr,
-							IMG_UINT32 ui32StartPage,
-							IMG_UINT32 ui32NumPages,
-							IMG_DEVMEM_SIZE_T uiAllocSize,
-							const IMG_CHAR szName[DEVMEM_ANNOTATION_MAX_LEN],
-							IMG_UINT32 ui32Log2PageSize,
-							IMG_UINT32 ui32AllocationIndex,
-							IMG_UINT32 *ui32AllocationIndexOut);
+PVRSRV_ERROR DevicememHistoryUnmapVRangeKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_DEV_VIRTADDR sBaseDevVAddr, IMG_UINT32 ui32StartPage,
+	IMG_UINT32 ui32NumPages, IMG_DEVMEM_SIZE_T uiAllocSize,
+	const IMG_CHAR szName[DEVMEM_ANNOTATION_MAX_LEN],
+	IMG_UINT32 ui32Log2PageSize, IMG_UINT32 ui32AllocationIndex,
+	IMG_UINT32 *ui32AllocationIndexOut);
 
-PVRSRV_ERROR DevicememHistorySparseChangeKM(PMR *psPMR,
-							IMG_UINT32 ui32Offset,
-							IMG_DEV_VIRTADDR sDevVAddr,
-							IMG_DEVMEM_SIZE_T uiSize,
-							const char szName[DEVMEM_ANNOTATION_MAX_LEN],
-							IMG_UINT32 ui32PageSize,
-							IMG_UINT32 ui32AllocPageCount,
-							IMG_UINT32 *paui32AllocPageIndices,
-							IMG_UINT32 ui32FreePageCount,
-							IMG_UINT32 *pauiFreePageIndices,
-							IMG_UINT32 AllocationIndex,
-							IMG_UINT32 *pui32AllocationIndexOut);
+PVRSRV_ERROR DevicememHistorySparseChangeKM(
+	PMR *psPMR, IMG_UINT32 ui32Offset, IMG_DEV_VIRTADDR sDevVAddr,
+	IMG_DEVMEM_SIZE_T uiSize, const char szName[DEVMEM_ANNOTATION_MAX_LEN],
+	IMG_UINT32 ui32PageSize, IMG_UINT32 ui32AllocPageCount,
+	IMG_UINT32 *paui32AllocPageIndices, IMG_UINT32 ui32FreePageCount,
+	IMG_UINT32 *pauiFreePageIndices, IMG_UINT32 AllocationIndex,
+	IMG_UINT32 *pui32AllocationIndexOut);
 
 /* used when the PID does not matter */
 #define DEVICEMEM_HISTORY_PID_ANY 0xFFFFFFFE
 
-typedef struct _DEVICEMEM_HISTORY_QUERY_IN_
-{
+typedef struct _DEVICEMEM_HISTORY_QUERY_IN_ {
 	IMG_PID uiPID;
 	IMG_DEV_VIRTADDR sDevVAddr;
 	PVRSRV_DEVICE_NODE *psDevNode;
@@ -128,8 +113,7 @@ typedef struct _DEVICEMEM_HISTORY_QUERY_IN_
  */
 #define DEVICEMEM_HISTORY_QUERY_OUT_MAX_RESULTS 4
 
-typedef struct _DEVICEMEM_HISTORY_QUERY_OUT_RESULT_
-{
+typedef struct _DEVICEMEM_HISTORY_QUERY_OUT_RESULT_ {
 	IMG_CHAR szString[DEVMEM_ANNOTATION_MAX_LEN];
 	IMG_DEV_VIRTADDR sBaseDevVAddr;
 	IMG_DEVMEM_SIZE_T uiSize;
@@ -146,22 +130,22 @@ typedef struct _DEVICEMEM_HISTORY_QUERY_OUT_RESULT_
 	RGXMEM_PROCESS_INFO sProcessInfo;
 } DEVICEMEM_HISTORY_QUERY_OUT_RESULT;
 
-typedef struct _DEVICEMEM_HISTORY_QUERY_OUT_
-{
+typedef struct _DEVICEMEM_HISTORY_QUERY_OUT_ {
 	IMG_UINT32 ui32NumResults;
 	IMG_UINT64 ui64SearchCount;
 	/* result 0 is the newest */
-	DEVICEMEM_HISTORY_QUERY_OUT_RESULT sResults[DEVICEMEM_HISTORY_QUERY_OUT_MAX_RESULTS];
+	DEVICEMEM_HISTORY_QUERY_OUT_RESULT
+	sResults[DEVICEMEM_HISTORY_QUERY_OUT_MAX_RESULTS];
 } DEVICEMEM_HISTORY_QUERY_OUT;
 
 void DevicememHistoryDumpRecordStats(PVRSRV_DEVICE_NODE *psDevNode,
-                                    DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                                    void *pvDumpDebugFile);
+				     DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				     void *pvDumpDebugFile);
 
 IMG_BOOL
 DevicememHistoryQuery(DEVICEMEM_HISTORY_QUERY_IN *psQueryIn,
-                      DEVICEMEM_HISTORY_QUERY_OUT *psQueryOut,
-                      IMG_UINT32 ui32PageSizeBytes,
-                      IMG_BOOL bMatchAnyAllocInPage);
+		      DEVICEMEM_HISTORY_QUERY_OUT *psQueryOut,
+		      IMG_UINT32 ui32PageSizeBytes,
+		      IMG_BOOL bMatchAnyAllocInPage);
 
 #endif

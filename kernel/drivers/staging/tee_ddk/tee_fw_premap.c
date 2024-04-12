@@ -47,15 +47,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <asm/io.h>
 
 static const MMU_PxE_CONFIG sRGXMMUPCEConfig = {
-	.ePxLevel			= MMU_LEVEL_3,
-	.uiBytesPerEntry	= 4,
-	.uiAddrMask			= 0xfffffff0,
-	.uiAddrShift		= 4,
-	.uiAddrLog2Align	= 12,
-	.uiProtMask			= RGX_MMU4CTRL_PCE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PC_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PC_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_3,
+	.uiBytesPerEntry = 4,
+	.uiAddrMask = 0xfffffff0,
+	.uiAddrShift = 4,
+	.uiAddrLog2Align = 12,
+	.uiProtMask = RGX_MMU4CTRL_PCE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PC_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PC_DATA_VALID_SHIFT
 };
 
 #if (PAGE_SHIFT == 12)
@@ -67,48 +67,48 @@ static const MMU_PxE_CONFIG sRGXMMUPCEConfig = {
  *      |....PCE...|...PDE...|...PTE...|....VAddr...|
  */
 static const MMU_PxE_CONFIG sRGXMMUPDEConfig = {
-	.ePxLevel			= MMU_LEVEL_2,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffffff0),
-	.uiAddrShift		= 12,
-	.uiAddrLog2Align	= 12,
-	.uiProtMask			= RGX_MMU4CTRL_PDE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PD_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PD_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_2,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffffff0),
+	.uiAddrShift = 12,
+	.uiAddrLog2Align = 12,
+	.uiProtMask = RGX_MMU4CTRL_PDE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PD_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PD_DATA_VALID_SHIFT
 };
 
 static const MMU_PxE_CONFIG sRGXMMUPTEConfig = {
-	.ePxLevel			= MMU_LEVEL_1,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffff000),
-	.uiAddrShift		= 12,
-	.uiAddrLog2Align	= 12,
-	.uiProtMask			= RGX_MMU4CTRL_PTE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PT_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PT_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_1,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffff000),
+	.uiAddrShift = 12,
+	.uiAddrLog2Align = 12,
+	.uiProtMask = RGX_MMU4CTRL_PTE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PT_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PT_DATA_VALID_SHIFT
 };
 
 static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
-	.uiPCIndexMask		= ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
-	.uiPCIndexShift		= RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
-	.uiNumEntriesPC		= 1024,
+	.uiPCIndexMask = ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
+	.uiPCIndexShift = RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
+	.uiNumEntriesPC = 1024,
 
-	.uiPDIndexMask		= ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
-	.uiPDIndexShift		= RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
-	.uiNumEntriesPD		= 512,
+	.uiPDIndexMask = ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
+	.uiPDIndexShift = RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
+	.uiNumEntriesPD = 512,
 
-	.uiPTIndexMask		= ~RGX_MMUCTRL_VADDR_PT_INDEX_CLRMSK,
-	.uiPTIndexShift		= RGX_MMUCTRL_VADDR_PT_INDEX_SHIFT,
-	.uiNumEntriesPT		= 512,
+	.uiPTIndexMask = ~RGX_MMUCTRL_VADDR_PT_INDEX_CLRMSK,
+	.uiPTIndexShift = RGX_MMUCTRL_VADDR_PT_INDEX_SHIFT,
+	.uiNumEntriesPT = 512,
 
-	.uiPageOffsetMask	= IMG_UINT64_C(0x0000000fff),
-	.uiPageOffsetShift	= 0,
-	.uiOffsetInBytes	= 0
+	.uiPageOffsetMask = IMG_UINT64_C(0x0000000fff),
+	.uiPageOffsetShift = 0,
+	.uiOffsetInBytes = 0
 };
 #elif (PAGE_SHIFT == 14)
-	/*
+/*
 	 *  Configuration for heaps with 16kB Data-Page size
 	 *
 	 * Bit  39      30   29   21   20 14   13          0
@@ -116,48 +116,48 @@ static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
 	 *      |....PCE...|...PDE...|..PTE..|.....VAddr....|
 	 */
 static const MMU_PxE_CONFIG sRGXMMUPDEConfig = {
-	.ePxLevel			= MMU_LEVEL_2,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffffff0),
-	.uiAddrShift		= 10,
-	.uiAddrLog2Align	= 10,
-	.uiProtMask			= RGX_MMU4CTRL_PDE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PD_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PD_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_2,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffffff0),
+	.uiAddrShift = 10,
+	.uiAddrLog2Align = 10,
+	.uiProtMask = RGX_MMU4CTRL_PDE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PD_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PD_DATA_VALID_SHIFT
 };
 
 static const MMU_PxE_CONFIG sRGXMMUPTEConfig = {
-	.ePxLevel			= MMU_LEVEL_1,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xffffffc000),
-	.uiAddrShift		= 14,
-	.uiAddrLog2Align	= 14,
-	.uiProtMask			= RGX_MMU4CTRL_PTE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PT_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PT_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_1,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xffffffc000),
+	.uiAddrShift = 14,
+	.uiAddrLog2Align = 14,
+	.uiProtMask = RGX_MMU4CTRL_PTE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PT_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PT_DATA_VALID_SHIFT
 };
 
 static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
-	.uiPCIndexMask		= ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
-	.uiPCIndexShift		= RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
-	.uiNumEntriesPC		= 1024,
+	.uiPCIndexMask = ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
+	.uiPCIndexShift = RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
+	.uiNumEntriesPC = 1024,
 
-	.uiPDIndexMask		= ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
-	.uiPDIndexShift		= RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
-	.uiNumEntriesPD		= 512,
+	.uiPDIndexMask = ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
+	.uiPDIndexShift = RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
+	.uiNumEntriesPD = 512,
 
-	.uiPTIndexMask		= IMG_UINT64_C(0x00001fc000),
-	.uiPTIndexShift		= 14,
-	.uiNumEntriesPT		= 128,
+	.uiPTIndexMask = IMG_UINT64_C(0x00001fc000),
+	.uiPTIndexShift = 14,
+	.uiNumEntriesPT = 128,
 
-	.uiPageOffsetMask	= IMG_UINT64_C(0x0000003fff),
-	.uiPageOffsetShift	= 0,
-	.uiOffsetInBytes	= 0
+	.uiPageOffsetMask = IMG_UINT64_C(0x0000003fff),
+	.uiPageOffsetShift = 0,
+	.uiOffsetInBytes = 0
 };
 #elif (PAGE_SHIFT == 16)
-	/*
+/*
 	 *  Configuration for heaps with 64kB Data-Page size
 	 *
 	 * Bit  39      30   29   21  20 16 15             0
@@ -165,48 +165,48 @@ static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
 	 *      |....PCE...|...PDE...|.PTE.|.....VAddr......|
 	 */
 static const MMU_PxE_CONFIG sRGXMMUPDEConfig = {
-	.ePxLevel			= MMU_LEVEL_2,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffffff0),
-	.uiAddrShift		= 8,
-	.uiAddrLog2Align	= 8,
-	.uiProtMask			= RGX_MMU4CTRL_PDE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PD_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PD_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_2,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffffff0),
+	.uiAddrShift = 8,
+	.uiAddrLog2Align = 8,
+	.uiProtMask = RGX_MMU4CTRL_PDE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PD_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PD_DATA_VALID_SHIFT
 };
 
 static const MMU_PxE_CONFIG sRGXMMUPTEConfig = {
-	.ePxLevel			= MMU_LEVEL_1,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xffffff0000),
-	.uiAddrShift		= 16,
-	.uiAddrLog2Align	= 16,
-	.uiProtMask			= RGX_MMU4CTRL_PTE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PT_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PT_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_1,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xffffff0000),
+	.uiAddrShift = 16,
+	.uiAddrLog2Align = 16,
+	.uiProtMask = RGX_MMU4CTRL_PTE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PT_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PT_DATA_VALID_SHIFT
 };
 
 static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
-	.uiPCIndexMask		= ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
-	.uiPCIndexShift		= RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
-	.uiNumEntriesPC		= 1024,
+	.uiPCIndexMask = ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
+	.uiPCIndexShift = RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
+	.uiNumEntriesPC = 1024,
 
-	.uiPDIndexMask		= ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
-	.uiPDIndexShift		= RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
-	.uiNumEntriesPD		= 512,
+	.uiPDIndexMask = ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
+	.uiPDIndexShift = RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
+	.uiNumEntriesPD = 512,
 
-	.uiPTIndexMask		= IMG_UINT64_C(0x00001f0000),
-	.uiPTIndexShift		= 16,
-	.uiNumEntriesPT		= 32,
+	.uiPTIndexMask = IMG_UINT64_C(0x00001f0000),
+	.uiPTIndexShift = 16,
+	.uiNumEntriesPT = 32,
 
-	.uiPageOffsetMask	= IMG_UINT64_C(0x000000ffff),
-	.uiPageOffsetShift	= 0,
-	.uiOffsetInBytes	= 0
+	.uiPageOffsetMask = IMG_UINT64_C(0x000000ffff),
+	.uiPageOffsetShift = 0,
+	.uiOffsetInBytes = 0
 };
 #elif (PAGE_SHIFT == 18)
-	/*
+/*
 	 *  Configuration for heaps with 256kB Data-Page size
 	 *
 	 * Bit  39      30   29   21 20 18 17              0
@@ -214,48 +214,48 @@ static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
 	 *      |....PCE...|...PDE...|PTE|.......VAddr......|
 	 */
 static const MMU_PxE_CONFIG sRGXMMUPDEConfig = {
-	.ePxLevel			= MMU_LEVEL_2,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffffff0),
-	.uiAddrShift		= 6,
-	.uiAddrLog2Align	= 6,
-	.uiProtMask			= RGX_MMU4CTRL_PDE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PD_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PD_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_2,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffffff0),
+	.uiAddrShift = 6,
+	.uiAddrLog2Align = 6,
+	.uiProtMask = RGX_MMU4CTRL_PDE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PD_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PD_DATA_VALID_SHIFT
 };
 
 static const MMU_PxE_CONFIG sRGXMMUPTEConfig = {
-	.ePxLevel			= MMU_LEVEL_1,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffc0000),
-	.uiAddrShift		= 18,
-	.uiAddrLog2Align	= 18,
-	.uiProtMask			= RGX_MMU4CTRL_PTE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PT_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PT_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_1,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffc0000),
+	.uiAddrShift = 18,
+	.uiAddrLog2Align = 18,
+	.uiProtMask = RGX_MMU4CTRL_PTE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PT_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PT_DATA_VALID_SHIFT
 };
 
 static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
-	.uiPCIndexMask		= ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
-	.uiPCIndexShift		= RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
-	.uiNumEntriesPC		= 1024,
+	.uiPCIndexMask = ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
+	.uiPCIndexShift = RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
+	.uiNumEntriesPC = 1024,
 
-	.uiPDIndexMask		= ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
-	.uiPDIndexShift		= RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
-	.uiNumEntriesPD		= 512,
+	.uiPDIndexMask = ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
+	.uiPDIndexShift = RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
+	.uiNumEntriesPD = 512,
 
-	.uiPTIndexMask		= IMG_UINT64_C(0x00001c0000),
-	.uiPTIndexShift		= 18,
-	.uiNumEntriesPT		= 8,
+	.uiPTIndexMask = IMG_UINT64_C(0x00001c0000),
+	.uiPTIndexShift = 18,
+	.uiNumEntriesPT = 8,
 
-	.uiPageOffsetMask	= IMG_UINT64_C(0x000003ffff),
-	.uiPageOffsetShift	= 0,
-	.uiOffsetInBytes	= 0
+	.uiPageOffsetMask = IMG_UINT64_C(0x000003ffff),
+	.uiPageOffsetShift = 0,
+	.uiOffsetInBytes = 0
 };
 #elif (PAGE_SHIFT == 20)
-	/*
+/*
 	 *  Configuration for heaps with 1MB Data-Page size
 	 *
 	 * Bit  39      30   29   21 20  19               0
@@ -263,48 +263,48 @@ static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
 	 *      |....PCE...|...PDE...|.|........VAddr.......|
 	 */
 static const MMU_PxE_CONFIG sRGXMMUPDEConfig = {
-	.ePxLevel			= MMU_LEVEL_2,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffffff0),
-	.uiAddrShift		= 6,
-	.uiAddrLog2Align	= 6,
-	.uiProtMask			= RGX_MMU4CTRL_PDE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PD_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PD_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_2,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffffff0),
+	.uiAddrShift = 6,
+	.uiAddrLog2Align = 6,
+	.uiProtMask = RGX_MMU4CTRL_PDE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PD_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PD_DATA_VALID_SHIFT
 };
 
 static const MMU_PxE_CONFIG sRGXMMUPTEConfig = {
-	.ePxLevel			= MMU_LEVEL_1,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffff00000),
-	.uiAddrShift		= 20,
-	.uiAddrLog2Align	= 20,
-	.uiProtMask			= RGX_MMU4CTRL_PTE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PT_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PT_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_1,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffff00000),
+	.uiAddrShift = 20,
+	.uiAddrLog2Align = 20,
+	.uiProtMask = RGX_MMU4CTRL_PTE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PT_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PT_DATA_VALID_SHIFT
 };
 
 static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
-	.uiPCIndexMask		= ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
-	.uiPCIndexShift		= RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
-	.uiNumEntriesPC		= 1024,
+	.uiPCIndexMask = ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
+	.uiPCIndexShift = RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
+	.uiNumEntriesPC = 1024,
 
-	.uiPDIndexMask		= ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
-	.uiPDIndexShift		= RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
-	.uiNumEntriesPD		= 512,
+	.uiPDIndexMask = ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
+	.uiPDIndexShift = RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
+	.uiNumEntriesPD = 512,
 
-	.uiPTIndexMask		= IMG_UINT64_C(0x0000100000),
-	.uiPTIndexShift		= 20,
-	.uiNumEntriesPT		= 2,
+	.uiPTIndexMask = IMG_UINT64_C(0x0000100000),
+	.uiPTIndexShift = 20,
+	.uiNumEntriesPT = 2,
 
-	.uiPageOffsetMask	= IMG_UINT64_C(0x00000fffff),
-	.uiPageOffsetShift	= 0,
-	.uiOffsetInBytes	= 0
+	.uiPageOffsetMask = IMG_UINT64_C(0x00000fffff),
+	.uiPageOffsetShift = 0,
+	.uiOffsetInBytes = 0
 };
 #elif (PAGE_SHIFT == 21)
-	/*
+/*
 	 *  Configuration for heaps with 2MB Data-Page size
 	 *
 	 * Bit  39      30   29   21   20                0
@@ -312,45 +312,45 @@ static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
 	 *      |....PCE...|...PDE...|.........VAddr.......|
 	 */
 static const MMU_PxE_CONFIG sRGXMMUPDEConfig = {
-	.ePxLevel			= MMU_LEVEL_2,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xfffffffff0),
-	.uiAddrShift		= 6,
-	.uiAddrLog2Align	= 6,
-	.uiProtMask			= RGX_MMU4CTRL_PDE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PD_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PD_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_2,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xfffffffff0),
+	.uiAddrShift = 6,
+	.uiAddrLog2Align = 6,
+	.uiProtMask = RGX_MMU4CTRL_PDE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PD_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PD_DATA_VALID_SHIFT
 };
 
 static const MMU_PxE_CONFIG sRGXMMUPTEConfig = {
-	.ePxLevel			= MMU_LEVEL_1,
-	.uiBytesPerEntry	= 8,
-	.uiAddrMask			= IMG_UINT64_C(0xffffe00000),
-	.uiAddrShift		= 21,
-	.uiAddrLog2Align	= 21,
-	.uiProtMask			= RGX_MMU4CTRL_PTE_PROTMASK,
-	.uiProtShift		= 0,
-	.uiValidEnMask		= RGX_MMUCTRL_PT_DATA_VALID_EN,
-	.uiValidEnShift		= RGX_MMUCTRL_PT_DATA_VALID_SHIFT
+	.ePxLevel = MMU_LEVEL_1,
+	.uiBytesPerEntry = 8,
+	.uiAddrMask = IMG_UINT64_C(0xffffe00000),
+	.uiAddrShift = 21,
+	.uiAddrLog2Align = 21,
+	.uiProtMask = RGX_MMU4CTRL_PTE_PROTMASK,
+	.uiProtShift = 0,
+	.uiValidEnMask = RGX_MMUCTRL_PT_DATA_VALID_EN,
+	.uiValidEnShift = RGX_MMUCTRL_PT_DATA_VALID_SHIFT
 };
 
 static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
-	.uiPCIndexMask		= ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
-	.uiPCIndexShift		= RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
-	.uiNumEntriesPC		= 1024,
+	.uiPCIndexMask = ~RGX_MMUCTRL_VADDR_PC_INDEX_CLRMSK,
+	.uiPCIndexShift = RGX_MMUCTRL_VADDR_PC_INDEX_SHIFT,
+	.uiNumEntriesPC = 1024,
 
-	.uiPDIndexMask		= ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
-	.uiPDIndexShift		= RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
-	.uiNumEntriesPD		= 512,
+	.uiPDIndexMask = ~RGX_MMUCTRL_VADDR_PD_INDEX_CLRMSK,
+	.uiPDIndexShift = RGX_MMUCTRL_VADDR_PD_INDEX_SHIFT,
+	.uiNumEntriesPD = 512,
 
-	.uiPTIndexMask		= IMG_UINT64_C(0x0000000000),
-	.uiPTIndexShift		= 21,
-	.uiNumEntriesPT		= 1,
+	.uiPTIndexMask = IMG_UINT64_C(0x0000000000),
+	.uiPTIndexShift = 21,
+	.uiNumEntriesPT = 1,
 
-	.uiPageOffsetMask	= IMG_UINT64_C(0x00001fffff),
-	.uiPageOffsetShift	= 0,
-	.uiOffsetInBytes	= 0
+	.uiPageOffsetMask = IMG_UINT64_C(0x00001fffff),
+	.uiPageOffsetShift = 0,
+	.uiOffsetInBytes = 0
 };
 #else
 #error "PAGE SIZE NOT SUPPORTED"
@@ -361,7 +361,9 @@ static const MMU_DEVVADDR_CONFIG sRGXMMUDevVAddrConfig = {
  */ /**************************************************************************/
 static IMG_UINT32 RGXMMU4DerivePCEProt4(IMG_UINT32 uiProtFlags)
 {
-	return (uiProtFlags & MMU_PROTFLAGS_INVALID)?0:RGX_MMUCTRL_PC_DATA_VALID_EN;
+	return (uiProtFlags & MMU_PROTFLAGS_INVALID) ?
+		       0 :
+		       RGX_MMUCTRL_PC_DATA_VALID_EN;
 }
 
 /*************************************************************************/ /*!
@@ -404,7 +406,6 @@ static IMG_UINT64 RGXMMU4DerivePDEProt8(IMG_UINT32 uiProtFlags)
 	return ret_value;
 }
 
-
 /*************************************************************************/ /*!
 @Function       RGXMMU4DerivePTEProt4
 @Description    calculate the PTE protection flags based on a 4 byte entry
@@ -422,41 +423,36 @@ static IMG_UINT32 RGXMMU4DerivePTEProt4(IMG_UINT32 uiProtFlags)
  */ /**************************************************************************/
 static IMG_UINT64 RGXMMU4DerivePTEProt8(IMG_UINT32 uiProtFlags)
 {
-	IMG_UINT64 ui64MMUFlags=0;
+	IMG_UINT64 ui64MMUFlags = 0;
 
-	if (((MMU_PROTFLAGS_READABLE|MMU_PROTFLAGS_WRITEABLE) & uiProtFlags) ==
-	    (MMU_PROTFLAGS_READABLE|MMU_PROTFLAGS_WRITEABLE))
-	{
+	if (((MMU_PROTFLAGS_READABLE | MMU_PROTFLAGS_WRITEABLE) &
+	     uiProtFlags) ==
+	    (MMU_PROTFLAGS_READABLE | MMU_PROTFLAGS_WRITEABLE)) {
 		/* read/write */
-	}
-	else if (MMU_PROTFLAGS_READABLE & uiProtFlags)
-	{
+	} else if (MMU_PROTFLAGS_READABLE & uiProtFlags) {
 		/* read only */
 		ui64MMUFlags |= RGX_MMUCTRL_PT_DATA_READ_ONLY_EN;
-	}
-	else if (MMU_PROTFLAGS_WRITEABLE & uiProtFlags)
-	{
+	} else if (MMU_PROTFLAGS_WRITEABLE & uiProtFlags) {
 		/* write only */
-		RGXErrorLog(NULL, "RGXMMU4DerivePTEProt8: write-only is not possible on this device");
-	}
-	else if ((MMU_PROTFLAGS_INVALID & uiProtFlags) == 0)
-	{
-		RGXErrorLog(NULL, "RGXMMU4DerivePTEProt8: neither read nor write specified...");
+		RGXErrorLog(
+			NULL,
+			"RGXMMU4DerivePTEProt8: write-only is not possible on this device");
+	} else if ((MMU_PROTFLAGS_INVALID & uiProtFlags) == 0) {
+		RGXErrorLog(
+			NULL,
+			"RGXMMU4DerivePTEProt8: neither read nor write specified...");
 	}
 
 	/* cache coherency */
-	if (MMU_PROTFLAGS_CACHE_COHERENT & uiProtFlags)
-	{
+	if (MMU_PROTFLAGS_CACHE_COHERENT & uiProtFlags) {
 		ui64MMUFlags |= RGX_MMUCTRL_PT_DATA_CC_EN;
 	}
 
-	if ((uiProtFlags & MMU_PROTFLAGS_INVALID) == 0)
-	{
+	if ((uiProtFlags & MMU_PROTFLAGS_INVALID) == 0) {
 		ui64MMUFlags |= RGX_MMUCTRL_PT_DATA_VALID_EN;
 	}
 
-	if (MMU_PROTFLAGS_DEVICE(PMMETA_PROTECT) & uiProtFlags)
-	{
+	if (MMU_PROTFLAGS_DEVICE(PMMETA_PROTECT) & uiProtFlags) {
 		ui64MMUFlags |= RGX_MMUCTRL_PT_DATA_PM_META_PROTECT_EN;
 	}
 
@@ -473,29 +469,26 @@ static IMG_UINT64 RGXMMU4DerivePTEProt8(IMG_UINT32 uiProtFlags)
 }
 
 static PVRSRV_ERROR _CarveoutAllocator(IMG_UINT64 ui64PageTableHeapGpuBase,
-                                       IMG_UINT64 ui64PageTableHeapSize,
-                                       IMG_UINT32 uiBytes,
-                                       IMG_UINT32 uiAlignment,
-                                       IMG_UINT64 *pui64PhysAddr)
+				       IMG_UINT64 ui64PageTableHeapSize,
+				       IMG_UINT32 uiBytes,
+				       IMG_UINT32 uiAlignment,
+				       IMG_UINT64 *pui64PhysAddr)
 {
 	static IMG_UINT64 ui64MemCursor = 0;
 
-	if (ui64MemCursor == 0)
-	{
+	if (ui64MemCursor == 0) {
 		ui64MemCursor = ui64PageTableHeapGpuBase;
 	}
 
-	*pui64PhysAddr = PVR_ALIGN(ui64MemCursor, (IMG_UINT64) uiAlignment);
+	*pui64PhysAddr = PVR_ALIGN(ui64MemCursor, (IMG_UINT64)uiAlignment);
 
 	ui64MemCursor = *pui64PhysAddr + uiBytes;
 
-	if (ui64MemCursor > (ui64PageTableHeapGpuBase + ui64PageTableHeapSize))
-	{
+	if (ui64MemCursor >
+	    (ui64PageTableHeapGpuBase + ui64PageTableHeapSize)) {
 		*pui64PhysAddr = 0;
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
-	}
-	else
-	{
+	} else {
 		return PVRSRV_OK;
 	}
 }
@@ -511,30 +504,33 @@ static PVRSRV_ERROR _CarveoutAllocator(IMG_UINT64 ui64PageTableHeapGpuBase,
  */
 /*****************************************************************************/
 static PVRSRV_ERROR _MMU_PhysMemAlloc(SYS_DATA *psSysData,
-                                      MMU_PHYSMEM_CONTEXT *psPhysMemCtx,
-                                      MMU_MEMORY_DESC *psMemDesc,
-                                      IMG_UINT32 uiBytes,
-                                      IMG_UINT32 uiAlignment)
+				      MMU_PHYSMEM_CONTEXT *psPhysMemCtx,
+				      MMU_MEMORY_DESC *psMemDesc,
+				      IMG_UINT32 uiBytes,
+				      IMG_UINT32 uiAlignment)
 {
 	PVRSRV_ERROR eError;
 	IMG_UINT64 ui64PhysAddr;
-	IMG_UINT64 ui64CpuGpuPAOffset = (psSysData->ui64FwPageTableHeapCpuBase > psSysData->ui64FwPageTableHeapGpuBase) ?
-	                                (psSysData->ui64FwPageTableHeapCpuBase - psSysData->ui64FwPageTableHeapGpuBase) :
-	                                (psSysData->ui64FwPageTableHeapGpuBase - psSysData->ui64FwPageTableHeapCpuBase);
+	IMG_UINT64 ui64CpuGpuPAOffset =
+		(psSysData->ui64FwPageTableHeapCpuBase >
+		 psSysData->ui64FwPageTableHeapGpuBase) ?
+			(psSysData->ui64FwPageTableHeapCpuBase -
+			 psSysData->ui64FwPageTableHeapGpuBase) :
+			(psSysData->ui64FwPageTableHeapGpuBase -
+			 psSysData->ui64FwPageTableHeapCpuBase);
 
 	PVR_ASSERT(psConfig->uiBytesPerEntry != 0);
 	eError = _CarveoutAllocator(psSysData->ui64FwPageTableHeapGpuBase,
-	                            psSysData->ui64FwPageTableHeapSize,
-	                            uiBytes, uiAlignment, &ui64PhysAddr);
+				    psSysData->ui64FwPageTableHeapSize, uiBytes,
+				    uiAlignment, &ui64PhysAddr);
 
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		return eError;
 	}
 
-	psMemDesc->pvCpuVAddr = (void __iomem *)ioremap(ui64PhysAddr +
-	                                        ui64CpuGpuPAOffset, uiBytes);
-	psMemDesc->sDevPAddr.uiAddr = (IMG_UINT64) ui64PhysAddr;
+	psMemDesc->pvCpuVAddr = (void __iomem *)ioremap(
+		ui64PhysAddr + ui64CpuGpuPAOffset, uiBytes);
+	psMemDesc->sDevPAddr.uiAddr = (IMG_UINT64)ui64PhysAddr;
 	psMemDesc->uiSize = uiBytes;
 
 	return PVRSRV_OK;
@@ -552,13 +548,11 @@ static PVRSRV_ERROR _MMU_PhysMemAlloc(SYS_DATA *psSysData,
 @Return         PVRSRV_OK if allocation was successful
  */
 /*****************************************************************************/
-static PVRSRV_ERROR _PxMemAlloc(SYS_DATA *psSysData,
-                                MMU_CONTEXT *psMMUContext,
-                                IMG_UINT32 uiNumEntries,
-                                const MMU_PxE_CONFIG *psConfig,
-                                MMU_LEVEL eMMULevel,
-                                MMU_MEMORY_DESC *psMemDesc,
-                                IMG_UINT32 uiLog2Align)
+static PVRSRV_ERROR _PxMemAlloc(SYS_DATA *psSysData, MMU_CONTEXT *psMMUContext,
+				IMG_UINT32 uiNumEntries,
+				const MMU_PxE_CONFIG *psConfig,
+				MMU_LEVEL eMMULevel, MMU_MEMORY_DESC *psMemDesc,
+				IMG_UINT32 uiLog2Align)
 {
 	IMG_UINT32 uiBytes;
 	IMG_UINT32 uiAlign;
@@ -585,13 +579,9 @@ static PVRSRV_ERROR _PxMemAlloc(SYS_DATA *psSysData,
 	uiBytes = PVR_ALIGN(uiBytes, uiAlign);
 
 	/* allocate the object */
-	eError = _MMU_PhysMemAlloc(psSysData,
-	                           psMMUContext->psPhysMemCtx,
-	                           psMemDesc,
-	                           uiBytes,
-	                           uiAlign);
-	if (eError != PVRSRV_OK)
-	{
+	eError = _MMU_PhysMemAlloc(psSysData, psMMUContext->psPhysMemCtx,
+				   psMemDesc, uiBytes, uiAlign);
+	if (eError != PVRSRV_OK) {
 		goto e0;
 	}
 
@@ -612,84 +602,85 @@ e0:
 @Return         PVRSRV_OK if the setup was successful
  */
 /*****************************************************************************/
-static PVRSRV_ERROR _SetupPxE(MMU_LEVEL_INFO *psLevel,
-                              IMG_UINT32 uiIndex,
-                              const MMU_PxE_CONFIG *psConfig,
-                              MMU_LEVEL eMMULevel,
-                              const IMG_DEV_PHYADDR *psDevPAddr)
+static PVRSRV_ERROR _SetupPxE(MMU_LEVEL_INFO *psLevel, IMG_UINT32 uiIndex,
+			      const MMU_PxE_CONFIG *psConfig,
+			      MMU_LEVEL eMMULevel,
+			      const IMG_DEV_PHYADDR *psDevPAddr)
 {
 	MMU_MEMORY_DESC *psMemDesc = &psLevel->sMemDesc;
 
 	IMG_UINT32 (*pfnDerivePxEProt4)(IMG_UINT32);
 	IMG_UINT64 (*pfnDerivePxEProt8)(IMG_UINT32);
 
-	switch (eMMULevel)
-	{
-		case MMU_LEVEL_3:
-			pfnDerivePxEProt4 = RGXMMU4DerivePCEProt4;
-			pfnDerivePxEProt8 = RGXMMU4DerivePCEProt8;
-			break;
+	switch (eMMULevel) {
+	case MMU_LEVEL_3:
+		pfnDerivePxEProt4 = RGXMMU4DerivePCEProt4;
+		pfnDerivePxEProt8 = RGXMMU4DerivePCEProt8;
+		break;
 
-		case MMU_LEVEL_2:
-			pfnDerivePxEProt4 = RGXMMU4DerivePDEProt4;
-			pfnDerivePxEProt8 = RGXMMU4DerivePDEProt8;
-			break;
+	case MMU_LEVEL_2:
+		pfnDerivePxEProt4 = RGXMMU4DerivePDEProt4;
+		pfnDerivePxEProt8 = RGXMMU4DerivePDEProt8;
+		break;
 
-		case MMU_LEVEL_1:
-			pfnDerivePxEProt4 = RGXMMU4DerivePTEProt4;
-			pfnDerivePxEProt8 = RGXMMU4DerivePTEProt8;
-			break;
+	case MMU_LEVEL_1:
+		pfnDerivePxEProt4 = RGXMMU4DerivePTEProt4;
+		pfnDerivePxEProt8 = RGXMMU4DerivePTEProt8;
+		break;
 
-		default:
-			RGXErrorLog(NULL, "%s: invalid MMU level", __func__);
-			return PVRSRV_ERROR_INVALID_PARAMS;
+	default:
+		RGXErrorLog(NULL, "%s: invalid MMU level", __func__);
+		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	/* How big is a PxE in bytes? */
 	/* Filling the actual Px entry with an address */
-	switch (psConfig->uiBytesPerEntry)
-	{
-		case 4:
-		{
-			IMG_UINT32 *pui32Px;
-			IMG_UINT64 ui64PxE64;
+	switch (psConfig->uiBytesPerEntry) {
+	case 4: {
+		IMG_UINT32 *pui32Px;
+		IMG_UINT64 ui64PxE64;
 
-			pui32Px = psMemDesc->pvCpuVAddr; /* Give the virtual base address of Px */
+		pui32Px =
+			psMemDesc->pvCpuVAddr; /* Give the virtual base address of Px */
 
-			ui64PxE64 = psDevPAddr->uiAddr       /* Calculate the offset to that base */
-					>> psConfig->uiAddrLog2Align /* Shift away the unnecessary bits of the address */
-					<< psConfig->uiAddrShift     /* Shift back to fit address in the Px entry */
-					& psConfig->uiAddrMask;      /* Delete unused higher bits */
+		ui64PxE64 =
+			psDevPAddr->uiAddr /* Calculate the offset to that base */
+				>>
+				psConfig->uiAddrLog2Align /* Shift away the unnecessary bits of the address */
+					<< psConfig->uiAddrShift /* Shift back to fit address in the Px entry */
+			& psConfig->uiAddrMask; /* Delete unused higher bits */
 
-			ui64PxE64 |= (IMG_UINT64)pfnDerivePxEProt4(PROT_FLAG);
-			/* assert that the result fits into 32 bits before writing
+		ui64PxE64 |= (IMG_UINT64)pfnDerivePxEProt4(PROT_FLAG);
+		/* assert that the result fits into 32 bits before writing
 			   it into the 32-bit array with a cast */
-			PVR_ASSERT(ui64PxE64 == (ui64PxE64 & 0xffffffffU));
+		PVR_ASSERT(ui64PxE64 == (ui64PxE64 & 0xffffffffU));
 
-			/* We should never invalidate an invalid page */
-			if (PROT_FLAG & MMU_PROTFLAGS_INVALID)
-			{
-				PVR_ASSERT(pui32Px[uiIndex] != ui64PxE64);
-			}
-			pui32Px[uiIndex] = (IMG_UINT32) ui64PxE64;
-			break;
+		/* We should never invalidate an invalid page */
+		if (PROT_FLAG & MMU_PROTFLAGS_INVALID) {
+			PVR_ASSERT(pui32Px[uiIndex] != ui64PxE64);
 		}
-		case 8:
-		{
-			IMG_UINT64 *pui64Px = psMemDesc->pvCpuVAddr; /* Give the virtual base address of Px */
+		pui32Px[uiIndex] = (IMG_UINT32)ui64PxE64;
+		break;
+	}
+	case 8: {
+		IMG_UINT64 *pui64Px =
+			psMemDesc->pvCpuVAddr; /* Give the virtual base address of Px */
 
-			pui64Px[uiIndex] = psDevPAddr->uiAddr /* Calculate the offset to that base */
-					>> psConfig->uiAddrLog2Align  /* Shift away the unnecessary bits of the address */
-					<< psConfig->uiAddrShift      /* Shift back to fit address in the Px entry */
-					& psConfig->uiAddrMask;       /* Delete unused higher bits */
-			pui64Px[uiIndex] |= pfnDerivePxEProt8(PROT_FLAG);
-			break;
-		}
-		default:
-			RGXErrorLog(NULL, "%s: PxE size not supported (%d) for level %d",
-					__func__, psConfig->uiBytesPerEntry, eMMULevel);
+		pui64Px[uiIndex] =
+			psDevPAddr->uiAddr /* Calculate the offset to that base */
+				>>
+				psConfig->uiAddrLog2Align /* Shift away the unnecessary bits of the address */
+					<< psConfig->uiAddrShift /* Shift back to fit address in the Px entry */
+			& psConfig->uiAddrMask; /* Delete unused higher bits */
+		pui64Px[uiIndex] |= pfnDerivePxEProt8(PROT_FLAG);
+		break;
+	}
+	default:
+		RGXErrorLog(NULL,
+			    "%s: PxE size not supported (%d) for level %d",
+			    __func__, psConfig->uiBytesPerEntry, eMMULevel);
 
-			return PVRSRV_ERROR_MMU_CONFIG_IS_WRONG;
+		return PVRSRV_ERROR_MMU_CONFIG_IS_WRONG;
 	}
 
 	return PVRSRV_OK;
@@ -709,53 +700,60 @@ static PVRSRV_ERROR _SetupPxE(MMU_LEVEL_INFO *psLevel,
 @Input          ui32LogPageSize         Page size of the data pages
  */
 /*****************************************************************************/
-static void _MMU_GetLevelData(IMG_DEV_VIRTADDR sDevVAddrStart,
-                              IMG_DEV_VIRTADDR sDevVAddrEnd,
-                              IMG_UINT32 auiStartArray[],
-                              IMG_UINT32 auiEndArray[],
-                              IMG_UINT32 auiEntriesPerPx[],
-                              MMU_LEVEL aeMMULevel[],
-                              IMG_UINT32 ui32Log2PageSize)
+static void
+_MMU_GetLevelData(IMG_DEV_VIRTADDR sDevVAddrStart,
+		  IMG_DEV_VIRTADDR sDevVAddrEnd, IMG_UINT32 auiStartArray[],
+		  IMG_UINT32 auiEndArray[], IMG_UINT32 auiEntriesPerPx[],
+		  MMU_LEVEL aeMMULevel[], IMG_UINT32 ui32Log2PageSize)
 {
 	IMG_UINT32 i = 0;
 	IMG_UINT64 ret;
 
 	/* PC */
 	{
-		auiStartArray[i] = ((sDevVAddrStart.uiAddr & PC_INDEX_MASK) >> PC_INDEX_SHIFT);
+		auiStartArray[i] = ((sDevVAddrStart.uiAddr & PC_INDEX_MASK) >>
+				    PC_INDEX_SHIFT);
 		/* round up */
 		sDevVAddrEnd.uiAddr--;
 		ret = ((sDevVAddrEnd.uiAddr & PC_INDEX_MASK) >> PC_INDEX_SHIFT);
 		auiEndArray[i] = ++ret;
 		sDevVAddrEnd.uiAddr++;
-		auiEntriesPerPx[i] = (IMG_UINT32) ((PC_INDEX_MASK >> PC_INDEX_SHIFT) + 1);
+		auiEntriesPerPx[i] =
+			(IMG_UINT32)((PC_INDEX_MASK >> PC_INDEX_SHIFT) + 1);
 		aeMMULevel[i] = MMU_LEVEL_3;
 		i++;
 	}
 
 	/* PD */
 	{
-		auiStartArray[i] = ((sDevVAddrStart.uiAddr & PD_INDEX_MASK) >> PD_INDEX_SHIFT);
+		auiStartArray[i] = ((sDevVAddrStart.uiAddr & PD_INDEX_MASK) >>
+				    PD_INDEX_SHIFT);
 		/* round up */
 		sDevVAddrEnd.uiAddr--;
 		ret = ((sDevVAddrEnd.uiAddr & PD_INDEX_MASK) >> PD_INDEX_SHIFT);
 		auiEndArray[i] = ++ret;
 		sDevVAddrEnd.uiAddr++;
-		auiEntriesPerPx[i] = (IMG_UINT32) ((PD_INDEX_MASK >> PD_INDEX_SHIFT) + 1);
+		auiEntriesPerPx[i] =
+			(IMG_UINT32)((PD_INDEX_MASK >> PD_INDEX_SHIFT) + 1);
 		aeMMULevel[i] = MMU_LEVEL_2;
 		i++;
 	}
 
 	/* PT */
 	{
-		IMG_UINT32 ui32PtIndexMask = ((PT_INDEX_MASK >> ui32Log2PageSize) << ui32Log2PageSize);
-		auiStartArray[i] = ((sDevVAddrStart.uiAddr & ui32PtIndexMask) >> ui32Log2PageSize);
+		IMG_UINT32 ui32PtIndexMask =
+			((PT_INDEX_MASK >> ui32Log2PageSize)
+			 << ui32Log2PageSize);
+		auiStartArray[i] = ((sDevVAddrStart.uiAddr & ui32PtIndexMask) >>
+				    ui32Log2PageSize);
 		/* round up */
 		sDevVAddrEnd.uiAddr--;
-		ret = ((sDevVAddrEnd.uiAddr & ui32PtIndexMask) >> ui32Log2PageSize);
+		ret = ((sDevVAddrEnd.uiAddr & ui32PtIndexMask) >>
+		       ui32Log2PageSize);
 		auiEndArray[i] = ++ret;
 		sDevVAddrEnd.uiAddr++;
-		auiEntriesPerPx[i] = (IMG_UINT32) ((ui32PtIndexMask >> ui32Log2PageSize) + 1);
+		auiEntriesPerPx[i] =
+			(IMG_UINT32)((ui32PtIndexMask >> ui32Log2PageSize) + 1);
 		aeMMULevel[i] = MMU_LEVEL_1;
 	}
 }
@@ -792,19 +790,13 @@ static void _MMU_GetLevelData(IMG_DEV_VIRTADDR sDevVAddrStart,
 @Return         PVRSRV_OK if the setup was successful
  */
 /*****************************************************************************/
-static PVRSRV_ERROR _MMU_AllocLevel(SYS_DATA *psSysData,
-                                    MMU_CONTEXT *psMMUContext,
-                                    MMU_LEVEL_INFO *psLevel,
-                                    IMG_UINT32 auiStartArray[],
-                                    IMG_UINT32 auiEndArray[],
-                                    IMG_UINT32 auiEntriesPerPxArray[],
-                                    MMU_LEVEL aeMMULevel[],
-                                    IMG_UINT32 *pui32CurrentLevel,
-                                    IMG_UINT32 uiStartIndex,
-                                    IMG_UINT32 uiEndIndex,
-                                    bool bFirst,
-                                    bool bLast,
-                                    IMG_UINT32 ui32Log2PageSize)
+static PVRSRV_ERROR
+_MMU_AllocLevel(SYS_DATA *psSysData, MMU_CONTEXT *psMMUContext,
+		MMU_LEVEL_INFO *psLevel, IMG_UINT32 auiStartArray[],
+		IMG_UINT32 auiEndArray[], IMG_UINT32 auiEntriesPerPxArray[],
+		MMU_LEVEL aeMMULevel[], IMG_UINT32 *pui32CurrentLevel,
+		IMG_UINT32 uiStartIndex, IMG_UINT32 uiEndIndex, bool bFirst,
+		bool bLast, IMG_UINT32 ui32Log2PageSize)
 {
 	IMG_UINT32 uiThisLevel = *pui32CurrentLevel; /* Starting with 0 */
 	MMU_PxE_CONFIG psConfig; /* The table config for the current level */
@@ -815,49 +807,44 @@ static PVRSRV_ERROR _MMU_AllocLevel(SYS_DATA *psSysData,
 	PVR_ASSERT(*pui32CurrentLevel < MMU_MAX_LEVEL);
 
 	/* P(C/D/T) Entry Config */
-	if (aeMMULevel[uiThisLevel] == MMU_LEVEL_3)
-	{
+	if (aeMMULevel[uiThisLevel] == MMU_LEVEL_3) {
 		psConfig = sRGXMMUPCEConfig;
-	}
-	else if (aeMMULevel[uiThisLevel] == MMU_LEVEL_2)
-	{
+	} else if (aeMMULevel[uiThisLevel] == MMU_LEVEL_2) {
 		psConfig = sRGXMMUPDEConfig;
-	}
-	else
-	{
+	} else {
 		psConfig = sRGXMMUPTEConfig;
 	}
 
 	/* Go from uiStartIndex to uiEndIndex through the Px */
-	for (i = uiStartIndex;i < uiEndIndex;i++)
-	{
+	for (i = uiStartIndex; i < uiEndIndex; i++) {
 		/* Only try an allocation if this is not the last level */
 		/*Because a PT allocation is already done while setting the entry in PD */
-		if (aeMMULevel[uiThisLevel] != MMU_LEVEL_1)
-		{
+		if (aeMMULevel[uiThisLevel] != MMU_LEVEL_1) {
 			IMG_UINT32 uiNextStartIndex;
 			IMG_UINT32 uiNextEndIndex;
 			bool bNextFirst;
 			bool bNextLast;
 
 			/* If there is already a next Px level existing, do not allocate it */
-			if (!psLevel->apsNextLevel[i])
-			{
+			if (!psLevel->apsNextLevel[i]) {
 				MMU_LEVEL_INFO *psNextLevel;
 				IMG_UINT32 ui32AllocSize;
 				IMG_UINT32 uiNextEntries;
 
 				/* Allocate and setup the next level */
-				uiNextEntries = auiEntriesPerPxArray[uiThisLevel + 1];
+				uiNextEntries =
+					auiEntriesPerPxArray[uiThisLevel + 1];
 				ui32AllocSize = sizeof(MMU_LEVEL_INFO);
-				if (aeMMULevel[uiThisLevel + 1] != MMU_LEVEL_1)
-				{
-					ui32AllocSize += sizeof(MMU_LEVEL_INFO *) * (uiNextEntries - 1);
+				if (aeMMULevel[uiThisLevel + 1] !=
+				    MMU_LEVEL_1) {
+					ui32AllocSize +=
+						sizeof(MMU_LEVEL_INFO *) *
+						(uiNextEntries - 1);
 				}
 
-				psNextLevel = kzalloc(ui32AllocSize, GFP_KERNEL);
-				if (psNextLevel == NULL)
-				{
+				psNextLevel =
+					kzalloc(ui32AllocSize, GFP_KERNEL);
+				if (psNextLevel == NULL) {
 					goto e0;
 				}
 
@@ -865,71 +852,58 @@ static PVRSRV_ERROR _MMU_AllocLevel(SYS_DATA *psSysData,
 				psLevel->apsNextLevel[i] = psNextLevel;
 
 				/* Allocate Px memory for a sub level*/
-				eError = _PxMemAlloc(psSysData,
-				                     psMMUContext, uiNextEntries, &psConfig,
-				                     aeMMULevel[uiThisLevel + 1],
-				                     &psNextLevel->sMemDesc,
-				                     psConfig.uiAddrLog2Align);
-				if (eError != PVRSRV_OK)
-				{
+				eError = _PxMemAlloc(
+					psSysData, psMMUContext, uiNextEntries,
+					&psConfig, aeMMULevel[uiThisLevel + 1],
+					&psNextLevel->sMemDesc,
+					psConfig.uiAddrLog2Align);
+				if (eError != PVRSRV_OK) {
 					goto e0;
 				}
 
 				/* Wire up the entry */
-				eError = _SetupPxE(psLevel,
-				                   i,
-				                   &psConfig,
-				                   aeMMULevel[uiThisLevel],
-				                   &psNextLevel->sMemDesc.sDevPAddr);
+				eError = _SetupPxE(
+					psLevel, i, &psConfig,
+					aeMMULevel[uiThisLevel],
+					&psNextLevel->sMemDesc.sDevPAddr);
 
-				if (eError != PVRSRV_OK)
-				{
+				if (eError != PVRSRV_OK) {
 					goto e0;
 				}
 			}
 
 			/* If we're crossing a Px then the start index changes */
-			if (bFirst && (i == uiStartIndex))
-			{
-				uiNextStartIndex = auiStartArray[uiThisLevel + 1];
+			if (bFirst && (i == uiStartIndex)) {
+				uiNextStartIndex =
+					auiStartArray[uiThisLevel + 1];
 				bNextFirst = true;
-			}
-			else
-			{
+			} else {
 				uiNextStartIndex = 0;
 				bNextFirst = IMG_FALSE;
 			}
 
 			/* If we're crossing a Px then the end index changes */
-			if (bLast && (i == (uiEndIndex - 1)))
-			{
+			if (bLast && (i == (uiEndIndex - 1))) {
 				uiNextEndIndex = auiEndArray[uiThisLevel + 1];
 				bNextLast = true;
-			}
-			else
-			{
-				uiNextEndIndex = auiEntriesPerPxArray[uiThisLevel + 1];
+			} else {
+				uiNextEndIndex =
+					auiEntriesPerPxArray[uiThisLevel + 1];
 				bNextLast = IMG_FALSE;
 			}
 
 			/* Recurse into the next level */
 			(*pui32CurrentLevel)++;
-			eError = _MMU_AllocLevel(psSysData,
-			                         psMMUContext,
-			                         psLevel->apsNextLevel[i],
-			                         auiStartArray,
-			                         auiEndArray,
-			                         auiEntriesPerPxArray,
-			                         aeMMULevel,
-			                         pui32CurrentLevel,
-			                         uiNextStartIndex,
-			                         uiNextEndIndex,
-			                         bNextFirst,
-			                         bNextLast,
-			                         ui32Log2PageSize);
+			eError = _MMU_AllocLevel(psSysData, psMMUContext,
+						 psLevel->apsNextLevel[i],
+						 auiStartArray, auiEndArray,
+						 auiEntriesPerPxArray,
+						 aeMMULevel, pui32CurrentLevel,
+						 uiNextStartIndex,
+						 uiNextEndIndex, bNextFirst,
+						 bNextLast, ui32Log2PageSize);
 			(*pui32CurrentLevel)--;
-			if (eError != PVRSRV_OK)
-			{
+			if (eError != PVRSRV_OK) {
 				goto e0;
 			}
 		}
@@ -941,23 +915,22 @@ e0:
 }
 
 static IMG_UINT32 _CalcPCEIdx(IMG_DEV_VIRTADDR sDevVAddr,
-                              const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
-                              IMG_BOOL bRoundUp)
+			      const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
+			      IMG_BOOL bRoundUp)
 {
 	IMG_DEV_VIRTADDR sTmpDevVAddr;
 	IMG_UINT32 ui32RetVal;
 
 	sTmpDevVAddr = sDevVAddr;
 
-	if (bRoundUp)
-	{
+	if (bRoundUp) {
 		sTmpDevVAddr.uiAddr--;
 	}
-	ui32RetVal = (IMG_UINT32) ((sTmpDevVAddr.uiAddr & psDevVAddrConfig->uiPCIndexMask)
-			>> psDevVAddrConfig->uiPCIndexShift);
+	ui32RetVal = (IMG_UINT32)((sTmpDevVAddr.uiAddr &
+				   psDevVAddrConfig->uiPCIndexMask) >>
+				  psDevVAddrConfig->uiPCIndexShift);
 
-	if (bRoundUp)
-	{
+	if (bRoundUp) {
 		ui32RetVal++;
 	}
 
@@ -965,23 +938,22 @@ static IMG_UINT32 _CalcPCEIdx(IMG_DEV_VIRTADDR sDevVAddr,
 }
 
 static IMG_UINT32 _CalcPDEIdx(IMG_DEV_VIRTADDR sDevVAddr,
-                              const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
-                              IMG_BOOL bRoundUp)
+			      const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
+			      IMG_BOOL bRoundUp)
 {
 	IMG_DEV_VIRTADDR sTmpDevVAddr;
 	IMG_UINT32 ui32RetVal;
 
 	sTmpDevVAddr = sDevVAddr;
 
-	if (bRoundUp)
-	{
+	if (bRoundUp) {
 		sTmpDevVAddr.uiAddr--;
 	}
-	ui32RetVal = (IMG_UINT32) ((sTmpDevVAddr.uiAddr & psDevVAddrConfig->uiPDIndexMask)
-			>> psDevVAddrConfig->uiPDIndexShift);
+	ui32RetVal = (IMG_UINT32)((sTmpDevVAddr.uiAddr &
+				   psDevVAddrConfig->uiPDIndexMask) >>
+				  psDevVAddrConfig->uiPDIndexShift);
 
-	if (bRoundUp)
-	{
+	if (bRoundUp) {
 		ui32RetVal++;
 	}
 
@@ -989,77 +961,70 @@ static IMG_UINT32 _CalcPDEIdx(IMG_DEV_VIRTADDR sDevVAddr,
 }
 
 static IMG_UINT32 _CalcPTEIdx(IMG_DEV_VIRTADDR sDevVAddr,
-                              const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
-                              IMG_BOOL bRoundUp)
+			      const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
+			      IMG_BOOL bRoundUp)
 {
 	IMG_DEV_VIRTADDR sTmpDevVAddr;
 	IMG_UINT32 ui32RetVal;
 
 	sTmpDevVAddr = sDevVAddr;
 	sTmpDevVAddr.uiAddr -= psDevVAddrConfig->uiOffsetInBytes;
-	if (bRoundUp)
-	{
+	if (bRoundUp) {
 		sTmpDevVAddr.uiAddr--;
 	}
-	ui32RetVal = (IMG_UINT32) ((sTmpDevVAddr.uiAddr & psDevVAddrConfig->uiPTIndexMask)
-			>> psDevVAddrConfig->uiPTIndexShift);
+	ui32RetVal = (IMG_UINT32)((sTmpDevVAddr.uiAddr &
+				   psDevVAddrConfig->uiPTIndexMask) >>
+				  psDevVAddrConfig->uiPTIndexShift);
 
-	if (bRoundUp)
-	{
+	if (bRoundUp) {
 		ui32RetVal++;
 	}
 
 	return ui32RetVal;
 }
-static INLINE void _MMU_GetPTInfo(MMU_CONTEXT                *psMMUContext,
-                                  IMG_DEV_VIRTADDR            sDevVAddr,
-                                  const MMU_DEVVADDR_CONFIG  *psDevVAddrConfig,
-                                  MMU_LEVEL_INFO           **ppsLevel,
-                                  IMG_UINT32                 *pui32PTEIndex)
+static INLINE void _MMU_GetPTInfo(MMU_CONTEXT *psMMUContext,
+				  IMG_DEV_VIRTADDR sDevVAddr,
+				  const MMU_DEVVADDR_CONFIG *psDevVAddrConfig,
+				  MMU_LEVEL_INFO **ppsLevel,
+				  IMG_UINT32 *pui32PTEIndex)
 {
 	MMU_LEVEL_INFO *psLocalLevel = NULL;
 	MMU_LEVEL eMMULevel = sRGXMMUPCEConfig.ePxLevel;
 	IMG_UINT32 uiPCEIndex;
 	IMG_UINT32 uiPDEIndex;
 
-	if ((eMMULevel <= MMU_LEVEL_0) || (eMMULevel >= MMU_LEVEL_LAST))
-	{
+	if ((eMMULevel <= MMU_LEVEL_0) || (eMMULevel >= MMU_LEVEL_LAST)) {
 		RGXErrorLog(NULL, "%s: Invalid MMU level", __func__);
 	}
 
-	for (; eMMULevel > MMU_LEVEL_0; eMMULevel--)
-	{
-		if (eMMULevel == MMU_LEVEL_3)
-		{
+	for (; eMMULevel > MMU_LEVEL_0; eMMULevel--) {
+		if (eMMULevel == MMU_LEVEL_3) {
 			/* find the page directory containing the PCE */
-			uiPCEIndex = _CalcPCEIdx (sDevVAddr, psDevVAddrConfig,
-			                          IMG_FALSE);
-			psLocalLevel = psMMUContext->sBaseLevelInfo.apsNextLevel[uiPCEIndex];
+			uiPCEIndex = _CalcPCEIdx(sDevVAddr, psDevVAddrConfig,
+						 IMG_FALSE);
+			psLocalLevel = psMMUContext->sBaseLevelInfo
+					       .apsNextLevel[uiPCEIndex];
 		}
 
-		if (eMMULevel == MMU_LEVEL_2)
-		{
+		if (eMMULevel == MMU_LEVEL_2) {
 			/* find the page table containing the PDE */
-			uiPDEIndex = _CalcPDEIdx (sDevVAddr, psDevVAddrConfig,
-			                          IMG_FALSE);
-			if (psLocalLevel != NULL)
-			{
-				psLocalLevel = psLocalLevel->apsNextLevel[uiPDEIndex];
-			}
-			else
-			{
+			uiPDEIndex = _CalcPDEIdx(sDevVAddr, psDevVAddrConfig,
+						 IMG_FALSE);
+			if (psLocalLevel != NULL) {
 				psLocalLevel =
-						psMMUContext->sBaseLevelInfo.apsNextLevel[uiPDEIndex];
+					psLocalLevel->apsNextLevel[uiPDEIndex];
+			} else {
+				psLocalLevel =
+					psMMUContext->sBaseLevelInfo
+						.apsNextLevel[uiPDEIndex];
 			}
 		}
 
-		if (eMMULevel == MMU_LEVEL_1)
-		{
+		if (eMMULevel == MMU_LEVEL_1) {
 			/* find PTE index into page table */
-			*pui32PTEIndex = _CalcPTEIdx (sDevVAddr, psDevVAddrConfig,
-			                              IMG_FALSE);
-			if (psLocalLevel == NULL)
-			{
+			*pui32PTEIndex = _CalcPTEIdx(
+				sDevVAddr, psDevVAddrConfig, IMG_FALSE);
+			if (psLocalLevel == NULL) {
 				psLocalLevel = &psMMUContext->sBaseLevelInfo;
 			}
 		}
@@ -1068,66 +1033,72 @@ static INLINE void _MMU_GetPTInfo(MMU_CONTEXT                *psMMUContext,
 }
 
 static PVRSRV_ERROR MMU_MapRange(IMG_UINT64 ui64BasePA,
-                                 IMG_DEV_VIRTADDR sDevVAddrBase,
-                                 IMG_DEVMEM_SIZE_T uiSizeBytes,
-                                 MMU_CONTEXT *psMMUContext,
-                                 IMG_UINT32 uiLog2HeapPageSize)
+				 IMG_DEV_VIRTADDR sDevVAddrBase,
+				 IMG_DEVMEM_SIZE_T uiSizeBytes,
+				 MMU_CONTEXT *psMMUContext,
+				 IMG_UINT32 uiLog2HeapPageSize)
 {
 	const MMU_PxE_CONFIG *psConfig = &sRGXMMUPTEConfig;
 
 	IMG_UINT32 i, uiChunkStart, uiLastPTEIndex, uiNumEntriesToWrite;
-	IMG_UINT32 ui32PagesDone=0, uiPTEIndex=0;
+	IMG_UINT32 ui32PagesDone = 0, uiPTEIndex = 0;
 
 	IMG_UINT8 uiAddrLog2Align, uiAddrShift;
 	IMG_UINT64 uiAddrMask, uiProtFlags;
 	IMG_UINT32 uiBytesPerEntry;
 
-	IMG_UINT64* pui64LevelBase;
-	IMG_UINT32* pui32LevelBase;
+	IMG_UINT64 *pui64LevelBase;
+	IMG_UINT32 *pui32LevelBase;
 	MMU_LEVEL_INFO *psLevel = NULL;
 
 	IMG_UINT32 uiNumPages = uiSizeBytes >> uiLog2HeapPageSize;
 	IMG_UINT32 uiPageSize = (1 << uiLog2HeapPageSize);
 
-	PVR_ASSERT (psMMUContext != NULL);
-	PVR_ASSERT((IMG_DEVMEM_OFFSET_T)uiNumPages << uiLog2HeapPageSize == uiSizeBytes);
+	PVR_ASSERT(psMMUContext != NULL);
+	PVR_ASSERT((IMG_DEVMEM_OFFSET_T)uiNumPages << uiLog2HeapPageSize ==
+		   uiSizeBytes);
 
 	uiAddrLog2Align = psConfig->uiAddrLog2Align;
 	uiAddrShift = psConfig->uiAddrShift;
 	uiAddrMask = psConfig->uiAddrMask;
 	uiBytesPerEntry = psConfig->uiBytesPerEntry;
 	uiProtFlags = RGX_MMUCTRL_PT_DATA_PM_META_PROTECT_EN |
-	              ~RGX_MMUCTRL_PT_DATA_AXCACHE_CLRMSK |
-	              RGX_MMUCTRL_PT_DATA_VALID_EN;
+		      ~RGX_MMUCTRL_PT_DATA_AXCACHE_CLRMSK |
+		      RGX_MMUCTRL_PT_DATA_VALID_EN;
 
-	do
-	{
-		_MMU_GetPTInfo(psMMUContext, sDevVAddrBase, &sRGXMMUDevVAddrConfig,
-		               &psLevel, &uiPTEIndex);
+	do {
+		_MMU_GetPTInfo(psMMUContext, sDevVAddrBase,
+			       &sRGXMMUDevVAddrConfig, &psLevel, &uiPTEIndex);
 
-		pui64LevelBase = (IMG_UINT64*)psLevel->sMemDesc.pvCpuVAddr;
-		pui32LevelBase = (IMG_UINT32*)psLevel->sMemDesc.pvCpuVAddr;
+		pui64LevelBase = (IMG_UINT64 *)psLevel->sMemDesc.pvCpuVAddr;
+		pui32LevelBase = (IMG_UINT32 *)psLevel->sMemDesc.pvCpuVAddr;
 
-		uiLastPTEIndex = MIN(uiPTEIndex + uiNumPages - ui32PagesDone, sRGXMMUDevVAddrConfig.uiNumEntriesPT);
+		uiLastPTEIndex = MIN(uiPTEIndex + uiNumPages - ui32PagesDone,
+				     sRGXMMUDevVAddrConfig.uiNumEntriesPT);
 		uiNumEntriesToWrite = uiLastPTEIndex - uiPTEIndex;
 
-		for (uiChunkStart = 0; uiChunkStart < uiNumEntriesToWrite; uiChunkStart += 32)
-		{
-			IMG_UINT32 uiNumPagesInBlock = MIN(uiNumEntriesToWrite - uiChunkStart, 32);
+		for (uiChunkStart = 0; uiChunkStart < uiNumEntriesToWrite;
+		     uiChunkStart += 32) {
+			IMG_UINT32 uiNumPagesInBlock =
+				MIN(uiNumEntriesToWrite - uiChunkStart, 32);
 
-			for (i=0; i<uiNumPagesInBlock; i++)
-			{
-				IMG_UINT32 ui32Index = uiPTEIndex + uiChunkStart + i;
-				IMG_UINT64 ui64Page = ui64BasePA + uiPageSize * ui32Index;
-				IMG_UINT64 uiEntryValue = (((ui64Page >> uiAddrLog2Align) << uiAddrShift) & uiAddrMask) | uiProtFlags;
+			for (i = 0; i < uiNumPagesInBlock; i++) {
+				IMG_UINT32 ui32Index =
+					uiPTEIndex + uiChunkStart + i;
+				IMG_UINT64 ui64Page =
+					ui64BasePA + uiPageSize * ui32Index;
+				IMG_UINT64 uiEntryValue =
+					(((ui64Page >> uiAddrLog2Align)
+					  << uiAddrShift) &
+					 uiAddrMask) |
+					uiProtFlags;
 
-				if (uiBytesPerEntry == 8)
-				{
-					pui64LevelBase[ui32Index] = uiEntryValue;
-				}
-				else if (uiBytesPerEntry == 4)
-				{
-					pui32LevelBase[ui32Index] = (IMG_UINT32) uiEntryValue;
+				if (uiBytesPerEntry == 8) {
+					pui64LevelBase[ui32Index] =
+						uiEntryValue;
+				} else if (uiBytesPerEntry == 4) {
+					pui32LevelBase[ui32Index] =
+						(IMG_UINT32)uiEntryValue;
 				}
 			}
 		}
@@ -1154,106 +1125,102 @@ PVRSRV_ERROR PVRSRVConfigureMMU(SYS_DATA *psSysData)
 	IMG_DEV_VIRTADDR sDevVAddrEnd;
 	IMG_UINT32 ui32DriverID;
 	MMU_CONTEXT *psMMUContext;
-	const IMG_UINT32 ui32ContextSize = sizeof(MMU_CONTEXT) +
-			(sRGXMMUDevVAddrConfig.uiNumEntriesPC - 1) * sizeof(MMU_LEVEL_INFO*);
+	const IMG_UINT32 ui32ContextSize =
+		sizeof(MMU_CONTEXT) + (sRGXMMUDevVAddrConfig.uiNumEntriesPC -
+				       1) * sizeof(MMU_LEVEL_INFO *);
 
 	sDevVAddrStart.uiAddr = FWHEAP_GPU_VA;
-	sDevVAddrEnd.uiAddr  = FWHEAP_GPU_VA + RGX_NUM_DRIVERS_SUPPORTED*psSysData->ui64FwTotalHeapSize;
+	sDevVAddrEnd.uiAddr =
+		FWHEAP_GPU_VA +
+		RGX_NUM_DRIVERS_SUPPORTED * psSysData->ui64FwTotalHeapSize;
 
 	psMMUContext = kzalloc(ui32ContextSize, GFP_KERNEL);
-	if (psMMUContext == NULL)
-	{
+	if (psMMUContext == NULL) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err;
 	}
 
-	_MMU_GetLevelData(sDevVAddrStart, sDevVAddrEnd,
-	                  auiStartArray, auiEndArray,
-	                  auiEntriesPerPx, aeMMULevel, ui32Log2PageSize);
+	_MMU_GetLevelData(sDevVAddrStart, sDevVAddrEnd, auiStartArray,
+			  auiEndArray, auiEntriesPerPx, aeMMULevel,
+			  ui32Log2PageSize);
 
 	/* Allocate the top MMU level */
-	eError = _PxMemAlloc(psSysData,
-	                     psMMUContext,
-	                     sRGXMMUDevVAddrConfig.uiNumEntriesPC,
-	                     &sRGXMMUPCEConfig,
-	                     sRGXMMUPCEConfig.ePxLevel,
-	                     &psMMUContext->sBaseLevelInfo.sMemDesc,
-	                     ui32Log2PageSize);
-	if (eError != PVRSRV_OK)
-	{
+	eError = _PxMemAlloc(psSysData, psMMUContext,
+			     sRGXMMUDevVAddrConfig.uiNumEntriesPC,
+			     &sRGXMMUPCEConfig, sRGXMMUPCEConfig.ePxLevel,
+			     &psMMUContext->sBaseLevelInfo.sMemDesc,
+			     ui32Log2PageSize);
+	if (eError != PVRSRV_OK) {
 		goto err;
 	}
 
 	eError = _MMU_AllocLevel(psSysData, psMMUContext,
-	                   &psMMUContext->sBaseLevelInfo,
-	                   auiStartArray, auiEndArray, auiEntriesPerPx,
-	                   aeMMULevel, &ui32CurrentLevel,
-	                   auiStartArray[0], auiEndArray[0],
-	                   true, true, ui32Log2PageSize);
-	if (eError != PVRSRV_OK)
-	{
+				 &psMMUContext->sBaseLevelInfo, auiStartArray,
+				 auiEndArray, auiEntriesPerPx, aeMMULevel,
+				 &ui32CurrentLevel, auiStartArray[0],
+				 auiEndArray[0], true, true, ui32Log2PageSize);
+	if (eError != PVRSRV_OK) {
 		goto err;
 	}
 
 	/* Populate page tables for the Firmware heaps of all supported Guests */
-	for (ui32DriverID=0; ui32DriverID < RGX_NUM_DRIVERS_SUPPORTED; ui32DriverID++)
-	{
+	for (ui32DriverID = 0; ui32DriverID < RGX_NUM_DRIVERS_SUPPORTED;
+	     ui32DriverID++) {
 		IMG_UINT64 ui64BasePA;
 
-		sDevVAddrStart.uiAddr = FWHEAP_GPU_VA + ui32DriverID*psSysData->ui64FwTotalHeapSize;
+		sDevVAddrStart.uiAddr =
+			FWHEAP_GPU_VA +
+			ui32DriverID * psSysData->ui64FwTotalHeapSize;
 		ui64BasePA = psSysData->ui64FwHeapGpuBase +
-		             ui32DriverID*psSysData->ui64FwHeapStride +
-		             sDevVAddrStart.uiAddr - FWHEAP_GPU_VA -
-		             ui32DriverID*psSysData->ui64FwTotalHeapSize;
+			     ui32DriverID * psSysData->ui64FwHeapStride +
+			     sDevVAddrStart.uiAddr - FWHEAP_GPU_VA -
+			     ui32DriverID * psSysData->ui64FwTotalHeapSize;
 
-		MMU_MapRange(ui64BasePA, sDevVAddrStart, psSysData->ui64FwTotalHeapSize,
-		             psMMUContext, ui32Log2PageSize);
+		MMU_MapRange(ui64BasePA, sDevVAddrStart,
+			     psSysData->ui64FwTotalHeapSize, psMMUContext,
+			     ui32Log2PageSize);
 	}
 
 #if defined(FW_CUSTOM_REGION0_GPU_VA)
 	sDevVAddrStart.uiAddr = FW_CUSTOM_REGION0_GPU_VA;
-	sDevVAddrEnd.uiAddr  = FW_CUSTOM_REGION0_GPU_VA + FW_CUSTOM_REGION0_SIZE;
+	sDevVAddrEnd.uiAddr = FW_CUSTOM_REGION0_GPU_VA + FW_CUSTOM_REGION0_SIZE;
 
-	_MMU_GetLevelData(sDevVAddrStart, sDevVAddrEnd,
-	                  auiStartArray, auiEndArray,
-	                  auiEntriesPerPx, aeMMULevel, ui32Log2PageSize);
+	_MMU_GetLevelData(sDevVAddrStart, sDevVAddrEnd, auiStartArray,
+			  auiEndArray, auiEntriesPerPx, aeMMULevel,
+			  ui32Log2PageSize);
 
 	eError = _MMU_AllocLevel(psSysData, psMMUContext,
-	                   &psMMUContext->sBaseLevelInfo,
-	                   auiStartArray, auiEndArray, auiEntriesPerPx,
-	                   aeMMULevel, &ui32CurrentLevel,
-	                   auiStartArray[0], auiEndArray[0],
-	                   true, true, ui32Log2PageSize);
-	if (eError != PVRSRV_OK)
-	{
+				 &psMMUContext->sBaseLevelInfo, auiStartArray,
+				 auiEndArray, auiEntriesPerPx, aeMMULevel,
+				 &ui32CurrentLevel, auiStartArray[0],
+				 auiEndArray[0], true, true, ui32Log2PageSize);
+	if (eError != PVRSRV_OK) {
 		goto err;
 	}
 
 	MMU_MapRange(FW_CUSTOM_REGION0_GPU_PA, sDevVAddrStart,
-	             FW_CUSTOM_REGION0_SIZE, psMMUContext, ui32Log2PageSize);
+		     FW_CUSTOM_REGION0_SIZE, psMMUContext, ui32Log2PageSize);
 #endif
 
 #if defined(FW_CUSTOM_REGION1_GPU_VA)
 	sDevVAddrStart.uiAddr = FW_CUSTOM_REGION1_GPU_VA;
-	sDevVAddrEnd.uiAddr  = FW_CUSTOM_REGION1_GPU_VA + FW_CUSTOM_REGION1_SIZE;
+	sDevVAddrEnd.uiAddr = FW_CUSTOM_REGION1_GPU_VA + FW_CUSTOM_REGION1_SIZE;
 
-	_MMU_GetLevelData(sDevVAddrStart, sDevVAddrEnd,
-	                  auiStartArray, auiEndArray,
-	                  auiEntriesPerPx, aeMMULevel, ui32Log2PageSize);
+	_MMU_GetLevelData(sDevVAddrStart, sDevVAddrEnd, auiStartArray,
+			  auiEndArray, auiEntriesPerPx, aeMMULevel,
+			  ui32Log2PageSize);
 
 	eError = _MMU_AllocLevel(psSysData, psMMUContext,
-	                   &psMMUContext->sBaseLevelInfo,
-	                   auiStartArray, auiEndArray, auiEntriesPerPx,
-	                   aeMMULevel, &ui32CurrentLevel,
-	                   auiStartArray[0], auiEndArray[0],
-	                   true, true, ui32Log2PageSize);
-	if (eError != PVRSRV_OK)
-	{
+				 &psMMUContext->sBaseLevelInfo, auiStartArray,
+				 auiEndArray, auiEntriesPerPx, aeMMULevel,
+				 &ui32CurrentLevel, auiStartArray[0],
+				 auiEndArray[0], true, true, ui32Log2PageSize);
+	if (eError != PVRSRV_OK) {
 		goto err;
 	}
 
 	MMU_MapRange(FW_CUSTOM_REGION1_GPU_PA, sDevVAddrStart,
-	             FW_CUSTOM_REGION1_SIZE, psMMUContext, ui32Log2PageSize);
+		     FW_CUSTOM_REGION1_SIZE, psMMUContext, ui32Log2PageSize);
 #endif
 
 err:
