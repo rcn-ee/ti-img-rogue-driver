@@ -161,12 +161,13 @@ static PVRSRV_ERROR _PMRKMap(PMR_DMA_BUF_WRAPPER *psPMRWrapper, size_t uiSize,
 	}
 
 	*pvAddr = psPMRWrapper->pvKernelMappingAddr;
+	goto ExitUnlock;
 
 ErrReleaseLock:
 	psPMRWrapper->uiKernelMappingRefCnt--;
 
+ExitUnlock:
 	OSLockRelease(psPMRWrapper->hKernelMappingLock);
-
 	return eError;
 }
 
@@ -300,6 +301,7 @@ PVRDmaBufOpsMapCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
 	uiPhysSize = PMR_PhysicalSize(psPMR);
 	if (uiPhysSize == 0) {
 		PVR_DPF((PVR_DBG_ERROR, "invalid PMR size"));
+		iRet = PVRSRVToNativeError(PVRSRV_ERROR_BAD_MAPPING);
 		goto ErrUnlockMapping;
 	}
 
@@ -449,7 +451,7 @@ ErrUnlockPhysAddresses: {
 	PVR_LOG_IF_ERROR(eError2, "PMRUnlockSysPhysAddresses");
 }
 ErrUnlockMapping:
-	psPMRWrapper->uiKernelMappingRefCnt--;
+	psPMRWrapper->uiDeviceMappingRefCnt--;
 	OSLockRelease(psPMRWrapper->hDeviceMappingLock);
 
 	return ERR_PTR(iRet);
