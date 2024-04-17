@@ -554,7 +554,12 @@ static int PVRDmaBufOpsVMapCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
 		return OSPVRSRVToNativeError(eError);
 	}
 
-	iosys_map_set_vaddr_iomem(psMap, pvAddrOut);
+	if (PhysHeapGetType(PMR_PhysHeap(psPMRWrapper->psPMR)) ==
+	    PHYS_HEAP_TYPE_UMA) {
+		iosys_map_set_vaddr(psMap, pvAddrOut);
+	} else {
+		iosys_map_set_vaddr_iomem(psMap, pvAddrOut);
+	}
 
 	return 0;
 }

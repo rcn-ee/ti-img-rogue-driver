@@ -407,6 +407,7 @@ struct dma_buf_map {
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0))
 #define iosys_map dma_buf_map
+#define iosys_map_set_vaddr dma_buf_map_set_vaddr
 #define iosys_map_set_vaddr_iomem dma_buf_map_set_vaddr_iomem
 #define iosys_map_clear dma_buf_map_clear
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(5, 18, 0)) */
