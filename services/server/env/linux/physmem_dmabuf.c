@@ -600,7 +600,9 @@ static int PVRDmaBufOpsMMapCommon(PMR_DMA_BUF_WRAPPER *psPMRWrapper,
 	 * kernel mmap code and we do not want to produce a potentially writable
 	 * mapping from a read-only mapping.
 	 */
-	pvr_vm_flags_clear(psVMA, VM_MAYWRITE);
+	if (!BITMASK_HAS(psVMA->vm_flags, VM_WRITE)) {
+		pvr_vm_flags_clear(psVMA, VM_MAYWRITE);
+	}
 
 	eError = PMRMMapPMR(psPMR, psVMA, uiProtFlags);
 	if (eError != PVRSRV_OK) {

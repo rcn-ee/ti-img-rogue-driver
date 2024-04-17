@@ -608,7 +608,9 @@ int PVRSRV_MMap(struct file *pFile, struct vm_area_struct *ps_vma)
 	 * kernel mmap code and we do not want to produce a potentially writable
 	 * mapping from a read-only mapping.
 	 */
-	pvr_vm_flags_clear(ps_vma, VM_MAYWRITE);
+	if (!BITMASK_HAS(ps_vma->vm_flags, VM_WRITE)) {
+		pvr_vm_flags_clear(ps_vma, VM_MAYWRITE);
+	}
 
 	/* Note: PMRMMapPMR will take a reference on the PMR.
 	 * Unref the handle immediately, because we have now done
