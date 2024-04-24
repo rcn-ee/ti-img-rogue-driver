@@ -321,7 +321,7 @@ define calculate-os
   triplet_os := $$(subst $$(space),-,$$(triplet_os_list))
   ifeq ($$(triplet_os),linux-android)
    $(1)_OS := android
-  else ifeq ($$(triplet_os),poky-linux)
+  else ifneq ($$(filter $$(triplet_os),poky-linux oe-linux),)
    $(1)_OS := poky
   else ifeq ($$(triplet_os),w64-mingw32)
    $(1)_OS := windows
