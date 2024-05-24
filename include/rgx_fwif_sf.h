@@ -2217,13 +2217,13 @@ typedef struct {
  *   The following macro assigns those values to the enum generated SF ids list.
  */
 #define RGXFW_LOG_IDMARKER (0x70000000U)
-#define RGXFW_LOG_CREATESFID(a, b, e)                                    \
-	((IMG_UINT32)(a) | (((IMG_UINT32)(b) & 0x10U) << 7U) |           \
-	 (((IMG_UINT32)(b) & 0xFU) << 12U) | ((IMG_UINT32)(e) << 16U)) | \
+#define RGXFW_LOG_CREATESFID(a, b, e)                                  \
+	((IMG_UINT32)(a) | (((IMG_UINT32)(b)&0x10U) << 7U) |           \
+	 (((IMG_UINT32)(b)&0xFU) << 12U) | ((IMG_UINT32)(e) << 16U)) | \
 		RGXFW_LOG_IDMARKER
 
 #define RGXFW_LOG_IDMASK (0xFFF00000U)
-#define RGXFW_LOG_VALIDID(I) (((I) & RGXFW_LOG_IDMASK) == RGXFW_LOG_IDMARKER)
+#define RGXFW_LOG_VALIDID(I) (((I)&RGXFW_LOG_IDMASK) == RGXFW_LOG_IDMARKER)
 
 typedef enum {
 #define X(a, b, c, d, e) c = RGXFW_LOG_CREATESFID(a, b, e),
@@ -2235,7 +2235,7 @@ typedef enum {
 #define RGXFW_SF_GID(x) \
 	((((IMG_UINT32)(x) >> 12) & 0xfU) | (((IMG_UINT32)(x) >> 7) & 0x10U))
 /* Return the id number that the given (enum generated) id belongs to */
-#define RGXFW_SF_ID(x) ((IMG_UINT32)(x) & 0x7ffU)
+#define RGXFW_SF_ID(x) ((IMG_UINT32)(x)&0x7ffU)
 /* Returns how many arguments the SF(string format) for the given (enum generated) id requires */
 #define RGXFW_SF_PARAMNUM(x) (((IMG_UINT32)(x) >> 16) & 0xfU)
 

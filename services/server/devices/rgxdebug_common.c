@@ -2404,7 +2404,7 @@ static void RGXDumpMIPSState(DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
 						&sMIPSState.asTLB[ui32Idx];
 
 #define BRN63553_TLB_IS_NUL(X) \
-	(((X) & RGXMIPSFW_TLB_VALID) && (RGXMIPSFW_TLB_GET_PA(X) == 0x0))
+	(((X)&RGXMIPSFW_TLB_VALID) && (RGXMIPSFW_TLB_GET_PA(X) == 0x0))
 
 					if (BRN63553_TLB_IS_NUL(
 						    psTLBEntry->ui32TLBLo0) ||

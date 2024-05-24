@@ -85,8 +85,8 @@ typedef enum {
  * given by the upper layers (used when doing GPU frequency calibration)
  */
 #define RGXFWIF_GET_GPU_CLOCK_FREQUENCY_HZ(deltacr_us, deltaos_us, remainder) \
-	OSDivide64((deltacr_us) * CRTIME_TO_CYCLES_WITH_US_SCALE,             \
-		   (deltaos_us), &(remainder))
+	OSDivide64((deltacr_us)*CRTIME_TO_CYCLES_WITH_US_SCALE, (deltaos_us), \
+		   &(remainder))
 
 /*!
 ******************************************************************************

@@ -510,7 +510,7 @@ e2:
 e1:
 	DevmemFwUnmapAndFree(psDevInfo, psFabricCohTestBufferMemDesc);
 
-e0: {
+e0 : {
 	/* Restore SLC bypass settings */
 	RGXWriteReg32(hPrivate, RGX_CR_SLC_CTRL_BYPASS, ui32SLCCTRL);
 }

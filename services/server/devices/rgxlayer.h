@@ -200,7 +200,7 @@ IMG_UINT32 RGXGetOSPageSize(const void *hPrivate);
 	RGXDeviceHasErnBrn(hPrivate, FIX_HW_BRN_##BRN##_BIT_MASK)
 
 #define CLK_CTRL_FORCE_ON(X, Module) \
-	X = (((X) & RGX_CR_##Module##_CLRMSK) | RGX_CR_##Module##_ON)
+	X = (((X)&RGX_CR_##Module##_CLRMSK) | RGX_CR_##Module##_ON)
 /*!
 *******************************************************************************
 

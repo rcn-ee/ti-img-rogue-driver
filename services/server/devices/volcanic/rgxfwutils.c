@@ -147,9 +147,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if defined(DEBUG)
 /* Catch the use of auto-increment when meta_registers_unpacked_accesses feature is
  * present in case we ever use it. No WA exists so it must not be used */
-#define CHECK_HWBRN_68777(v)                                                   \
-	do {                                                                   \
-		PVR_ASSERT(((v) & RGX_CR_META_SP_MSLVCTRL0_AUTOINCR_EN) == 0); \
+#define CHECK_HWBRN_68777(v)                                                 \
+	do {                                                                 \
+		PVR_ASSERT(((v)&RGX_CR_META_SP_MSLVCTRL0_AUTOINCR_EN) == 0); \
 	} while (0)
 #else
 #define CHECK_HWBRN_68777(v)

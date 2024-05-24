@@ -191,7 +191,7 @@ void RGXWriteReg64(const void *hPrivate, IMG_UINT32 ui32RegAddr,
 	IMG_UINT64 _off = ui32RegAddr;
 	IMG_UINT64 _val = ui64RegValue;
 
-	writel((IMG_UINT32)((_val) & 0xffffffff),
+	writel((IMG_UINT32)((_val)&0xffffffff),
 	       (IMG_BYTE __iomem *)(regbank) + (_off));
 	writel((IMG_UINT32)(((IMG_UINT64)(_val) >> 32) & 0xffffffff),
 	       (IMG_BYTE __iomem *)(regbank) + (_off) + 4);

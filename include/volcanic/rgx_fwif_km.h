@@ -1931,12 +1931,12 @@ typedef struct {
 #define RGXFWIF_GPU_UTIL_TIME_MASK32 \
 	(IMG_UINT32_C(0xFFFFFFFF) & ~RGXFWIF_GPU_UTIL_STATE_MASK32)
 
-#define RGXFWIF_GPU_UTIL_GET_TIME(word) ((word) & RGXFWIF_GPU_UTIL_TIME_MASK)
-#define RGXFWIF_GPU_UTIL_GET_STATE(word) ((word) & RGXFWIF_GPU_UTIL_STATE_MASK)
+#define RGXFWIF_GPU_UTIL_GET_TIME(word) ((word)&RGXFWIF_GPU_UTIL_TIME_MASK)
+#define RGXFWIF_GPU_UTIL_GET_STATE(word) ((word)&RGXFWIF_GPU_UTIL_STATE_MASK)
 #define RGXFWIF_GPU_UTIL_GET_TIME32(word) \
-	((IMG_UINT32)(word) & RGXFWIF_GPU_UTIL_TIME_MASK32)
+	((IMG_UINT32)(word)&RGXFWIF_GPU_UTIL_TIME_MASK32)
 #define RGXFWIF_GPU_UTIL_GET_STATE32(word) \
-	((IMG_UINT32)(word) & RGXFWIF_GPU_UTIL_STATE_MASK32)
+	((IMG_UINT32)(word)&RGXFWIF_GPU_UTIL_STATE_MASK32)
 
 /* The OS timestamps computed by the FW are approximations of the real time,
  * which means they could be slightly behind or ahead the real timer on the Host.

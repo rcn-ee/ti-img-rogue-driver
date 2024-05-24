@@ -69,7 +69,7 @@ typedef IMG_UINT32 PVRSRV_SYNC_CHECKPOINT_STATE;
 #define PVRSRV_SYNC_CHECKPOINT_ERRORED \
 	0xeffU /*!< checkpoint has been errored */
 
-#define PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR(fwaddr) (((fwaddr) & 0x1U) != 0U)
+#define PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR(fwaddr) (((fwaddr)&0x1U) != 0U)
 #define PVRSRV_UFO_IS_SYNC_CHECKPOINT(ufoptr) \
 	(PVRSRV_UFO_IS_SYNC_CHECKPOINT_FWADDR((ufoptr)->puiAddrUFO.ui32Addr))
 

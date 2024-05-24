@@ -489,48 +489,47 @@ typedef struct {
 
 /* Used in a print statement to display log group state, one per group */
 #define RGXFWIF_LOG_ENABLED_GROUPS_LIST(types)                                 \
-	((((types) & RGXFWIF_LOG_TYPE_GROUP_MAIN) != 0U) ? ("main ") : ("")),  \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_MTS) != 0U) ? ("mts ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_CLEANUP) != 0U) ?          \
+	((((types)&RGXFWIF_LOG_TYPE_GROUP_MAIN) != 0U) ? ("main ") : ("")),    \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_MTS) != 0U) ? ("mts ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_CLEANUP) != 0U) ?            \
 			 ("cleanup ") :                                        \
 			 ("")),                                                \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_CSW) != 0U) ? ("csw ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_BIF) != 0U) ? ("bif ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_PM) != 0U) ? ("pm ") :     \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_CSW) != 0U) ? ("csw ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_BIF) != 0U) ? ("bif ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_PM) != 0U) ? ("pm ") :       \
+							       ("")),          \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_RTD) != 0U) ? ("rtd ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_SPM) != 0U) ? ("spm ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_POW) != 0U) ? ("pow ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_HWR) != 0U) ? ("hwr ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_HWP) != 0U) ? ("hwp ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_RPM) != 0U) ? ("rpm ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_DMA) != 0U) ? ("dma ") :     \
+								("")),         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_MISC) != 0U) ? ("misc ") :   \
 								 ("")),        \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_RTD) != 0U) ? ("rtd ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_SPM) != 0U) ? ("spm ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_POW) != 0U) ? ("pow ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_HWR) != 0U) ? ("hwr ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_HWP) != 0U) ? ("hwp ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_RPM) != 0U) ? ("rpm ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_DMA) != 0U) ? ("dma ") :   \
-								  ("")),       \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_MISC) != 0U) ? ("misc ") : \
-								   ("")),      \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_VZ) != 0U) ? ("vz ") :     \
-								 ("")),        \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_SAFETY) != 0U) ?           \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_VZ) != 0U) ? ("vz ") :       \
+							       ("")),          \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_SAFETY) != 0U) ?             \
 			 ("safety ") :                                         \
 			 ("")),                                                \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_VERBOSE) != 0U) ?          \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_VERBOSE) != 0U) ?            \
 			 ("verbose ") :                                        \
 			 ("")),                                                \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_CUSTOMER) != 0U) ?         \
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_CUSTOMER) != 0U) ?           \
 			 ("customer ") :                                       \
 			 ("")),                                                \
-		((((types) & RGXFWIF_LOG_TYPE_GROUP_DEBUG) != 0U) ?            \
-			 ("debug ") :                                          \
-			 (""))
+		((((types)&RGXFWIF_LOG_TYPE_GROUP_DEBUG) != 0U) ? ("debug ") : \
+								  (""))
 
 /*!
  ******************************************************************************

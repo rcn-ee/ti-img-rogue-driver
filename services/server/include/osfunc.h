@@ -1102,7 +1102,7 @@ void OSWriteMemoryBarrier(volatile void *hReadback);
 		__typeof__(addr) _addr = addr;                                \
 		__typeof__(off) _off = off;                                   \
 		__typeof__(val) _val = val;                                   \
-		writel((IMG_UINT32)((_val) & 0xffffffff),                     \
+		writel((IMG_UINT32)((_val)&0xffffffff),                       \
 		       (IMG_BYTE __iomem *)(_addr) + (_off));                 \
 		writel((IMG_UINT32)(((IMG_UINT64)(_val) >> 32) & 0xffffffff), \
 		       (IMG_BYTE __iomem *)(_addr) + (_off) + 4);             \

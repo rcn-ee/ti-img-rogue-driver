@@ -2276,7 +2276,7 @@ e4:
 		     eDataDirection);
 e3:
 	sg_free_table(psSg);
-e2: {
+e2 : {
 	IMG_UINT32 i;
 	/* Unpin pages */
 	for (i = 0; i < psOSCleanupData->puiNumPages[psOSCleanupData->uiCount];

@@ -501,13 +501,13 @@ static_assert(((IMG_UINT32)RGX_HWPERF_STREAM_ID_LAST -
 		       ((_blkoffset) << RGX_HWPERF_BLKINFO_BLKOFFSET_SHIFT))))
 
 /*! Macro used to obtain the number of counter blocks present in the packet */
-#define RGX_HWPERF_GET_BLKCOUNT(_blkinfo)                   \
-	(((_blkinfo) & RGX_HWPERF_BLKINFO_BLKCOUNT_MASK) >> \
+#define RGX_HWPERF_GET_BLKCOUNT(_blkinfo)                 \
+	(((_blkinfo)&RGX_HWPERF_BLKINFO_BLKCOUNT_MASK) >> \
 	 RGX_HWPERF_BLKINFO_BLKCOUNT_SHIFT)
 
 /*! Obtains the offset of the counter block stream in the packet */
-#define RGX_HWPERF_GET_BLKOFFSET(_blkinfo)                   \
-	(((_blkinfo) & RGX_HWPERF_BLKINFO_BLKOFFSET_MASK) >> \
+#define RGX_HWPERF_GET_BLKOFFSET(_blkinfo)                 \
+	(((_blkinfo)&RGX_HWPERF_BLKINFO_BLKOFFSET_MASK) >> \
 	 RGX_HWPERF_BLKINFO_BLKOFFSET_SHIFT)
 
 /*! This macro gets the number of blocks depending on the packet version */
@@ -560,13 +560,13 @@ static_assert(((IMG_UINT32)RGX_HWPERF_STREAM_ID_LAST -
 	  ((_kickid) << RGX_HWPERF_KICKINFO_KICKID_SHIFT)))
 
 /*! Macro used to obtain the lowest 24 bits of START_BE if present in the packet */
-#define RGX_HWPERF_GET_STARTBE(_kickinfo)                    \
-	(((_kickinfo) & RGX_HWPERF_KICKINFO_STARTBE_MASK) >> \
+#define RGX_HWPERF_GET_STARTBE(_kickinfo)                  \
+	(((_kickinfo)&RGX_HWPERF_KICKINFO_STARTBE_MASK) >> \
 	 RGX_HWPERF_KICKINFO_STARTBE_SHIFT)
 
 /*! Macro used to obtain the Kick ID if present in the packet */
-#define RGX_HWPERF_GET_KICKID(_kickinfo)                    \
-	(((_kickinfo) & RGX_HWPERF_KICKINFO_KICKID_MASK) >> \
+#define RGX_HWPERF_GET_KICKID(_kickinfo)                  \
+	(((_kickinfo)&RGX_HWPERF_KICKINFO_KICKID_MASK) >> \
 	 RGX_HWPERF_KICKINFO_KICKID_SHIFT)
 
 /*! Masks for use with the RGX_HWPERF_UFO_EV eEvType field */
@@ -585,13 +585,13 @@ static_assert(((IMG_UINT32)RGX_HWPERF_STREAM_ID_LAST -
 		       ((_soff) << RGX_HWPERF_UFO_STREAMOFFSET_SHIFT))))
 
 /*! Macro used to obtain UFO count*/
-#define RGX_HWPERF_GET_UFO_STREAMSIZE(_streaminfo)           \
-	(((_streaminfo) & RGX_HWPERF_UFO_STREAMSIZE_MASK) >> \
+#define RGX_HWPERF_GET_UFO_STREAMSIZE(_streaminfo)         \
+	(((_streaminfo)&RGX_HWPERF_UFO_STREAMSIZE_MASK) >> \
 	 RGX_HWPERF_UFO_STREAMSIZE_SHIFT)
 
 /*! Obtains the offset of the UFO stream in the packet */
-#define RGX_HWPERF_GET_UFO_STREAMOFFSET(_streaminfo)           \
-	(((_streaminfo) & RGX_HWPERF_UFO_STREAMOFFSET_MASK) >> \
+#define RGX_HWPERF_GET_UFO_STREAMOFFSET(_streaminfo)         \
+	(((_streaminfo)&RGX_HWPERF_UFO_STREAMOFFSET_MASK) >> \
 	 RGX_HWPERF_UFO_STREAMOFFSET_SHIFT)
 
 /*! This structure holds the data of a firmware packet. */
@@ -656,8 +656,8 @@ RGX_FW_STRUCT_OFFSET_ASSERT(RGX_HWPERF_HW_DATA, aui32CountBlksStream);
 /*! Obtains the counter block ID word from an aui32CountBlksStream field.
  * The word combines Control bits (15-12), GPU-Id (11-8), Group (7-4), Unit
  * within group (3-0) */
-#define RGX_HWPERF_GET_CNTBLK_IDW(_word)                       \
-	((IMG_UINT16)(((_word) & RGX_HWPERF_CNTBLK_ID_MASK) >> \
+#define RGX_HWPERF_GET_CNTBLK_IDW(_word)                     \
+	((IMG_UINT16)(((_word)&RGX_HWPERF_CNTBLK_ID_MASK) >> \
 		      RGX_HWPERF_CNTBLK_ID_SHIFT))
 
 /*! Obtains the counter block ID from the supplied RGX_HWPERF_HW_DATA address
@@ -667,8 +667,8 @@ RGX_FW_STRUCT_OFFSET_ASSERT(RGX_HWPERF_HW_DATA, aui32CountBlksStream);
 	RGX_HWPERF_GET_CNTBLK_IDW((_data_addr)->aui32CountBlksStream[(_idx)])
 
 /*! Obtains the GPU ID from the supplied RGX_HWPERF_HW_DATA CNTBLK_IDW */
-#define RGX_HWPERF_GET_CNTBLK_GPUW(_word)                      \
-	((IMG_UINT16)(((_word) & RGX_CNTBLK_ID_MC_GPU_MASK) >> \
+#define RGX_HWPERF_GET_CNTBLK_GPUW(_word)                    \
+	((IMG_UINT16)(((_word)&RGX_CNTBLK_ID_MC_GPU_MASK) >> \
 		      RGX_CNTBLK_ID_MC_GPU_SHIFT))
 
 #define RGX_HWPERF_GET_CNT_MASKW(_word) \
@@ -735,11 +735,11 @@ RGX_FW_STRUCT_SIZE_ASSERT(RGX_HWPERF_GPU_STATE_CHG_DATA);
 #define HWPERF_PWR_EST_V1_SIG 0x48504531
 
 /*! Macros to obtain a component field from a counter ID word */
-#define RGX_HWPERF_GET_PWR_EST_HIGH_FLAG(_word) (((_word) & 0x80000000) >> 31)
-#define RGX_HWPERF_GET_PWR_EST_GPUID(_word) (((_word) & 0x70000000) >> 28)
+#define RGX_HWPERF_GET_PWR_EST_HIGH_FLAG(_word) (((_word)&0x80000000) >> 31)
+#define RGX_HWPERF_GET_PWR_EST_GPUID(_word) (((_word)&0x70000000) >> 28)
 /*!< Obtains the GPU ID from a counter ID word */
-#define RGX_HWPERF_GET_PWR_EST_UNIT(_word) (((_word) & 0x0F000000) >> 24)
-#define RGX_HWPERF_GET_PWR_EST_NUMBER(_word) ((_word) & 0x0000FFFF)
+#define RGX_HWPERF_GET_PWR_EST_UNIT(_word) (((_word)&0x0F000000) >> 24)
+#define RGX_HWPERF_GET_PWR_EST_NUMBER(_word) ((_word)&0x0000FFFF)
 
 #define RGX_HWPERF_PWR_EST_HIGH_OFFSET (31)
 #define RGX_HWPERF_PWR_EST_GPUID_OFFSET (28)
@@ -750,16 +750,16 @@ RGX_FW_STRUCT_SIZE_ASSERT(RGX_HWPERF_GPU_STATE_CHG_DATA);
 
 /*! This macro constructs a counter ID for a power estimate data stream from
  * the component parts of: high word flag, unit id, GPU id, counter number */
-#define RGX_HWPERF_MAKE_PWR_EST_COUNTERID(_high, _unit, _core, _number) \
-	((IMG_UINT32)(((IMG_UINT32)((IMG_UINT32)(_high) & 0x1U)         \
-		       << RGX_HWPERF_PWR_EST_HIGH_OFFSET) |             \
-		      ((IMG_UINT32)((IMG_UINT32)(_unit) &               \
-				    RGX_HWPERF_PWR_EST_UNIT_MASK)       \
-		       << RGX_HWPERF_PWR_EST_UNIT_OFFSET) |             \
-		      ((IMG_UINT32)((IMG_UINT32)(_core) &               \
-				    RGX_HWPERF_PWR_EST_GPUID_MASK)      \
-		       << RGX_HWPERF_PWR_EST_GPUID_OFFSET) |            \
-		      ((_number) & RGX_HWPERF_PWR_EST_VALUE_MASK)))
+#define RGX_HWPERF_MAKE_PWR_EST_COUNTERID(_high, _unit, _core, _number)          \
+	((IMG_UINT32)(((IMG_UINT32)((IMG_UINT32)(_high)&0x1U)                    \
+		       << RGX_HWPERF_PWR_EST_HIGH_OFFSET) |                      \
+		      ((IMG_UINT32)((                                            \
+			       IMG_UINT32)(_unit)&RGX_HWPERF_PWR_EST_UNIT_MASK)  \
+		       << RGX_HWPERF_PWR_EST_UNIT_OFFSET) |                      \
+		      ((IMG_UINT32)((                                            \
+			       IMG_UINT32)(_core)&RGX_HWPERF_PWR_EST_GPUID_MASK) \
+		       << RGX_HWPERF_PWR_EST_GPUID_OFFSET) |                     \
+		      ((_number)&RGX_HWPERF_PWR_EST_VALUE_MASK)))
 
 /*! This structure holds the data for a power estimate packet. */
 typedef struct {

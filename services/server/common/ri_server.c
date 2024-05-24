@@ -1197,7 +1197,7 @@ PVRSRV_ERROR RIDeletePMREntryKM(RI_HANDLE hRIHandle)
 
 	return PVRSRV_OK;
 
-ErrCreateAndAssignPmrInfo: {
+ErrCreateAndAssignPmrInfo : {
 	PVRSRV_ERROR eError2 = _RICreateAndSetPmrInfo(psRIEntry);
 	PVR_RETURN_IF_ERROR(eError2);
 }

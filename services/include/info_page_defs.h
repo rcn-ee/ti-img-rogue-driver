@@ -68,8 +68,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 
 #define INFO_PAGE_CHUNK_SIZE 8
-#define INFO_PAGE_BLOCK_END(start, size) \
-	((start) + (size) * INFO_PAGE_CHUNK_SIZE)
+#define INFO_PAGE_BLOCK_END(start, size) ((start) + (size)*INFO_PAGE_CHUNK_SIZE)
 #define INFO_PAGE_ENTRY(start, index) ((start) + (index))
 #define INFO_PAGE_SIZE_IN_BYTES(end) ((end) * sizeof(IMG_UINT32))
 

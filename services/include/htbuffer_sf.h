@@ -253,7 +253,7 @@ typedef enum _HTB_LOG_TYPE {
 	(((a) | (b << 12) | (e << 16)) | (f << 20) | HTB_LOG_IDMARKER)
 
 #define HTB_LOG_IDMASK (0xFFF00000)
-#define HTB_LOG_VALIDID(I) (((I) & HTB_LOG_IDMASK) == HTB_LOG_IDMARKER)
+#define HTB_LOG_VALIDID(I) (((I)&HTB_LOG_IDMASK) == HTB_LOG_IDMARKER)
 
 typedef enum HTB_LOG_SFids {
 #define X(a, b, c, d, e, f) c = HTB_LOG_CREATESFID(a, b, e, f),

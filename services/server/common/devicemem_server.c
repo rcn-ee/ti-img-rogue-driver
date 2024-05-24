@@ -1246,7 +1246,7 @@ ErrorUnmapSparseMap:
 	MMU_UnmapPages(psReservation->psDevmemHeap->psDevmemCtx->psMMUContext,
 		       0, sAllocationDevVAddr, ui32NumDevPages, NULL,
 		       uiLog2HeapContiguity, 0);
-ErrorUnlockPhysAddr: {
+ErrorUnlockPhysAddr : {
 	PVRSRV_ERROR eError1 = PVRSRV_OK;
 	eError1 = PMRUnlockSysPhysAddresses(psPMR);
 	PVR_LOG_IF_ERROR(eError1, "PMRUnlockSysPhysAddresses");

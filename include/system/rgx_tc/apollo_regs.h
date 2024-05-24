@@ -59,7 +59,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 /* TC ES2 */
 #define TCF_TEMP_SENSOR_SPI_OFFSET 0xe
-#define TCF_TEMP_SENSOR_TO_C(raw) (((raw) * 248 / 4096) - 54)
+#define TCF_TEMP_SENSOR_TO_C(raw) (((raw)*248 / 4096) - 54)
 
 /* Number of bytes that are broken */
 #define SYS_DEV_MEM_BROKEN_BYTES (1024 * 1024)

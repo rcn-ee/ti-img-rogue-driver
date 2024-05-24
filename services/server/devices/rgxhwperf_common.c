@@ -2140,7 +2140,7 @@ static inline IMG_BOOL _WriteHWPerfStream(PVRSRV_RGXDEV_INFO *psRgxDevInfo,
 	((_curridx + 1) % HWPERF_HOST_MAX_DEFERRED_PACKETS)
 #define GET_DE_EVENT_BASE(_idx)                            \
 	(IMG_OFFSET_ADDR(psRgxDevInfo->pui8DeferredEvents, \
-			 (_idx) * HWPERF_HOST_DEFERRED_UFO_PACKET_SIZE))
+			 (_idx)*HWPERF_HOST_DEFERRED_UFO_PACKET_SIZE))
 
 #define GET_DE_EVENT_WRITE_STATUS(_base) ((IMG_BOOL *)((void *)(_base)))
 #define GET_DE_EVENT_DATA(_base) (IMG_OFFSET_ADDR((_base), sizeof(IMG_BOOL)))

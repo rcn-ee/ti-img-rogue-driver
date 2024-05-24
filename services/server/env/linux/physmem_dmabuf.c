@@ -446,7 +446,7 @@ ErrFreePAddrData:
 	}
 ErrFreeTable:
 	OSFreeMem(psTable);
-ErrUnlockPhysAddresses: {
+ErrUnlockPhysAddresses : {
 	PVRSRV_ERROR eError2 = PMRUnlockSysPhysAddresses(psPMR);
 	PVR_LOG_IF_ERROR(eError2, "PMRUnlockSysPhysAddresses");
 }

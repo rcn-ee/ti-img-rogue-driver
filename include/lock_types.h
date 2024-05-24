@@ -67,7 +67,7 @@ typedef struct OSWR_LOCK_TAG *POSWR_LOCK;
 #else /* defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS) */
 typedef struct OSWR_LOCK_TAG {
 	IMG_UINT32 ui32Unused;
-} *POSWR_LOCK;
+} * POSWR_LOCK;
 #endif /* defined(__linux__) || defined(__QNXNTO__) || defined(INTEGRITY_OS) */
 
 #if defined(__linux__) || defined(__APPLE__)

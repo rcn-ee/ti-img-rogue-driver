@@ -67,13 +67,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_INT64_TO_BE(N)                                                     \
 	((((N) >> 56) & 0xff) | (((N) >> 40) & 0xff00) |                       \
 	 (((N) >> 24) & 0xff0000) | (((N) >> 8) & 0xff000000U) | ((N) << 56) | \
-	 (((N) & 0xff00) << 40) | (((N) & 0xff0000) << 24) |                   \
-	 (((N) & 0xff000000U) << 8))
+	 (((N)&0xff00) << 40) | (((N)&0xff0000) << 24) |                       \
+	 (((N)&0xff000000U) << 8))
 #define RGX_INT64_FROM_BE(N) RGX_INT64_TO_BE(N)
 
 #define RGX_INT32_TO_BE(N)                                            \
 	((((N) >> 24) & 0xff) | (((N) >> 8) & 0xff00) | ((N) << 24) | \
-	 ((((N) & 0xff00) << 8)))
+	 ((((N)&0xff00) << 8)))
 #define RGX_INT32_FROM_BE(N) RGX_INT32_TO_BE(N)
 #endif
 
@@ -92,13 +92,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define RGX_BVNC_PACK_MASK_C (IMG_UINT64_C(0x000000000000FFFF))
 
 #define RGX_BVNC_PACKED_EXTR_B(BVNC) \
-	((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_B) >> RGX_BVNC_PACK_SHIFT_B))
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_B) >> RGX_BVNC_PACK_SHIFT_B))
 #define RGX_BVNC_PACKED_EXTR_V(BVNC) \
-	((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_V) >> RGX_BVNC_PACK_SHIFT_V))
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_V) >> RGX_BVNC_PACK_SHIFT_V))
 #define RGX_BVNC_PACKED_EXTR_N(BVNC) \
-	((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_N) >> RGX_BVNC_PACK_SHIFT_N))
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_N) >> RGX_BVNC_PACK_SHIFT_N))
 #define RGX_BVNC_PACKED_EXTR_C(BVNC) \
-	((IMG_UINT32)(((BVNC) & RGX_BVNC_PACK_MASK_C) >> RGX_BVNC_PACK_SHIFT_C))
+	((IMG_UINT32)(((BVNC)&RGX_BVNC_PACK_MASK_C) >> RGX_BVNC_PACK_SHIFT_C))
 
 #define RGX_BVNC_EQUAL(L, R, all, version, bvnc)                              \
 	do {                                                                  \

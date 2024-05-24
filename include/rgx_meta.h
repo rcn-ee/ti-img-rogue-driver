@@ -266,9 +266,9 @@ typedef struct {
  * The bifdm argument is ignored (no longer relevant) in S7 and volcanic.
  */
 #define RGXFW_SEGMMU_OUTADDR_TOP_VIVT_SLC(pers, slc_policy, mmu_ctx) \
-	((((IMG_UINT64)((pers) & 0x3U)) << 52) |                     \
-	 (((IMG_UINT64)((mmu_ctx) & 0xFFU)) << 44) |                 \
-	 (((IMG_UINT64)((slc_policy) & 0x1U)) << 40))
+	((((IMG_UINT64)((pers)&0x3U)) << 52) |                       \
+	 (((IMG_UINT64)((mmu_ctx)&0xFFU)) << 44) |                   \
+	 (((IMG_UINT64)((slc_policy)&0x1U)) << 40))
 #define RGXFW_SEGMMU_OUTADDR_TOP_VIVT_SLC_CACHED(mmu_ctx) \
 	RGXFW_SEGMMU_OUTADDR_TOP_VIVT_SLC(0x3U, 0x0U, mmu_ctx)
 #define RGXFW_SEGMMU_OUTADDR_TOP_VIVT_SLC_UNCACHED(mmu_ctx) \
@@ -277,9 +277,9 @@ typedef struct {
 /* To configure the Page Catalog and BIF-DM fed into the BIF for Garten
  * accesses through this segment
  */
-#define RGXFW_SEGMMU_OUTADDR_TOP_SLC(pc, bifdm)           \
-	(((IMG_UINT64)((IMG_UINT64)(pc) & 0xFU) << 44U) | \
-	 ((IMG_UINT64)((IMG_UINT64)(bifdm) & 0xFU) << 40U))
+#define RGXFW_SEGMMU_OUTADDR_TOP_SLC(pc, bifdm)         \
+	(((IMG_UINT64)((IMG_UINT64)(pc)&0xFU) << 44U) | \
+	 ((IMG_UINT64)((IMG_UINT64)(bifdm)&0xFU) << 40U))
 
 #define RGXFW_SEGMMU_META_BIFDM_ID (0x7U)
 #if !(defined(__KERNEL__) || defined(TEE_DDK)) && defined(RGX_FEATURE_META)
@@ -301,10 +301,10 @@ typedef struct {
 #define RGXFW_SEGMMU_ALIGN (0x1000U)
 
 /* Segmented MMU registers (n = segment id) */
-#define META_CR_MMCU_SEGMENTn_BASE(n) (0x04850000U + ((n) * 0x10U))
-#define META_CR_MMCU_SEGMENTn_LIMIT(n) (0x04850004U + ((n) * 0x10U))
-#define META_CR_MMCU_SEGMENTn_OUTA0(n) (0x04850008U + ((n) * 0x10U))
-#define META_CR_MMCU_SEGMENTn_OUTA1(n) (0x0485000CU + ((n) * 0x10U))
+#define META_CR_MMCU_SEGMENTn_BASE(n) (0x04850000U + ((n)*0x10U))
+#define META_CR_MMCU_SEGMENTn_LIMIT(n) (0x04850004U + ((n)*0x10U))
+#define META_CR_MMCU_SEGMENTn_OUTA0(n) (0x04850008U + ((n)*0x10U))
+#define META_CR_MMCU_SEGMENTn_OUTA1(n) (0x0485000CU + ((n)*0x10U))
 
 /* The following defines must be recalculated if the Meta MMU segments used
  * to access Host-FW data are changed

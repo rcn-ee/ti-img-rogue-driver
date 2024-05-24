@@ -83,7 +83,7 @@
 /* Convert a byte offset to a 32 bit dword offset */
 #define DWORD_OFFSET(byte_offset) ((byte_offset) >> 2)
 
-#define HEX2DEC(v) ((((v) >> 4) * 10) + ((v) & 0x0F))
+#define HEX2DEC(v) ((((v) >> 4) * 10) + ((v)&0x0F))
 
 enum tc_version_t {
 	TC_INVALID_VERSION,

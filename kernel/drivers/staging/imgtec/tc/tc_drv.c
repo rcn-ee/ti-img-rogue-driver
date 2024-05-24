@@ -62,11 +62,11 @@
 #include "kernel_compatibility.h"
 
 /* How much memory to give to the PDP heap (used for pdp buffers). */
-#define TC_PDP_MEM_SIZE_BYTES ((TC_DISPLAY_MEM_SIZE) * 1024 * 1024)
+#define TC_PDP_MEM_SIZE_BYTES ((TC_DISPLAY_MEM_SIZE)*1024 * 1024)
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
 /* How much memory to give to the secure heap. */
-#define TC_SECURE_MEM_SIZE_BYTES ((TC_SECURE_MEM_SIZE) * 1024 * 1024)
+#define TC_SECURE_MEM_SIZE_BYTES ((TC_SECURE_MEM_SIZE)*1024 * 1024)
 #endif
 
 #define PCI_VENDOR_ID_POWERVR 0x1010

@@ -2383,7 +2383,7 @@ static PVRSRV_ERROR _AllocOSPages_Fast(PMR_OSPAGEARRAY_DATA *psPageArrayData)
 	return PVRSRV_OK;
 
 /* Error path */
-e_free_pages: {
+e_free_pages : {
 	IMG_UINT32 ui32PageToFree;
 
 	if (BIT_ISSET(psPageArrayData->ui32AllocFlags, FLAG_DMA_CMA)) {

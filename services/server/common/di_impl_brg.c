@@ -90,7 +90,7 @@ static struct DIIB_IMPL {
 
 	DLLIST_NODE sWriterQueue;
 	POS_LOCK psWriterLock; /*!< Protects sWriterQueue. */
-} *_g_psImpl;
+} * _g_psImpl;
 
 struct DIIB_GROUP {
 	const IMG_CHAR *pszName;

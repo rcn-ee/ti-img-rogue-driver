@@ -393,7 +393,7 @@ struct plato_device {
 #define PLATO_TARGET_HDMI_SFR_CLOCK_SPEED (27000000)
 #define PLATO_TARGET_HDMI_CEC_CLOCK_SPEED (32768)
 
-#define REG_TO_CELSIUS(reg) (((reg) * 352 / 4096) - 109)
+#define REG_TO_CELSIUS(reg) (((reg)*352 / 4096) - 109)
 #define CELSIUS_TO_REG(temp) ((((temp) + 109) * 4096) / 352)
 #define PLATO_MAX_TEMP_CELSIUS (100)
 
