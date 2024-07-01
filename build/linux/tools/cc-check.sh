@@ -110,7 +110,7 @@ else
 	if [ "$IS_CLANG" = "1" ]; then
 		grep -qE "(unknown.*option .$1.|argument.*unused.* .$1.|unknown.*argument.* .$1.)" "$log"
 	else
-		grep -qE "(unrecognized.*option .$1.|option .$1. .*C\+\+)" "$log"
+		grep -qE "(unrecognized.*option .$1.|option .$1. .*C\+\+|.$1.*no option)" "$log"
 	fi
 	if [ "$?" = "1" ]; then
 		printf "%s\n" "$1"
