@@ -106,7 +106,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *                                           doesn't exist) **/
 
 /* 0x00_0000_8000 - 0x7F_FFFF_8000 **/
-/* 32 KiB to 512 GiB, size of 512 GiB less 32 KiB : GENERAL_SVM_HEAP **/
+/* MAX(32 KiB, PAGE_SIZE) to 512 GiB, size of 512 GiB less MAX(32 KiB, PAGE_SIZE) : GENERAL_SVM_HEAP **/
+
+/* The MAX is determined at runtime (PAGE_SIZE isn't available on all platforms)
+ * so the #define's must NOT be used directly. Use the heap config after initialisation. */
 #define RGX_GENERAL_SVM_HEAP_BASE IMG_UINT64_C(0x0000008000)
 #define RGX_GENERAL_SVM_HEAP_SIZE (RGX_HEAP_SIZE_512GiB - RGX_HEAP_SIZE_32KiB)
 
