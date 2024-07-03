@@ -4974,25 +4974,25 @@ RGXDeviceFWMainHeapMemCheck(PVRSRV_DEVICE_NODE *psDeviceNode)
 	return eError;
 }
 
-static PVRSRV_ERROR _ReadNon4KHeapPageSize(PVRSRV_RGXDEV_INFO *psDevInfo,
-					   IMG_UINT32 *pui32Log2Non4KPgSize)
+static PVRSRV_ERROR _ReadNon4KHeapPageShift(PVRSRV_RGXDEV_INFO *psDevInfo,
+					   IMG_UINT32 *pui32Log2Non4KPgShift)
 {
 	void *pvAppHintState = NULL;
 	IMG_UINT32 ui32AppHintDefault = PVRSRV_APPHINT_GENERALNON4KHEAPPAGESIZE;
 	IMG_UINT32 ui32GeneralNon4KHeapPageSize;
-	IMG_UINT32 uiLog2OSPageSize = OSGetPageShift();
+	IMG_UINT32 uiLog2OSPageShift = OSGetPageShift();
 
 	/* Get the page size for the dummy page from the NON4K heap apphint */
 	OSCreateKMAppHintState(&pvAppHintState);
 	OSGetKMAppHintUINT32(APPHINT_NO_DEVICE, pvAppHintState,
 			     GeneralNon4KHeapPageSize, &ui32AppHintDefault,
 			     &ui32GeneralNon4KHeapPageSize);
-	*pui32Log2Non4KPgSize = ExactLog2(ui32GeneralNon4KHeapPageSize);
+	*pui32Log2Non4KPgShift = ExactLog2(ui32GeneralNon4KHeapPageSize);
 	OSFreeKMAppHintState(pvAppHintState);
 #if defined(FIX_HW_BRN_71317_BIT_MASK)
 	if (RGX_IS_BRN_SUPPORTED(psDevInfo, 71317)) {
-		if (*pui32Log2Non4KPgSize == RGX_HEAP_2MB_PAGE_SHIFT ||
-		    *pui32Log2Non4KPgSize == RGX_HEAP_1MB_PAGE_SHIFT) {
+		if (*pui32Log2Non4KPgShift == RGX_HEAP_2MB_PAGE_SHIFT ||
+		    *pui32Log2Non4KPgShift == RGX_HEAP_1MB_PAGE_SHIFT) {
 			PVR_DPF((PVR_DBG_ERROR,
 				 "Page sizes of 2MB or 1MB cause page faults."));
 			return PVRSRV_ERROR_INVALID_NON4K_HEAP_PAGESIZE;
@@ -5003,11 +5003,15 @@ static PVRSRV_ERROR _ReadNon4KHeapPageSize(PVRSRV_RGXDEV_INFO *psDevInfo,
 	/* Check the Non4k page size is at least the size of the OS page size
 	 * or larger. The Non4k page size also has to be a multiple of the OS page
 	 * size but since we have the log2 value from the apphint we know powers of 2
-	 * will always be multiples.
+	 * will always be multiples. If the Non4k page size is less than OS page size
+	 * we notify and upgrade the size.
 	 */
-	PVR_LOG_RETURN_IF_FALSE(*pui32Log2Non4KPgSize >= uiLog2OSPageSize,
-				"Non4K page size smaller than OS page size",
-				PVRSRV_ERROR_INVALID_NON4K_HEAP_PAGESIZE);
+	if (*pui32Log2Non4KPgShift < uiLog2OSPageShift)
+	{
+		PVR_DPF((PVR_DBG_MESSAGE, "Non4K page size smaller than OS page size, upgrading to "
+		                          "match OS page size."));
+		*pui32Log2Non4KPgShift = uiLog2OSPageShift;
+	}
 
 	return PVRSRV_OK;
 }
@@ -5315,7 +5319,7 @@ PVRSRV_ERROR RGXRegisterDevice(PVRSRV_DEVICE_NODE *psDeviceNode)
 			RGXMMUTweakProtFlags :
 			NULL;
 
-	eError = _ReadNon4KHeapPageSize(psDevInfo,
+	eError = _ReadNon4KHeapPageShift(psDevInfo,
 					&psDeviceNode->ui32Non4KPageSizeLog2);
 	PVR_LOG_GOTO_IF_ERROR(eError, "_ReadNon4KHeapPageSize", e14);
 

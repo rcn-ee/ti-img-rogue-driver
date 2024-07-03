@@ -4338,29 +4338,33 @@ RGXDeviceFWMainHeapMemCheck(PVRSRV_DEVICE_NODE *psDeviceNode)
 	return eError;
 }
 
-static PVRSRV_ERROR _ReadNon4KHeapPageSize(IMG_UINT32 *pui32Log2Non4KPgSize)
+static PVRSRV_ERROR _ReadNon4KHeapPageShift(IMG_UINT32 *pui32Log2Non4KPgShift)
 {
 	void *pvAppHintState = NULL;
 	IMG_UINT32 ui32AppHintDefault = PVRSRV_APPHINT_GENERALNON4KHEAPPAGESIZE;
 	IMG_UINT32 ui32GeneralNon4KHeapPageSize;
-	IMG_UINT32 uiLog2OSPageSize = OSGetPageShift();
+	IMG_UINT32 uiLog2OSPageShift = OSGetPageShift();
 
 	/* Get the page size for the dummy page from the NON4K heap apphint */
 	OSCreateKMAppHintState(&pvAppHintState);
 	OSGetKMAppHintUINT32(APPHINT_NO_DEVICE, pvAppHintState,
-			     GeneralNon4KHeapPageSize, &ui32AppHintDefault,
-			     &ui32GeneralNon4KHeapPageSize);
-	*pui32Log2Non4KPgSize = ExactLog2(ui32GeneralNon4KHeapPageSize);
+	                     GeneralNon4KHeapPageSize, &ui32AppHintDefault,
+	                     &ui32GeneralNon4KHeapPageSize);
+	*pui32Log2Non4KPgShift = ExactLog2(ui32GeneralNon4KHeapPageSize);
 	OSFreeKMAppHintState(pvAppHintState);
 
 	/* Check the Non4k page size is at least the size of the OS page size
 	 * or larger. The Non4k page size also has to be a multiple of the OS page
 	 * size but since we have the log2 value from the apphint we know powers of 2
-	 * will always be multiples.
+	 * will always be multiples. If the Non4k page size is less than OS page size
+	 * we notify and upgrade the size.
 	 */
-	PVR_LOG_RETURN_IF_FALSE(*pui32Log2Non4KPgSize >= uiLog2OSPageSize,
-				"Non4K page size smaller than OS page size",
-				PVRSRV_ERROR_INVALID_NON4K_HEAP_PAGESIZE);
+	if (*pui32Log2Non4KPgShift < uiLog2OSPageShift)
+	{
+		PVR_DPF((PVR_DBG_MESSAGE, "Non4K page size smaller than OS page size, upgrading to "
+		                          "match OS page size."));
+		*pui32Log2Non4KPgShift = uiLog2OSPageShift;
+	}
 
 	return PVRSRV_OK;
 }
@@ -4719,8 +4723,8 @@ PVRSRV_ERROR RGXRegisterDevice(PVRSRV_DEVICE_NODE *psDeviceNode)
 	psDevInfo->pvSecureRegsBaseKM = NULL;
 #endif /* !NO_HARDWARE */
 
-	eError = _ReadNon4KHeapPageSize(&psDeviceNode->ui32Non4KPageSizeLog2);
-	PVR_LOG_GOTO_IF_ERROR(eError, "_ReadNon4KHeapPageSize", e15);
+	eError = _ReadNon4KHeapPageShift(&psDeviceNode->ui32Non4KPageSizeLog2);
+	PVR_LOG_GOTO_IF_ERROR(eError, "_ReadNon4KHeapPageShift", e15);
 
 	/* Configure MMU specific stuff */
 	RGXMMUInit_Register(psDeviceNode);
