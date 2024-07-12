@@ -47,6 +47,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxdefs_km.h"
 
 #define RGX_HEAP_SIZE_4KiB IMG_UINT64_C(0x0000001000)
+#define RGX_HEAP_SIZE_32KiB IMG_UINT64_C(0x0000008000)
 #define RGX_HEAP_SIZE_64KiB IMG_UINT64_C(0x0000010000)
 #define RGX_HEAP_SIZE_256KiB IMG_UINT64_C(0x0000040000)
 
@@ -101,12 +102,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* 0x00_0000_0000 ************************************************************/
 
 /* 0x00_0000_0000 - 0x00_0020_0000 **/
-/* 0 MiB to 2 MiB, size of 2 MiB : RESERVED **/
+/* 0 MiB to 2 MiB, size of 2 MiB : RESERVED (only when General SVM
+ *                                           doesn't exist) **/
 
-/* 0x00_0020_0000 - 0x7F_FFC0_0000 **/
-/* 2 MiB to 512 GiB, size of 512 GiB less 2 MiB : GENERAL_SVM_HEAP **/
-#define RGX_GENERAL_SVM_HEAP_BASE IMG_UINT64_C(0x0000200000)
-#define RGX_GENERAL_SVM_HEAP_SIZE (RGX_HEAP_SIZE_512GiB - RGX_HEAP_SIZE_2MiB)
+/* 0x00_0000_8000 - 0x7F_FFFF_8000 **/
+/* 32 KiB to 512 GiB, size of 512 GiB less 32 KiB : GENERAL_SVM_HEAP **/
+#define RGX_GENERAL_SVM_HEAP_BASE IMG_UINT64_C(0x0000008000)
+#define RGX_GENERAL_SVM_HEAP_SIZE (RGX_HEAP_SIZE_512GiB - RGX_HEAP_SIZE_32KiB)
 
 /* 0x80_0000_0000 ************************************************************/
 
