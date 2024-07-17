@@ -9,7 +9,6 @@ load(
     "kernel_module",
     "kernel_module_group",
 )
-load("//build/bazel_common_rules/test_mappings:test_mappings.bzl", "test_mappings_dist")
 load("@kernel_toolchain_info//:dict.bzl", "CLANG_VERSION")
 load("//build/bazel_common_rules/dist:dist.bzl", "copy_to_dist_dir")
 load("//build/bazel_common_rules/exec:exec.bzl", "exec")
