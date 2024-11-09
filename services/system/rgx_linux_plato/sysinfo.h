@@ -1,8 +1,8 @@
 /*************************************************************************/ /*!
-@File           pvrversion.h
-@Title          PowerVR version numbers and strings.
+@File
+@Title          System Description Header
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
-@Description    Version numbers and strings for PowerVR components.
+@Description    This header provides system-specific declarations and macros
 @License        Dual MIT/GPLv2
 
 The contents of this file are subject to the MIT license as set out below.
@@ -41,28 +41,46 @@ IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */ /**************************************************************************/
 
-#ifndef PVRVERSION_H
-#define PVRVERSION_H
+#if !defined(SYSINFO_H)
+#define SYSINFO_H
 
-#define PVRVERSION_MAJ               24U
-#define PVRVERSION_MIN               2U
+#if defined(__KERNEL__)
+#include "plato_drv.h"
+#endif
 
-#define PVRVERSION_FAMILY           "rogueddk"
-#define PVRVERSION_BRANCHNAME       "24.2"
-#define PVRVERSION_BUILD             6643903
-#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux_WS"
+#define SYS_RGX_DEV_VENDOR_ID	(0x1AEE)
+#define SYS_RGX_DEV_DEVICE_ID	(0x0003)
 
-#define PVRVERSION_STRING           "Rogue_DDK_Linux_WS rogueddk 24.2@6643903"
-#define PVRVERSION_STRING_SHORT     "24.2@6643903"
+#if defined(__KERNEL__)
+#if defined(PLATO_MULTI_DEVICE)
+#define SYS_RGX_DEV_NAME_0	PLATO_MAKE_DEVICE_NAME_ROGUE(0)
+#define SYS_RGX_DEV_NAME_1	PLATO_MAKE_DEVICE_NAME_ROGUE(1)
+#define SYS_RGX_DEV_NAME_2	PLATO_MAKE_DEVICE_NAME_ROGUE(2)
+#define SYS_RGX_DEV_NAME_3	PLATO_MAKE_DEVICE_NAME_ROGUE(3)
+#else
+#define SYS_RGX_DEV_NAME	PLATO_DEVICE_NAME_ROGUE
+#endif
+#endif
 
-#define COPYRIGHT_TXT               "Copyright (c) Imagination Technologies Ltd. All Rights Reserved."
+/*!< System specific poll/timeout details */
+#if defined(VIRTUAL_PLATFORM) || defined(EMULATOR)
+/* Emulator clock ~600 times slower than HW */
+#define MAX_HW_TIME_US                           (300000000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1000000)
 
-#define PVRVERSION_BUILD_HI          664
-#define PVRVERSION_BUILD_LO          3903
-#define PVRVERSION_STRING_NUMERIC   "24.2.664.3903"
+#if defined(VIRTUAL_PLATFORM)
+#define EVENT_OBJECT_TIMEOUT_US                  (120000000)
+#elif defined(EMULATOR)
+#define EVENT_OBJECT_TIMEOUT_US                  (2000000)
+#endif
 
-#define PVRVERSION_PACK(MAJOR,MINOR) (((IMG_UINT32)((IMG_UINT32)(MAJOR) & 0xFFFFU) << 16U) | (((MINOR) & 0xFFFFU) << 0U))
-#define PVRVERSION_UNPACK_MAJ(VERSION) (((VERSION) >> 16U) & 0xFFFFU)
-#define PVRVERSION_UNPACK_MIN(VERSION) (((VERSION) >> 0U) & 0xFFFFU)
+#else
+#define MAX_HW_TIME_US                           (500000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1500)//(100000)
+#define EVENT_OBJECT_TIMEOUT_US                  (100000)
+#endif
 
-#endif /* PVRVERSION_H */
+#define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
+#define WAIT_TRY_COUNT                           (10000)
+
+#endif /* !defined(SYSINFO_H) */

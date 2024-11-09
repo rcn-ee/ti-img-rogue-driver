@@ -1,6 +1,6 @@
 ########################################################################### ###
 #@File
-#@Title         Set the default window system to Wayland
+#@Title         Build Mesa support libraries only
 #@Copyright     Copyright (c) Imagination Technologies Ltd. All Rights Reserved
 #@License       Dual MIT/GPLv2
 #
@@ -40,5 +40,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
-WINDOW_SYSTEM ?= wayland
-MESA_EGL ?= 1
+ifeq ($(SUPPORT_COMPUTE_ONLY),)
+ COMPONENTS += pvr_dri_support
+endif

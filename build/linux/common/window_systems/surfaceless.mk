@@ -1,7 +1,9 @@
 ########################################################################### ###
-#@File
-#@Title         Set the default window system to Wayland
+#@File          surfaceless.mk
+#@Title         Specify Surfaceless WS components
 #@Copyright     Copyright (c) Imagination Technologies Ltd. All Rights Reserved
+#@Description   For Surfaceless WS driver builds, pull in Surfaceless DRM WS
+#               related components.
 #@License       Dual MIT/GPLv2
 #
 # The contents of this file are subject to the MIT license as set out below.
@@ -40,5 +42,9 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
 
-WINDOW_SYSTEM ?= wayland
-MESA_EGL ?= 1
+ifeq ($(SUPPORT_COMPUTE_ONLY),)
+ include ../common/window_systems/lws-generic.mk
+
+ LWS_COMPONENTS += lws
+ SUPPORT_BUILD_LWS ?= 1
+endif

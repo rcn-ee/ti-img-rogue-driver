@@ -1,6 +1,5 @@
 ########################################################################### ###
 #@File
-#@Title         Set the default window system to Wayland
 #@Copyright     Copyright (c) Imagination Technologies Ltd. All Rights Reserved
 #@License       Dual MIT/GPLv2
 #
@@ -39,6 +38,8 @@
 # IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 ### ###########################################################################
+$(PVRSRV_MODNAME)-y += \
+	services/system/$(PVR_SYSTEM)/sysconfig.o
 
-WINDOW_SYSTEM ?= wayland
-MESA_EGL ?= 1
+ccflags-y += \
+	-I$(TOP)/services/system/rogue/common/env/linux

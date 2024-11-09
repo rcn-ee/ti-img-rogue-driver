@@ -1,8 +1,5 @@
 /*************************************************************************/ /*!
-@File           pvrversion.h
-@Title          PowerVR version numbers and strings.
 @Copyright      Copyright (c) Imagination Technologies Ltd. All Rights Reserved
-@Description    Version numbers and strings for PowerVR components.
 @License        Dual MIT/GPLv2
 
 The contents of this file are subject to the MIT license as set out below.
@@ -39,30 +36,47 @@ PURPOSE AND NONINFRINGEMENT; AND (B) IN NO EVENT SHALL THE AUTHORS OR
 COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+@Copyright      Portions Copyright (c) Synopsys Ltd. All Rights Reserved
+@License        Synopsys Permissive License
+
+The Synopsys Software Driver and documentation (hereinafter "Software")
+is an unsupported proprietary work of Synopsys, Inc. unless otherwise
+expressly agreed to in writing between  Synopsys and you.
+
+The Software IS NOT an item of Licensed Software or Licensed Product under
+any End User Software License Agreement or Agreement for Licensed Product
+with Synopsys or any supplement thereto.  Permission is hereby granted,
+free of charge, to any person obtaining a copy of this software annotated
+with this license and the Software, to deal in the Software without
+restriction, including without limitation the rights to use, copy, modify,
+merge, publish, distribute, sublicense, and/or sell copies of the Software,
+and to permit persons to whom the Software is furnished to do so, subject
+to the following conditions:
+
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+
+THIS SOFTWARE IS BEING DISTRIBUTED BY SYNOPSYS SOLELY ON AN "AS IS" BASIS
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ARE HEREBY DISCLAIMED. IN NO EVENT SHALL SYNOPSYS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT     LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
+SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
+OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
+DAMAGE.
 */ /**************************************************************************/
+#ifndef _HDMI_PHY_H_
+#define _HDMI_PHY_H_
 
-#ifndef PVRVERSION_H
-#define PVRVERSION_H
+#include "hdmi.h"
 
-#define PVRVERSION_MAJ               24U
-#define PVRVERSION_MIN               2U
+int phy_init(struct hdmi_device *hdmi);
+int phy_power_down(struct hdmi_device *hdmi);
+int phy_wait_lock(struct hdmi_device *hdmi);
+void phy_configure_mode(struct hdmi_device *hdmi, struct drm_display_mode *mode);
 
-#define PVRVERSION_FAMILY           "rogueddk"
-#define PVRVERSION_BRANCHNAME       "24.2"
-#define PVRVERSION_BUILD             6643903
-#define PVRVERSION_BSCONTROL        "Rogue_DDK_Linux_WS"
-
-#define PVRVERSION_STRING           "Rogue_DDK_Linux_WS rogueddk 24.2@6643903"
-#define PVRVERSION_STRING_SHORT     "24.2@6643903"
-
-#define COPYRIGHT_TXT               "Copyright (c) Imagination Technologies Ltd. All Rights Reserved."
-
-#define PVRVERSION_BUILD_HI          664
-#define PVRVERSION_BUILD_LO          3903
-#define PVRVERSION_STRING_NUMERIC   "24.2.664.3903"
-
-#define PVRVERSION_PACK(MAJOR,MINOR) (((IMG_UINT32)((IMG_UINT32)(MAJOR) & 0xFFFFU) << 16U) | (((MINOR) & 0xFFFFU) << 0U))
-#define PVRVERSION_UNPACK_MAJ(VERSION) (((VERSION) >> 16U) & 0xFFFFU)
-#define PVRVERSION_UNPACK_MIN(VERSION) (((VERSION) >> 0U) & 0xFFFFU)
-
-#endif /* PVRVERSION_H */
+#endif
