@@ -46,76 +46,67 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "devicemem_server.h"
 
 PVRSRV_ERROR PDumpGetValidRegion(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                 DEVMEM_MEMDESC *psMemDesc,
-                                 IMG_UINT32 uiSize,
-                                 DLLIST_NODE *psRegionList)
+				 DEVMEM_MEMDESC *psMemDesc, IMG_UINT32 uiSize,
+				 DLLIST_NODE *psRegionList)
 {
-	IMG_DEV_VIRTADDR sDevAddrStart = psMemDesc->psImport->sDeviceImport.sDevVAddr;
+	IMG_DEV_VIRTADDR sDevAddrStart =
+		psMemDesc->psImport->sDeviceImport.sDevVAddr;
 	sDevAddrStart.uiAddr += psMemDesc->uiOffset;
 
 	return DevmemIntPDumpGetValidRegions(
 		GetBridgeHandle(psMemDesc->psImport->hDevConnection),
 		psDeviceNode,
-		psMemDesc->psImport->sDeviceImport.psHeap->psCtx->hDevMemServerContext,
-		sDevAddrStart,
-		uiSize,
-		psRegionList
-	);
+		psMemDesc->psImport->sDeviceImport.psHeap->psCtx
+			->hDevMemServerContext,
+		sDevAddrStart, uiSize, psRegionList);
 }
 
 void PDumpSaveToFileVirtual(PVRSRV_DEVICE_NODE *psDeviceNode,
-                            DEVMEM_MEMDESC *psMemDesc,
-                            DLLIST_NODE *psRegionList,
-                            const IMG_CHAR *pszFileName,
-                            IMG_UINT32 uiPDumpFlags)
+			    DEVMEM_MEMDESC *psMemDesc,
+			    DLLIST_NODE *psRegionList,
+			    const IMG_CHAR *pszFileName,
+			    IMG_UINT32 uiPDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
 	eError = DevmemIntPDumpSaveFromRegionListToFileVirtual(
 		GetBridgeHandle(psMemDesc->psImport->hDevConnection),
 		psDeviceNode,
-		psMemDesc->psImport->sDeviceImport.psHeap->psCtx->hDevMemServerContext,
-		psRegionList,
-		pszFileName,
-		0,
-		uiPDumpFlags
-	);
-	PVR_LOG_IF_ERROR(eError, "DevmemIntPDumpSaveFromRegionListToFileVirtual");
+		psMemDesc->psImport->sDeviceImport.psHeap->psCtx
+			->hDevMemServerContext,
+		psRegionList, pszFileName, 0, uiPDumpFlags);
+	PVR_LOG_IF_ERROR(eError,
+			 "DevmemIntPDumpSaveFromRegionListToFileVirtual");
 
 	/* If PDump was rejected for this device, suppress silently */
-	if (eError != PVRSRV_ERROR_PDUMP_CAPTURE_BOUND_TO_ANOTHER_DEVICE)
-	{
+	if (eError != PVRSRV_ERROR_PDUMP_CAPTURE_BOUND_TO_ANOTHER_DEVICE) {
 		PVR_ASSERT(eError == PVRSRV_OK);
 	}
 }
 
 void PDumpSaveToFileVirtualNoValidate(PVRSRV_DEVICE_NODE *psDeviceNode,
-                                      DEVMEM_MEMDESC *psMemDesc,
-                                      IMG_DEVMEM_OFFSET_T uiOffset,
-                                      IMG_UINT32 uiSize,
-                                      const IMG_CHAR *pszFileName,
-                                      IMG_UINT32 uiFileOffset,
-                                      IMG_UINT32 uiPDumpFlags)
+				      DEVMEM_MEMDESC *psMemDesc,
+				      IMG_DEVMEM_OFFSET_T uiOffset,
+				      IMG_UINT32 uiSize,
+				      const IMG_CHAR *pszFileName,
+				      IMG_UINT32 uiFileOffset,
+				      IMG_UINT32 uiPDumpFlags)
 {
 	PVRSRV_ERROR eError;
-	IMG_DEV_VIRTADDR sDevAddrStart = psMemDesc->psImport->sDeviceImport.sDevVAddr;
+	IMG_DEV_VIRTADDR sDevAddrStart =
+		psMemDesc->psImport->sDeviceImport.sDevVAddr;
 
 	sDevAddrStart.uiAddr += psMemDesc->uiOffset + uiOffset;
 
 	eError = DevmemIntPDumpSaveToFileVirtualNoValidate(
 		psDeviceNode,
-		psMemDesc->psImport->sDeviceImport.psHeap->psCtx->hDevMemServerContext,
-		sDevAddrStart,
-		uiSize,
-		pszFileName,
-		uiFileOffset,
-		uiPDumpFlags
-	);
+		psMemDesc->psImport->sDeviceImport.psHeap->psCtx
+			->hDevMemServerContext,
+		sDevAddrStart, uiSize, pszFileName, uiFileOffset, uiPDumpFlags);
 	PVR_LOG_IF_ERROR(eError, "DevmemIntPDumpSaveToFileVirtualNoValidate");
 
 	/* If PDump was rejected for this device, suppress silently */
-	if (eError != PVRSRV_ERROR_PDUMP_CAPTURE_BOUND_TO_ANOTHER_DEVICE)
-	{
+	if (eError != PVRSRV_ERROR_PDUMP_CAPTURE_BOUND_TO_ANOTHER_DEVICE) {
 		PVR_ASSERT(eError == PVRSRV_OK);
 	}
 }

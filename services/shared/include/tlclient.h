@@ -44,17 +44,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #ifndef TLCLIENT_H
 #define TLCLIENT_H
 
-
 #include "img_defs.h"
 #include "pvrsrv_tlcommon.h"
 #include "pvrsrv_error.h"
 
-
 /* This value is used for the hSrvHandle argument in the client API when
  * called directly from the kernel which will lead to a direct bridge access.
  */
-#define DIRECT_BRIDGE_HANDLE	((IMG_HANDLE)0xDEADBEEFU)
-
+#define DIRECT_BRIDGE_HANDLE ((IMG_HANDLE)0xDEADBEEFU)
 
 /*************************************************************************/ /*!
  @Function      TLClientOpenStream
@@ -73,10 +70,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 IMG_INTERNAL
 PVRSRV_ERROR TLClientOpenStream(SHARED_DEV_CONNECTION hDevConnection,
-		const IMG_CHAR* pszName,
-		IMG_UINT32   ui32Mode,
-		IMG_HANDLE*  phSD);
-
+				const IMG_CHAR *pszName, IMG_UINT32 ui32Mode,
+				IMG_HANDLE *phSD);
 
 /*************************************************************************/ /*!
  @Function      TLClientCloseStream
@@ -91,7 +86,7 @@ PVRSRV_ERROR TLClientOpenStream(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientCloseStream(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD);
+				 IMG_HANDLE hSD);
 
 /*************************************************************************/ /*!
  @Function      TLClientDiscoverStreams
@@ -107,10 +102,11 @@ PVRSRV_ERROR TLClientCloseStream(SHARED_DEV_CONNECTION hDevConnection,
  @Return        PVRSRV_ERROR    for system codes
 */ /**************************************************************************/
 IMG_INTERNAL
-PVRSRV_ERROR TLClientDiscoverStreams(SHARED_DEV_CONNECTION hDevConnection,
-		const IMG_CHAR *pszNamePattern,
-		IMG_CHAR aszStreams[][PRVSRVTL_MAX_STREAM_NAME_SIZE],
-		IMG_UINT32 *pui32NumFound);
+PVRSRV_ERROR
+TLClientDiscoverStreams(SHARED_DEV_CONNECTION hDevConnection,
+			const IMG_CHAR *pszNamePattern,
+			IMG_CHAR aszStreams[][PRVSRVTL_MAX_STREAM_NAME_SIZE],
+			IMG_UINT32 *pui32NumFound);
 
 /*************************************************************************/ /*!
  @Function      TLClientReserveStream
@@ -124,9 +120,8 @@ PVRSRV_ERROR TLClientDiscoverStreams(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReserveStream(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT8 **ppui8Data,
-		IMG_UINT32 ui32Size);
+				   IMG_HANDLE hSD, IMG_UINT8 **ppui8Data,
+				   IMG_UINT32 ui32Size);
 
 /*************************************************************************/ /*!
  @Function      TLClientStreamReserve2
@@ -142,11 +137,9 @@ PVRSRV_ERROR TLClientReserveStream(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReserveStream2(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT8 **ppui8Data,
-		IMG_UINT32 ui32Size,
-		IMG_UINT32 ui32SizeMin,
-		IMG_UINT32 *pui32Available);
+				    IMG_HANDLE hSD, IMG_UINT8 **ppui8Data,
+				    IMG_UINT32 ui32Size, IMG_UINT32 ui32SizeMin,
+				    IMG_UINT32 *pui32Available);
 
 /*************************************************************************/ /*!
  @Function      TLClientStreamCommit
@@ -161,8 +154,7 @@ PVRSRV_ERROR TLClientReserveStream2(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientCommitStream(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT32 ui32Size);
+				  IMG_HANDLE hSD, IMG_UINT32 ui32Size);
 
 /*************************************************************************/ /*!
  @Function      TLClientAcquireData
@@ -190,10 +182,8 @@ PVRSRV_ERROR TLClientCommitStream(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientAcquireData(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE  hSD,
-		IMG_PBYTE*  ppPacketBuf,
-		IMG_UINT32* puiBufLen);
-
+				 IMG_HANDLE hSD, IMG_PBYTE *ppPacketBuf,
+				 IMG_UINT32 *puiBufLen);
 
 /*************************************************************************/ /*!
  @Function      TLClientReleaseData
@@ -210,7 +200,7 @@ PVRSRV_ERROR TLClientAcquireData(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReleaseData(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD);
+				 IMG_HANDLE hSD);
 
 /*************************************************************************/ /*!
  @Function      TLClientReleaseDataLess
@@ -233,7 +223,8 @@ PVRSRV_ERROR TLClientReleaseData(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientReleaseDataLess(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD, IMG_UINT32 uiActualReadLen);
+				     IMG_HANDLE hSD,
+				     IMG_UINT32 uiActualReadLen);
 
 /*************************************************************************/ /*!
  @Function      TLClientWriteData
@@ -245,10 +236,8 @@ PVRSRV_ERROR TLClientReleaseDataLess(SHARED_DEV_CONNECTION hDevConnection,
 */ /**************************************************************************/
 IMG_INTERNAL
 PVRSRV_ERROR TLClientWriteData(SHARED_DEV_CONNECTION hDevConnection,
-		IMG_HANDLE hSD,
-		IMG_UINT32 ui32Size,
-		IMG_BYTE *pui8Data);
-
+			       IMG_HANDLE hSD, IMG_UINT32 ui32Size,
+			       IMG_BYTE *pui8Data);
 
 #endif /* TLCLIENT_H */
 

@@ -86,11 +86,11 @@ DAMAGE.
 #include <linux/interrupt.h>
 #include <linux/irq.h>
 
+#define DRVNAME "plato_hdmi"
+#define HDMI_MAX_COMMANDS_INFLIGHT (2)
 
-#define DRVNAME	"plato_hdmi"
-#define HDMI_MAX_COMMANDS_INFLIGHT    (2)
-
-typedef PVRSRV_ERROR (*PFN_PDP_INIT)(VIDEO_PARAMS * pVideoParams, IMG_UINT32 uiInstance);
+typedef PVRSRV_ERROR (*PFN_PDP_INIT)(VIDEO_PARAMS *pVideoParams,
+				     IMG_UINT32 uiInstance);
 
 /*************************************************************************/ /*!
  PCI Device Information
@@ -102,49 +102,46 @@ typedef PVRSRV_ERROR (*PFN_PDP_INIT)(VIDEO_PARAMS * pVideoParams, IMG_UINT32 uiI
  HDMI data structures
 */ /**************************************************************************/
 
-typedef struct HDMI_MODULE_PARAMETERS_TAG
-{
-	IMG_UINT32	ui32HDMIEnabled;
+typedef struct HDMI_MODULE_PARAMETERS_TAG {
+	IMG_UINT32 ui32HDMIEnabled;
 } HDMI_MODULE_PARAMETERS;
 
 const HDMI_MODULE_PARAMETERS *HDMIGetModuleParameters(void);
 
-typedef struct HDMI_DEVICE
-{
-	IMG_HANDLE                  hPVRServicesConnection;
-	IMG_HANDLE                  hPVRServicesDevice;
-	IMG_HANDLE                  hLISRData;
-	DC_SERVICES_FUNCS           sPVRServicesFuncs;
-	DC_SPINLOCK                 irqLock;
-	struct delayed_work         delayedWork;
-	void                        *pvDevice;
+typedef struct HDMI_DEVICE {
+	IMG_HANDLE hPVRServicesConnection;
+	IMG_HANDLE hPVRServicesDevice;
+	IMG_HANDLE hLISRData;
+	DC_SERVICES_FUNCS sPVRServicesFuncs;
+	DC_SPINLOCK irqLock;
+	struct delayed_work delayedWork;
+	void *pvDevice;
 
-	IMG_CPU_PHYADDR             sHDMIRegCpuPAddr;
-	IMG_CPU_VIRTADDR            pvHDMIRegCpuVAddr;
+	IMG_CPU_PHYADDR sHDMIRegCpuPAddr;
+	IMG_CPU_VIRTADDR pvHDMIRegCpuVAddr;
 
-	IMG_CPU_PHYADDR             sTopRegCpuPAddr;
-	IMG_CPU_VIRTADDR            pvTopRegCpuVAddr;
+	IMG_CPU_PHYADDR sTopRegCpuPAddr;
+	IMG_CPU_VIRTADDR pvTopRegCpuVAddr;
 
-	VIDEO_PARAMS                videoParams;
+	VIDEO_PARAMS videoParams;
 
-	IMG_BOOL                    mInitialized;
-	IMG_BOOL                    bHPD;
+	IMG_BOOL mInitialized;
+	IMG_BOOL bHPD;
 
 	/* Callback for PDP */
-	PFN_PDP_INIT                pfnPDPInitialize;
+	PFN_PDP_INIT pfnPDPInitialize;
 
 	/* Plato core and PLL clock speeds */
-	IMG_UINT32                  ui32CoreClockSpeed;
-	IMG_UINT32                  ui32PLLClockSpeed;
+	IMG_UINT32 ui32CoreClockSpeed;
+	IMG_UINT32 ui32PLLClockSpeed;
 
 	/* Doubly linked list of device units */
-	DLLIST_NODE                 sListNode;
-	struct dentry               *psDebugFSEntryDir;     /* 'plato_hdmi' entry */
-	struct dentry               *psDisplayEnabledEntry; /* 'display_enabled' entry */
-	IMG_UINT32                  ui32Instance;           /* device instance */
-	IMG_BOOL                    bHDMIEnabled;           /* state of 'display_enabled' */
+	DLLIST_NODE sListNode;
+	struct dentry *psDebugFSEntryDir; /* 'plato_hdmi' entry */
+	struct dentry *psDisplayEnabledEntry; /* 'display_enabled' entry */
+	IMG_UINT32 ui32Instance; /* device instance */
+	IMG_BOOL bHDMIEnabled; /* state of 'display_enabled' */
 } HDMI_DEVICE;
-
 
 /*******************************************************************************
  * HDMI common functions
@@ -159,9 +156,10 @@ void HDMIDrvDeInit(HDMI_DEVICE *psDeviceData);
 #if defined(PLATO_DISPLAY_PDUMP)
 #include "plato_pdump.h"
 
-static void HDMIPdumpReg32(void *pvLinRegBaseAddr, IMG_UINT32 ui32Offset, IMG_UINT32 ui32Value)
+static void HDMIPdumpReg32(void *pvLinRegBaseAddr, IMG_UINT32 ui32Offset,
+			   IMG_UINT32 ui32Value)
 {
-	OSWriteHWReg32(pvLinRegBaseAddr,  ui32Offset,  ui32Value);
+	OSWriteHWReg32(pvLinRegBaseAddr, ui32Offset, ui32Value);
 	plato_pdump_reg32(pvLinRegBaseAddr, ui32Offset, ui32Value, DRVNAME);
 }
 
@@ -169,70 +167,72 @@ static void HDMIPdumpReg32(void *pvLinRegBaseAddr, IMG_UINT32 ui32Offset, IMG_UI
 
 #define DC_OSWriteReg32 HDMIPdumpReg32
 
-#define polpr(base,reg,val,msk,cnt,intrvl) \
-	plato_pdump_pol(base,reg,val,msk, DRVNAME); \
-	do { \
-		IMG_UINT32 polnum; \
-		for (polnum = 0; polnum < cnt; polnum++) \
-		{ \
-			if ((DC_OSReadReg32(base, reg) & msk) == val) \
-			{ \
-				break; \
-			} \
-			DC_OSDelayus(intrvl * 1000); \
-		} \
-		if (polnum == cnt) \
-		{ \
-			HDMI_DEBUG_PRINT(" Poll failed for register: 0x%08X", (unsigned int)reg); \
-		} \
+#define polpr(base, reg, val, msk, cnt, intrvl)                               \
+	plato_pdump_pol(base, reg, val, msk, DRVNAME);                        \
+	do {                                                                  \
+		IMG_UINT32 polnum;                                            \
+		for (polnum = 0; polnum < cnt; polnum++) {                    \
+			if ((DC_OSReadReg32(base, reg) & msk) == val) {       \
+				break;                                        \
+			}                                                     \
+			DC_OSDelayus(intrvl * 1000);                          \
+		}                                                             \
+		if (polnum == cnt) {                                          \
+			HDMI_DEBUG_PRINT(" Poll failed for register: 0x%08X", \
+					 (unsigned int)reg);                  \
+		}                                                             \
 	} while (0)
 #else
-#define polpr(base,reg,val,msk,cnt,intrvl) \
-	do { \
-		IMG_UINT32 polnum; \
-		for (polnum = 0; polnum < cnt; polnum++) \
-		{ \
-			if ((DC_OSReadReg32(base, reg) & msk) == val) \
-			{ \
-				break; \
-			} \
-			DC_OSDelayus(intrvl * 1000); \
-		} \
-		if (polnum == cnt) \
-		{ \
-			HDMI_DEBUG_PRINT(" Poll failed for register: 0x%08X", (unsigned int)reg); \
-		} \
+#define polpr(base, reg, val, msk, cnt, intrvl)                               \
+	do {                                                                  \
+		IMG_UINT32 polnum;                                            \
+		for (polnum = 0; polnum < cnt; polnum++) {                    \
+			if ((DC_OSReadReg32(base, reg) & msk) == val) {       \
+				break;                                        \
+			}                                                     \
+			DC_OSDelayus(intrvl * 1000);                          \
+		}                                                             \
+		if (polnum == cnt) {                                          \
+			HDMI_DEBUG_PRINT(" Poll failed for register: 0x%08X", \
+					 (unsigned int)reg);                  \
+		}                                                             \
 	} while (0)
 #endif // PLATO_DISPLAY_PDUMP
 
+#define HDMI_REG_POLL(base, reg, val, msk) \
+	polpr(base, reg * 4, val, msk, 10, 10)
+#define TOP_REG_POLL(base, reg, val, msk) polpr(base, reg, val, msk, 10, 10)
 
-#define HDMI_REG_POLL(base,reg,val,msk) polpr(base,reg*4,val,msk,10,10)
-#define TOP_REG_POLL(base,reg,val,msk) polpr(base,reg,val,msk,10,10)
-
-
-#define CHECK_AND_EXIT(status, label) if (status != PVRSRV_OK) goto label;
+#define CHECK_AND_EXIT(status, label) \
+	if (status != PVRSRV_OK)      \
+		goto label;
 #define IS_BIT_SET(value, bit) (value & (1 << bit))
 
 #if !defined(VIRTUAL_PLATFORM)
 #if defined(HDMI_DEBUG)
-	#define HDMI_CHECKPOINT HDMI_DEBUG_PRINT(" CP: - %s, line %d\n", __func__, __LINE__);
-	#define HDMI_DEBUG_PRINT(fmt, ...) \
-		DC_OSDebugPrintf(DBGLVL_INFO, fmt, __VA_ARGS__)
+#define HDMI_CHECKPOINT \
+	HDMI_DEBUG_PRINT(" CP: - %s, line %d\n", __func__, __LINE__);
+#define HDMI_DEBUG_PRINT(fmt, ...) \
+	DC_OSDebugPrintf(DBGLVL_INFO, fmt, __VA_ARGS__)
 
-	#define HDMI_WRITE_CORE_REG(base, offset, value) \
-		DC_OSWriteReg32(base, offset * 4, value);
+#define HDMI_WRITE_CORE_REG(base, offset, value) \
+	DC_OSWriteReg32(base, offset * 4, value);
 
 #else
-	#define HDMI_CHECKPOINT
-	#define HDMI_DEBUG_PRINT(fmt, ...)
-	#define HDMI_WRITE_CORE_REG(base, offset, value) DC_OSWriteReg32(base, offset * 4, value);
+#define HDMI_CHECKPOINT
+#define HDMI_DEBUG_PRINT(fmt, ...)
+#define HDMI_WRITE_CORE_REG(base, offset, value) \
+	DC_OSWriteReg32(base, offset * 4, value);
 #endif
 
 #define HDMI_READ_CORE_REG(base, offset) DC_OSReadReg32(base, offset * 4)
-#define HDMI_READ_MOD_WRITE(base, offset, value) HDMI_WRITE_CORE_REG(base, offset, (HDMI_READ_CORE_REG(base,offset) | value))
+#define HDMI_READ_MOD_WRITE(base, offset, value) \
+	HDMI_WRITE_CORE_REG(base, offset,        \
+			    (HDMI_READ_CORE_REG(base, offset) | value))
 #else /* VIRTUAL_PLATFORM */
 
-#define HDMI_CHECKPOINT HDMI_DEBUG_PRINT(" CP: - %s, line %d\n", __func__, __LINE__);
+#define HDMI_CHECKPOINT \
+	HDMI_DEBUG_PRINT(" CP: - %s, line %d\n", __func__, __LINE__);
 #define HDMI_DEBUG_PRINT(fmt, ...) \
 	DC_OSDebugPrintf(DBGLVL_INFO, fmt, __VA_ARGS__)
 #define HDMI_WRITE_CORE_REG(base, offset, value)

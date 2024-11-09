@@ -69,8 +69,7 @@ static IMG_BOOL bAtomicsInitialised = IMG_FALSE;
 
 void RGXBridgeDriverInit(void)
 {
-	if (!bAtomicsInitialised)
-	{
+	if (!bAtomicsInitialised) {
 		bAtomicsInitialised = IMG_TRUE;
 		OSAtomicWrite(&i32RGXCMPBridgeRefCt, 0);
 		OSAtomicWrite(&i32RGXTQ2BridgeRefCt, 0);
@@ -84,32 +83,25 @@ PVRSRV_ERROR RGXRegisterBridges(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
 	PVRSRV_ERROR eError;
 
-	if (!bAtomicsInitialised)
-	{
+	if (!bAtomicsInitialised) {
 		eError = PVRSRV_ERROR_NOT_INITIALISED;
 		PVR_LOG_RETURN_IF_ERROR(eError, "RGXBridgeRefCts");
 	}
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))
-	{
-		if (OSAtomicIncrement(&i32RGXCMPBridgeRefCt) == 1)
-		{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE)) {
+		if (OSAtomicIncrement(&i32RGXCMPBridgeRefCt) == 1) {
 			eError = InitRGXCMPBridge();
-			if (eError != PVRSRV_OK)
-			{
+			if (eError != PVRSRV_OK) {
 				OSAtomicDecrement(&i32RGXCMPBridgeRefCt);
 			}
 			PVR_LOG_RETURN_IF_ERROR(eError, "InitRGXCMPBridge");
 		}
 	}
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM))
-	{
-		if (OSAtomicIncrement(&i32RGXTQ2BridgeRefCt) == 1)
-		{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM)) {
+		if (OSAtomicIncrement(&i32RGXTQ2BridgeRefCt) == 1) {
 			eError = InitRGXTQ2Bridge();
-			if (eError != PVRSRV_OK)
-			{
+			if (eError != PVRSRV_OK) {
 				OSAtomicDecrement(&i32RGXTQ2BridgeRefCt);
 			}
 			PVR_LOG_RETURN_IF_ERROR(eError, "InitRGXTQ2Bridge");
@@ -118,13 +110,10 @@ PVRSRV_ERROR RGXRegisterBridges(PVRSRV_RGXDEV_INFO *psDevInfo)
 
 #if defined(SUPPORT_RGXRAY_BRIDGE)
 	if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, RAY_TRACING_ARCH) &&
-		RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0)
-	{
-		if (OSAtomicIncrement(&i32RGXRayBridgeRefCt) == 1)
-		{
+	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0) {
+		if (OSAtomicIncrement(&i32RGXRayBridgeRefCt) == 1) {
 			eError = InitRGXRAYBridge();
-			if (eError != PVRSRV_OK)
-			{
+			if (eError != PVRSRV_OK) {
 				OSAtomicDecrement(&i32RGXRayBridgeRefCt);
 			}
 			PVR_LOG_RETURN_IF_ERROR(eError, "InitRGXRAYBridge");
@@ -137,28 +126,22 @@ PVRSRV_ERROR RGXRegisterBridges(PVRSRV_RGXDEV_INFO *psDevInfo)
 
 void RGXUnregisterBridges(PVRSRV_RGXDEV_INFO *psDevInfo)
 {
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE))
-	{
-		if (OSAtomicDecrement(&i32RGXCMPBridgeRefCt) == 0)
-		{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, COMPUTE)) {
+		if (OSAtomicDecrement(&i32RGXCMPBridgeRefCt) == 0) {
 			DeinitRGXCMPBridge();
 		}
 	}
 
-	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM))
-	{
-		if (OSAtomicDecrement(&i32RGXTQ2BridgeRefCt) == 0)
-		{
+	if (RGX_IS_FEATURE_SUPPORTED(psDevInfo, FASTRENDER_DM)) {
+		if (OSAtomicDecrement(&i32RGXTQ2BridgeRefCt) == 0) {
 			DeinitRGXTQ2Bridge();
 		}
 	}
 
 #if defined(SUPPORT_RGXRAY_BRIDGE)
 	if (RGX_IS_FEATURE_VALUE_SUPPORTED(psDevInfo, RAY_TRACING_ARCH) &&
-		RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0)
-	{
-		if (OSAtomicDecrement(&i32RGXRayBridgeRefCt) == 0)
-		{
+	    RGX_GET_FEATURE_VALUE(psDevInfo, RAY_TRACING_ARCH) > 0) {
+		if (OSAtomicDecrement(&i32RGXRayBridgeRefCt) == 0) {
 			DeinitRGXRAYBridge();
 		}
 	}

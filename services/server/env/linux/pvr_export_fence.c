@@ -84,13 +84,14 @@ struct pvr_exp_fence {
 	do {                                                             \
 		if (pfnDumpDebugPrintf)                                  \
 			pfnDumpDebugPrintf(pvDumpDebugFile, fmt,         \
-					   ## __VA_ARGS__);              \
+					   ##__VA_ARGS__);               \
 		else                                                     \
-			pr_err(fmt "\n", ## __VA_ARGS__);                \
+			pr_err(fmt "\n", ##__VA_ARGS__);                 \
 	} while (0)
 
 static inline bool
-pvr_exp_fence_sync_is_signaled(struct pvr_exp_fence *exp_fence, u32 fence_sync_flags)
+pvr_exp_fence_sync_is_signaled(struct pvr_exp_fence *exp_fence,
+			       u32 fence_sync_flags)
 {
 	if (exp_fence->checkpoint_handle) {
 		return SyncCheckpointIsSignalled(exp_fence->checkpoint_handle,
@@ -105,7 +106,7 @@ const char *pvr_exp_fence_context_name(struct pvr_exp_fence_context *fctx)
 }
 
 void pvr_exp_fence_context_value_str(struct pvr_exp_fence_context *fctx,
-				    char *str, int size)
+				     char *str, int size)
 {
 	snprintf(str, size, "%d", atomic_read(&fctx->seqno));
 }
@@ -121,7 +122,7 @@ pvr_exp_fence_context_fences_dump(struct pvr_exp_fence_context *fctx,
 	spin_lock_irqsave(&fctx->list_lock, flags);
 	pvr_exp_fence_context_value_str(fctx, value, sizeof(value));
 	PVR_DUMPDEBUG_LOG(pfnDumpDebugPrintf, pvDumpDebugFile,
-			 "exp_fence_ctx: @%s", value);
+			  "exp_fence_ctx: @%s", value);
 	spin_unlock_irqrestore(&fctx->list_lock, flags);
 }
 
@@ -134,10 +135,10 @@ pvr_exp_fence_context_seqno_next(struct pvr_exp_fence_context *fence_context)
 		return 0xfeedface;
 }
 
-static void
-pvr_exp_fence_context_signal_fences(void *data)
+static void pvr_exp_fence_context_signal_fences(void *data)
 {
-	struct pvr_exp_fence_context *fctx = (struct pvr_exp_fence_context *)data;
+	struct pvr_exp_fence_context *fctx =
+		(struct pvr_exp_fence_context *)data;
 	struct pvr_exp_fence *pvr_exp_fence, *tmp;
 	unsigned long flags1;
 	int chkpt_ct = 0;
@@ -157,19 +158,26 @@ pvr_exp_fence_context_signal_fences(void *data)
 	 * queue.
 	 */
 	spin_lock_irqsave(&fctx->list_lock, flags1);
-	list_for_each_entry_safe(pvr_exp_fence, tmp, &fctx->signal_list, signal_head) {
+	list_for_each_entry_safe(pvr_exp_fence, tmp, &fctx->signal_list,
+				 signal_head) {
 		chkpt_ct++;
-		if (pvr_exp_fence_sync_is_signaled(pvr_exp_fence, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT)) {
+		if (pvr_exp_fence_sync_is_signaled(
+			    pvr_exp_fence,
+			    PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT)) {
 			chkpt_sig_ct++;
-			list_move_tail(&pvr_exp_fence->signal_head, &signal_list);
+			list_move_tail(&pvr_exp_fence->signal_head,
+				       &signal_list);
 		}
 	}
 	spin_unlock_irqrestore(&fctx->list_lock, flags1);
 
-	list_for_each_entry_safe(pvr_exp_fence, tmp, &signal_list, signal_head) {
-		spin_lock_irqsave(&pvr_exp_fence->fence_context->list_lock, flags1);
+	list_for_each_entry_safe(pvr_exp_fence, tmp, &signal_list,
+				 signal_head) {
+		spin_lock_irqsave(&pvr_exp_fence->fence_context->list_lock,
+				  flags1);
 		list_del(&pvr_exp_fence->signal_head);
-		spin_unlock_irqrestore(&pvr_exp_fence->fence_context->list_lock, flags1);
+		spin_unlock_irqrestore(&pvr_exp_fence->fence_context->list_lock,
+				       flags1);
 		dma_fence_signal(pvr_exp_fence->fence);
 		dma_fence_put(pvr_exp_fence->fence);
 	}
@@ -195,18 +203,20 @@ static const char *pvr_exp_fence_get_timeline_name(struct dma_fence *fence)
 		return "***NO_TIMELINE***";
 }
 
-static void pvr_exp_fence_value_str(struct dma_fence *fence, char *str, int size)
+static void pvr_exp_fence_value_str(struct dma_fence *fence, char *str,
+				    int size)
 {
-	snprintf(str, size, "%llu", (u64) fence->seqno);
+	snprintf(str, size, "%llu", (u64)fence->seqno);
 }
 
-static void pvr_exp_fence_timeline_value_str(struct dma_fence *fence,
-					    char *str, int size)
+static void pvr_exp_fence_timeline_value_str(struct dma_fence *fence, char *str,
+					     int size)
 {
 	struct pvr_exp_fence *pvr_exp_fence = to_pvr_exp_fence(fence);
 
 	if (pvr_exp_fence && pvr_exp_fence->fence_context)
-		pvr_exp_fence_context_value_str(pvr_exp_fence->fence_context, str, size);
+		pvr_exp_fence_context_value_str(pvr_exp_fence->fence_context,
+						str, size);
 }
 
 static bool pvr_exp_fence_enable_signaling(struct dma_fence *fence)
@@ -217,13 +227,15 @@ static bool pvr_exp_fence_enable_signaling(struct dma_fence *fence)
 	if (!exp_fence)
 		return false;
 
-	if (pvr_exp_fence_sync_is_signaled(exp_fence, PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
+	if (pvr_exp_fence_sync_is_signaled(exp_fence,
+					   PVRSRV_FENCE_FLAG_SUPPRESS_HWP_PKT))
 		return false;
 
 	dma_fence_get(&exp_fence->base);
 
 	spin_lock_irqsave(&exp_fence->fence_context->list_lock, flags);
-	list_add_tail(&exp_fence->signal_head, &exp_fence->fence_context->signal_list);
+	list_add_tail(&exp_fence->signal_head,
+		      &exp_fence->fence_context->signal_list);
 	spin_unlock_irqrestore(&exp_fence->fence_context->list_lock, flags);
 
 	return true;
@@ -255,10 +267,14 @@ static void pvr_exp_fence_release(struct dma_fence *fence)
 
 	if (pvr_exp_fence) {
 		if (pvr_exp_fence->fence_context) {
-			spin_lock_irqsave(&pvr_exp_fence->fence_context->list_lock, flags);
+			spin_lock_irqsave(
+				&pvr_exp_fence->fence_context->list_lock,
+				flags);
 			list_del(&pvr_exp_fence->fence_head);
 			atomic_dec(&pvr_exp_fence->fence_context->fence_count);
-			spin_unlock_irqrestore(&pvr_exp_fence->fence_context->list_lock, flags);
+			spin_unlock_irqrestore(
+				&pvr_exp_fence->fence_context->list_lock,
+				flags);
 
 			kref_put(&pvr_exp_fence->fence_context->kref,
 				 pvr_exp_fence_context_destroy_kref);
@@ -295,9 +311,9 @@ pvr_exp_fence_context_create(const char *context_name, const char *driver_name)
 
 	fence_context->context = dma_fence_context_alloc(1);
 	OSStringSafeCopy(fence_context->context_name, context_name,
-		sizeof(fence_context->context_name));
+			 sizeof(fence_context->context_name));
 	OSStringSafeCopy(fence_context->driver_name, driver_name,
-		sizeof(fence_context->driver_name));
+			 sizeof(fence_context->driver_name));
 	atomic_set(&fence_context->seqno, 0);
 	atomic_set(&fence_context->fence_count, 0);
 	kref_init(&fence_context->kref);
@@ -306,9 +322,9 @@ pvr_exp_fence_context_create(const char *context_name, const char *driver_name)
 	INIT_LIST_HEAD(&fence_context->signal_list);
 	INIT_LIST_HEAD(&fence_context->fence_list);
 
-	srv_err = PVRSRVRegisterCmdCompleteNotify(&fence_context->cmd_complete_handle,
-				pvr_exp_fence_context_signal_fences,
-				fence_context);
+	srv_err = PVRSRVRegisterCmdCompleteNotify(
+		&fence_context->cmd_complete_handle,
+		pvr_exp_fence_context_signal_fences, fence_context);
 	if (srv_err != PVRSRV_OK) {
 		pr_err("%s: failed to register command complete callback (%s)\n",
 		       __func__, PVRSRVGetErrorString(srv_err));
@@ -322,12 +338,14 @@ pvr_exp_fence_context_create(const char *context_name, const char *driver_name)
 void pvr_exp_fence_context_destroy(struct pvr_exp_fence_context *fence_context)
 {
 	if (fence_context) {
-		kref_put(&fence_context->kref, pvr_exp_fence_context_destroy_kref);
+		kref_put(&fence_context->kref,
+			 pvr_exp_fence_context_destroy_kref);
 	}
 }
 
 struct dma_fence *
-pvr_exp_fence_create(struct pvr_exp_fence_context *fence_context, int fd, u64 *sync_pt_idx)
+pvr_exp_fence_create(struct pvr_exp_fence_context *fence_context, int fd,
+		     u64 *sync_pt_idx)
 {
 	struct pvr_exp_fence *pvr_exp_fence;
 	unsigned long flags;
@@ -385,7 +403,7 @@ pvr_exp_fence_assign_checkpoint(PVRSRV_FENCE fence_to_resolve,
 	PVRSRV_ERROR err;
 
 	pvr_exp_fence = to_pvr_exp_fence(fence);
-	if (!pvr_exp_fence)	{
+	if (!pvr_exp_fence) {
 		pr_err("%s: Invalid fence_to_resolve\n", __func__);
 		err = PVRSRV_ERROR_INVALID_PARAMS;
 		goto err_out;
@@ -405,12 +423,13 @@ pvr_exp_fence_assign_checkpoint(PVRSRV_FENCE fence_to_resolve,
 		export_fence_fd = pvr_exp_fence->fd;
 	}
 
-	err = SyncCheckpointAlloc(checkpoint_context,
-				  PVRSRV_NO_TIMELINE, export_fence_fd,
-				  fence->ops->get_timeline_name(fence), &new_sync_checkpoint);
+	err = SyncCheckpointAlloc(checkpoint_context, PVRSRV_NO_TIMELINE,
+				  export_fence_fd,
+				  fence->ops->get_timeline_name(fence),
+				  &new_sync_checkpoint);
 	if (unlikely(err != PVRSRV_OK)) {
-		pr_err("%s: SyncCheckpointAlloc() failed (err%d)\n",
-		       __func__, err);
+		pr_err("%s: SyncCheckpointAlloc() failed (err%d)\n", __func__,
+		       err);
 		*assigned_checkpoint = NULL;
 		goto err_out;
 	}
@@ -423,8 +442,7 @@ err_out:
 	return err;
 }
 
-enum PVRSRV_ERROR_TAG
-pvr_exp_fence_rollback(struct dma_fence *fence)
+enum PVRSRV_ERROR_TAG pvr_exp_fence_rollback(struct dma_fence *fence)
 {
 	struct pvr_exp_fence *pvr_exp_fence;
 	PVRSRV_ERROR err;
@@ -466,7 +484,6 @@ pvr_exp_fence_get_checkpoint(struct pvr_exp_fence *export_fence)
 {
 	if (export_fence) {
 		return export_fence->checkpoint_handle;
-	}
-	else
+	} else
 		return NULL;
 }

@@ -45,9 +45,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "pvrsrv_error.h"
 
-#define DRVNAME	"dc_pdp"
+#define DRVNAME "dc_pdp"
 
-#define DCPDP_INTERRUPT_ID		(1)
+#define DCPDP_INTERRUPT_ID (1)
 
 #include "pdp_regs.h"
 
@@ -55,21 +55,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  dc_pdp OS functions
 */ /**************************************************************************/
 
-typedef struct DCPDP_MODULE_PARAMETERS_TAG
-{
-	IMG_UINT32  ui32PDPEnabled;
-	IMG_UINT32  ui32PDPWidth;
-	IMG_UINT32  ui32PDPHeight;
+typedef struct DCPDP_MODULE_PARAMETERS_TAG {
+	IMG_UINT32 ui32PDPEnabled;
+	IMG_UINT32 ui32PDPWidth;
+	IMG_UINT32 ui32PDPHeight;
 } DCPDP_MODULE_PARAMETERS;
 
-typedef enum DCPDP_ADDRESS_RANGE_TAG
-{
+typedef enum DCPDP_ADDRESS_RANGE_TAG {
 	DCPDP_ADDRESS_RANGE_PDP = 0,
 	DCPDP_ADDRESS_RANGE_PLL,
 } DCPDP_ADDRESS_RANGE;
 
 typedef struct DCPDP_DEVICE_PRIV_TAG DCPDP_DEVICE_PRIV;
-
 
 const DCPDP_MODULE_PARAMETERS *DCPDPGetModuleParameters(void);
 

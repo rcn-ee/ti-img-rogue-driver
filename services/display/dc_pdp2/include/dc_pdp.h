@@ -52,36 +52,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "plato_pdump.h"
 #endif
 
-#define DRVNAME	"dc_pdp2"
-
+#define DRVNAME "dc_pdp2"
 
 /*************************************************************************/ /*!
  PCI Device Information
 */ /**************************************************************************/
 
-#define DCPDP2_VENDOR_ID_PLATO			(0x1AEE)
-#define DCPDP2_DEVICE_ID_PCI_PLATO		(0x0003)
+#define DCPDP2_VENDOR_ID_PLATO (0x1AEE)
+#define DCPDP2_DEVICE_ID_PCI_PLATO (0x0003)
 
 /*************************************************************************/ /*!
  PCI Device Base Address Information
 */ /**************************************************************************/
 
 /* PDP registers on base address register 1 */
-#define DCPDP2_REG_PCI_BASENUM			(1)
+#define DCPDP2_REG_PCI_BASENUM (1)
 
-#define DCPDP2_PCI_PDP_REG_OFFSET		(0x200000)
-#define DCPDP2_PCI_PDP_REG_SIZE			(0x20000)
+#define DCPDP2_PCI_PDP_REG_OFFSET (0x200000)
+#define DCPDP2_PCI_PDP_REG_SIZE (0x20000)
 
-#define DCPDP2_BIF_REGS_OFFSET			(0x1000)
+#define DCPDP2_BIF_REGS_OFFSET (0x1000)
 /*************************************************************************/ /*!
  dc_pdp OS functions
 */ /**************************************************************************/
 
-typedef struct DCPDP_MODULE_PARAMETERS_TAG
-{
-	IMG_UINT32  ui32PDPEnabled;
-	IMG_UINT32  ui32PDPWidth;
-	IMG_UINT32  ui32PDPHeight;
+typedef struct DCPDP_MODULE_PARAMETERS_TAG {
+	IMG_UINT32 ui32PDPEnabled;
+	IMG_UINT32 ui32PDPWidth;
+	IMG_UINT32 ui32PDPHeight;
 } DCPDP_MODULE_PARAMETERS;
 
 const DCPDP_MODULE_PARAMETERS *DCPDPGetModuleParameters(void);
@@ -89,17 +87,17 @@ const DCPDP_MODULE_PARAMETERS *DCPDPGetModuleParameters(void);
 /*************************************************************************/ /*!
  dc_pdp Timing definitions
 */ /**************************************************************************/
-#define DCPDP_MAX_COMMANDS_INFLIGHT	(2)
+#define DCPDP_MAX_COMMANDS_INFLIGHT (2)
 
 /* This has to be less than or equal to the size of the type
    used for ui32BufferUseMask in the DCPDP_DEVICE structure */
-#define DCPDP_MAX_BUFFERS		(32)
+#define DCPDP_MAX_BUFFERS (32)
 
-#define DCPDP_MIN_DISPLAY_PERIOD	(0)
-#define DCPDP_MAX_DISPLAY_PERIOD	(2)
+#define DCPDP_MIN_DISPLAY_PERIOD (0)
+#define DCPDP_MAX_DISPLAY_PERIOD (2)
 
-#define DCPDP_PIXEL_FORMAT		IMG_PIXFMT_B8G8R8A8_UNORM
-#define DCPDP_PIXEL_FORMAT_BPP		(4)
+#define DCPDP_PIXEL_FORMAT IMG_PIXFMT_B8G8R8A8_UNORM
+#define DCPDP_PIXEL_FORMAT_BPP (4)
 
 // Graphics/video pixel format:
 // 00000b 8-bit indexed (greyscale if LUT turned off) [RGB]
@@ -111,25 +109,25 @@ const DCPDP_MODULE_PARAMETERS *DCPDPGetModuleParameters(void);
 // 10000b 8-bit alpha + 24-bit yuv888 [AYUV]
 // 10101b 30-bit YUV 4:4:4 YUV101010 [YUV]
 // 10110b 32-bit RGBX [RGBA]
-#define DCPDP_PIXEL_FORMAT_G		(0x00)
-#define DCPDP_PIXEL_FORMAT_ARGB4	(0x04)
-#define DCPDP_PIXEL_FORMAT_ARGB1555	(0x05)
-#define DCPDP_PIXEL_FORMAT_RGB8		(0x06)
-#define DCPDP_PIXEL_FORMAT_RGB565	(0x07)
-#define DCPDP_PIXEL_FORMAT_ARGB8	(0x08)
-#define DCPDP_PIXEL_FORMAT_AYUV8	(0x10)
-#define DCPDP_PIXEL_FORMAT_YUV10	(0x15)
-#define DCPDP_PIXEL_FORMAT_RGBA8	(0x16)
+#define DCPDP_PIXEL_FORMAT_G (0x00)
+#define DCPDP_PIXEL_FORMAT_ARGB4 (0x04)
+#define DCPDP_PIXEL_FORMAT_ARGB1555 (0x05)
+#define DCPDP_PIXEL_FORMAT_RGB8 (0x06)
+#define DCPDP_PIXEL_FORMAT_RGB565 (0x07)
+#define DCPDP_PIXEL_FORMAT_ARGB8 (0x08)
+#define DCPDP_PIXEL_FORMAT_AYUV8 (0x10)
+#define DCPDP_PIXEL_FORMAT_YUV10 (0x15)
+#define DCPDP_PIXEL_FORMAT_RGBA8 (0x16)
 
 /* Divide by 32, even though spec says to divide by 16 */
 #define PDP_GRPH1STRIDE_DIVIDE 5
 
 #ifndef DCPDP_DPI
-#define DCPDP_DPI			(160)
+#define DCPDP_DPI (160)
 #endif
 
 /* For reduced blanking displays, VEVENT needs to be right after VBBS */
-#define DCPDP_REDUCED_BLANKING_VEVENT	(1)
+#define DCPDP_REDUCED_BLANKING_VEVENT (1)
 
 /*************************************************************************/ /*!
  dc_pdp Data structures
@@ -139,174 +137,169 @@ typedef struct DCPDP_FLIP_CONFIG_TAG DCPDP_FLIP_CONFIG;
 typedef struct DCPDP_FLIP_CONTEXT_TAG DCPDP_FLIP_CONTEXT;
 typedef struct DCPDP_DEVICE_TAG DCPDP_DEVICE;
 
-typedef struct DCPDP_TIMING_DATA_TAG
-{
-	IMG_UINT32		ui32HDisplay;
-	IMG_UINT32		ui32HBackPorch;
-	IMG_UINT32		ui32HTotal;
-	IMG_UINT32		ui32HActiveStart;
-	IMG_UINT32		ui32HLeftBorder;
-	IMG_UINT32		ui32HRightBorder;
-	IMG_UINT32		ui32HFrontPorch;
+typedef struct DCPDP_TIMING_DATA_TAG {
+	IMG_UINT32 ui32HDisplay;
+	IMG_UINT32 ui32HBackPorch;
+	IMG_UINT32 ui32HTotal;
+	IMG_UINT32 ui32HActiveStart;
+	IMG_UINT32 ui32HLeftBorder;
+	IMG_UINT32 ui32HRightBorder;
+	IMG_UINT32 ui32HFrontPorch;
 
-	IMG_UINT32		ui32VDisplay;
-	IMG_UINT32		ui32VBackPorch;
-	IMG_UINT32		ui32VTotal;
-	IMG_UINT32		ui32VActiveStart;
-	IMG_UINT32		ui32VTopBorder;
-	IMG_UINT32		ui32VBottomBorder;
-	IMG_UINT32		ui32VFrontPorch;
+	IMG_UINT32 ui32VDisplay;
+	IMG_UINT32 ui32VBackPorch;
+	IMG_UINT32 ui32VTotal;
+	IMG_UINT32 ui32VActiveStart;
+	IMG_UINT32 ui32VTopBorder;
+	IMG_UINT32 ui32VBottomBorder;
+	IMG_UINT32 ui32VFrontPorch;
 
-	IMG_UINT8		ui8VSyncPolarity;
-	IMG_UINT8		ui8HSyncPolarity;
+	IMG_UINT8 ui8VSyncPolarity;
+	IMG_UINT8 ui8HSyncPolarity;
 
-	IMG_UINT32		ui32VRefresh;
-	IMG_UINT32		ui32ClockFreq;
+	IMG_UINT32 ui32VRefresh;
+	IMG_UINT32 ui32ClockFreq;
 
-	IMG_BOOL		bReducedBlanking;
+	IMG_BOOL bReducedBlanking;
 } DCPDP_TIMING_DATA;
 
-struct DCPDP_BUFFER_TAG
-{
-	ATOMIC_T		i32RefCount;
+struct DCPDP_BUFFER_TAG {
+	ATOMIC_T i32RefCount;
 
-	DCPDP_DEVICE		*psDeviceData;
+	DCPDP_DEVICE *psDeviceData;
 
-	IMG_UINT32		ui32Width;
-	IMG_UINT32		ui32Height;
-	IMG_UINT32		ui32ByteStride;
-	IMG_UINT32		ui32SizeInBytes;
-	IMG_UINT32		ui32SizeInPages;
-	IMG_PIXFMT		ePixelFormat;
+	IMG_UINT32 ui32Width;
+	IMG_UINT32 ui32Height;
+	IMG_UINT32 ui32ByteStride;
+	IMG_UINT32 ui32SizeInBytes;
+	IMG_UINT32 ui32SizeInPages;
+	IMG_PIXFMT ePixelFormat;
 
-	IMG_CPU_PHYADDR		sCpuPAddr;
-	IMG_DEV_PHYADDR		sDevPAddr;
+	IMG_CPU_PHYADDR sCpuPAddr;
+	IMG_DEV_PHYADDR sDevPAddr;
 
 #if defined(PDP_DEBUG)
-	DLLIST_NODE		sDbgListNode;		/* Linked list of buffers per-device */
+	DLLIST_NODE sDbgListNode; /* Linked list of buffers per-device */
 #endif
 };
 
-typedef enum DCPDP_FLIP_CONFIG_STATUS_TAG
-{
+typedef enum DCPDP_FLIP_CONFIG_STATUS_TAG {
 	DCPDP_FLIP_CONFIG_INACTIVE = 0,
 	DCPDP_FLIP_CONFIG_PENDING,
 	DCPDP_FLIP_CONFIG_ACTIVE,
 } DCPDP_FLIP_CONFIG_STATUS;
 
-
 /* Flip config structure used for queuing of flips */
-struct DCPDP_FLIP_CONFIG_TAG
-{
+struct DCPDP_FLIP_CONFIG_TAG {
 	/* Context with which this config is associated */
-	DCPDP_FLIP_CONTEXT	*psContext;
+	DCPDP_FLIP_CONTEXT *psContext;
 
 	/* Services config data */
-	IMG_HANDLE		hConfigData;
+	IMG_HANDLE hConfigData;
 
 	/* Current status of the config */
 	DCPDP_FLIP_CONFIG_STATUS eStatus;
 
 	/* Buffer to be displayed when the config is made active */
-	DCPDP_BUFFER		*psBuffer;
+	DCPDP_BUFFER *psBuffer;
 
 	/* Number of frames for which this config should remain active */
-	IMG_UINT32		ui32DisplayPeriod;
+	IMG_UINT32 ui32DisplayPeriod;
 
 	/* New mode to possibly switch to after flip */
 	PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib;
 
 	/* Handle to a work item that processes the flip config queue */
-	IMG_HANDLE		hWorkItem;
+	IMG_HANDLE hWorkItem;
 };
 
-struct DCPDP_FLIP_CONTEXT_TAG
-{
+struct DCPDP_FLIP_CONTEXT_TAG {
 	/* Device on which the context has been created */
-	DCPDP_DEVICE		*psDeviceData;
+	DCPDP_DEVICE *psDeviceData;
 
 	/* Lock protecting the queue of flip configs */
-	DC_SPINLOCK		sSpinLock;
+	DC_SPINLOCK sSpinLock;
 
 	/* Mutex to serialise calls back into Services */
-	void			*pvMutex;
+	void *pvMutex;
 
 	/* Queue of configs that need processing */
-	DCPDP_FLIP_CONFIG	asFlipConfigQueue[DCPDP_MAX_COMMANDS_INFLIGHT];
-	IMG_UINT32		ui32FlipConfigInsertIndex;
-	IMG_UINT32		ui32FlipConfigRemoveIndex;
+	DCPDP_FLIP_CONFIG asFlipConfigQueue[DCPDP_MAX_COMMANDS_INFLIGHT];
+	IMG_UINT32 ui32FlipConfigInsertIndex;
+	IMG_UINT32 ui32FlipConfigRemoveIndex;
 
 	/* Handle to a work queue used to defer the processing of the
 	   flip config queue when a vsync interrupt is serviced */
-	IMG_HANDLE		hFlipConfigWorkQueue;
+	IMG_HANDLE hFlipConfigWorkQueue;
 
 	/* Services config data to retire */
-	IMG_HANDLE		hConfigDataToRetire;
+	IMG_HANDLE hConfigDataToRetire;
 };
 
-struct DCPDP_DEVICE_TAG
-{
-	IMG_HANDLE              hPVRServicesConnection;
-	IMG_HANDLE              hPVRServicesDevice;
-	DC_SERVICES_FUNCS       sPVRServicesFuncs;
+struct DCPDP_DEVICE_TAG {
+	IMG_HANDLE hPVRServicesConnection;
+	IMG_HANDLE hPVRServicesDevice;
+	DC_SERVICES_FUNCS sPVRServicesFuncs;
 
-	void                    *pvDevice;
+	void *pvDevice;
 
-	IMG_HANDLE              hLISRData;
+	IMG_HANDLE hLISRData;
 
-	PHYS_HEAP               *psPhysHeap;
+	PHYS_HEAP *psPhysHeap;
 
-	IMG_CPU_PHYADDR         sPDPRegCpuPAddr;
-	IMG_CPU_VIRTADDR        pvPDPRegCpuVAddr;
+	IMG_CPU_PHYADDR sPDPRegCpuPAddr;
+	IMG_CPU_VIRTADDR pvPDPRegCpuVAddr;
 
-	IMG_CPU_VIRTADDR        pvPDPBifRegCpuVAddr;
+	IMG_CPU_VIRTADDR pvPDPBifRegCpuVAddr;
 
-	IMG_CPU_PHYADDR         sDispMemCpuPAddr;
-	IMG_UINT64              uiDispMemSize;
+	IMG_CPU_PHYADDR sDispMemCpuPAddr;
+	IMG_UINT64 uiDispMemSize;
 
-	IMG_UINT32              uiTimingDataIndex;
-	DCPDP_TIMING_DATA       *pasTimingData;
-	IMG_UINT32              uiTimingDataSize;
-	IMG_PIXFMT              ePixelFormat;
+	IMG_UINT32 uiTimingDataIndex;
+	DCPDP_TIMING_DATA *pasTimingData;
+	IMG_UINT32 uiTimingDataSize;
+	IMG_PIXFMT ePixelFormat;
 
-	IMG_UINT32              ui32BufferSize;
-	IMG_UINT32              ui32BufferCount;
-	IMG_UINT32              ui32BufferUseMask;
+	IMG_UINT32 ui32BufferSize;
+	IMG_UINT32 ui32BufferCount;
+	IMG_UINT32 ui32BufferUseMask;
 
-	DCPDP_BUFFER            *psSystemBuffer;
+	DCPDP_BUFFER *psSystemBuffer;
 
-	DCPDP_FLIP_CONTEXT      *psFlipContext;
+	DCPDP_FLIP_CONTEXT *psFlipContext;
 
-	IMG_BOOL                bVSyncEnabled;
-	IMG_BOOL                bVSyncReporting;
-	IMG_INT64               i64LastVSyncTimeStamp;
-	IMG_HANDLE              hVSyncWorkQueue;
-	IMG_HANDLE              hVSyncWorkItem;
+	IMG_BOOL bVSyncEnabled;
+	IMG_BOOL bVSyncReporting;
+	IMG_INT64 i64LastVSyncTimeStamp;
+	IMG_HANDLE hVSyncWorkQueue;
+	IMG_HANDLE hVSyncWorkItem;
 
-	IMG_BOOL                bPreInitDone;
+	IMG_BOOL bPreInitDone;
 
 #if defined(ENABLE_PLATO_HDMI)
-	VIDEO_PARAMS            videoParams;
+	VIDEO_PARAMS videoParams;
 #endif
 #if defined(PDP_DEBUG)
-	DLLIST_NODE             sDbgListNode;            /* Linked list of debug devices
+	DLLIST_NODE sDbgListNode; /* Linked list of debug devices
 	                                                    used by common layer */
-	DLLIST_NODE             sDbgBufListHead;         /* Head of linked buffers
+	DLLIST_NODE sDbgBufListHead; /* Head of linked buffers
 	                                                    for this device */
 #endif
-	DLLIST_NODE             sListNode;               /* Linked list of devices
+	DLLIST_NODE sListNode; /* Linked list of devices
 	                                                    used by OS driver layer */
-	IMG_UINT32              ui32Instance;            /* Device instance # */
-	struct dentry           *psDebugFSEntryDir;      /* Device-specific debugFS directory */
-	struct dentry           *psDisplayEnabledEntry;  /* 'display_enabled' debugFSentry for device */
-	IMG_BOOL                bPDPEnabled;             /* State of 'display_enabled' setting */
+	IMG_UINT32 ui32Instance; /* Device instance # */
+	struct dentry *psDebugFSEntryDir; /* Device-specific debugFS directory */
+	struct dentry *
+		psDisplayEnabledEntry; /* 'display_enabled' debugFSentry for device */
+	IMG_BOOL bPDPEnabled; /* State of 'display_enabled' setting */
 };
 
 /*******************************************************************************
  * dc_pdp common functions
  ******************************************************************************/
 
-PVRSRV_ERROR DCPDPInit(void *pvDevice, DCPDP_DEVICE **ppsDeviceData, IMG_UINT32 ui32Instance);
+PVRSRV_ERROR DCPDPInit(void *pvDevice, DCPDP_DEVICE **ppsDeviceData,
+		       IMG_UINT32 ui32Instance);
 PVRSRV_ERROR DCPDPStart(DCPDP_DEVICE *psDeviceData);
 void DCPDPDeInit(DCPDP_DEVICE *psDeviceData, void **ppvDevice);
 
@@ -316,7 +309,8 @@ void PDPDebugCtrl(void);
 #endif /* PDP_DEBUG */
 
 #if defined(PLATO_DISPLAY_PDUMP)
-void PDP_OSWriteHWReg32(void *pvLinRegBaseAddr, IMG_UINT32 ui32Offset, IMG_UINT32 ui32Value);
+void PDP_OSWriteHWReg32(void *pvLinRegBaseAddr, IMG_UINT32 ui32Offset,
+			IMG_UINT32 ui32Value);
 #endif
 
 #endif /* !defined(DC_PDP_H) */

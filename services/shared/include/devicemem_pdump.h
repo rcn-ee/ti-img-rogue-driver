@@ -61,11 +61,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * cases where the memory has been modified externally, i.e. by the host cpu
  * or by a third party.
  */
-void
-DevmemPDumpLoadMem(DEVMEM_MEMDESC *psMemDesc,
-                   IMG_DEVMEM_OFFSET_T uiOffset,
-                   IMG_DEVMEM_SIZE_T uiSize,
-                   PDUMP_FLAGS_T uiPDumpFlags);
+void DevmemPDumpLoadMem(DEVMEM_MEMDESC *psMemDesc, IMG_DEVMEM_OFFSET_T uiOffset,
+			IMG_DEVMEM_SIZE_T uiSize, PDUMP_FLAGS_T uiPDumpFlags);
 
 /*
  * DevmemPDumpLoadZeroMem()
@@ -73,11 +70,10 @@ DevmemPDumpLoadMem(DEVMEM_MEMDESC *psMemDesc,
  * As DevmemPDumpLoadMem() but the PDump allocation will be populated with
  * zeros from the zero page in the parameter stream
  */
-void
-DevmemPDumpLoadZeroMem(DEVMEM_MEMDESC *psMemDesc,
-                       IMG_DEVMEM_OFFSET_T uiOffset,
-                       IMG_DEVMEM_SIZE_T uiSize,
-                       PDUMP_FLAGS_T uiPDumpFlags);
+void DevmemPDumpLoadZeroMem(DEVMEM_MEMDESC *psMemDesc,
+			    IMG_DEVMEM_OFFSET_T uiOffset,
+			    IMG_DEVMEM_SIZE_T uiSize,
+			    PDUMP_FLAGS_T uiPDumpFlags);
 
 /*
  * DevmemPDumpLoadMemValue32()
@@ -89,11 +85,10 @@ DevmemPDumpLoadZeroMem(DEVMEM_MEMDESC *psMemDesc,
  * (The same functionality can be achieved by the above function but the
  *  binary PARAM file must be patched in that case.)
  */
-IMG_INTERNAL void
-DevmemPDumpLoadMemValue32(DEVMEM_MEMDESC *psMemDesc,
-                          IMG_DEVMEM_OFFSET_T uiOffset,
-                          IMG_UINT32 ui32Value,
-                          PDUMP_FLAGS_T uiPDumpFlags);
+IMG_INTERNAL void DevmemPDumpLoadMemValue32(DEVMEM_MEMDESC *psMemDesc,
+					    IMG_DEVMEM_OFFSET_T uiOffset,
+					    IMG_UINT32 ui32Value,
+					    PDUMP_FLAGS_T uiPDumpFlags);
 
 /*
  * DevmemPDumpMemValue64()
@@ -105,11 +100,10 @@ DevmemPDumpLoadMemValue32(DEVMEM_MEMDESC *psMemDesc,
  * (The same functionality can be achieved by the above function but the
  *  binary PARAM file must be patched in that case.)
  */
-IMG_INTERNAL void
-DevmemPDumpLoadMemValue64(DEVMEM_MEMDESC *psMemDesc,
-                          IMG_DEVMEM_OFFSET_T uiOffset,
-                          IMG_UINT64 ui64Value,
-                          PDUMP_FLAGS_T uiPDumpFlags);
+IMG_INTERNAL void DevmemPDumpLoadMemValue64(DEVMEM_MEMDESC *psMemDesc,
+					    IMG_DEVMEM_OFFSET_T uiOffset,
+					    IMG_UINT64 ui64Value,
+					    PDUMP_FLAGS_T uiPDumpFlags);
 
 /*
  * DevmemPDumpPageCatBaseToSAddr()
@@ -119,9 +113,8 @@ DevmemPDumpLoadMemValue64(DEVMEM_MEMDESC *psMemDesc,
  */
 PVRSRV_ERROR
 DevmemPDumpPageCatBaseToSAddr(DEVMEM_MEMDESC *psMemDesc,
-                              IMG_DEVMEM_OFFSET_T *puiMemOffset,
-                              IMG_CHAR *pszName,
-                              IMG_UINT32 ui32Size);
+			      IMG_DEVMEM_OFFSET_T *puiMemOffset,
+			      IMG_CHAR *pszName, IMG_UINT32 ui32Size);
 
 /*
  * DevmemPDumpSaveToFile()
@@ -129,12 +122,11 @@ DevmemPDumpPageCatBaseToSAddr(DEVMEM_MEMDESC *psMemDesc,
  * Emits a pdump SAB to cause the current contents of the memory to be written
  * to the given file during playback
  */
-void
-DevmemPDumpSaveToFile(DEVMEM_MEMDESC *psMemDesc,
-                      IMG_DEVMEM_OFFSET_T uiOffset,
-                      IMG_DEVMEM_SIZE_T uiSize,
-                      const IMG_CHAR *pszFilename,
-                      IMG_UINT32 uiFileOffset);
+void DevmemPDumpSaveToFile(DEVMEM_MEMDESC *psMemDesc,
+			   IMG_DEVMEM_OFFSET_T uiOffset,
+			   IMG_DEVMEM_SIZE_T uiSize,
+			   const IMG_CHAR *pszFilename,
+			   IMG_UINT32 uiFileOffset);
 
 /*
  * DevmemPDumpSaveToFileVirtual()
@@ -143,13 +135,12 @@ DevmemPDumpSaveToFile(DEVMEM_MEMDESC *psMemDesc,
  * address and device MMU context to cause the pdump player to traverse the
  * MMU page tables itself.
  */
-void
-DevmemPDumpSaveToFileVirtual(DEVMEM_MEMDESC *psMemDesc,
-                             IMG_DEVMEM_OFFSET_T uiOffset,
-                             IMG_DEVMEM_SIZE_T uiSize,
-                             const IMG_CHAR *pszFilename,
-                             IMG_UINT32 ui32FileOffset,
-                             IMG_UINT32 ui32PdumpFlags);
+void DevmemPDumpSaveToFileVirtual(DEVMEM_MEMDESC *psMemDesc,
+				  IMG_DEVMEM_OFFSET_T uiOffset,
+				  IMG_DEVMEM_SIZE_T uiSize,
+				  const IMG_CHAR *pszFilename,
+				  IMG_UINT32 ui32FileOffset,
+				  IMG_UINT32 ui32PdumpFlags);
 
 /*
  * DevmemPDumpDataDescriptor()
@@ -158,16 +149,11 @@ DevmemPDumpSaveToFileVirtual(DEVMEM_MEMDESC *psMemDesc,
  * context. Provides more flexibility than a pdump SAB because metadata can
  * be passed to an external pdump player library via the command header.
  */
-void
-DevmemPDumpDataDescriptor(DEVMEM_MEMDESC *psMemDesc,
-                          IMG_DEVMEM_OFFSET_T uiOffset,
-                          IMG_DEVMEM_SIZE_T uiSize,
-                          const IMG_CHAR *pszFilename,
-                          IMG_UINT32 ui32HeaderType,
-                          IMG_UINT32 ui32ElementType,
-                          IMG_UINT32 ui32ElementCount,
-                          IMG_UINT32 ui32PdumpFlags);
-
+void DevmemPDumpDataDescriptor(
+	DEVMEM_MEMDESC *psMemDesc, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_DEVMEM_SIZE_T uiSize, const IMG_CHAR *pszFilename,
+	IMG_UINT32 ui32HeaderType, IMG_UINT32 ui32ElementType,
+	IMG_UINT32 ui32ElementCount, IMG_UINT32 ui32PdumpFlags);
 
 /*
  *
@@ -178,11 +164,9 @@ DevmemPDumpDataDescriptor(DEVMEM_MEMDESC *psMemDesc,
  */
 PVRSRV_ERROR
 DevmemPDumpDevmemPol32(const DEVMEM_MEMDESC *psMemDesc,
-                       IMG_DEVMEM_OFFSET_T uiOffset,
-                       IMG_UINT32 ui32Value,
-                       IMG_UINT32 ui32Mask,
-                       PDUMP_POLL_OPERATOR eOperator,
-                       PDUMP_FLAGS_T ui32PDumpFlags);
+		       IMG_DEVMEM_OFFSET_T uiOffset, IMG_UINT32 ui32Value,
+		       IMG_UINT32 ui32Mask, PDUMP_POLL_OPERATOR eOperator,
+		       PDUMP_FLAGS_T ui32PDumpFlags);
 
 #if defined(__KERNEL__)
 /*
@@ -194,11 +178,9 @@ DevmemPDumpDevmemPol32(const DEVMEM_MEMDESC *psMemDesc,
  */
 PVRSRV_ERROR
 DevmemPDumpDevmemCheck32(const DEVMEM_MEMDESC *psMemDesc,
-                         IMG_DEVMEM_OFFSET_T uiOffset,
-                         IMG_UINT32 ui32Value,
-                         IMG_UINT32 ui32Mask,
-                         PDUMP_POLL_OPERATOR eOperator,
-                         PDUMP_FLAGS_T ui32PDumpFlags);
+			 IMG_DEVMEM_OFFSET_T uiOffset, IMG_UINT32 ui32Value,
+			 IMG_UINT32 ui32Mask, PDUMP_POLL_OPERATOR eOperator,
+			 PDUMP_FLAGS_T ui32PDumpFlags);
 #endif
 
 /*
@@ -215,21 +197,19 @@ DevmemPDumpDevmemCheck32(const DEVMEM_MEMDESC *psMemDesc,
  */
 PVRSRV_ERROR
 DevmemPDumpCBP(const DEVMEM_MEMDESC *psMemDesc,
-               IMG_DEVMEM_OFFSET_T uiReadOffset,
-               IMG_DEVMEM_OFFSET_T uiWriteOffset,
-               IMG_DEVMEM_SIZE_T uiPacketSize,
-               IMG_DEVMEM_SIZE_T uiBufferSize);
+	       IMG_DEVMEM_OFFSET_T uiReadOffset,
+	       IMG_DEVMEM_OFFSET_T uiWriteOffset,
+	       IMG_DEVMEM_SIZE_T uiPacketSize, IMG_DEVMEM_SIZE_T uiBufferSize);
 
 #else /* PDUMP */
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpLoadMem)
 #endif
-static INLINE void
-DevmemPDumpLoadMem(DEVMEM_MEMDESC *psMemDesc,
-                   IMG_DEVMEM_OFFSET_T uiOffset,
-                   IMG_DEVMEM_SIZE_T uiSize,
-                   PDUMP_FLAGS_T uiPDumpFlags)
+static INLINE void DevmemPDumpLoadMem(DEVMEM_MEMDESC *psMemDesc,
+				      IMG_DEVMEM_OFFSET_T uiOffset,
+				      IMG_DEVMEM_SIZE_T uiSize,
+				      PDUMP_FLAGS_T uiPDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiOffset);
@@ -240,11 +220,10 @@ DevmemPDumpLoadMem(DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpLoadMemValue32)
 #endif
-static INLINE void
-DevmemPDumpLoadMemValue32(DEVMEM_MEMDESC *psMemDesc,
-                          IMG_DEVMEM_OFFSET_T uiOffset,
-                          IMG_UINT32 ui32Value,
-                          PDUMP_FLAGS_T uiPDumpFlags)
+static INLINE void DevmemPDumpLoadMemValue32(DEVMEM_MEMDESC *psMemDesc,
+					     IMG_DEVMEM_OFFSET_T uiOffset,
+					     IMG_UINT32 ui32Value,
+					     PDUMP_FLAGS_T uiPDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiOffset);
@@ -255,11 +234,10 @@ DevmemPDumpLoadMemValue32(DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpLoadMemValue64)
 #endif
-static INLINE void
-DevmemPDumpLoadMemValue64(DEVMEM_MEMDESC *psMemDesc,
-                          IMG_DEVMEM_OFFSET_T uiOffset,
-                          IMG_UINT64 ui64Value,
-                          PDUMP_FLAGS_T uiPDumpFlags)
+static INLINE void DevmemPDumpLoadMemValue64(DEVMEM_MEMDESC *psMemDesc,
+					     IMG_DEVMEM_OFFSET_T uiOffset,
+					     IMG_UINT64 ui64Value,
+					     PDUMP_FLAGS_T uiPDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiOffset);
@@ -270,11 +248,9 @@ DevmemPDumpLoadMemValue64(DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpPageCatBaseToSAddr)
 #endif
-static INLINE PVRSRV_ERROR
-DevmemPDumpPageCatBaseToSAddr(DEVMEM_MEMDESC *psMemDesc,
-                              IMG_DEVMEM_OFFSET_T *puiMemOffset,
-                              IMG_CHAR *pszName,
-                              IMG_UINT32 ui32Size)
+static INLINE PVRSRV_ERROR DevmemPDumpPageCatBaseToSAddr(
+	DEVMEM_MEMDESC *psMemDesc, IMG_DEVMEM_OFFSET_T *puiMemOffset,
+	IMG_CHAR *pszName, IMG_UINT32 ui32Size)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(puiMemOffset);
@@ -287,12 +263,11 @@ DevmemPDumpPageCatBaseToSAddr(DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpSaveToFile)
 #endif
-static INLINE void
-DevmemPDumpSaveToFile(DEVMEM_MEMDESC *psMemDesc,
-                      IMG_DEVMEM_OFFSET_T uiOffset,
-                      IMG_DEVMEM_SIZE_T uiSize,
-                      const IMG_CHAR *pszFilename,
-                      IMG_UINT32 uiFileOffset)
+static INLINE void DevmemPDumpSaveToFile(DEVMEM_MEMDESC *psMemDesc,
+					 IMG_DEVMEM_OFFSET_T uiOffset,
+					 IMG_DEVMEM_SIZE_T uiSize,
+					 const IMG_CHAR *pszFilename,
+					 IMG_UINT32 uiFileOffset)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiOffset);
@@ -304,13 +279,12 @@ DevmemPDumpSaveToFile(DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpSaveToFileVirtual)
 #endif
-static INLINE void
-DevmemPDumpSaveToFileVirtual(DEVMEM_MEMDESC *psMemDesc,
-                             IMG_DEVMEM_OFFSET_T uiOffset,
-                             IMG_DEVMEM_SIZE_T uiSize,
-                             const IMG_CHAR *pszFilename,
-                             IMG_UINT32 ui32FileOffset,
-                             IMG_UINT32 ui32PdumpFlags)
+static INLINE void DevmemPDumpSaveToFileVirtual(DEVMEM_MEMDESC *psMemDesc,
+						IMG_DEVMEM_OFFSET_T uiOffset,
+						IMG_DEVMEM_SIZE_T uiSize,
+						const IMG_CHAR *pszFilename,
+						IMG_UINT32 ui32FileOffset,
+						IMG_UINT32 ui32PdumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiOffset);
@@ -323,13 +297,10 @@ DevmemPDumpSaveToFileVirtual(DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpDevmemPol32)
 #endif
-static INLINE PVRSRV_ERROR
-DevmemPDumpDevmemPol32(const DEVMEM_MEMDESC *psMemDesc,
-                       IMG_DEVMEM_OFFSET_T uiOffset,
-                       IMG_UINT32 ui32Value,
-                       IMG_UINT32 ui32Mask,
-                       PDUMP_POLL_OPERATOR eOperator,
-                       PDUMP_FLAGS_T ui32PDumpFlags)
+static INLINE PVRSRV_ERROR DevmemPDumpDevmemPol32(
+	const DEVMEM_MEMDESC *psMemDesc, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+	PDUMP_POLL_OPERATOR eOperator, PDUMP_FLAGS_T ui32PDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiOffset);
@@ -344,12 +315,11 @@ DevmemPDumpDevmemPol32(const DEVMEM_MEMDESC *psMemDesc,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(DevmemPDumpCBP)
 #endif
-static INLINE PVRSRV_ERROR
-DevmemPDumpCBP(const DEVMEM_MEMDESC *psMemDesc,
-               IMG_DEVMEM_OFFSET_T uiReadOffset,
-               IMG_DEVMEM_OFFSET_T uiWriteOffset,
-               IMG_DEVMEM_SIZE_T uiPacketSize,
-               IMG_DEVMEM_SIZE_T uiBufferSize)
+static INLINE PVRSRV_ERROR DevmemPDumpCBP(const DEVMEM_MEMDESC *psMemDesc,
+					  IMG_DEVMEM_OFFSET_T uiReadOffset,
+					  IMG_DEVMEM_OFFSET_T uiWriteOffset,
+					  IMG_DEVMEM_SIZE_T uiPacketSize,
+					  IMG_DEVMEM_SIZE_T uiBufferSize)
 {
 	PVR_UNREFERENCED_PARAMETER(psMemDesc);
 	PVR_UNREFERENCED_PARAMETER(uiReadOffset);

@@ -50,8 +50,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "vz_vmm_pvz.h"
 
 #if (RGX_NUM_DRIVERS_SUPPORTED > 1)
-static PVRSRV_ERROR
-PvzConnectionValidate(void)
+static PVRSRV_ERROR PvzConnectionValidate(void)
 {
 	VMM_PVZ_CONNECTION *psVmmPvz;
 	PVRSRV_ERROR eError = PVRSRV_OK;
@@ -60,10 +59,9 @@ PvzConnectionValidate(void)
 	 * Acquire the underlying VM manager PVZ connection & validate it.
 	 */
 	psVmmPvz = PvzConnectionAcquire();
-	if (psVmmPvz == NULL)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-				"%s: Unable to acquire PVZ connection", __func__));
+	if (psVmmPvz == NULL) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Unable to acquire PVZ connection",
+			 __func__));
 		eError = PVRSRV_ERROR_INVALID_PVZ_CONFIG;
 		goto e0;
 	}
@@ -109,17 +107,19 @@ PVRSRV_ERROR PvzConnectionInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 
 #if (RGX_NUM_DRIVERS_SUPPORTED == 1)
 	PVR_UNREFERENCED_PARAMETER(psDevConfig);
-	PVR_DPF((PVR_DBG_ERROR, "This kernel driver does not support virtualization. Please rebuild with RGX_NUM_DRIVERS_SUPPORTED > 1"));
+	PVR_DPF((
+		PVR_DBG_ERROR,
+		"This kernel driver does not support virtualization. Please rebuild with RGX_NUM_DRIVERS_SUPPORTED > 1"));
 	eError = PVRSRV_ERROR_NOT_SUPPORTED;
 	goto e0;
 #else
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 
 	if ((psPVRSRVData->hPvzConnection != NULL) &&
-		(psPVRSRVData->hPvzConnectionLock != NULL))
-	{
+	    (psPVRSRVData->hPvzConnectionLock != NULL)) {
 		eError = PVRSRV_OK;
-		PVR_DPF((PVR_DBG_MESSAGE, "PVzConnection already initialised."));
+		PVR_DPF((PVR_DBG_MESSAGE,
+			 "PVzConnection already initialised."));
 		goto e0;
 	}
 
@@ -128,9 +128,10 @@ PVRSRV_ERROR PvzConnectionInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	PVR_LOG_GOTO_IF_ERROR(eError, "OSLockCreate", e0);
 
 	/* Create VM manager para-virtualization connection */
-	eError = VMMCreatePvzConnection((VMM_PVZ_CONNECTION **)&psPVRSRVData->hPvzConnection, psDevConfig);
-	if (eError != PVRSRV_OK)
-	{
+	eError = VMMCreatePvzConnection(
+		(VMM_PVZ_CONNECTION **)&psPVRSRVData->hPvzConnection,
+		psDevConfig);
+	if (eError != PVRSRV_OK) {
 		OSLockDestroy(psPVRSRVData->hPvzConnectionLock);
 		psPVRSRVData->hPvzConnectionLock = NULL;
 
@@ -153,11 +154,10 @@ void PvzConnectionDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	IMG_BOOL bCanDestroyPvzData = IMG_TRUE;
 
 	OSWRLockAcquireRead(psPVRSRVData->hDeviceNodeListLock);
-	for (psDN = psPVRSRVData->psDeviceNodeList; psDN != NULL; psDN = psDN->psNext)
-	{
+	for (psDN = psPVRSRVData->psDeviceNodeList; psDN != NULL;
+	     psDN = psDN->psNext) {
 		if ((psDN->psDevConfig != psDevConfig) &&
-			(!PVRSRV_VZ_MODE_IS(NATIVE, DEVNODE, psDN)))
-		{
+		    (!PVRSRV_VZ_MODE_IS(NATIVE, DEVNODE, psDN))) {
 			/* if any other virtual devices are present keep the pvz data */
 			bCanDestroyPvzData = IMG_FALSE;
 			break;
@@ -165,16 +165,16 @@ void PvzConnectionDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	}
 	OSWRLockReleaseRead(psPVRSRVData->hDeviceNodeListLock);
 
-	if (bCanDestroyPvzData)
-	{
+	if (bCanDestroyPvzData) {
 		if ((psPVRSRVData->hPvzConnection == NULL) &&
-			(psPVRSRVData->hPvzConnectionLock == NULL))
-		{
-			PVR_DPF((PVR_DBG_MESSAGE, "PVzConnection already deinitialised."));
+		    (psPVRSRVData->hPvzConnectionLock == NULL)) {
+			PVR_DPF((PVR_DBG_MESSAGE,
+				 "PVzConnection already deinitialised."));
 			return;
 		}
 
-		VMMDestroyPvzConnection(psPVRSRVData->hPvzConnection, psDevConfig);
+		VMMDestroyPvzConnection(psPVRSRVData->hPvzConnection,
+					psDevConfig);
 		psPVRSRVData->hPvzConnection = NULL;
 
 		OSLockDestroy(psPVRSRVData->hPvzConnectionLock);
@@ -182,7 +182,7 @@ void PvzConnectionDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	}
 }
 
-VMM_PVZ_CONNECTION* PvzConnectionAcquire(void)
+VMM_PVZ_CONNECTION *PvzConnectionAcquire(void)
 {
 	PVRSRV_DATA *psPVRSRVData = PVRSRVGetPVRSRVData();
 	PVR_ASSERT(psPVRSRVData->hPvzConnection != NULL);

@@ -49,7 +49,6 @@
 #include "pvr_fd_sync_kernel.h"
 #include "services_kernel_client.h"
 
-
 /* Services internal interface */
 
 /**
@@ -94,23 +93,20 @@ enum PVRSRV_ERROR_TAG pvr_sync_fence_get(int fence_fd, void **fence_out);
 
 enum PVRSRV_ERROR_TAG
 pvr_sync_sw_timeline_fence_create(struct _PVRSRV_DEVICE_NODE_ *pvrsrv_dev_node,
-				  int timeline_fd,
-				  const char *fence_name,
-				  int *fence_fd_out,
-				  u64 *sync_pt_idx);
+				  int timeline_fd, const char *fence_name,
+				  int *fence_fd_out, u64 *sync_pt_idx);
 
 enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_advance(void *timeline,
-					       u64 *sync_pt_idx);
+						   u64 *sync_pt_idx);
 
 enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_release(void *timeline);
 
 enum PVRSRV_ERROR_TAG pvr_sync_sw_timeline_get(int timeline_fd,
-					   void **timeline_out);
+					       void **timeline_out);
 
-enum PVRSRV_ERROR_TAG
-sync_dump_fence(void *sw_fence_obj,
-		DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
-		void *dump_debug_file);
+enum PVRSRV_ERROR_TAG sync_dump_fence(void *sw_fence_obj,
+				      DUMPDEBUG_PRINTF_FUNC *dump_debug_printf,
+				      void *dump_debug_file);
 
 enum PVRSRV_ERROR_TAG
 sync_sw_dump_timeline(void *sw_timeline_obj,

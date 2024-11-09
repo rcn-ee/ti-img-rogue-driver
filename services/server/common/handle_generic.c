@@ -46,58 +46,66 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "osfunc.h"
 #include "pvr_debug.h"
 
-
 /* Valid handles are never NULL. Therefore, this value should never be 0! */
-#define HANDLE_OFFSET_FROM_INDEX				1
+#define HANDLE_OFFSET_FROM_INDEX 1
 
 #if defined(DEBUG)
-#define	HANDLE_BLOCK_SHIFT					2
+#define HANDLE_BLOCK_SHIFT 2
 #else
-#define	HANDLE_BLOCK_SHIFT					8
+#define HANDLE_BLOCK_SHIFT 8
 #endif
 
-#define	DIVIDE_BY_BLOCK_SIZE(i)					(((IMG_UINT32)(i)) >> HANDLE_BLOCK_SHIFT)
-#define	MULTIPLY_BY_BLOCK_SIZE(i)				(((IMG_UINT32)(i)) << HANDLE_BLOCK_SHIFT)
+#define DIVIDE_BY_BLOCK_SIZE(i) (((IMG_UINT32)(i)) >> HANDLE_BLOCK_SHIFT)
+#define MULTIPLY_BY_BLOCK_SIZE(i) (((IMG_UINT32)(i)) << HANDLE_BLOCK_SHIFT)
 
-#define HANDLE_BLOCK_SIZE						MULTIPLY_BY_BLOCK_SIZE(1)
-#define	HANDLE_SUB_BLOCK_MASK					(HANDLE_BLOCK_SIZE - 1)
-#define	HANDLE_BLOCK_MASK					(~(HANDLE_SUB_BLOCK_MASK))
+#define HANDLE_BLOCK_SIZE MULTIPLY_BY_BLOCK_SIZE(1)
+#define HANDLE_SUB_BLOCK_MASK (HANDLE_BLOCK_SIZE - 1)
+#define HANDLE_BLOCK_MASK (~(HANDLE_SUB_BLOCK_MASK))
 
-#define	INDEX_IS_VALID(psBase, i)				((i) < (psBase)->ui32TotalHandCount)
+#define INDEX_IS_VALID(psBase, i) ((i) < (psBase)->ui32TotalHandCount)
 
-#define	INDEX_TO_HANDLE(i)					((IMG_HANDLE)((uintptr_t)(i) + HANDLE_OFFSET_FROM_INDEX))
-#define	HANDLE_TO_INDEX(h)					((IMG_UINT32)((uintptr_t)(h) - HANDLE_OFFSET_FROM_INDEX))
+#define INDEX_TO_HANDLE(i) \
+	((IMG_HANDLE)((uintptr_t)(i) + HANDLE_OFFSET_FROM_INDEX))
+#define HANDLE_TO_INDEX(h) \
+	((IMG_UINT32)((uintptr_t)(h) - HANDLE_OFFSET_FROM_INDEX))
 
-#define	INDEX_TO_BLOCK_INDEX(i)					DIVIDE_BY_BLOCK_SIZE(i)
-#define BLOCK_INDEX_TO_INDEX(i)					MULTIPLY_BY_BLOCK_SIZE(i)
-#define INDEX_TO_SUB_BLOCK_INDEX(i)				((i) & HANDLE_SUB_BLOCK_MASK)
+#define INDEX_TO_BLOCK_INDEX(i) DIVIDE_BY_BLOCK_SIZE(i)
+#define BLOCK_INDEX_TO_INDEX(i) MULTIPLY_BY_BLOCK_SIZE(i)
+#define INDEX_TO_SUB_BLOCK_INDEX(i) ((i) & HANDLE_SUB_BLOCK_MASK)
 
-#define BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psArray, i)	(&((psArray)[INDEX_TO_BLOCK_INDEX(i)]))
-#define	BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, i)		BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK((psBase)->psHandleBlockArray, i)
-#define BASE_TO_TOTAL_INDICES(psBase)				(HANDLE_TO_INDEX((psBase)->ui32MaxHandleValue) + 1)
+#define BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psArray, i) \
+	(&((psArray)[INDEX_TO_BLOCK_INDEX(i)]))
+#define BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, i) \
+	BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK((psBase)->psHandleBlockArray, i)
+#define BASE_TO_TOTAL_INDICES(psBase) \
+	(HANDLE_TO_INDEX((psBase)->ui32MaxHandleValue) + 1)
 
-#define	INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, i)		(BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, i)->ui32FreeHandCount)
-#define INDEX_TO_HANDLE_DATA(psBase, i)				(BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, i)->psHandleDataArray + INDEX_TO_SUB_BLOCK_INDEX(i))
+#define INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, i) \
+	(BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, i)->ui32FreeHandCount)
+#define INDEX_TO_HANDLE_DATA(psBase, i)                                 \
+	(BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, i)->psHandleDataArray + \
+	 INDEX_TO_SUB_BLOCK_INDEX(i))
 
-#define	ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE(a)			(HANDLE_BLOCK_MASK & (a))
-#define	ROUND_UP_TO_MULTIPLE_OF_BLOCK_SIZE(a)			ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE((a) + HANDLE_BLOCK_SIZE - 1)
+#define ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE(a) (HANDLE_BLOCK_MASK & (a))
+#define ROUND_UP_TO_MULTIPLE_OF_BLOCK_SIZE(a) \
+	ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE((a) + HANDLE_BLOCK_SIZE - 1)
 
-#define INDEX_MIN						0x0u
-#define INDEX_MAX						(ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE(0x7fffffffu) - 1)
+#define INDEX_MIN 0x0u
+#define INDEX_MAX (ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE(0x7fffffffu) - 1)
 
-#define HANDLE_VALUE_MIN					((IMG_UINT32)(uintptr_t)INDEX_TO_HANDLE(INDEX_MIN))
-#define HANDLE_VALUE_MAX					((IMG_UINT32)(uintptr_t)INDEX_TO_HANDLE(INDEX_MAX))
+#define HANDLE_VALUE_MIN ((IMG_UINT32)(uintptr_t)INDEX_TO_HANDLE(INDEX_MIN))
+#define HANDLE_VALUE_MAX ((IMG_UINT32)(uintptr_t)INDEX_TO_HANDLE(INDEX_MAX))
 
-#define HANDLE_BLOCK_ARRAY_SIZE(uiNumHandles)				DIVIDE_BY_BLOCK_SIZE(ROUND_UP_TO_MULTIPLE_OF_BLOCK_SIZE(uiNumHandles))
+#define HANDLE_BLOCK_ARRAY_SIZE(uiNumHandles) \
+	DIVIDE_BY_BLOCK_SIZE(ROUND_UP_TO_MULTIPLE_OF_BLOCK_SIZE(uiNumHandles))
 
 #if defined(MIN)
 #undef MIN
 #endif
 
-#define	MIN(x, y)						(((x) < (y)) ? (x) : (y))
+#define MIN(x, y) (((x) < (y)) ? (x) : (y))
 
-typedef struct _HANDLE_IMPL_DATA_
-{
+typedef struct _HANDLE_IMPL_DATA_ {
 	/* Pointer to the data that the handle represents */
 	void *pvData;
 
@@ -115,8 +123,7 @@ typedef struct _HANDLE_IMPL_DATA_
 	IMG_UINT32 ui32NextIndexPlusOne;
 } HANDLE_IMPL_DATA;
 
-typedef struct _HANDLE_BLOCK_
-{
+typedef struct _HANDLE_BLOCK_ {
 	/* Pointer to an array of handle data structures */
 	HANDLE_IMPL_DATA *psHandleDataArray;
 
@@ -124,8 +131,7 @@ typedef struct _HANDLE_BLOCK_
 	IMG_UINT32 ui32FreeHandCount;
 } HANDLE_BLOCK;
 
-struct _HANDLE_IMPL_BASE_
-{
+struct _HANDLE_IMPL_BASE_ {
 	/* Pointer to array of handle block structures */
 	HANDLE_BLOCK *psHandleBlockArray;
 
@@ -165,7 +171,6 @@ struct _HANDLE_IMPL_BASE_
 	IMG_UINT32 ui32LastFreeIndexPlusOne;
 };
 
-
 /*!
 ******************************************************************************
 
@@ -188,36 +193,34 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 	PVRSRV_ERROR eError = PVRSRV_OK;
 	IMG_UINT32 ui32Index;
 
-	if (ui32NewCount == ui32OldCount)
-	{
+	if (ui32NewCount == ui32OldCount) {
 		return PVRSRV_OK;
 	}
 
-	if (ui32NewCount != 0 &&
-	    !psBase->bPurgingEnabled &&
-	    ui32NewCount < ui32OldCount)
-	{
+	if (ui32NewCount != 0 && !psBase->bPurgingEnabled &&
+	    ui32NewCount < ui32OldCount) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	if (((ui32OldCount % HANDLE_BLOCK_SIZE) != 0) ||
-	    ((ui32NewCount % HANDLE_BLOCK_SIZE) != 0))
-	{
+	    ((ui32NewCount % HANDLE_BLOCK_SIZE) != 0)) {
 		PVR_ASSERT((ui32OldCount % HANDLE_BLOCK_SIZE) == 0);
 		PVR_ASSERT((ui32NewCount % HANDLE_BLOCK_SIZE) == 0);
 
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	if (ui32NewCount != 0)
-	{
+	if (ui32NewCount != 0) {
 		/* Allocate new handle array */
-		psNewArray = OSAllocMem(HANDLE_BLOCK_ARRAY_SIZE(ui32NewCount) * sizeof(HANDLE_BLOCK));
+		psNewArray = OSAllocMem(HANDLE_BLOCK_ARRAY_SIZE(ui32NewCount) *
+					sizeof(HANDLE_BLOCK));
 		PVR_LOG_GOTO_IF_NOMEM(psNewArray, eError, error);
 
-		if (ui32OldCount != 0)
-		{
-			OSCachedMemCopy(psNewArray, psOldArray, HANDLE_BLOCK_ARRAY_SIZE(MIN(ui32NewCount, ui32OldCount)) * sizeof(HANDLE_BLOCK));
+		if (ui32OldCount != 0) {
+			OSCachedMemCopy(psNewArray, psOldArray,
+					HANDLE_BLOCK_ARRAY_SIZE(MIN(
+						ui32NewCount, ui32OldCount)) *
+						sizeof(HANDLE_BLOCK));
 		}
 	}
 
@@ -225,9 +228,11 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 	 * If the new handle array is smaller than the old one, free
 	 * unused handle data structure arrays
 	 */
-	for (ui32Index = ui32NewCount; ui32Index < ui32OldCount; ui32Index += HANDLE_BLOCK_SIZE)
-	{
-		HANDLE_BLOCK *psHandleBlock = BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psOldArray, ui32Index);
+	for (ui32Index = ui32NewCount; ui32Index < ui32OldCount;
+	     ui32Index += HANDLE_BLOCK_SIZE) {
+		HANDLE_BLOCK *psHandleBlock =
+			BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psOldArray,
+							      ui32Index);
 
 		OSFreeMem(psHandleBlock->psHandleDataArray);
 	}
@@ -236,20 +241,21 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 	 * If the new handle array is bigger than the old one, allocate
 	 * new handle data structure arrays
 	 */
-	for (ui32Index = ui32OldCount; ui32Index < ui32NewCount; ui32Index += HANDLE_BLOCK_SIZE)
-	{
+	for (ui32Index = ui32OldCount; ui32Index < ui32NewCount;
+	     ui32Index += HANDLE_BLOCK_SIZE) {
 		/* PRQA S 0505 1 */ /* psNewArray is never NULL, see assert earlier */
-		HANDLE_BLOCK *psHandleBlock = BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psNewArray, ui32Index);
+		HANDLE_BLOCK *psHandleBlock =
+			BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psNewArray,
+							      ui32Index);
 
-		psHandleBlock->psHandleDataArray = OSAllocZMem(sizeof(HANDLE_IMPL_DATA) * HANDLE_BLOCK_SIZE);
-		if (psHandleBlock->psHandleDataArray != NULL)
-		{
+		psHandleBlock->psHandleDataArray = OSAllocZMem(
+			sizeof(HANDLE_IMPL_DATA) * HANDLE_BLOCK_SIZE);
+		if (psHandleBlock->psHandleDataArray != NULL) {
 			psHandleBlock->ui32FreeHandCount = HANDLE_BLOCK_SIZE;
-		}
-		else
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Couldn't allocate handle structures",
-					 __func__));
+		} else {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Couldn't allocate handle structures",
+				 __func__));
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		}
 	}
@@ -258,16 +264,14 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 
 #if defined(DEBUG_MAX_HANDLE_COUNT)
 	/* Force handle failure to test error exit code */
-	if (ui32NewCount > DEBUG_MAX_HANDLE_COUNT)
-	{
+	if (ui32NewCount > DEBUG_MAX_HANDLE_COUNT) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: Max handle count (%u) reached",
-				 __func__, DEBUG_MAX_HANDLE_COUNT));
+			 __func__, DEBUG_MAX_HANDLE_COUNT));
 		PVR_GOTO_WITH_ERROR(eError, PVRSRV_ERROR_OUT_OF_MEMORY, error);
 	}
 #endif /* defined(DEBUG_MAX_HANDLE_COUNT) */
 
-	if (psOldArray != NULL)
-	{
+	if (psOldArray != NULL) {
 		/* Free old handle array */
 		OSFreeMem(psOldArray);
 	}
@@ -275,10 +279,11 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 	psBase->psHandleBlockArray = psNewArray;
 	psBase->ui32TotalHandCount = ui32NewCount;
 
-	if (ui32NewCount > ui32OldCount)
-	{
+	if (ui32NewCount > ui32OldCount) {
 		/* Check for wraparound */
-		PVR_ASSERT(psBase->ui32TotalFreeHandCount + (ui32NewCount - ui32OldCount) > psBase->ui32TotalFreeHandCount);
+		PVR_ASSERT(psBase->ui32TotalFreeHandCount +
+				   (ui32NewCount - ui32OldCount) >
+			   psBase->ui32TotalFreeHandCount);
 
 		/* PRQA S 3382 1 */ /* ui32NewCount always > ui32OldCount */
 		psBase->ui32TotalFreeHandCount += (ui32NewCount - ui32OldCount);
@@ -289,44 +294,47 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 		 * new handles, we use ui32FirstFreeIndex to point to
 		 * the first handle in a newly allocated block.
 		 */
-		if (psBase->ui32FirstFreeIndex == 0)
-		{
+		if (psBase->ui32FirstFreeIndex == 0) {
 			PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne == 0);
 
 			psBase->ui32FirstFreeIndex = ui32OldCount;
-		}
-		else
-		{
-			if (!psBase->bPurgingEnabled)
-			{
-				PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne != 0);
-				PVR_ASSERT(INDEX_TO_HANDLE_DATA(psBase, psBase->ui32LastFreeIndexPlusOne - 1)->ui32NextIndexPlusOne == 0);
+		} else {
+			if (!psBase->bPurgingEnabled) {
+				PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne !=
+					   0);
+				PVR_ASSERT(
+					INDEX_TO_HANDLE_DATA(
+						psBase,
+						psBase->ui32LastFreeIndexPlusOne -
+							1)
+						->ui32NextIndexPlusOne == 0);
 
-				INDEX_TO_HANDLE_DATA(psBase, psBase->ui32LastFreeIndexPlusOne - 1)->ui32NextIndexPlusOne = ui32OldCount + 1;
+				INDEX_TO_HANDLE_DATA(
+					psBase,
+					psBase->ui32LastFreeIndexPlusOne - 1)
+					->ui32NextIndexPlusOne =
+					ui32OldCount + 1;
 			}
 		}
 
-		if (!psBase->bPurgingEnabled)
-		{
+		if (!psBase->bPurgingEnabled) {
 			psBase->ui32LastFreeIndexPlusOne = ui32NewCount;
 		}
-	}
-	else
-	{
-		if (ui32NewCount == 0)
-		{
+	} else {
+		if (ui32NewCount == 0) {
 			psBase->ui32TotalFreeHandCount = 0;
 			psBase->ui32FirstFreeIndex = 0;
 			psBase->ui32LastFreeIndexPlusOne = 0;
-		}
-		else
-		{
+		} else {
 			PVR_ASSERT(psBase->bPurgingEnabled);
 			PVR_ASSERT(psBase->ui32FirstFreeIndex <= ui32NewCount);
-			PVR_ASSERT(psBase->ui32TotalFreeHandCount - (ui32OldCount - ui32NewCount) < psBase->ui32TotalFreeHandCount);
+			PVR_ASSERT(psBase->ui32TotalFreeHandCount -
+					   (ui32OldCount - ui32NewCount) <
+				   psBase->ui32TotalFreeHandCount);
 
 			/* PRQA S 3382 1 */ /* ui32OldCount always >= ui32NewCount */
-			psBase->ui32TotalFreeHandCount -= (ui32OldCount - ui32NewCount);
+			psBase->ui32TotalFreeHandCount -=
+				(ui32OldCount - ui32NewCount);
 		}
 	}
 
@@ -337,14 +345,14 @@ static PVRSRV_ERROR ReallocHandleBlockArray(HANDLE_IMPL_BASE *psBase,
 error:
 	PVR_ASSERT(eError != PVRSRV_OK);
 
-	if (psNewArray != NULL)
-	{
+	if (psNewArray != NULL) {
 		/* Free any new handle structures that were allocated */
-		for (ui32Index = ui32OldCount; ui32Index < ui32NewCount; ui32Index += HANDLE_BLOCK_SIZE)
-		{
-			HANDLE_BLOCK *psHandleBlock = BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(psNewArray, ui32Index);
-			if (psHandleBlock->psHandleDataArray != NULL)
-			{
+		for (ui32Index = ui32OldCount; ui32Index < ui32NewCount;
+		     ui32Index += HANDLE_BLOCK_SIZE) {
+			HANDLE_BLOCK *psHandleBlock =
+				BLOCK_ARRAY_AND_INDEX_TO_HANDLE_BLOCK(
+					psNewArray, ui32Index);
+			if (psHandleBlock->psHandleDataArray != NULL) {
 				OSFreeMem(psHandleBlock->psHandleDataArray);
 			}
 		}
@@ -372,22 +380,25 @@ error:
 static PVRSRV_ERROR IncreaseHandleArraySize(HANDLE_IMPL_BASE *psBase,
 					    IMG_UINT32 ui32Delta)
 {
-	IMG_UINT32 ui32DeltaAdjusted = ROUND_UP_TO_MULTIPLE_OF_BLOCK_SIZE(ui32Delta);
-	IMG_UINT32 ui32NewTotalHandCount = psBase->ui32TotalHandCount + ui32DeltaAdjusted;
+	IMG_UINT32 ui32DeltaAdjusted =
+		ROUND_UP_TO_MULTIPLE_OF_BLOCK_SIZE(ui32Delta);
+	IMG_UINT32 ui32NewTotalHandCount =
+		psBase->ui32TotalHandCount + ui32DeltaAdjusted;
 	IMG_UINT32 ui32TotalIndices = BASE_TO_TOTAL_INDICES(psBase);
 
 	PVR_ASSERT(ui32Delta != 0);
 
 	/* Check new count against max handle array size and check for wrap around */
-	if (ui32NewTotalHandCount > ui32TotalIndices || ui32NewTotalHandCount <= psBase->ui32TotalHandCount)
-	{
+	if (ui32NewTotalHandCount > ui32TotalIndices ||
+	    ui32NewTotalHandCount <= psBase->ui32TotalHandCount) {
 		ui32NewTotalHandCount = ui32TotalIndices;
 
-		ui32DeltaAdjusted = ui32NewTotalHandCount - psBase->ui32TotalHandCount;
+		ui32DeltaAdjusted =
+			ui32NewTotalHandCount - psBase->ui32TotalHandCount;
 
-		if (ui32DeltaAdjusted < ui32Delta)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Maximum handle limit reached (%u)",
+		if (ui32DeltaAdjusted < ui32Delta) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Maximum handle limit reached (%u)",
 				 __func__, psBase->ui32MaxHandleValue));
 			return PVRSRV_ERROR_OUT_OF_MEMORY;
 		}
@@ -417,17 +428,17 @@ static PVRSRV_ERROR EnsureFreeHandles(HANDLE_IMPL_BASE *psBase,
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
-	if (ui32Free > psBase->ui32TotalFreeHandCount)
-	{
-		IMG_UINT32 ui32FreeHandDelta = ui32Free - psBase->ui32TotalFreeHandCount;
+	if (ui32Free > psBase->ui32TotalFreeHandCount) {
+		IMG_UINT32 ui32FreeHandDelta =
+			ui32Free - psBase->ui32TotalFreeHandCount;
 
 		eError = IncreaseHandleArraySize(psBase, ui32FreeHandDelta);
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_ERROR,
-					 "%s: Couldn't create %u handles to ensure %u free handles (%s)",
-					 __func__, ui32FreeHandDelta, ui32Free,
-					 PVRSRVGetErrorString(eError)));
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((
+				PVR_DBG_ERROR,
+				"%s: Couldn't create %u handles to ensure %u free handles (%s)",
+				__func__, ui32FreeHandDelta, ui32Free,
+				PVRSRVGetErrorString(eError)));
 		}
 	}
 
@@ -451,8 +462,7 @@ static PVRSRV_ERROR EnsureFreeHandles(HANDLE_IMPL_BASE *psBase,
 
 ******************************************************************************/
 static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE *phHandle,
-				  void *pvData)
+				  IMG_HANDLE *phHandle, void *pvData)
 {
 	IMG_UINT32 ui32NewIndex = BASE_TO_TOTAL_INDICES(psBase);
 	HANDLE_IMPL_DATA *psNewHandleData = NULL;
@@ -464,23 +474,19 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
 
 	/* Ensure there is a free handle */
 	eError = EnsureFreeHandles(psBase, 1);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_LOG_ERROR(eError, "EnsureFreeHandles");
 		return PVRSRV_ERROR_UNABLE_TO_ADD_HANDLE;
 	}
 	PVR_ASSERT(psBase->ui32TotalFreeHandCount != 0);
 
-	if (!psBase->bPurgingEnabled)
-	{
+	if (!psBase->bPurgingEnabled) {
 		/* Array index of first free handle */
 		ui32NewIndex = psBase->ui32FirstFreeIndex;
 
 		/* Get handle array entry */
 		psNewHandleData = INDEX_TO_HANDLE_DATA(psBase, ui32NewIndex);
-	}
-	else
-	{
+	} else {
 		IMG_UINT32 ui32BlockedIndex;
 
 		/*
@@ -496,22 +502,28 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
 		 * handle structures is allocated, and should always be a
 		 * multiple of the block size.
 		 */
-		PVR_ASSERT((psBase->ui32FirstFreeIndex % HANDLE_BLOCK_SIZE) == 0);
+		PVR_ASSERT((psBase->ui32FirstFreeIndex % HANDLE_BLOCK_SIZE) ==
+			   0);
 
-		for (ui32BlockedIndex = ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE(psBase->ui32FirstFreeIndex); ui32BlockedIndex < psBase->ui32TotalHandCount; ui32BlockedIndex += HANDLE_BLOCK_SIZE)
-		{
-			HANDLE_BLOCK *psHandleBlock = BASE_AND_INDEX_TO_HANDLE_BLOCK(psBase, ui32BlockedIndex);
+		for (ui32BlockedIndex = ROUND_DOWN_TO_MULTIPLE_OF_BLOCK_SIZE(
+			     psBase->ui32FirstFreeIndex);
+		     ui32BlockedIndex < psBase->ui32TotalHandCount;
+		     ui32BlockedIndex += HANDLE_BLOCK_SIZE) {
+			HANDLE_BLOCK *psHandleBlock =
+				BASE_AND_INDEX_TO_HANDLE_BLOCK(
+					psBase, ui32BlockedIndex);
 
-			if (psHandleBlock->ui32FreeHandCount == 0)
-			{
+			if (psHandleBlock->ui32FreeHandCount == 0) {
 				continue;
 			}
 
-			for (ui32NewIndex = ui32BlockedIndex; ui32NewIndex < ui32BlockedIndex + HANDLE_BLOCK_SIZE; ui32NewIndex++)
-			{
-				psNewHandleData = INDEX_TO_HANDLE_DATA(psBase, ui32NewIndex);
-				if (psNewHandleData->pvData == NULL)
-				{
+			for (ui32NewIndex = ui32BlockedIndex;
+			     ui32NewIndex <
+			     ui32BlockedIndex + HANDLE_BLOCK_SIZE;
+			     ui32NewIndex++) {
+				psNewHandleData = INDEX_TO_HANDLE_DATA(
+					psBase, ui32NewIndex);
+				if (psNewHandleData->pvData == NULL) {
 					break;
 				}
 			}
@@ -523,25 +535,23 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
 
 	psBase->ui32TotalFreeHandCount--;
 
-	PVR_ASSERT(INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32NewIndex) <= HANDLE_BLOCK_SIZE);
+	PVR_ASSERT(INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32NewIndex) <=
+		   HANDLE_BLOCK_SIZE);
 	PVR_ASSERT(INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32NewIndex) > 0);
 
 	INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32NewIndex)--;
 
 	/* No free list management if purging is enabled */
-	if (!psBase->bPurgingEnabled)
-	{
+	if (!psBase->bPurgingEnabled) {
 		/* Check whether the last free handle has been allocated */
-		if (psBase->ui32TotalFreeHandCount == 0)
-		{
+		if (psBase->ui32TotalFreeHandCount == 0) {
 			PVR_ASSERT(psBase->ui32FirstFreeIndex == ui32NewIndex);
-			PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne == (ui32NewIndex + 1));
+			PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne ==
+				   (ui32NewIndex + 1));
 
 			psBase->ui32LastFreeIndexPlusOne = 0;
 			psBase->ui32FirstFreeIndex = 0;
-		}
-		else
-		{
+		} else {
 			/*
 			 * Update the first free handle index.
 			 * If the "next free index plus one" field in the new
@@ -551,13 +561,12 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
 			 * initialisation of freshly allocated handle
 			 * space.
 			 */
-			if (psNewHandleData->ui32NextIndexPlusOne == 0)
-			{
+			if (psNewHandleData->ui32NextIndexPlusOne == 0) {
 				psBase->ui32FirstFreeIndex = ui32NewIndex + 1;
-			}
-			else
-			{
-				psBase->ui32FirstFreeIndex = psNewHandleData->ui32NextIndexPlusOne - 1;
+			} else {
+				psBase->ui32FirstFreeIndex =
+					psNewHandleData->ui32NextIndexPlusOne -
+					1;
 			}
 		}
 	}
@@ -568,7 +577,8 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
 	/* Return the new handle to the client */
 	*phHandle = INDEX_TO_HANDLE(ui32NewIndex);
 
-	PVR_DPF((PVR_DBG_MESSAGE, "Handle acquire base %p hdl %p", psBase, *phHandle));
+	PVR_DPF((PVR_DBG_MESSAGE, "Handle acquire base %p hdl %p", psBase,
+		 *phHandle));
 
 	return PVRSRV_OK;
 }
@@ -589,22 +599,22 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
  @Return	PVRSRV_OK or PVRSRV_ERROR
 
 ******************************************************************************/
-static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE hHandle,
+static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase, IMG_HANDLE hHandle,
 				  void **ppvData)
 {
 	IMG_UINT32 ui32Index = HANDLE_TO_INDEX(hHandle);
 	HANDLE_IMPL_DATA *psHandleData;
-	IMG_UINT32 ui32ValidatedHandleIndex = OSConfineArrayIndexNoSpeculation(ui32Index, psBase->ui32TotalHandCount);
+	IMG_UINT32 ui32ValidatedHandleIndex = OSConfineArrayIndexNoSpeculation(
+		ui32Index, psBase->ui32TotalHandCount);
 	void *pvData;
 
 	PVR_ASSERT(psBase);
 
 	/* Check handle index is in range */
-	if (unlikely(!INDEX_IS_VALID(psBase, ui32Index)))
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Handle index out of range (%u >= %u)",
-			 __func__, ui32Index, psBase->ui32TotalHandCount));
+	if (unlikely(!INDEX_IS_VALID(psBase, ui32Index))) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Handle index out of range (%u >= %u)", __func__,
+			 ui32Index, psBase->ui32TotalHandCount));
 		return PVRSRV_ERROR_HANDLE_INDEX_OUT_OF_RANGE;
 	}
 
@@ -614,24 +624,26 @@ static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
 	psHandleData->pvData = NULL;
 
 	/* No free list management if purging is enabled */
-	if (!psBase->bPurgingEnabled)
-	{
-		if (psBase->ui32TotalFreeHandCount == 0)
-		{
+	if (!psBase->bPurgingEnabled) {
+		if (psBase->ui32TotalFreeHandCount == 0) {
 			PVR_ASSERT(psBase->ui32FirstFreeIndex == 0);
 			PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne == 0);
 
-			psBase->ui32FirstFreeIndex =  ui32ValidatedHandleIndex;
-		}
-		else
-		{
+			psBase->ui32FirstFreeIndex = ui32ValidatedHandleIndex;
+		} else {
 			/*
 			 * Put the handle pointer on the end of the free
 			 * handle pointer linked list.
 			 */
 			PVR_ASSERT(psBase->ui32LastFreeIndexPlusOne != 0);
-			PVR_ASSERT(INDEX_TO_HANDLE_DATA(psBase, psBase->ui32LastFreeIndexPlusOne - 1)->ui32NextIndexPlusOne == 0);
-			INDEX_TO_HANDLE_DATA(psBase, psBase->ui32LastFreeIndexPlusOne - 1)->ui32NextIndexPlusOne =  ui32ValidatedHandleIndex + 1;
+			PVR_ASSERT(INDEX_TO_HANDLE_DATA(
+					   psBase,
+					   psBase->ui32LastFreeIndexPlusOne - 1)
+					   ->ui32NextIndexPlusOne == 0);
+			INDEX_TO_HANDLE_DATA(
+				psBase, psBase->ui32LastFreeIndexPlusOne - 1)
+				->ui32NextIndexPlusOne =
+				ui32ValidatedHandleIndex + 1;
 		}
 
 		PVR_ASSERT(psHandleData->ui32NextIndexPlusOne == 0);
@@ -643,28 +655,34 @@ static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
 	psBase->ui32TotalFreeHandCount++;
 	INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32ValidatedHandleIndex)++;
 
-	PVR_ASSERT(INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32ValidatedHandleIndex)<= HANDLE_BLOCK_SIZE);
+	PVR_ASSERT(INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase,
+						  ui32ValidatedHandleIndex) <=
+		   HANDLE_BLOCK_SIZE);
 
 #if defined(DEBUG)
 	{
 		IMG_UINT32 ui32BlockedIndex;
 		IMG_UINT32 ui32TotalFreeHandCount = 0;
 
-		for (ui32BlockedIndex = 0; ui32BlockedIndex < psBase->ui32TotalHandCount; ui32BlockedIndex += HANDLE_BLOCK_SIZE)
-		{
-			ui32TotalFreeHandCount += INDEX_TO_BLOCK_FREE_HAND_COUNT(psBase, ui32BlockedIndex);
+		for (ui32BlockedIndex = 0;
+		     ui32BlockedIndex < psBase->ui32TotalHandCount;
+		     ui32BlockedIndex += HANDLE_BLOCK_SIZE) {
+			ui32TotalFreeHandCount +=
+				INDEX_TO_BLOCK_FREE_HAND_COUNT(
+					psBase, ui32BlockedIndex);
 		}
 
-		PVR_ASSERT(ui32TotalFreeHandCount == psBase->ui32TotalFreeHandCount);
+		PVR_ASSERT(ui32TotalFreeHandCount ==
+			   psBase->ui32TotalFreeHandCount);
 	}
 #endif /* defined(DEBUG) */
 
-	if (ppvData)
-	{
+	if (ppvData) {
 		*ppvData = pvData;
 	}
 
-	PVR_DPF((PVR_DBG_MESSAGE, "Handle release base %p hdl %p", psBase, hHandle));
+	PVR_DPF((PVR_DBG_MESSAGE, "Handle release base %p hdl %p", psBase,
+		 hHandle));
 
 	return PVRSRV_OK;
 }
@@ -685,28 +703,27 @@ static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
  @Return	Error code or PVRSRV_OK
 
 ******************************************************************************/
-static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE hHandle,
+static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase, IMG_HANDLE hHandle,
 				  void **ppvData)
 {
 	IMG_UINT32 ui32Index = HANDLE_TO_INDEX(hHandle);
 	HANDLE_IMPL_DATA *psHandleData;
-	IMG_UINT32 ui32ValidatedHandleIndex = OSConfineArrayIndexNoSpeculation(ui32Index, psBase->ui32TotalHandCount);
+	IMG_UINT32 ui32ValidatedHandleIndex = OSConfineArrayIndexNoSpeculation(
+		ui32Index, psBase->ui32TotalHandCount);
 	PVR_ASSERT(psBase);
 	PVR_ASSERT(ppvData);
 
 	/* Check handle index is in range */
-	if (unlikely(!INDEX_IS_VALID(psBase, ui32Index)))
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Handle index out of range (%u >= %u)",
-			 __func__, ui32Index, psBase->ui32TotalHandCount));
+	if (unlikely(!INDEX_IS_VALID(psBase, ui32Index))) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Handle index out of range (%u >= %u)", __func__,
+			 ui32Index, psBase->ui32TotalHandCount));
 		OSDumpStack();
 		return PVRSRV_ERROR_HANDLE_INDEX_OUT_OF_RANGE;
 	}
 
 	psHandleData = INDEX_TO_HANDLE_DATA(psBase, ui32ValidatedHandleIndex);
-	if (unlikely(psHandleData == NULL || psHandleData->pvData == NULL))
-	{
+	if (unlikely(psHandleData == NULL || psHandleData->pvData == NULL)) {
 		return PVRSRV_ERROR_HANDLE_NOT_ALLOCATED;
 	}
 
@@ -729,28 +746,27 @@ static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase,
  @Return	Error code or PVRSRV_OK
 
 ******************************************************************************/
-static PVRSRV_ERROR SetHandleData(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE hHandle,
+static PVRSRV_ERROR SetHandleData(HANDLE_IMPL_BASE *psBase, IMG_HANDLE hHandle,
 				  void *pvData)
 {
 	IMG_UINT32 ui32Index = HANDLE_TO_INDEX(hHandle);
 	HANDLE_IMPL_DATA *psHandleData;
-	IMG_UINT32 ui32ValidatedHandleIndex = OSConfineArrayIndexNoSpeculation(ui32Index, psBase->ui32TotalHandCount);
+	IMG_UINT32 ui32ValidatedHandleIndex = OSConfineArrayIndexNoSpeculation(
+		ui32Index, psBase->ui32TotalHandCount);
 
 	PVR_ASSERT(psBase);
 
 	/* Check handle index is in range */
-	if (!INDEX_IS_VALID(psBase, ui32Index))
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Handle index out of range (%u >= %u)",
-			 __func__, ui32Index, psBase->ui32TotalHandCount));
+	if (!INDEX_IS_VALID(psBase, ui32Index)) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Handle index out of range (%u >= %u)", __func__,
+			 ui32Index, psBase->ui32TotalHandCount));
 		OSDumpStack();
 		return PVRSRV_ERROR_HANDLE_INDEX_OUT_OF_RANGE;
 	}
 
 	psHandleData = INDEX_TO_HANDLE_DATA(psBase, ui32ValidatedHandleIndex);
-	if (psHandleData == NULL || psHandleData->pvData == NULL)
-	{
+	if (psHandleData == NULL || psHandleData->pvData == NULL) {
 		return PVRSRV_ERROR_HANDLE_NOT_ALLOCATED;
 	}
 
@@ -769,25 +785,23 @@ static PVRSRV_ERROR IterateOverHandles(HANDLE_IMPL_BASE *psBase,
 	PVR_ASSERT(psBase);
 	PVR_ASSERT(pfnHandleIter);
 
-	if (psBase->ui32TotalFreeHandCount == psBase->ui32TotalHandCount)
-	{
+	if (psBase->ui32TotalFreeHandCount == psBase->ui32TotalHandCount) {
 		return PVRSRV_OK;
 	}
 
-	for (i = 0; i < psBase->ui32TotalHandCount; i++)
-	{
-		HANDLE_IMPL_DATA *psHandleData = INDEX_TO_HANDLE_DATA(psBase, i);
+	for (i = 0; i < psBase->ui32TotalHandCount; i++) {
+		HANDLE_IMPL_DATA *psHandleData =
+			INDEX_TO_HANDLE_DATA(psBase, i);
 
-		if (psHandleData->pvData != NULL)
-		{
-			eError = pfnHandleIter(INDEX_TO_HANDLE(i), pvHandleIterData);
-			if (eError != PVRSRV_OK)
-			{
+		if (psHandleData->pvData != NULL) {
+			eError = pfnHandleIter(INDEX_TO_HANDLE(i),
+					       pvHandleIterData);
+			if (eError != PVRSRV_OK) {
 				break;
 			}
 
-			if (psBase->ui32TotalFreeHandCount == psBase->ui32TotalHandCount)
-			{
+			if (psBase->ui32TotalFreeHandCount ==
+			    psBase->ui32TotalHandCount) {
 				break;
 			}
 		}
@@ -812,17 +826,16 @@ static PVRSRV_ERROR EnableHandlePurging(HANDLE_IMPL_BASE *psBase)
 {
 	PVR_ASSERT(psBase);
 
-	if (psBase->bPurgingEnabled)
-	{
-		PVR_DPF((PVR_DBG_WARNING, "%s: Purging already enabled", __func__));
+	if (psBase->bPurgingEnabled) {
+		PVR_DPF((PVR_DBG_WARNING, "%s: Purging already enabled",
+			 __func__));
 		return PVRSRV_OK;
 	}
 
 	/* Purging can only be enabled if no handles have been allocated */
-	if (psBase->ui32TotalHandCount != 0)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Handles have already been allocated",
-				 __func__));
+	if (psBase->ui32TotalHandCount != 0) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Handles have already been allocated", __func__));
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -850,27 +863,26 @@ static PVRSRV_ERROR PurgeHandles(HANDLE_IMPL_BASE *psBase)
 
 	PVR_ASSERT(psBase);
 
-	if (!psBase->bPurgingEnabled)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Purging not enabled for this handle base",
-				 __func__));
+	if (!psBase->bPurgingEnabled) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Purging not enabled for this handle base",
+			 __func__));
 		return PVRSRV_ERROR_NOT_SUPPORTED;
 	}
 
 	PVR_ASSERT((psBase->ui32TotalHandCount % HANDLE_BLOCK_SIZE) == 0);
 
-	for (ui32BlockIndex = INDEX_TO_BLOCK_INDEX(psBase->ui32TotalHandCount); ui32BlockIndex != 0; ui32BlockIndex--)
-	{
-		if (psBase->psHandleBlockArray[ui32BlockIndex - 1].ui32FreeHandCount != HANDLE_BLOCK_SIZE)
-		{
+	for (ui32BlockIndex = INDEX_TO_BLOCK_INDEX(psBase->ui32TotalHandCount);
+	     ui32BlockIndex != 0; ui32BlockIndex--) {
+		if (psBase->psHandleBlockArray[ui32BlockIndex - 1]
+			    .ui32FreeHandCount != HANDLE_BLOCK_SIZE) {
 			break;
 		}
 	}
 	ui32NewHandCount = BLOCK_INDEX_TO_INDEX(ui32BlockIndex);
 
 	/* Check for a suitable decrease in the handle count */
-	if (ui32NewHandCount <= (psBase->ui32TotalHandCount / 2))
-	{
+	if (ui32NewHandCount <= (psBase->ui32TotalHandCount / 2)) {
 		return ReallocHandleBlockArray(psBase, ui32NewHandCount);
 	}
 
@@ -900,9 +912,9 @@ static PVRSRV_ERROR CreateHandleBase(HANDLE_IMPL_BASE **ppsBase)
 	psBase = OSAllocZMem(sizeof(*psBase));
 	PVR_LOG_RETURN_IF_NOMEM(psBase, "psBase");
 
-	psBase->psHandleBlockArray	= NULL;
-	psBase->ui32MaxHandleValue	= HANDLE_VALUE_MAX;
-	psBase->bPurgingEnabled		= IMG_FALSE;
+	psBase->psHandleBlockArray = NULL;
+	psBase->ui32MaxHandleValue = HANDLE_VALUE_MAX;
+	psBase->bPurgingEnabled = IMG_FALSE;
 
 	*ppsBase = psBase;
 
@@ -927,26 +939,25 @@ static PVRSRV_ERROR DestroyHandleBase(HANDLE_IMPL_BASE *psBase)
 
 	PVR_ASSERT(psBase);
 
-	if (psBase->ui32TotalHandCount != psBase->ui32TotalFreeHandCount)
-	{
+	if (psBase->ui32TotalHandCount != psBase->ui32TotalFreeHandCount) {
 #if defined(DEBUG_HANDLEALLOC_INFO_KM)
 		{
 			IMG_UINT32 i;
 
-			for (i = 0; i < psBase->ui32TotalHandCount; i++)
-			{
-				HANDLE_IMPL_DATA *psHandleData = INDEX_TO_HANDLE_DATA(psBase, i);
+			for (i = 0; i < psBase->ui32TotalHandCount; i++) {
+				HANDLE_IMPL_DATA *psHandleData =
+					INDEX_TO_HANDLE_DATA(psBase, i);
 
-				if (psHandleData->pvData != NULL)
-				{
-					PVR_DPF((PVR_DBG_WARNING, "%d: handle[%p] data[%p] still allocated",
-							i, INDEX_TO_HANDLE(i), psHandleData->pvData));
-
+				if (psHandleData->pvData != NULL) {
+					PVR_DPF((
+						PVR_DBG_WARNING,
+						"%d: handle[%p] data[%p] still allocated",
+						i, INDEX_TO_HANDLE(i),
+						psHandleData->pvData));
 				}
 			}
 		}
 #endif /* DEBUG_HANDLEALLOC_INFO_KM */
-
 	}
 
 	eError = ReallocHandleBlockArray(psBase, 0);
@@ -957,8 +968,7 @@ static PVRSRV_ERROR DestroyHandleBase(HANDLE_IMPL_BASE *psBase)
 	return PVRSRV_OK;
 }
 
-static const HANDLE_IMPL_FUNCTAB g_sHandleFuncTab =
-{
+static const HANDLE_IMPL_FUNCTAB g_sHandleFuncTab = {
 	/* pfnAcquireHandle */
 	&AcquireHandle,
 
@@ -992,8 +1002,7 @@ PVRSRV_ERROR PVRSRVHandleGetFuncTable(HANDLE_IMPL_FUNCTAB const **ppsFuncs)
 {
 	static IMG_BOOL bAcquired = IMG_FALSE;
 
-	if (bAcquired)
-	{
+	if (bAcquired) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: Function table already acquired",
 			 __func__));
 		return PVRSRV_ERROR_RESOURCE_UNAVAILABLE;

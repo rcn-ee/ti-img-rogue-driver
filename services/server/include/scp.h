@@ -51,8 +51,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvr_notifier.h"
 #include "device.h"
 
-
-typedef struct _SCP_CONTEXT_ SCP_CONTEXT;	/*!< Opaque handle to a software command processor context */
+typedef struct _SCP_CONTEXT_
+	SCP_CONTEXT; /*!< Opaque handle to a software command processor context */
 
 typedef IMG_BOOL (*SCPReady)(void *pvReadyData);
 typedef void (*SCPDo)(void *pvReadyData, void *pvCompleteData);
@@ -72,8 +72,7 @@ typedef void (*SCPDo)(void *pvReadyData, void *pvCompleteData);
 */
 /*****************************************************************************/
 PVRSRV_ERROR SCPCreate(PVRSRV_DEVICE_NODE *psDevNode,
-									IMG_UINT32 ui32CCBSizeLog2,
-									SCP_CONTEXT **ppsContext);
+		       IMG_UINT32 ui32CCBSizeLog2, SCP_CONTEXT **ppsContext);
 
 /*************************************************************************/ /*!
 @Function       SCPAllocCommand
@@ -121,15 +120,13 @@ PVRSRV_ERROR SCPCreate(PVRSRV_DEVICE_NODE *psDevNode,
 */
 /*****************************************************************************/
 PVRSRV_ERROR SCPAllocCommand(SCP_CONTEXT *psSCPContext,
-										  PVRSRV_FENCE iAcquireFence,
-										  SCPReady pfnCommandReady,
-										  SCPDo pfnCommandDo,
-										  size_t ui32ReadyDataByteSize,
-										  size_t ui32CompleteDataByteSize,
-										  void **ppvReadyData,
-										  void **ppvCompleteData,
-										  PVRSRV_TIMELINE iReleaseFenceTimeline,
-										  PVRSRV_FENCE *piReleaseFence);
+			     PVRSRV_FENCE iAcquireFence,
+			     SCPReady pfnCommandReady, SCPDo pfnCommandDo,
+			     size_t ui32ReadyDataByteSize,
+			     size_t ui32CompleteDataByteSize,
+			     void **ppvReadyData, void **ppvCompleteData,
+			     PVRSRV_TIMELINE iReleaseFenceTimeline,
+			     PVRSRV_FENCE *piReleaseFence);
 
 /*************************************************************************/ /*!
 @Function       SCPSubmitCommand
@@ -145,7 +142,6 @@ PVRSRV_ERROR SCPAllocCommand(SCP_CONTEXT *psSCPContext,
 */
 /*****************************************************************************/
 void SCPSubmitCommand(SCP_CONTEXT *psContext);
-
 
 /*************************************************************************/ /*!
 @Function       SCPRun
@@ -174,8 +170,7 @@ PVRSRV_ERROR SCPRun(SCP_CONTEXT *psContext);
 @Return         None
 */
 /*****************************************************************************/
-void SCPCommandComplete(SCP_CONTEXT *psContext,
-                        IMG_BOOL bIgnoreFences);
+void SCPCommandComplete(SCP_CONTEXT *psContext, IMG_BOOL bIgnoreFences);
 
 /*************************************************************************/ /*!
 @Function       SCPFlush
@@ -216,8 +211,8 @@ IMG_BOOL SCPHasPendingCommand(SCP_CONTEXT *psContext);
 */
 /*****************************************************************************/
 void SCPDumpStatus(SCP_CONTEXT *psContext,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile);
+		   DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+		   void *pvDumpDebugFile);
 
 /*************************************************************************/ /*!
 @Function       SCPDestroy
@@ -230,7 +225,6 @@ void SCPDumpStatus(SCP_CONTEXT *psContext,
 */
 /*****************************************************************************/
 void SCPDestroy(SCP_CONTEXT *psContext);
-
 
 #endif /* SCP_H */
 

@@ -53,9 +53,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "tlserver.h"
 
 IMG_INTERNAL PVRSRV_ERROR BridgeTLOpenStream(IMG_HANDLE hBridge,
-					     const IMG_CHAR * puiName,
+					     const IMG_CHAR *puiName,
 					     IMG_UINT32 ui32Mode,
-					     IMG_HANDLE * phSD, IMG_HANDLE * phTLPMR)
+					     IMG_HANDLE *phSD,
+					     IMG_HANDLE *phTLPMR)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt = NULL;
@@ -69,13 +70,14 @@ IMG_INTERNAL PVRSRV_ERROR BridgeTLOpenStream(IMG_HANDLE hBridge,
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeTLCloseStream(IMG_HANDLE hBridge, IMG_HANDLE hSD)
+IMG_INTERNAL PVRSRV_ERROR BridgeTLCloseStream(IMG_HANDLE hBridge,
+					      IMG_HANDLE hSD)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSDInt = (TL_STREAM_DESC *) hSD;
+	psSDInt = (TL_STREAM_DESC *)hSD;
 
 	eError = TLServerCloseStreamKM(psSDInt);
 
@@ -84,14 +86,14 @@ IMG_INTERNAL PVRSRV_ERROR BridgeTLCloseStream(IMG_HANDLE hBridge, IMG_HANDLE hSD
 
 IMG_INTERNAL PVRSRV_ERROR BridgeTLAcquireData(IMG_HANDLE hBridge,
 					      IMG_HANDLE hSD,
-					      IMG_UINT32 * pui32ReadOffset,
-					      IMG_UINT32 * pui32ReadLen)
+					      IMG_UINT32 *pui32ReadOffset,
+					      IMG_UINT32 *pui32ReadLen)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSDInt = (TL_STREAM_DESC *) hSD;
+	psSDInt = (TL_STREAM_DESC *)hSD;
 
 	eError = TLServerAcquireDataKM(psSDInt, pui32ReadOffset, pui32ReadLen);
 
@@ -100,74 +102,73 @@ IMG_INTERNAL PVRSRV_ERROR BridgeTLAcquireData(IMG_HANDLE hBridge,
 
 IMG_INTERNAL PVRSRV_ERROR BridgeTLReleaseData(IMG_HANDLE hBridge,
 					      IMG_HANDLE hSD,
-					      IMG_UINT32 ui32ReadOffset, IMG_UINT32 ui32ReadLen)
+					      IMG_UINT32 ui32ReadOffset,
+					      IMG_UINT32 ui32ReadLen)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSDInt = (TL_STREAM_DESC *) hSD;
+	psSDInt = (TL_STREAM_DESC *)hSD;
 
 	eError = TLServerReleaseDataKM(psSDInt, ui32ReadOffset, ui32ReadLen);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeTLDiscoverStreams(IMG_HANDLE hBridge,
-						  const IMG_CHAR * puiNamePattern,
-						  IMG_UINT32 ui32Size,
-						  IMG_CHAR * puiStreams, IMG_UINT32 * pui32NumFound)
+IMG_INTERNAL PVRSRV_ERROR BridgeTLDiscoverStreams(
+	IMG_HANDLE hBridge, const IMG_CHAR *puiNamePattern, IMG_UINT32 ui32Size,
+	IMG_CHAR *puiStreams, IMG_UINT32 *pui32NumFound)
 {
 	PVRSRV_ERROR eError;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	eError = TLServerDiscoverStreamsKM(puiNamePattern, ui32Size, puiStreams, pui32NumFound);
+	eError = TLServerDiscoverStreamsKM(puiNamePattern, ui32Size, puiStreams,
+					   pui32NumFound);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeTLReserveStream(IMG_HANDLE hBridge,
-						IMG_HANDLE hSD,
-						IMG_UINT32 * pui32BufferOffset,
-						IMG_UINT32 ui32Size,
-						IMG_UINT32 ui32SizeMin, IMG_UINT32 * pui32Available)
+IMG_INTERNAL PVRSRV_ERROR BridgeTLReserveStream(
+	IMG_HANDLE hBridge, IMG_HANDLE hSD, IMG_UINT32 *pui32BufferOffset,
+	IMG_UINT32 ui32Size, IMG_UINT32 ui32SizeMin, IMG_UINT32 *pui32Available)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSDInt = (TL_STREAM_DESC *) hSD;
+	psSDInt = (TL_STREAM_DESC *)hSD;
 
-	eError =
-	    TLServerReserveStreamKM(psSDInt,
-				    pui32BufferOffset, ui32Size, ui32SizeMin, pui32Available);
+	eError = TLServerReserveStreamKM(psSDInt, pui32BufferOffset, ui32Size,
+					 ui32SizeMin, pui32Available);
 
 	return eError;
 }
 
 IMG_INTERNAL PVRSRV_ERROR BridgeTLCommitStream(IMG_HANDLE hBridge,
-					       IMG_HANDLE hSD, IMG_UINT32 ui32ReqSize)
+					       IMG_HANDLE hSD,
+					       IMG_UINT32 ui32ReqSize)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSDInt = (TL_STREAM_DESC *) hSD;
+	psSDInt = (TL_STREAM_DESC *)hSD;
 
 	eError = TLServerCommitStreamKM(psSDInt, ui32ReqSize);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgeTLWriteData(IMG_HANDLE hBridge,
-					    IMG_HANDLE hSD,
-					    IMG_UINT32 ui32Size, IMG_BYTE * pui8Data)
+IMG_INTERNAL PVRSRV_ERROR BridgeTLWriteData(IMG_HANDLE hBridge, IMG_HANDLE hSD,
+					    IMG_UINT32 ui32Size,
+					    IMG_BYTE *pui8Data)
 {
 	PVRSRV_ERROR eError;
 	TL_STREAM_DESC *psSDInt;
 	PVR_UNREFERENCED_PARAMETER(hBridge);
 
-	psSDInt = (TL_STREAM_DESC *) hSD;
+	psSDInt = (TL_STREAM_DESC *)hSD;
 
 	eError = TLServerWriteDataKM(psSDInt, ui32Size, pui8Data);
 

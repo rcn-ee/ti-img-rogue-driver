@@ -51,12 +51,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*!
  * Maximum size of the display name in DC_DISPLAY_INFO
  */
-#define DC_NAME_SIZE	50
+#define DC_NAME_SIZE 50
 
 /*!
  * Maximum planes supported by DC interface based display drivers.
  */
-#define DC_MAX_PLANES		(4)
+#define DC_MAX_PLANES (4)
 /*!
  * This contains information about a display.
  * The structure can be queried by services from the display driver via a
@@ -65,13 +65,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *   Structure: #DC_DISPLAY_INFO_TAG
  *   Typedef: ::DC_DISPLAY_INFO
  */
-typedef struct DC_DISPLAY_INFO_TAG
-{
-	IMG_CHAR		szDisplayName[DC_NAME_SIZE];	/*!< Display identifier string */
-	IMG_UINT32		ui32MinDisplayPeriod;			/*!< Minimum number of VSync periods */
-	IMG_UINT32		ui32MaxDisplayPeriod;			/*!< Maximum number of VSync periods */
-	IMG_UINT32		ui32MaxPipes;					/*!< Maximum number of pipes for this display */
-	IMG_BOOL		bUnlatchedSupported;			/*!< Can the device be unlatched? */
+typedef struct DC_DISPLAY_INFO_TAG {
+	IMG_CHAR szDisplayName[DC_NAME_SIZE]; /*!< Display identifier string */
+	IMG_UINT32 ui32MinDisplayPeriod; /*!< Minimum number of VSync periods */
+	IMG_UINT32 ui32MaxDisplayPeriod; /*!< Maximum number of VSync periods */
+	IMG_UINT32 ui32MaxPipes; /*!< Maximum number of pipes for this display */
+	IMG_BOOL bUnlatchedSupported; /*!< Can the device be unlatched? */
 } DC_DISPLAY_INFO;
 
 /*!
@@ -81,19 +80,24 @@ typedef struct DC_DISPLAY_INFO_TAG
  *   Structure: #DC_BUFFER_IMPORT_INFO_TAG
  *   Typedef: ::DC_BUFFER_IMPORT_INFO
  */
-typedef struct DC_BUFFER_IMPORT_INFO_TAG
-{
-	IMG_UINT32		ePixFormat;			/*!< Enum value of type IMG_PIXFMT for the pixel format */
-	IMG_UINT32		ui32BPP;			/*!< Bits per pixel */
-	IMG_UINT32		ui32Width[3];		/*!< Width of the different channels (defined by ePixFormat) */
-	IMG_UINT32		ui32Height[3];		/*!< Height of the different channels (defined by ePixFormat) */
-	IMG_UINT32		ui32ByteStride[3];	/*!< Byte stride of the different channels (defined by ePixFormat) */
-	IMG_UINT32		ui32PrivData[3];	/*!< Private data of the display for each of the channels */
+typedef struct DC_BUFFER_IMPORT_INFO_TAG {
+	IMG_UINT32
+		ePixFormat; /*!< Enum value of type IMG_PIXFMT for the pixel format */
+	IMG_UINT32 ui32BPP; /*!< Bits per pixel */
+	IMG_UINT32 ui32Width
+		[3]; /*!< Width of the different channels (defined by ePixFormat) */
+	IMG_UINT32 ui32Height
+		[3]; /*!< Height of the different channels (defined by ePixFormat) */
+	IMG_UINT32 ui32ByteStride
+		[3]; /*!< Byte stride of the different channels (defined by ePixFormat) */
+	IMG_UINT32 ui32PrivData
+		[3]; /*!< Private data of the display for each of the channels */
 } DC_BUFFER_IMPORT_INFO;
 
 /* DC_BUFFER_IMPORT_INFO is passed over the bridge so we need to ensure
  * it has proper size */
-static_assert((sizeof(DC_BUFFER_IMPORT_INFO) % 4U) == 0U, "invalid size of DC_BUFFER_IMPORT_INFO");
+static_assert((sizeof(DC_BUFFER_IMPORT_INFO) % 4U) == 0U,
+	      "invalid size of DC_BUFFER_IMPORT_INFO");
 
 /*!
  * Configuration details of the frame buffer compression module
@@ -101,12 +105,14 @@ static_assert((sizeof(DC_BUFFER_IMPORT_INFO) % 4U) == 0U, "invalid size of DC_BU
  *   Structure: #DC_FBC_CREATE_INFO_TAG
  *   Typedef: ::DC_FBC_CREATE_INFO
  */
-typedef struct DC_FBC_CREATE_INFO_TAG
-{
-	IMG_UINT32		ui32FBCWidth;	/*!< Pixel width that the FBC module is working on */
-	IMG_UINT32		ui32FBCHeight;	/*!< Pixel height that the FBC module is working on */
-	IMG_UINT32		ui32FBCStride;	/*!< Pixel stride that the FBC module is working on */
-	IMG_UINT32		ui32Size;		/*!< Size of the buffer to create */
+typedef struct DC_FBC_CREATE_INFO_TAG {
+	IMG_UINT32
+		ui32FBCWidth; /*!< Pixel width that the FBC module is working on */
+	IMG_UINT32
+		ui32FBCHeight; /*!< Pixel height that the FBC module is working on */
+	IMG_UINT32
+		ui32FBCStride; /*!< Pixel stride that the FBC module is working on */
+	IMG_UINT32 ui32Size; /*!< Size of the buffer to create */
 } DC_FBC_CREATE_INFO;
 
 /*!
@@ -115,15 +121,16 @@ typedef struct DC_FBC_CREATE_INFO_TAG
  *   Structure: #DC_BUFFER_CREATE_INFO_TAG
  *   Typedef: ::DC_BUFFER_CREATE_INFO
  */
-typedef struct DC_BUFFER_CREATE_INFO_TAG
-{
-	PVRSRV_SURFACE_INFO		sSurface;	/*!< Surface properties, specified by user */
-	IMG_UINT32				ui32BPP;	/*!< Bits per pixel */
-	DC_FBC_CREATE_INFO		sFBC;		/*!< Frame buffer compressed specific data */
+typedef struct DC_BUFFER_CREATE_INFO_TAG {
+	PVRSRV_SURFACE_INFO
+		sSurface; /*!< Surface properties, specified by user */
+	IMG_UINT32 ui32BPP; /*!< Bits per pixel */
+	DC_FBC_CREATE_INFO sFBC; /*!< Frame buffer compressed specific data */
 } DC_BUFFER_CREATE_INFO;
 
 /* DC_BUFFER_CREATE_INFO is passed over the bridge so we need to ensure
  * it has proper size */
-static_assert((sizeof(DC_BUFFER_CREATE_INFO) % 4U) == 0U, "invalid size of DC_BUFFER_CREATE_INFO");
+static_assert((sizeof(DC_BUFFER_CREATE_INFO) % 4U) == 0U,
+	      "invalid size of DC_BUFFER_CREATE_INFO");
 
 #endif /* DC_EXTERNAL_H */

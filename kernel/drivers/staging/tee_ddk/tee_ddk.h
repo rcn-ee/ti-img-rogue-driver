@@ -50,13 +50,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define POLL_TIMEOUT_NS (1000000000ULL)
 
 /* Entire GPU register io range (all OSIDs + secure register bank) */
-#define FPGA_RGX_REG_SIZE   (0x1000000ULL)
+#define FPGA_RGX_REG_SIZE (0x1000000ULL)
 
 /* GPU Virtual Address base of the Firmware heap */
 #define FWHEAP_GPU_VA (0xE1C0000000ULL)
 
-typedef struct _PVRSRV_FW_PARAMS_
-{
+typedef struct _PVRSRV_FW_PARAMS_ {
 	const void *pvFirmware;
 	IMG_UINT32 ui32FirmwareSize;
 	const void *pvSignature;
@@ -64,8 +63,7 @@ typedef struct _PVRSRV_FW_PARAMS_
 	PVRSRV_FW_BOOT_PARAMS uFWP;
 } PVRSRV_FW_PARAMS;
 
-typedef struct _PVRSRV_TD_POWER_PARAMS_
-{
+typedef struct _PVRSRV_TD_POWER_PARAMS_ {
 	IMG_DEV_PHYADDR sPCAddr;
 
 	/* MIPS-only fields */
@@ -75,8 +73,7 @@ typedef struct _PVRSRV_TD_POWER_PARAMS_
 	IMG_DEV_PHYADDR sDataRemapAddr;
 } PVRSRV_TD_POWER_PARAMS;
 
-typedef struct _PVRSRV_DEVICE_FEATURE_CONFIG_
-{
+typedef struct _PVRSRV_DEVICE_FEATURE_CONFIG_ {
 	IMG_UINT64 ui64ErnsBrns;
 	IMG_UINT64 ui64Features;
 	IMG_UINT32 ui32B;
@@ -90,12 +87,11 @@ typedef struct _PVRSRV_DEVICE_FEATURE_CONFIG_
 	IMG_UINT32 ui32MAXRACCount;
 #endif
 	IMG_UINT32 ui32SLCSizeInBytes;
-	IMG_PCHAR  pszBVNCString;
+	IMG_PCHAR pszBVNCString;
 } PVRSRV_DEVICE_FEATURE_CONFIG;
 
 /* structure passed by the REE's FPGA system layer */
-typedef struct _SYS_DATA_
-{
+typedef struct _SYS_DATA_ {
 	IMG_UINT32 ui32SysDataSize;
 	IMG_UINT64 ui64GpuRegisterBase;
 	IMG_UINT64 ui64FwHeapCpuBase;
@@ -116,8 +112,10 @@ typedef struct _SYS_DATA_
 	struct resource *registers;
 } SYS_DATA;
 
-PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_FW_PARAMS *psTDFWParams);
-PVRSRV_ERROR TEE_SetPowerParams(IMG_HANDLE hSysData, PVRSRV_TD_POWER_PARAMS *psTDPowerParams);
+PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData,
+			      PVRSRV_FW_PARAMS *psTDFWParams);
+PVRSRV_ERROR TEE_SetPowerParams(IMG_HANDLE hSysData,
+				PVRSRV_TD_POWER_PARAMS *psTDPowerParams);
 PVRSRV_ERROR TEE_RGXStart(IMG_HANDLE hSysData);
 PVRSRV_ERROR TEE_RGXStop(IMG_HANDLE hSysData);
 

@@ -56,15 +56,15 @@ static void x86_flush_cache_range(const void *pvStart, const void *pvEnd)
 	IMG_BYTE *pbEnd = (IMG_BYTE *)pvEnd;
 	IMG_BYTE *pbBase;
 
-	pbEnd = (IMG_BYTE *)PVR_ALIGN((uintptr_t)pbEnd,
-	                              (uintptr_t)boot_cpu_data.x86_clflush_size);
+	pbEnd = (IMG_BYTE *)PVR_ALIGN(
+		(uintptr_t)pbEnd, (uintptr_t)boot_cpu_data.x86_clflush_size);
 
 	mb();
 
 	__uaccess_begin();
 
-	for (pbBase = pbStart; pbBase < pbEnd; pbBase += boot_cpu_data.x86_clflush_size)
-	{
+	for (pbBase = pbStart; pbBase < pbEnd;
+	     pbBase += boot_cpu_data.x86_clflush_size) {
 		clflush(pbBase);
 	}
 
@@ -73,11 +73,9 @@ static void x86_flush_cache_range(const void *pvStart, const void *pvEnd)
 	mb();
 }
 
-void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-                            void *pvVirtStart,
-                            void *pvVirtEnd,
-                            IMG_CPU_PHYADDR sCPUPhysStart,
-                            IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	PVR_UNREFERENCED_PARAMETER(sCPUPhysStart);
@@ -86,11 +84,9 @@ void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
 	x86_flush_cache_range(pvVirtStart, pvVirtEnd);
 }
 
-void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-                            void *pvVirtStart,
-                            void *pvVirtEnd,
-                            IMG_CPU_PHYADDR sCPUPhysStart,
-                            IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	PVR_UNREFERENCED_PARAMETER(sCPUPhysStart);
@@ -101,10 +97,9 @@ void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
 }
 
 void OSCPUCacheInvalidateRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-                                 void *pvVirtStart,
-                                 void *pvVirtEnd,
-                                 IMG_CPU_PHYADDR sCPUPhysStart,
-                                 IMG_CPU_PHYADDR sCPUPhysEnd)
+				 void *pvVirtStart, void *pvVirtEnd,
+				 IMG_CPU_PHYADDR sCPUPhysStart,
+				 IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevNode);
 	PVR_UNREFERENCED_PARAMETER(sCPUPhysStart);

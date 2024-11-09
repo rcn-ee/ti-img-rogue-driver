@@ -44,26 +44,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(__SYSINFO_H__)
 #define __SYSINFO_H__
 
-#define SYS_RGX_DEV_VENDOR_ID	(0x1010)
-#define SYS_RGX_DEV_DEVICE_ID	(0x1CF2)
+#define SYS_RGX_DEV_VENDOR_ID (0x1010)
+#define SYS_RGX_DEV_DEVICE_ID (0x1CF2)
 
 /*!< System specific poll/timeout details */
 #if defined(VIRTUAL_PLATFORM)
-#define MAX_HW_TIME_US                           (5000000)
-#define EVENT_OBJECT_TIMEOUT_US                  (120000000)
+#define MAX_HW_TIME_US (5000000)
+#define EVENT_OBJECT_TIMEOUT_US (120000000)
 #else
-#define MAX_HW_TIME_US                           (500000)
+#define MAX_HW_TIME_US (500000)
 
 #if defined(TC_APOLLO_TCF5)
-#define EVENT_OBJECT_TIMEOUT_US                  (2000000)
+#define EVENT_OBJECT_TIMEOUT_US (2000000)
 #else
-#define EVENT_OBJECT_TIMEOUT_US                  (100000)
+#define EVENT_OBJECT_TIMEOUT_US (100000)
 #endif
 
 #endif
 
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1500)//(10000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (1500) //(10000)
 #define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
-#define WAIT_TRY_COUNT                           (10000)
+#define WAIT_TRY_COUNT (10000)
 
 #endif /* !defined(__SYSINFO_H__) */

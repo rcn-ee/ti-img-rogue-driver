@@ -46,98 +46,79 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvr_debug.h"
 #include "cache_ops.h"
 
-void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-							void *pvVirtStart,
-							void *pvVirtEnd,
-							IMG_CPU_PHYADDR sCPUPhysStart,
-							IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheFlushRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	/*
 	 * RISC-V cache maintenance mechanism is not part of the core spec.
 	 * This leaves the actual mechanism of action to an implementer.
 	 * Here we let the system layer decide how maintenance is done.
 	 */
-	if (psDevNode->psDevConfig->pfnHostCacheMaintenance)
-	{
+	if (psDevNode->psDevConfig->pfnHostCacheMaintenance) {
 		psDevNode->psDevConfig->pfnHostCacheMaintenance(
-				psDevNode->psDevConfig->hSysData,
-				PVRSRV_CACHE_OP_FLUSH,
-				pvVirtStart,
-				pvVirtEnd,
-				sCPUPhysStart,
-				sCPUPhysEnd);
+			psDevNode->psDevConfig->hSysData, PVRSRV_CACHE_OP_FLUSH,
+			pvVirtStart, pvVirtEnd, sCPUPhysStart, sCPUPhysEnd);
 
 	}
 #if !defined(NO_HARDWARE)
-	else
-	{
-		PVR_DPF((PVR_DBG_WARNING,
-		         "%s: System doesn't implement cache maintenance. Skipping!",
-		         __func__));
+	else {
+		PVR_DPF((
+			PVR_DBG_WARNING,
+			"%s: System doesn't implement cache maintenance. Skipping!",
+			__func__));
 	}
 #endif
 }
 
-void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-							void *pvVirtStart,
-							void *pvVirtEnd,
-							IMG_CPU_PHYADDR sCPUPhysStart,
-							IMG_CPU_PHYADDR sCPUPhysEnd)
+void OSCPUCacheCleanRangeKM(PVRSRV_DEVICE_NODE *psDevNode, void *pvVirtStart,
+			    void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+			    IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	/*
 	 * RISC-V cache maintenance mechanism is not part of the core spec.
 	 * This leaves the actual mechanism of action to an implementer.
 	 * Here we let the system layer decide how maintenance is done.
 	 */
-	if (psDevNode->psDevConfig->pfnHostCacheMaintenance)
-	{
+	if (psDevNode->psDevConfig->pfnHostCacheMaintenance) {
 		psDevNode->psDevConfig->pfnHostCacheMaintenance(
-				psDevNode->psDevConfig->hSysData,
-				PVRSRV_CACHE_OP_CLEAN,
-				pvVirtStart,
-				pvVirtEnd,
-				sCPUPhysStart,
-				sCPUPhysEnd);
+			psDevNode->psDevConfig->hSysData, PVRSRV_CACHE_OP_CLEAN,
+			pvVirtStart, pvVirtEnd, sCPUPhysStart, sCPUPhysEnd);
 
 	}
 #if !defined(NO_HARDWARE)
-	else
-	{
-		PVR_DPF((PVR_DBG_WARNING,
-		         "%s: System doesn't implement cache maintenance. Skipping!",
-		         __func__));
+	else {
+		PVR_DPF((
+			PVR_DBG_WARNING,
+			"%s: System doesn't implement cache maintenance. Skipping!",
+			__func__));
 	}
 #endif
 }
 
 void OSCPUCacheInvalidateRangeKM(PVRSRV_DEVICE_NODE *psDevNode,
-								 void *pvVirtStart,
-								 void *pvVirtEnd,
-								 IMG_CPU_PHYADDR sCPUPhysStart,
-								 IMG_CPU_PHYADDR sCPUPhysEnd)
+				 void *pvVirtStart, void *pvVirtEnd,
+				 IMG_CPU_PHYADDR sCPUPhysStart,
+				 IMG_CPU_PHYADDR sCPUPhysEnd)
 {
 	/*
 	 * RISC-V cache maintenance mechanism is not part of the core spec.
 	 * This leaves the actual mechanism of action to an implementer.
 	 * Here we let the system layer decide how maintenance is done.
 	 */
-	if (psDevNode->psDevConfig->pfnHostCacheMaintenance)
-	{
+	if (psDevNode->psDevConfig->pfnHostCacheMaintenance) {
 		psDevNode->psDevConfig->pfnHostCacheMaintenance(
-				psDevNode->psDevConfig->hSysData,
-				PVRSRV_CACHE_OP_INVALIDATE,
-				pvVirtStart,
-				pvVirtEnd,
-				sCPUPhysStart,
-				sCPUPhysEnd);
+			psDevNode->psDevConfig->hSysData,
+			PVRSRV_CACHE_OP_INVALIDATE, pvVirtStart, pvVirtEnd,
+			sCPUPhysStart, sCPUPhysEnd);
 
 	}
 #if !defined(NO_HARDWARE)
-	else
-	{
-		PVR_DPF((PVR_DBG_WARNING,
-		         "%s: System doesn't implement cache maintenance. Skipping!",
-		         __func__));
+	else {
+		PVR_DPF((
+			PVR_DBG_WARNING,
+			"%s: System doesn't implement cache maintenance. Skipping!",
+			__func__));
 	}
 #endif
 }
@@ -169,9 +150,8 @@ void OSUserModeAccessToPerfCountersEn(void)
 IMG_BOOL OSIsWriteCombineUnalignedSafe(void)
 {
 #if !defined(NO_HARDWARE)
-	PVR_DPF((PVR_DBG_WARNING,
-	         "%s: Not implemented (assuming false)!",
-	         __func__));
+	PVR_DPF((PVR_DBG_WARNING, "%s: Not implemented (assuming false)!",
+		 __func__));
 	PVR_ASSERT(0);
 	return IMG_FALSE;
 #else

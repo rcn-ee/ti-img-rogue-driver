@@ -67,9 +67,8 @@ static int netlink_gem_mmap_capsys(struct file *file,
 	int err;
 
 	drm_vma_offset_lock_lookup(dev->vma_offset_manager);
-	node = drm_vma_offset_exact_lookup_locked(dev->vma_offset_manager,
-						  vma->vm_pgoff,
-						  vma_pages(vma));
+	node = drm_vma_offset_exact_lookup_locked(
+		dev->vma_offset_manager, vma->vm_pgoff, vma_pages(vma));
 	if (node) {
 		obj = container_of(node, struct drm_gem_object, vma_node);
 

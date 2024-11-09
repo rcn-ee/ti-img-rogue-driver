@@ -70,7 +70,6 @@
 
 #include "kernel_compatibility.h"
 
-
 static const uint32_t apollo_plato_formats[] = {
 	DRM_FORMAT_XRGB8888,
 	DRM_FORMAT_ARGB8888,
@@ -81,16 +80,12 @@ static const uint32_t odin_formats[] = {
 	DRM_FORMAT_RGB565,
 };
 
-static const uint64_t default_modifiers[] = {
-	DRM_FORMAT_MOD_LINEAR,
-	DRM_FORMAT_MOD_INVALID
-};
-static const uint64_t odin_modifiers[] = {
-	DRM_FORMAT_MOD_LINEAR,
-	DRM_FORMAT_MOD_PVR_FBCDC_8x8_V12,
-	DRM_FORMAT_MOD_PVR_FBCDC_16x4_V12,
-	DRM_FORMAT_MOD_INVALID
-};
+static const uint64_t default_modifiers[] = { DRM_FORMAT_MOD_LINEAR,
+					      DRM_FORMAT_MOD_INVALID };
+static const uint64_t odin_modifiers[] = { DRM_FORMAT_MOD_LINEAR,
+					   DRM_FORMAT_MOD_PVR_FBCDC_8x8_V12,
+					   DRM_FORMAT_MOD_PVR_FBCDC_16x4_V12,
+					   DRM_FORMAT_MOD_INVALID };
 
 #if defined(PDP_USE_ATOMIC)
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0))
@@ -102,26 +97,27 @@ static int pdp_plane_helper_atomic_check(struct drm_plane *plane,
 #endif
 {
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0))
-	struct drm_plane_state *state = drm_atomic_get_new_plane_state(atomic_state,
-								       plane);
+	struct drm_plane_state *state =
+		drm_atomic_get_new_plane_state(atomic_state, plane);
 #endif
 	struct drm_crtc_state *crtc_new_state;
 
 	if (!state->crtc)
 		return 0;
 
-	crtc_new_state = drm_atomic_get_new_crtc_state(state->state,
-						       state->crtc);
+	crtc_new_state =
+		drm_atomic_get_new_crtc_state(state->state, state->crtc);
 
 	return drm_atomic_helper_check_plane_state(state, crtc_new_state,
 						   DRM_PLANE_NO_SCALING,
-						   DRM_PLANE_NO_SCALING,
-						   false, true);
+						   DRM_PLANE_NO_SCALING, false,
+						   true);
 }
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 13, 0))
-static void pdp_plane_helper_atomic_update(struct drm_plane *plane,
-					   struct drm_atomic_state *atomic_state)
+static void
+pdp_plane_helper_atomic_update(struct drm_plane *plane,
+			       struct drm_atomic_state *atomic_state)
 #else
 static void pdp_plane_helper_atomic_update(struct drm_plane *plane,
 					   struct drm_plane_state *old_state)
@@ -137,8 +133,7 @@ static void pdp_plane_helper_atomic_update(struct drm_plane *plane,
 }
 
 static bool pdp_plane_format_mod_supported(struct drm_plane *plane,
-					   uint32_t format,
-					   uint64_t modifier)
+					   uint32_t format, uint64_t modifier)
 {
 	struct pdp_drm_private *dev_priv = plane->dev->dev_private;
 	const uint32_t *supported_formats;
@@ -236,8 +231,7 @@ struct drm_plane *pdp_plane_create(struct drm_device *dev,
 	}
 
 	err = drm_universal_plane_init(dev, plane, 0, &pdp_plane_funcs,
-				       supported_formats,
-				       num_supported_formats,
+				       supported_formats, num_supported_formats,
 				       supported_modifiers, type, NULL);
 	if (err)
 		goto err_plane_free;
@@ -257,8 +251,8 @@ err_exit:
 }
 
 void pdp_plane_set_surface(struct drm_crtc *crtc, struct drm_plane *plane,
-			   struct drm_framebuffer *fb,
-			   const uint32_t src_x, const uint32_t src_y)
+			   struct drm_framebuffer *fb, const uint32_t src_x,
+			   const uint32_t src_y)
 {
 	struct pdp_drm_private *dev_priv = plane->dev->dev_private;
 	struct pdp_crtc *pdp_crtc = to_pdp_crtc(crtc);
@@ -298,15 +292,9 @@ void pdp_plane_set_surface(struct drm_crtc *crtc, struct drm_plane *plane,
 			return;
 		}
 
-		pdp_apollo_set_surface(plane->dev->dev,
-				       pdp_crtc->pdp_reg,
-				       0,
-				       address,
-				       0, 0,
-				       fb->width, fb->height, pitch,
-				       format,
-				       255,
-				       false);
+		pdp_apollo_set_surface(plane->dev->dev, pdp_crtc->pdp_reg, 0,
+				       address, 0, 0, fb->width, fb->height,
+				       pitch, format, 255, false);
 		break;
 	case PDP_VERSION_ODIN:
 		switch (pdp_drm_fb_format(fb)) {
@@ -345,15 +333,9 @@ void pdp_plane_set_surface(struct drm_crtc *crtc, struct drm_plane *plane,
 			return;
 		}
 
-		pdp_odin_set_surface(plane->dev->dev,
-				     pdp_crtc->pdp_reg,
-				     0,
-				     address, fb->offsets[0],
-				     0, 0,
-				     fb->width, fb->height, pitch,
-				     format,
-				     255,
-				     false,
+		pdp_odin_set_surface(plane->dev->dev, pdp_crtc->pdp_reg, 0,
+				     address, fb->offsets[0], 0, 0, fb->width,
+				     fb->height, pitch, format, 255, false,
 				     pdp_crtc->pfim_reg, fbc_mode);
 		break;
 	case PDP_VERSION_PLATO:
@@ -368,18 +350,12 @@ void pdp_plane_set_surface(struct drm_crtc *crtc, struct drm_plane *plane,
 			return;
 		}
 
-		pdp_plato_set_surface(crtc->dev->dev,
-				      pdp_crtc->pdp_reg,
-				      pdp_crtc->pdp_bif_reg,
-				      0,
-				      address,
-				      0, 0,
-				      fb->width, fb->height, pitch,
-				      format,
-				      255,
+		pdp_plato_set_surface(crtc->dev->dev, pdp_crtc->pdp_reg,
+				      pdp_crtc->pdp_bif_reg, 0, address, 0, 0,
+				      fb->width, fb->height, pitch, format, 255,
 				      false);
 		break;
 	default:
-			BUG();
+		BUG();
 	}
 }

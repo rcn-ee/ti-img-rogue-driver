@@ -57,10 +57,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* #define DCEX_VERBOSE 1*/
 
 #if defined(DCEX_DEBUG)
-	#define DCEX_DEBUG_PRINT(fmt, ...) \
-		DC_OSDebugPrintf(DBGLVL_WARNING, fmt, __VA_ARGS__)
+#define DCEX_DEBUG_PRINT(fmt, ...) \
+	DC_OSDebugPrintf(DBGLVL_WARNING, fmt, __VA_ARGS__)
 #else
-	#define DCEX_DEBUG_PRINT(fmt, ...)
+#define DCEX_DEBUG_PRINT(fmt, ...)
 #endif
 
 /*
@@ -83,150 +83,150 @@ static IMG_BOOL CheckBufferDimensions(void)
 	IMG_UINT32 ui32BytesPP = 0;
 
 	psModuleParams = DCExampleGetModuleParameters();
-	if (NULL == psModuleParams)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, ": Cannot fetch module parameters\n");
+	if (NULL == psModuleParams) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 ": Cannot fetch module parameters\n");
 		return IMG_FALSE;
 	}
 
-	if (psModuleParams->ui32Width == 0 ||
-	    psModuleParams->ui32Height == 0 ||
-	    psModuleParams->ui32Depth == 0)
-	{
+	if (psModuleParams->ui32Width == 0 || psModuleParams->ui32Height == 0 ||
+	    psModuleParams->ui32Depth == 0) {
 		DC_OSDebugPrintf(
 			DBGLVL_WARNING,
 			": Illegal module parameters (width %u, height %u, depth %u)\n",
-			psModuleParams->ui32Width,
-			psModuleParams->ui32Height,
+			psModuleParams->ui32Width, psModuleParams->ui32Height,
 			psModuleParams->ui32Depth);
 
 		return IMG_FALSE;
 	}
 
-	switch (psModuleParams->ui32Depth)
-	{
-		case 32:
-			switch (psModuleParams->ui32Format)
-			{
-				case 0:
-					ePixelFormat = IMG_PIXFMT_B8G8R8A8_UNORM;
-					break;
-				case 1:
-					ePixelFormat = IMG_PIXFMT_B10G10R10A2_UNORM;
-					break;
-				default:
-					ePixelFormat = IMG_PIXFMT_UNKNOWN;
-					break;
-			}
-
-			ui32BytesPP = 4;
+	switch (psModuleParams->ui32Depth) {
+	case 32:
+		switch (psModuleParams->ui32Format) {
+		case 0:
+			ePixelFormat = IMG_PIXFMT_B8G8R8A8_UNORM;
 			break;
-		case 16:
-			switch (psModuleParams->ui32Format)
-			{
-				case 0:
-					ePixelFormat = IMG_PIXFMT_B5G6R5_UNORM;
-					break;
-				default:
-					ePixelFormat = IMG_PIXFMT_UNKNOWN;
-					break;
-			}
-
-			ui32BytesPP = 2;
+		case 1:
+			ePixelFormat = IMG_PIXFMT_B10G10R10A2_UNORM;
 			break;
 		default:
-			DC_OSDebugPrintf(DBGLVL_WARNING, ": Display depth %lu not supported\n", psModuleParams->ui32Depth);
-
 			ePixelFormat = IMG_PIXFMT_UNKNOWN;
 			break;
+		}
+
+		ui32BytesPP = 4;
+		break;
+	case 16:
+		switch (psModuleParams->ui32Format) {
+		case 0:
+			ePixelFormat = IMG_PIXFMT_B5G6R5_UNORM;
+			break;
+		default:
+			ePixelFormat = IMG_PIXFMT_UNKNOWN;
+			break;
+		}
+
+		ui32BytesPP = 2;
+		break;
+	default:
+		DC_OSDebugPrintf(DBGLVL_WARNING,
+				 ": Display depth %lu not supported\n",
+				 psModuleParams->ui32Depth);
+
+		ePixelFormat = IMG_PIXFMT_UNKNOWN;
+		break;
 	}
 
-	if (ePixelFormat == IMG_PIXFMT_UNKNOWN)
-	{
-		DC_OSDebugPrintf(DBGLVL_WARNING,
-						 ": Display format %lu not supported for depth %lu\n",
-						 psModuleParams->ui32Format, psModuleParams->ui32Depth);
+	if (ePixelFormat == IMG_PIXFMT_UNKNOWN) {
+		DC_OSDebugPrintf(
+			DBGLVL_WARNING,
+			": Display format %lu not supported for depth %lu\n",
+			psModuleParams->ui32Format, psModuleParams->ui32Depth);
 		return IMG_FALSE;
 	}
 
-	if ((psModuleParams->ui32MemLayout == 1 && psModuleParams->ui32FBCFormat == 0) ||
-	    (psModuleParams->ui32MemLayout != 1 && psModuleParams->ui32FBCFormat != 0))
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR,
-				 ": Invalid memory layout/FBC mode combination (memory layout %u, FBC format %u)\n",
-				 psModuleParams->ui32MemLayout,
-				 psModuleParams->ui32FBCFormat);
+	if ((psModuleParams->ui32MemLayout == 1 &&
+	     psModuleParams->ui32FBCFormat == 0) ||
+	    (psModuleParams->ui32MemLayout != 1 &&
+	     psModuleParams->ui32FBCFormat != 0)) {
+		DC_OSDebugPrintf(
+			DBGLVL_ERROR,
+			": Invalid memory layout/FBC mode combination (memory layout %u, FBC format %u)\n",
+			psModuleParams->ui32MemLayout,
+			psModuleParams->ui32FBCFormat);
 
 		return IMG_FALSE;
 	}
 
 	ui32ByteStride = psModuleParams->ui32Width * ui32BytesPP;
 
-	DC_OSDebugPrintf(DBGLVL_INFO, " Width: %u pixels\n", psModuleParams->ui32Width);
-	DC_OSDebugPrintf(DBGLVL_INFO, " Height: %u pixels\n", psModuleParams->ui32Height);
+	DC_OSDebugPrintf(DBGLVL_INFO, " Width: %u pixels\n",
+			 psModuleParams->ui32Width);
+	DC_OSDebugPrintf(DBGLVL_INFO, " Height: %u pixels\n",
+			 psModuleParams->ui32Height);
 	DC_OSDebugPrintf(DBGLVL_INFO, " Stride: %u bytes\n", ui32ByteStride);
-	DC_OSDebugPrintf(DBGLVL_INFO, " Depth: %u bits\n", psModuleParams->ui32Depth);
-	DC_OSDebugPrintf(DBGLVL_INFO, " Format: %u\n", psModuleParams->ui32Format);
-	DC_OSDebugPrintf(DBGLVL_INFO, " Memory layout: %u\n", psModuleParams->ui32MemLayout);
-	DC_OSDebugPrintf(DBGLVL_INFO, " FBC format: %u\n", psModuleParams->ui32FBCFormat);
+	DC_OSDebugPrintf(DBGLVL_INFO, " Depth: %u bits\n",
+			 psModuleParams->ui32Depth);
+	DC_OSDebugPrintf(DBGLVL_INFO, " Format: %u\n",
+			 psModuleParams->ui32Format);
+	DC_OSDebugPrintf(DBGLVL_INFO, " Memory layout: %u\n",
+			 psModuleParams->ui32MemLayout);
+	DC_OSDebugPrintf(DBGLVL_INFO, " FBC format: %u\n",
+			 psModuleParams->ui32FBCFormat);
 	DC_OSDebugPrintf(DBGLVL_INFO, " X-Dpi: %u\n", psModuleParams->ui32XDpi);
 	DC_OSDebugPrintf(DBGLVL_INFO, " Y-Dpi: %u\n", psModuleParams->ui32YDpi);
 
 	return IMG_TRUE;
 }
 
+typedef struct _DCEX_DEVICE_ {
+	IMG_HANDLE hPVRServicesConnection;
+	IMG_HANDLE hPVRServicesDevice;
+	DC_SERVICES_FUNCS sPVRServicesFuncs;
 
-typedef struct _DCEX_DEVICE_
-{
-	IMG_HANDLE		hPVRServicesConnection;
-	IMG_HANDLE		hPVRServicesDevice;
-	DC_SERVICES_FUNCS	sPVRServicesFuncs;
-
-	IMG_HANDLE		hSrvHandle;
+	IMG_HANDLE hSrvHandle;
 #if defined(LMA)
-	PHYS_HEAP		*psPhysHeap;
-	IMG_CPU_PHYADDR		sDispStartAddr;
-	IMG_UINT64		uiDispMemSize;
-	IMG_UINT32		ui32BufferSize;
-	IMG_UINT32		ui32BufferCount;
-	IMG_UINT32		ui32BufferUseMask;
+	PHYS_HEAP *psPhysHeap;
+	IMG_CPU_PHYADDR sDispStartAddr;
+	IMG_UINT64 uiDispMemSize;
+	IMG_UINT32 ui32BufferSize;
+	IMG_UINT32 ui32BufferCount;
+	IMG_UINT32 ui32BufferUseMask;
 #endif
-	DLLIST_NODE		sListNode;      /* List of all device nodes */
-	void			*hBufListLock;  /* Lock for accessing sBufListNode */
-	DLLIST_NODE		sBufListNode;   /* List of Buffers for this device */
+	DLLIST_NODE sListNode; /* List of all device nodes */
+	void *hBufListLock; /* Lock for accessing sBufListNode */
+	DLLIST_NODE sBufListNode; /* List of Buffers for this device */
 	/* Per-device context information */
-	IMG_HANDLE		hConfigData[MAX_COMMANDS_INFLIGHT];
-	IMG_UINT32		ui32Head;
-	IMG_UINT32		ui32Tail;
-	IMG_BOOL		b_DisplayContextActive;
+	IMG_HANDLE hConfigData[MAX_COMMANDS_INFLIGHT];
+	IMG_UINT32 ui32Head;
+	IMG_UINT32 ui32Tail;
+	IMG_BOOL b_DisplayContextActive;
 } DCEX_DEVICE;
 
-typedef enum
-{
+typedef enum {
 	DCEX_BUFFER_SOURCE_ALLOC,
 	DCEX_BUFFER_SOURCE_IMPORT,
 } DCEX_BUFFER_SOURCE;
 
-typedef struct _DCEX_BUFFER_
-{
-	ATOMIC_T		i32RefCount;	/* Only required for system buffer */
-	IMG_BOOL		bIsSysBuffer;	/* Set for system buffer */
-	IMG_UINT32		ePixFormat;
-	IMG_UINT32		ui32Width;
-	IMG_UINT32		ui32Height;
-	IMG_UINT32		ui32ByteStride;
-	IMG_UINT32		ui32Size;
-	IMG_UINT32		ui32PageCount;
-	IMG_HANDLE		hImport;
-	IMG_DEV_PHYADDR		*pasDevPAddr;
-	DCEX_DEVICE		*psDevice;
+typedef struct _DCEX_BUFFER_ {
+	ATOMIC_T i32RefCount; /* Only required for system buffer */
+	IMG_BOOL bIsSysBuffer; /* Set for system buffer */
+	IMG_UINT32 ePixFormat;
+	IMG_UINT32 ui32Width;
+	IMG_UINT32 ui32Height;
+	IMG_UINT32 ui32ByteStride;
+	IMG_UINT32 ui32Size;
+	IMG_UINT32 ui32PageCount;
+	IMG_HANDLE hImport;
+	IMG_DEV_PHYADDR *pasDevPAddr;
+	DCEX_DEVICE *psDevice;
 #if defined(LMA)
-	IMG_UINT64		uiAllocHandle;
+	IMG_UINT64 uiAllocHandle;
 #else
-	void			*pvAllocHandle;
+	void *pvAllocHandle;
 #endif
 	DCEX_BUFFER_SOURCE eSource;
-	DLLIST_NODE		sListNode;     /* List of all buffers one per device */
+	DLLIST_NODE sListNode; /* List of all buffers one per device */
 } DCEX_BUFFER;
 
 static void *g_hDevDataListLock;
@@ -234,7 +234,7 @@ static void *g_hDevDataListLock;
 static DLLIST_NODE g_sDeviceDataListHead;
 
 static INLINE void DCExampleConfigPush(DCEX_DEVICE *psDevice,
-                                       IMG_HANDLE hConfigData)
+				       IMG_HANDLE hConfigData)
 {
 	IMG_UINT32 ui32Head;
 
@@ -243,8 +243,7 @@ static INLINE void DCExampleConfigPush(DCEX_DEVICE *psDevice,
 	psDevice->hConfigData[ui32Head] = hConfigData;
 	ui32Head++;
 
-	if (ui32Head >= MAX_COMMANDS_INFLIGHT)
-	{
+	if (ui32Head >= MAX_COMMANDS_INFLIGHT) {
 		ui32Head = 0;
 	}
 
@@ -261,8 +260,7 @@ static INLINE IMG_HANDLE DCExampleConfigPop(DCEX_DEVICE *psDevice)
 	hConfigData = psDevice->hConfigData[ui32Tail];
 	ui32Tail++;
 
-	if (ui32Tail >= MAX_COMMANDS_INFLIGHT)
-	{
+	if (ui32Tail >= MAX_COMMANDS_INFLIGHT) {
 		ui32Tail = 0;
 	}
 	psDevice->ui32Tail = ui32Tail;
@@ -273,25 +271,23 @@ static INLINE IMG_HANDLE DCExampleConfigPop(DCEX_DEVICE *psDevice)
 static INLINE IMG_BOOL DCExampleConfigIsEmpty(DCEX_DEVICE *psDevice)
 {
 	DC_ASSERT(psDevice != NULL);
-	return ((psDevice->ui32Tail == psDevice->ui32Head) ? IMG_TRUE : IMG_FALSE);
+	return ((psDevice->ui32Tail == psDevice->ui32Head) ? IMG_TRUE :
+							     IMG_FALSE);
 }
 
 #if defined(LMA)
 /*
 	Simple unit size allocator
 */
-static
-IMG_UINT64 _DCExampleAllocLMABuffer(DCEX_DEVICE *psDevice)
+static IMG_UINT64 _DCExampleAllocLMABuffer(DCEX_DEVICE *psDevice)
 {
 	IMG_UINT32 i;
 	IMG_UINT64 pvRet = 0;
 
-	for (i = 0; i < psDevice->ui32BufferCount; i++)
-	{
-		if ((psDevice->ui32BufferUseMask & (1UL << i)) == 0)
-		{
+	for (i = 0; i < psDevice->ui32BufferCount; i++) {
+		if ((psDevice->ui32BufferUseMask & (1UL << i)) == 0) {
 			pvRet = psDevice->sDispStartAddr.uiAddr +
-					(i * psDevice->ui32BufferSize);
+				(i * psDevice->ui32BufferSize);
 			psDevice->ui32BufferUseMask |= (1UL << i);
 			break;
 		}
@@ -300,15 +296,14 @@ IMG_UINT64 _DCExampleAllocLMABuffer(DCEX_DEVICE *psDevice)
 	return pvRet;
 }
 
-static
-void _DCExampleFreeLMABuffer(DCEX_DEVICE *psDevice, IMG_UINT64 uiAddr)
+static void _DCExampleFreeLMABuffer(DCEX_DEVICE *psDevice, IMG_UINT64 uiAddr)
 {
 	IMG_UINT64 ui64Offset;
 
 	DC_ASSERT(uiAddr >= psDevice->sDispStartAddr.uiAddr);
 
 	DCEX_DEBUG_PRINT("Freeing %p, Size %x, UseMask %x", (void *)uiAddr,
-	                  psDevice->ui32BufferSize, psDevice->ui32BufferUseMask);
+			 psDevice->ui32BufferSize, psDevice->ui32BufferUseMask);
 
 	ui64Offset = uiAddr - psDevice->sDispStartAddr.uiAddr;
 	ui64Offset = DC_OSDiv64(ui64Offset, psDevice->ui32BufferSize);
@@ -317,29 +312,28 @@ void _DCExampleFreeLMABuffer(DCEX_DEVICE *psDevice, IMG_UINT64 uiAddr)
 }
 #endif /* LMA */
 
-static
-void DCExampleGetInfo(IMG_HANDLE hDeviceData,
-						  DC_DISPLAY_INFO *psDisplayInfo)
+static void DCExampleGetInfo(IMG_HANDLE hDeviceData,
+			     DC_DISPLAY_INFO *psDisplayInfo)
 {
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 
 	/*
 		Copy our device name
 	*/
-	DC_OSStringNCopy(psDisplayInfo->szDisplayName, DRVNAME " 1", DC_NAME_SIZE);
+	DC_OSStringNCopy(psDisplayInfo->szDisplayName, DRVNAME " 1",
+			 DC_NAME_SIZE);
 
 	/*
 		Report what our minimum and maximum display period is.
 	*/
-	psDisplayInfo->ui32MinDisplayPeriod	= 0;
-	psDisplayInfo->ui32MaxDisplayPeriod	= 1;
-	psDisplayInfo->ui32MaxPipes			= MAX_PIPES;
-	psDisplayInfo->bUnlatchedSupported	= IMG_FALSE;
+	psDisplayInfo->ui32MinDisplayPeriod = 0;
+	psDisplayInfo->ui32MaxDisplayPeriod = 1;
+	psDisplayInfo->ui32MaxPipes = MAX_PIPES;
+	psDisplayInfo->bUnlatchedSupported = IMG_FALSE;
 }
 
-static
-PVRSRV_ERROR DCExamplePanelQueryCount(IMG_HANDLE hDeviceData,
-										 IMG_UINT32 *pui32NumPanels)
+static PVRSRV_ERROR DCExamplePanelQueryCount(IMG_HANDLE hDeviceData,
+					     IMG_UINT32 *pui32NumPanels)
 {
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 	/*
@@ -351,19 +345,19 @@ PVRSRV_ERROR DCExamplePanelQueryCount(IMG_HANDLE hDeviceData,
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DCExamplePanelQuery(IMG_HANDLE hDeviceData,
-									IMG_UINT32 ui32PanelsArraySize,
-									IMG_UINT32 *pui32NumPanels,
-									PVRSRV_PANEL_INFO *psPanelInfo)
+static PVRSRV_ERROR DCExamplePanelQuery(IMG_HANDLE hDeviceData,
+					IMG_UINT32 ui32PanelsArraySize,
+					IMG_UINT32 *pui32NumPanels,
+					PVRSRV_PANEL_INFO *psPanelInfo)
 {
-	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams = DCExampleGetModuleParameters();
+	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams =
+		DCExampleGetModuleParameters();
 
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 
-	if (NULL == psModuleParams)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, ": Cannot fetch module parameters\n");
+	if (NULL == psModuleParams) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 ": Cannot fetch module parameters\n");
 		return PVRSRV_ERROR_NO_DEVICEDATA_FOUND;
 	}
 
@@ -380,102 +374,141 @@ PVRSRV_ERROR DCExamplePanelQuery(IMG_HANDLE hDeviceData,
 	*/
 	psPanelInfo[0].sSurfaceInfo.sFormat.ePixFormat = ePixelFormat;
 	psPanelInfo[0].sSurfaceInfo.sDims.ui32Width = psModuleParams->ui32Width;
-	psPanelInfo[0].sSurfaceInfo.sDims.ui32Height = psModuleParams->ui32Height;
+	psPanelInfo[0].sSurfaceInfo.sDims.ui32Height =
+		psModuleParams->ui32Height;
 
 	psPanelInfo[0].ui32RefreshRate = psModuleParams->ui32RefreshRate;
 	psPanelInfo[0].ui32XDpi = psModuleParams->ui32XDpi;
 	psPanelInfo[0].ui32YDpi = psModuleParams->ui32YDpi;
 
-	switch (psModuleParams->ui32MemLayout)
-	{
-		case 0:
-			psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout = PVRSRV_SURFACE_MEMLAYOUT_STRIDED;
-			break;
-		case 1:
-			psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout = PVRSRV_SURFACE_MEMLAYOUT_FBC;
-			break;
-		default:
-			DC_OSDebugPrintf(DBGLVL_ERROR, ": Unknown memory layout %ld\n", psModuleParams->ui32MemLayout);
+	switch (psModuleParams->ui32MemLayout) {
+	case 0:
+		psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout =
+			PVRSRV_SURFACE_MEMLAYOUT_STRIDED;
+		break;
+	case 1:
+		psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout =
+			PVRSRV_SURFACE_MEMLAYOUT_FBC;
+		break;
+	default:
+		DC_OSDebugPrintf(DBGLVL_ERROR, ": Unknown memory layout %ld\n",
+				 psModuleParams->ui32MemLayout);
 
-			return PVRSRV_ERROR_INVALID_PARAMS;
+		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	switch (psModuleParams->ui32FBCFormat)
-	{
-		case 0:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_NONE;
-			break;
-		case 1:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_8x8;
-			break;
-		case 2:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_16x4;
-			break;
-		case 5:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_32x2;
-			break;
-		case 6:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY50_8x8;
-			break;
-		case 7:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY50_16x4;
-			break;
-		case 8:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY50_32x2;
-			break;
-		case 9:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY25_8x8;
-			break;
-		case 10:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY25_16x4;
-			break;
-		case 11:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY25_32x2;
-			break;
-		case 12:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY75_8x8;
-			break;
-		case 13:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY75_16x4;
-			break;
-		case 14:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY75_32x2;
-			break;
-		case 15:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY37_8x8;
-			break;
-		case 16:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY37_16x4;
-			break;
-		case 17:
-			psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_DIRECT_LOSSY37_32x2;
-			break;
-		default:
-			DC_OSDebugPrintf(DBGLVL_ERROR, ": Unknown FBC format %ld\n", psModuleParams->ui32FBCFormat);
+	switch (psModuleParams->ui32FBCFormat) {
+	case 0:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_NONE;
+		break;
+	case 1:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_8x8;
+		break;
+	case 2:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_16x4;
+		break;
+	case 5:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_32x2;
+		break;
+	case 6:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY50_8x8;
+		break;
+	case 7:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY50_16x4;
+		break;
+	case 8:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY50_32x2;
+		break;
+	case 9:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY25_8x8;
+		break;
+	case 10:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY25_16x4;
+		break;
+	case 11:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY25_32x2;
+		break;
+	case 12:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY75_8x8;
+		break;
+	case 13:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY75_16x4;
+		break;
+	case 14:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY75_32x2;
+		break;
+	case 15:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY37_8x8;
+		break;
+	case 16:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY37_16x4;
+		break;
+	case 17:
+		psPanelInfo[0]
+			.sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+			IMG_FB_COMPRESSION_DIRECT_LOSSY37_32x2;
+		break;
+	default:
+		DC_OSDebugPrintf(DBGLVL_ERROR, ": Unknown FBC format %ld\n",
+				 psModuleParams->ui32FBCFormat);
 
-			return PVRSRV_ERROR_INVALID_PARAMS;
+		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	DC_ASSERT((psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout == PVRSRV_SURFACE_MEMLAYOUT_FBC &&
-		   psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode != IMG_FB_COMPRESSION_NONE) ||
-		  (psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout != PVRSRV_SURFACE_MEMLAYOUT_FBC &&
-		   psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode == IMG_FB_COMPRESSION_NONE));
+	DC_ASSERT((psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout ==
+			   PVRSRV_SURFACE_MEMLAYOUT_FBC &&
+		   psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout
+				   .eFBCompressionMode !=
+			   IMG_FB_COMPRESSION_NONE) ||
+		  (psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout !=
+			   PVRSRV_SURFACE_MEMLAYOUT_FBC &&
+		   psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout
+				   .eFBCompressionMode ==
+			   IMG_FB_COMPRESSION_NONE));
 
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DCExampleFormatQuery(IMG_HANDLE hDeviceData,
-									IMG_UINT32 ui32NumFormats,
-									PVRSRV_SURFACE_FORMAT *pasFormat,
-									IMG_UINT32 *pui32Supported)
+static PVRSRV_ERROR DCExampleFormatQuery(IMG_HANDLE hDeviceData,
+					 IMG_UINT32 ui32NumFormats,
+					 PVRSRV_SURFACE_FORMAT *pasFormat,
+					 IMG_UINT32 *pui32Supported)
 {
 	IMG_UINT32 i;
 
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 
-	for (i = 0; i < ui32NumFormats; i++)
-	{
+	for (i = 0; i < ui32NumFormats; i++) {
 		pui32Supported[i] = 0;
 
 		/*
@@ -485,8 +518,7 @@ PVRSRV_ERROR DCExampleFormatQuery(IMG_HANDLE hDeviceData,
 		*/
 		if ((pasFormat[i].ePixFormat == IMG_PIXFMT_B10G10R10A2_UNORM) ||
 		    (pasFormat[i].ePixFormat == IMG_PIXFMT_B8G8R8A8_UNORM) ||
-		    (pasFormat[i].ePixFormat == IMG_PIXFMT_B5G6R5_UNORM))
-		{
+		    (pasFormat[i].ePixFormat == IMG_PIXFMT_B5G6R5_UNORM)) {
 			pui32Supported[i]++;
 		}
 	}
@@ -494,25 +526,24 @@ PVRSRV_ERROR DCExampleFormatQuery(IMG_HANDLE hDeviceData,
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DCExampleDimQuery(IMG_HANDLE hDeviceData,
-								 IMG_UINT32 ui32NumDims,
-								 PVRSRV_SURFACE_DIMS *psDim,
-								 IMG_UINT32 *pui32Supported)
+static PVRSRV_ERROR DCExampleDimQuery(IMG_HANDLE hDeviceData,
+				      IMG_UINT32 ui32NumDims,
+				      PVRSRV_SURFACE_DIMS *psDim,
+				      IMG_UINT32 *pui32Supported)
 {
 	IMG_UINT32 i;
-	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams = DCExampleGetModuleParameters();
+	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams =
+		DCExampleGetModuleParameters();
 
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 
-	if (NULL == psModuleParams)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, ": Cannot fetch module parameters\n");
+	if (NULL == psModuleParams) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 ": Cannot fetch module parameters\n");
 		return PVRSRV_ERROR_NO_DEVICEDATA_FOUND;
 	}
 
-	for (i = 0; i < ui32NumDims; i++)
-	{
+	for (i = 0; i < ui32NumDims; i++) {
 		pui32Supported[i] = 0;
 
 		/*
@@ -520,9 +551,8 @@ PVRSRV_ERROR DCExampleDimQuery(IMG_HANDLE hDeviceData,
 			each one should be checked to see if it supports the specified
 			dimension.
 		*/
-		if ((psDim[i].ui32Width == psModuleParams->ui32Width)
-		&&  (psDim[i].ui32Height == psModuleParams->ui32Height))
-		{
+		if ((psDim[i].ui32Width == psModuleParams->ui32Width) &&
+		    (psDim[i].ui32Height == psModuleParams->ui32Height)) {
 			pui32Supported[i]++;
 		}
 	}
@@ -530,12 +560,10 @@ PVRSRV_ERROR DCExampleDimQuery(IMG_HANDLE hDeviceData,
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DCExampleBufferSystemAcquire(IMG_HANDLE hDeviceData,
-											IMG_DEVMEM_LOG2ALIGN_T *puiLog2PageSize,
-											IMG_UINT32 *pui32PageCount,
-											IMG_UINT32 *pui32ByteStride,
-											IMG_HANDLE *phSystemBuffer)
+static PVRSRV_ERROR DCExampleBufferSystemAcquire(
+	IMG_HANDLE hDeviceData, IMG_DEVMEM_LOG2ALIGN_T *puiLog2PageSize,
+	IMG_UINT32 *pui32PageCount, IMG_UINT32 *pui32ByteStride,
+	IMG_HANDLE *phSystemBuffer)
 {
 	DCEX_BUFFER *psBuffer;
 	DCEX_DEVICE *psDevice = (DCEX_DEVICE *)hDeviceData;
@@ -561,16 +589,18 @@ PVRSRV_ERROR DCExampleBufferSystemAcquire(IMG_HANDLE hDeviceData,
 	{
 		psBuffer = IMG_CONTAINER_OF(psNode, DCEX_BUFFER, sListNode);
 
-		if ((psBuffer->psDevice == psDevice) && psBuffer->bIsSysBuffer)
-		{
-
-			DCEX_DEBUG_PRINT("%s: psBuffer %p Ref Count %d\n", __func__,
-			                 psBuffer, DC_OSAtomicRead(&psBuffer->i32RefCount));
+		if ((psBuffer->psDevice == psDevice) &&
+		    psBuffer->bIsSysBuffer) {
+			DCEX_DEBUG_PRINT(
+				"%s: psBuffer %p Ref Count %d\n", __func__,
+				psBuffer,
+				DC_OSAtomicRead(&psBuffer->i32RefCount));
 
 			DC_OSAtomicIncrement(&psBuffer->i32RefCount);
 
 			*puiLog2PageSize = DC_OSGetPageShift();
-			*pui32PageCount = psBuffer->ui32Size >> DC_OSGetPageShift();
+			*pui32PageCount = psBuffer->ui32Size >>
+					  DC_OSGetPageShift();
 			*pui32ByteStride = psBuffer->ui32ByteStride;
 			*phSystemBuffer = psBuffer;
 
@@ -583,8 +613,7 @@ PVRSRV_ERROR DCExampleBufferSystemAcquire(IMG_HANDLE hDeviceData,
 	return PVRSRV_ERROR_INVALID_PARAMS;
 }
 
-static
-void DCExampleBufferSystemRelease(IMG_HANDLE hSystemBuffer)
+static void DCExampleBufferSystemRelease(IMG_HANDLE hSystemBuffer)
 {
 	DCEX_BUFFER *psBuffer = hSystemBuffer;
 
@@ -594,10 +623,10 @@ void DCExampleBufferSystemRelease(IMG_HANDLE hSystemBuffer)
 	*/
 	DC_OSMutexLock(psBuffer->psDevice->hBufListLock);
 
-	if (!psBuffer->bIsSysBuffer)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, "%s: Unexpected non system-buffer found\n",
-		                __func__);
+	if (!psBuffer->bIsSysBuffer) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 "%s: Unexpected non system-buffer found\n",
+				 __func__);
 		DC_OSMutexUnlock(psBuffer->psDevice->hBufListLock);
 		return;
 	}
@@ -608,8 +637,8 @@ void DCExampleBufferSystemRelease(IMG_HANDLE hSystemBuffer)
 		If the system buffer has changed and we've just dropped the last
 		refcount then free the buffer
 	*/
-	if (!dllist_node_is_in_list(&psBuffer->sListNode) && (DC_OSAtomicRead(&psBuffer->i32RefCount) == 0))
-	{
+	if (!dllist_node_is_in_list(&psBuffer->sListNode) &&
+	    (DC_OSAtomicRead(&psBuffer->i32RefCount) == 0)) {
 		/* Free the buffer and it's memory (if the memory was allocated) */
 		DCEX_DEBUG_PRINT("%s: Dropping %p", __func__, psBuffer);
 	}
@@ -620,14 +649,12 @@ void DCExampleBufferSystemRelease(IMG_HANDLE hSystemBuffer)
 	DC_OSMutexUnlock(psBuffer->psDevice->hBufListLock);
 }
 
-static
-PVRSRV_ERROR DCExampleContextCreate(IMG_HANDLE hDeviceData,
-									  IMG_HANDLE *hDisplayContext)
+static PVRSRV_ERROR DCExampleContextCreate(IMG_HANDLE hDeviceData,
+					   IMG_HANDLE *hDisplayContext)
 {
 	DCEX_DEVICE *psDevice = hDeviceData;
 
-	if (psDevice == NULL)
-	{
+	if (psDevice == NULL) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
@@ -636,8 +663,7 @@ PVRSRV_ERROR DCExampleContextCreate(IMG_HANDLE hDeviceData,
 		it's an "agreement" between the services client and the DC driver
 		as to what this means (if anything)
 	*/
-	if (psDevice->b_DisplayContextActive != IMG_TRUE)
-	{
+	if (psDevice->b_DisplayContextActive != IMG_TRUE) {
 		*hDisplayContext = hDeviceData;
 
 		psDevice->b_DisplayContextActive = IMG_TRUE;
@@ -648,21 +674,20 @@ PVRSRV_ERROR DCExampleContextCreate(IMG_HANDLE hDeviceData,
 	return PVRSRV_ERROR_RESOURCE_UNAVAILABLE;
 }
 
-static
-PVRSRV_ERROR DCExampleContextConfigureCheck(IMG_HANDLE hDisplayContext,
-											  IMG_UINT32 ui32PipeCount,
-											  PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
-											  IMG_HANDLE *ahBuffers)
+static PVRSRV_ERROR DCExampleContextConfigureCheck(
+	IMG_HANDLE hDisplayContext, IMG_UINT32 ui32PipeCount,
+	PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib, IMG_HANDLE *ahBuffers)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
 	IMG_UINT32 i;
-	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams = DCExampleGetModuleParameters();
+	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams =
+		DCExampleGetModuleParameters();
 
 	PVR_UNREFERENCED_PARAMETER(hDisplayContext);
 
-	if (NULL == psModuleParams)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, ": Cannot fetch module parameters\n");
+	if (NULL == psModuleParams) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 ": Cannot fetch module parameters\n");
 		return PVRSRV_ERROR_NO_DEVICEDATA_FOUND;
 	}
 
@@ -670,8 +695,7 @@ PVRSRV_ERROR DCExampleContextConfigureCheck(IMG_HANDLE hDisplayContext,
 		The display engine might have a limit on the number of discretely
 		configurable pipes. In such a case an error should be returned.
 	*/
-	if (ui32PipeCount > MAX_PIPES)
-	{
+	if (ui32PipeCount > MAX_PIPES) {
 		eError = PVRSRV_ERROR_DC_TOO_MANY_PIPES;
 		goto fail_max_pipes;
 	}
@@ -685,35 +709,33 @@ PVRSRV_ERROR DCExampleContextConfigureCheck(IMG_HANDLE hDisplayContext,
 		the display controller's MMU, or due restrictions on display pipes.
 	*/
 
-	for (i = 0; i < ui32PipeCount; i++)
-	{
+	for (i = 0; i < ui32PipeCount; i++) {
 		DCEX_BUFFER *psBuffer = ahBuffers[i];
 
-		if (pasSurfAttrib[i].sCrop.sDims.ui32Width  != psModuleParams->ui32Width  ||
-		    pasSurfAttrib[i].sCrop.sDims.ui32Height != psModuleParams->ui32Height ||
+		if (pasSurfAttrib[i].sCrop.sDims.ui32Width !=
+			    psModuleParams->ui32Width ||
+		    pasSurfAttrib[i].sCrop.sDims.ui32Height !=
+			    psModuleParams->ui32Height ||
 		    pasSurfAttrib[i].sCrop.i32XOffset != 0 ||
-		    pasSurfAttrib[i].sCrop.i32YOffset != 0)
-		{
+		    pasSurfAttrib[i].sCrop.i32YOffset != 0) {
 			eError = PVRSRV_ERROR_DC_INVALID_CROP_RECT;
 			break;
 		}
 
 		if (pasSurfAttrib[i].sDisplay.sDims.ui32Width !=
-			pasSurfAttrib[i].sCrop.sDims.ui32Width ||
-			pasSurfAttrib[i].sDisplay.sDims.ui32Height !=
-			pasSurfAttrib[i].sCrop.sDims.ui32Height ||
-			pasSurfAttrib[i].sDisplay.i32XOffset !=
-			pasSurfAttrib[i].sCrop.i32XOffset ||
-			pasSurfAttrib[i].sDisplay.i32YOffset !=
-			pasSurfAttrib[i].sCrop.i32YOffset)
-		{
+			    pasSurfAttrib[i].sCrop.sDims.ui32Width ||
+		    pasSurfAttrib[i].sDisplay.sDims.ui32Height !=
+			    pasSurfAttrib[i].sCrop.sDims.ui32Height ||
+		    pasSurfAttrib[i].sDisplay.i32XOffset !=
+			    pasSurfAttrib[i].sCrop.i32XOffset ||
+		    pasSurfAttrib[i].sDisplay.i32YOffset !=
+			    pasSurfAttrib[i].sCrop.i32YOffset) {
 			eError = PVRSRV_ERROR_DC_INVALID_DISPLAY_RECT;
 			break;
 		}
 
-		if (psBuffer->ui32Width != psModuleParams->ui32Width
-		||  psBuffer->ui32Height != psModuleParams->ui32Height)
-		{
+		if (psBuffer->ui32Width != psModuleParams->ui32Width ||
+		    psBuffer->ui32Height != psModuleParams->ui32Height) {
 			eError = PVRSRV_ERROR_DC_INVALID_BUFFER_DIMS;
 			break;
 		}
@@ -723,13 +745,12 @@ fail_max_pipes:
 	return eError;
 }
 
-static
-void DCExampleContextConfigure(IMG_HANDLE hDisplayContext,
-									 IMG_UINT32 ui32PipeCount,
-									 PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
-									 IMG_HANDLE *ahBuffers,
-									 IMG_UINT32 ui32DisplayPeriod,
-									 IMG_HANDLE hConfigData)
+static void DCExampleContextConfigure(IMG_HANDLE hDisplayContext,
+				      IMG_UINT32 ui32PipeCount,
+				      PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
+				      IMG_HANDLE *ahBuffers,
+				      IMG_UINT32 ui32DisplayPeriod,
+				      IMG_HANDLE hConfigData)
 {
 	DCEX_DEVICE *psDeviceData = hDisplayContext;
 	IMG_UINT32 i;
@@ -738,8 +759,7 @@ void DCExampleContextConfigure(IMG_HANDLE hDisplayContext,
 		As we have no HW and thus no VSync IRQ we just activate the
 		new config here
 	*/
-	for (i = 0; i < ui32PipeCount; i++)
-	{
+	for (i = 0; i < ui32PipeCount; i++) {
 #if defined(DCEX_DEBUG)
 		DCEX_BUFFER *psBuffer = ahBuffers[i];
 		/*
@@ -760,8 +780,9 @@ void DCExampleContextConfigure(IMG_HANDLE hDisplayContext,
 			Save the config data as we need to pass it back once this
 			configuration gets retired
 		*/
-		DCEX_DEBUG_PRINT("Display buffer (%p), Ref Count %d\n", psBuffer,
-		                 DC_OSAtomicRead(&psBuffer->i32RefCount));
+		DCEX_DEBUG_PRINT("Display buffer (%p), Ref Count %d\n",
+				 psBuffer,
+				 DC_OSAtomicRead(&psBuffer->i32RefCount));
 #endif /* DCEX_DEBUG */
 	}
 
@@ -769,19 +790,16 @@ void DCExampleContextConfigure(IMG_HANDLE hDisplayContext,
 		As we have no HW and thus no VSync IRQ we just retire the
 		previous config as soon as we get a new one
 	*/
-	if (DCExampleConfigIsEmpty(psDeviceData) == IMG_FALSE)
-	{
+	if (DCExampleConfigIsEmpty(psDeviceData) == IMG_FALSE) {
 		/* Retire the current config */
-		psDeviceData->sPVRServicesFuncs.pfnDCDisplayConfigurationRetired(DCExampleConfigPop(psDeviceData));
+		psDeviceData->sPVRServicesFuncs.pfnDCDisplayConfigurationRetired(
+			DCExampleConfigPop(psDeviceData));
 	}
 
-	if (ui32PipeCount != 0)
-	{
+	if (ui32PipeCount != 0) {
 		/* Save our new config data */
 		DCExampleConfigPush(psDeviceData, hConfigData);
-	}
-	else
-	{
+	} else {
 		/*
 			When the client requests the display context to be destroyed
 			services will issue a "NULL" flip to us so we can retire
@@ -806,12 +824,12 @@ void DCExampleContextConfigure(IMG_HANDLE hDisplayContext,
 		*/
 		DCEX_DEBUG_PRINT("Display flushed (%p)\n", hDisplayContext);
 
-		psDeviceData->sPVRServicesFuncs.pfnDCDisplayConfigurationRetired(hConfigData);
+		psDeviceData->sPVRServicesFuncs.pfnDCDisplayConfigurationRetired(
+			hConfigData);
 	}
 }
 
-static
-void DCExampleContextDestroy(IMG_HANDLE hDisplayContext)
+static void DCExampleContextDestroy(IMG_HANDLE hDisplayContext)
 {
 	DCEX_DEVICE *psDevice = hDisplayContext;
 
@@ -827,13 +845,10 @@ void DCExampleContextDestroy(IMG_HANDLE hDisplayContext)
 	DCEX_DEBUG_PRINT("Destroy display context (%p)\n", hDisplayContext);
 }
 
-static
-PVRSRV_ERROR DCExampleBufferAlloc(IMG_HANDLE hDisplayContext,
-									DC_BUFFER_CREATE_INFO *psCreateInfo,
-									IMG_DEVMEM_LOG2ALIGN_T *puiLog2PageSize,
-									IMG_UINT32 *pui32PageCount,
-									IMG_UINT32 *pui32ByteStride,
-									IMG_HANDLE *phBuffer)
+static PVRSRV_ERROR DCExampleBufferAlloc(
+	IMG_HANDLE hDisplayContext, DC_BUFFER_CREATE_INFO *psCreateInfo,
+	IMG_DEVMEM_LOG2ALIGN_T *puiLog2PageSize, IMG_UINT32 *pui32PageCount,
+	IMG_UINT32 *pui32ByteStride, IMG_HANDLE *phBuffer)
 {
 	DCEX_BUFFER *psBuffer;
 	PVRSRV_SURFACE_INFO *psSurfInfo = &psCreateInfo->sSurface;
@@ -846,8 +861,7 @@ PVRSRV_ERROR DCExampleBufferAlloc(IMG_HANDLE hDisplayContext,
 
 	psBuffer = DC_OSCallocMem(sizeof(DCEX_BUFFER));
 
-	if (psBuffer == NULL)
-	{
+	if (psBuffer == NULL) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto fail_bufferalloc;
 	}
@@ -868,31 +882,33 @@ PVRSRV_ERROR DCExampleBufferAlloc(IMG_HANDLE hDisplayContext,
 	psBuffer->ui32Width = psSurfInfo->sDims.ui32Width;
 	psBuffer->ui32Height = psSurfInfo->sDims.ui32Height;
 
-	switch (psSurfInfo->sFormat.eMemLayout)
-	{
-		case PVRSRV_SURFACE_MEMLAYOUT_STRIDED:
-			/*
+	switch (psSurfInfo->sFormat.eMemLayout) {
+	case PVRSRV_SURFACE_MEMLAYOUT_STRIDED:
+		/*
 				As we're been asked to allocate this buffer we decide what it's
 				stride should be.
 			*/
-			psBuffer->ui32ByteStride = psSurfInfo->sDims.ui32Width * psCreateInfo->ui32BPP;
-			psBuffer->ui32Size = psBuffer->ui32Height * psBuffer->ui32ByteStride;
-			break;
-		case PVRSRV_SURFACE_MEMLAYOUT_FBC:
-			psBuffer->ui32ByteStride = psCreateInfo->sFBC.ui32FBCStride * psCreateInfo->ui32BPP;
-			psBuffer->ui32Size = psCreateInfo->sFBC.ui32Size;
+		psBuffer->ui32ByteStride =
+			psSurfInfo->sDims.ui32Width * psCreateInfo->ui32BPP;
+		psBuffer->ui32Size =
+			psBuffer->ui32Height * psBuffer->ui32ByteStride;
+		break;
+	case PVRSRV_SURFACE_MEMLAYOUT_FBC:
+		psBuffer->ui32ByteStride = psCreateInfo->sFBC.ui32FBCStride *
+					   psCreateInfo->ui32BPP;
+		psBuffer->ui32Size = psCreateInfo->sFBC.ui32Size;
 
-			/*
+		/*
 				Here we should program the FBC registers in the display
 				controller according to the information we have in
 				psSurfInfo->sFBC
 			*/
-			break;
+		break;
 
-		default:
-			eError = PVRSRV_ERROR_NOT_SUPPORTED;
-			goto fail_memlayout;
-			break;
+	default:
+		eError = PVRSRV_ERROR_NOT_SUPPORTED;
+		goto fail_memlayout;
+		break;
 	}
 
 	psBuffer->psDevice = psDevice;
@@ -901,17 +917,17 @@ PVRSRV_ERROR DCExampleBufferAlloc(IMG_HANDLE hDisplayContext,
 	/*
 		Check that the buffer size calculated is compatible with what was allocated during initialisation.
 	*/
-	if (psBuffer->ui32Size > psDevice->ui32BufferSize)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, "%s: Buffer size of 0x%0x is too large for allocation of 0x%0x!\n",
-		                 __func__, psBuffer->ui32Size, psDevice->ui32BufferSize);
+	if (psBuffer->ui32Size > psDevice->ui32BufferSize) {
+		DC_OSDebugPrintf(
+			DBGLVL_ERROR,
+			"%s: Buffer size of 0x%0x is too large for allocation of 0x%0x!\n",
+			__func__, psBuffer->ui32Size, psDevice->ui32BufferSize);
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto fail_buffersize;
-	}
-	else if (psBuffer->ui32Size != psDevice->ui32BufferSize)
-	{
-		DCEX_DEBUG_PRINT("%s: Buffer size of 0x%0x is not same as allocated 0x%0x\n",
-		                 __func__, psBuffer->ui32Size, psDevice->ui32BufferSize);
+	} else if (psBuffer->ui32Size != psDevice->ui32BufferSize) {
+		DCEX_DEBUG_PRINT(
+			"%s: Buffer size of 0x%0x is not same as allocated 0x%0x\n",
+			__func__, psBuffer->ui32Size, psDevice->ui32BufferSize);
 		psBuffer->ui32Size = psDevice->ui32BufferSize;
 	}
 
@@ -922,15 +938,14 @@ PVRSRV_ERROR DCExampleBufferAlloc(IMG_HANDLE hDisplayContext,
 		Note: This could be deferred until the 1st map or acquire call.
 	*/
 	psBuffer->uiAllocHandle = _DCExampleAllocLMABuffer(psDevice);
-	if (psBuffer->uiAllocHandle == 0)
-	{
+	if (psBuffer->uiAllocHandle == 0) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto fail_buffermemalloc;
 	}
 #else
-	psBuffer->pvAllocHandle = DCExampleVirtualAllocUncached(psBuffer->ui32Size);
-	if (psBuffer->pvAllocHandle == NULL)
-	{
+	psBuffer->pvAllocHandle =
+		DCExampleVirtualAllocUncached(psBuffer->ui32Size);
+	if (psBuffer->pvAllocHandle == NULL) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto fail_buffermemalloc;
 	}
@@ -960,24 +975,24 @@ fail_bufferalloc:
 }
 
 #if !defined(LMA)
-static
-PVRSRV_ERROR DCExampleBufferImport(IMG_HANDLE hDisplayContext,
-									 IMG_UINT32 ui32NumPlanes,
-									 IMG_HANDLE **paphImport,
-									 DC_BUFFER_IMPORT_INFO *psSurfAttrib,
-									 IMG_HANDLE *phBuffer)
+static PVRSRV_ERROR DCExampleBufferImport(IMG_HANDLE hDisplayContext,
+					  IMG_UINT32 ui32NumPlanes,
+					  IMG_HANDLE **paphImport,
+					  DC_BUFFER_IMPORT_INFO *psSurfAttrib,
+					  IMG_HANDLE *phBuffer)
 {
 	/*
 		This it optional and should only be provided if the display controller
 		can access "general" memory (e.g. the memory doesn't have to contiguous)
 	*/
-	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams = DCExampleGetModuleParameters();
+	const DC_EXAMPLE_MODULE_PARAMETERS *psModuleParams =
+		DCExampleGetModuleParameters();
 	DCEX_BUFFER *psBuffer;
 	DCEX_DEVICE *psDevice = hDisplayContext;
 
-	if (NULL == psModuleParams)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, ": Cannot fetch module parameters\n");
+	if (NULL == psModuleParams) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 ": Cannot fetch module parameters\n");
 		return PVRSRV_ERROR_NO_DEVICEDATA_FOUND;
 	}
 
@@ -985,17 +1000,15 @@ PVRSRV_ERROR DCExampleBufferImport(IMG_HANDLE hDisplayContext,
 		Check to see if our display hardware supports this buffer
 	*/
 	if ((psSurfAttrib->ePixFormat != IMG_PIXFMT_B8G8R8A8_UNORM) ||
-		(psSurfAttrib->ui32Width[0] != psModuleParams->ui32Width) ||
-		(psSurfAttrib->ui32Height[0] != psModuleParams->ui32Height) ||
-		(psSurfAttrib->ui32ByteStride[0] != ui32ByteStride))
-	{
+	    (psSurfAttrib->ui32Width[0] != psModuleParams->ui32Width) ||
+	    (psSurfAttrib->ui32Height[0] != psModuleParams->ui32Height) ||
+	    (psSurfAttrib->ui32ByteStride[0] != ui32ByteStride)) {
 		return PVRSRV_ERROR_UNSUPPORTED_PIXEL_FORMAT;
 	}
 
 	psBuffer = DC_OSCallocMem(sizeof(DCEX_BUFFER));
 
-	if (psBuffer == NULL)
-	{
+	if (psBuffer == NULL) {
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 
@@ -1023,10 +1036,9 @@ PVRSRV_ERROR DCExampleBufferImport(IMG_HANDLE hDisplayContext,
 }
 #endif
 
-static
-PVRSRV_ERROR DCExampleBufferAcquire(IMG_HANDLE hBuffer,
-									IMG_DEV_PHYADDR *pasDevPAddr,
-									void **ppvLinAddr)
+static PVRSRV_ERROR DCExampleBufferAcquire(IMG_HANDLE hBuffer,
+					   IMG_DEV_PHYADDR *pasDevPAddr,
+					   void **ppvLinAddr)
 {
 	DCEX_BUFFER *psBuffer = hBuffer;
 	PVRSRV_ERROR eError;
@@ -1046,31 +1058,31 @@ PVRSRV_ERROR DCExampleBufferAcquire(IMG_HANDLE hBuffer,
 	*/
 #if defined(LMA)
 	sCpuPAddr.uiAddr = psBuffer->uiAllocHandle;
-	DCEX_DEBUG_PRINT("Acquire buffer (%p) memory, npages = %d, Start = %p, size = 0x%x\n",
-	                 psBuffer, ulPages, sCpuPAddr.uiAddr, psBuffer->ui32Size);
-	for (i = 0; i < ulPages; i++)
-	{
-		psBuffer->psDevice->sPVRServicesFuncs.pfnPhysHeapCpuPAddrToDevPAddr(
-				psPhysHeap,
-				1,
-				&pasDevPAddr[i],
-				&sCpuPAddr);
+	DCEX_DEBUG_PRINT(
+		"Acquire buffer (%p) memory, npages = %d, Start = %p, size = 0x%x\n",
+		psBuffer, ulPages, sCpuPAddr.uiAddr, psBuffer->ui32Size);
+	for (i = 0; i < ulPages; i++) {
+		psBuffer->psDevice->sPVRServicesFuncs
+			.pfnPhysHeapCpuPAddrToDevPAddr(
+				psPhysHeap, 1, &pasDevPAddr[i], &sCpuPAddr);
 
 		/* Only display first and last mappings */
-		if ((i == 0) || i == (ulPages - 1))
-		{
-			DCEX_DEBUG_PRINT("Acquire buffer (%p) page %d, DevPAddr %p, CPUPAddr %p\n",
-			                 psBuffer, i, pasDevPAddr[i].uiAddr, sCpuPAddr.uiAddr);
+		if ((i == 0) || i == (ulPages - 1)) {
+			DCEX_DEBUG_PRINT(
+				"Acquire buffer (%p) page %d, DevPAddr %p, CPUPAddr %p\n",
+				psBuffer, i, pasDevPAddr[i].uiAddr,
+				sCpuPAddr.uiAddr);
 		}
 		sCpuPAddr.uiAddr += DC_OSGetPageSize();
 	}
 	*ppvLinAddr = NULL;
-	eError      = PVRSRV_OK;
+	eError = PVRSRV_OK;
 #else
-	eError = DCExampleGetDevPAddrs(psBuffer->pvAllocHandle, pasDevPAddr, 0, psBuffer->ui32Size);
-	if (eError == PVRSRV_OK)
-	{
-		eError = DCExampleGetLinAddr(psBuffer->pvAllocHandle, ppvLinAddr);
+	eError = DCExampleGetDevPAddrs(psBuffer->pvAllocHandle, pasDevPAddr, 0,
+				       psBuffer->ui32Size);
+	if (eError == PVRSRV_OK) {
+		eError = DCExampleGetLinAddr(psBuffer->pvAllocHandle,
+					     ppvLinAddr);
 	}
 #endif
 
@@ -1078,8 +1090,7 @@ PVRSRV_ERROR DCExampleBufferAcquire(IMG_HANDLE hBuffer,
 	return eError;
 }
 
-static
-void DCExampleBufferRelease(IMG_HANDLE hBuffer)
+static void DCExampleBufferRelease(IMG_HANDLE hBuffer)
 {
 #if defined(DCEX_DEBUG)
 	DCEX_BUFFER *psBuffer = hBuffer;
@@ -1094,23 +1105,24 @@ void DCExampleBufferRelease(IMG_HANDLE hBuffer)
 		time.
 	*/
 	DCEX_DEBUG_PRINT("Release buffer (%p) memory, Ref Count = %d\n",
-	                 psBuffer, DC_OSAtomicRead(&psBuffer->i32RefCount));
+			 psBuffer, DC_OSAtomicRead(&psBuffer->i32RefCount));
 }
 
-static
-void DCExampleBufferFree(IMG_HANDLE hBuffer)
+static void DCExampleBufferFree(IMG_HANDLE hBuffer)
 {
 	DCEX_BUFFER *psBuffer = hBuffer;
 
 	DCEX_DEBUG_PRINT("Free buffer (%p)\n", psBuffer);
-	if (psBuffer->eSource == DCEX_BUFFER_SOURCE_ALLOC)
-	{
+	if (psBuffer->eSource == DCEX_BUFFER_SOURCE_ALLOC) {
 #if defined(LMA)
 		DCEX_DEBUG_PRINT("Free buffer memory (%llu/[0x%llx])\n",
-		                 psBuffer->uiAllocHandle, psBuffer->uiAllocHandle);
-		_DCExampleFreeLMABuffer(psBuffer->psDevice, psBuffer->uiAllocHandle);
+				 psBuffer->uiAllocHandle,
+				 psBuffer->uiAllocHandle);
+		_DCExampleFreeLMABuffer(psBuffer->psDevice,
+					psBuffer->uiAllocHandle);
 #else
-		DCEX_DEBUG_PRINT("Free buffer memory (%p)\n", psBuffer->pvAllocHandle);
+		DCEX_DEBUG_PRINT("Free buffer memory (%p)\n",
+				 psBuffer->pvAllocHandle);
 		DCExampleVirtualFree(psBuffer->pvAllocHandle);
 #endif
 	}
@@ -1121,8 +1133,7 @@ void DCExampleBufferFree(IMG_HANDLE hBuffer)
 	DC_OSFreeMem(psBuffer);
 }
 
-static
-PVRSRV_ERROR DCExampleBufferMap(IMG_HANDLE hBuffer)
+static PVRSRV_ERROR DCExampleBufferMap(IMG_HANDLE hBuffer)
 {
 	DCEX_BUFFER *psBuffer = hBuffer;
 	IMG_UINT32 ui32PageCount;
@@ -1136,44 +1147,46 @@ PVRSRV_ERROR DCExampleBufferMap(IMG_HANDLE hBuffer)
 		should provide this function.
 	*/
 
-	if (psBuffer->hImport)
-	{
+	if (psBuffer->hImport) {
 		IMG_DEV_PHYADDR *pasDevPAddr;
 		/*
 			In the case of an import buffer we didn't allocate the buffer and
 			so need to ask for it's pages
 		*/
-		eError = psBuffer->psDevice->sPVRServicesFuncs.pfnDCImportBufferAcquire(
-					psBuffer->hImport,
-					DC_OSGetPageShift(),
-					&ui32PageCount,
-					&pasDevPAddr);
+		eError = psBuffer->psDevice->sPVRServicesFuncs
+				 .pfnDCImportBufferAcquire(psBuffer->hImport,
+							   DC_OSGetPageShift(),
+							   &ui32PageCount,
+							   &pasDevPAddr);
 
-		if (eError != PVRSRV_OK)
-		{
+		if (eError != PVRSRV_OK) {
 			goto fail_import;
 		}
 #if defined(DCEX_VERBOSE)
-		for (i = 0; i < ui32PageCount; i++)
-		{
-			DCEX_DEBUG_PRINT(": DCExampleBufferMap: DCExample map address 0x%016llx\n", pasDevPAddr[i].uiAddr);
+		for (i = 0; i < ui32PageCount; i++) {
+			DCEX_DEBUG_PRINT(
+				": DCExampleBufferMap: DCExample map address 0x%016llx\n",
+				pasDevPAddr[i].uiAddr);
 		}
 #endif
 		psBuffer->pasDevPAddr = pasDevPAddr;
 		psBuffer->ui32PageCount = ui32PageCount;
 	}
 #if defined(DCEX_VERBOSE)
-	else
-	{
-		unsigned long ulPages = DC_OS_BYTES_TO_PAGES(psBuffer->ui32Size);
+	else {
+		unsigned long ulPages =
+			DC_OS_BYTES_TO_PAGES(psBuffer->ui32Size);
 		IMG_DEV_PHYADDR sDevPAddr;
 
-		for (i = 0; i < ulPages; i++)
-		{
-			eError = DCExampleGetDevPAddrs(psBuffer->pvAllocHandle, &sDevPAddr, i, DC_OSGetPageSize());
-			if (PVRSRV_OK == eError)
-			{
-				DC_OSDebugPrintf(DBGLVL_INFO, ": DCExampleBufferMap: DCExample map address 0x%016llx\n", sDevPAddr.uiAddr);
+		for (i = 0; i < ulPages; i++) {
+			eError = DCExampleGetDevPAddrs(psBuffer->pvAllocHandle,
+						       &sDevPAddr, i,
+						       DC_OSGetPageSize());
+			if (PVRSRV_OK == eError) {
+				DC_OSDebugPrintf(
+					DBGLVL_INFO,
+					": DCExampleBufferMap: DCExample map address 0x%016llx\n",
+					sDevPAddr.uiAddr);
 			}
 		}
 	}
@@ -1185,8 +1198,7 @@ fail_import:
 	return eError;
 }
 
-static
-void DCExampleBufferUnmap(IMG_HANDLE hBuffer)
+static void DCExampleBufferUnmap(IMG_HANDLE hBuffer)
 {
 	DCEX_BUFFER *psBuffer = hBuffer;
 #if defined(DCEX_VERBOSE)
@@ -1200,33 +1212,36 @@ void DCExampleBufferUnmap(IMG_HANDLE hBuffer)
 	/*
 		Unmap the memory from the display controller's MMU
 	*/
-	if (psBuffer->hImport)
-	{
+	if (psBuffer->hImport) {
 #if defined(DCEX_VERBOSE)
-		for (i = 0; i < psBuffer->ui32PageCount; i++)
-		{
-			DC_OSDebugPrintf(DBGLVL_INFO, ": DCExampleBufferUnmap: DCExample unmap address 0x%016llx\n", psBuffer->pasDevPAddr[i].uiAddr);
+		for (i = 0; i < psBuffer->ui32PageCount; i++) {
+			DC_OSDebugPrintf(
+				DBGLVL_INFO,
+				": DCExampleBufferUnmap: DCExample unmap address 0x%016llx\n",
+				psBuffer->pasDevPAddr[i].uiAddr);
 		}
 #endif
 		/*
 			As this was an imported buffer we need to release it
 		*/
 		psBuffer->psDevice->sPVRServicesFuncs.pfnDCImportBufferRelease(
-				psBuffer->hImport,
-				psBuffer->pasDevPAddr);
+			psBuffer->hImport, psBuffer->pasDevPAddr);
 	}
 #if defined(DCEX_VERBOSE)
-	else
-	{
-		unsigned long ulPages = DC_OS_BYTES_TO_PAGES(psBuffer->ui32Size);
+	else {
+		unsigned long ulPages =
+			DC_OS_BYTES_TO_PAGES(psBuffer->ui32Size);
 		IMG_DEV_PHYADDR sDevPAddr;
 
-		for (i = 0; i < ulPages; i++)
-		{
-			PVRSRV_ERROR eError = DCExampleGetDevPAddrs(psBuffer->pvAllocHandle, &sDevPAddr, i, DC_OSGetPageSize());
-			if (PVRSRV_OK == eError)
-			{
-				DC_OSDebugPrintf(DBGLVL_INFO, ": DCExampleBufferUnmap: DCExample unmap address 0x%016llx\n", sDevPAddr.uiAddr);
+		for (i = 0; i < ulPages; i++) {
+			PVRSRV_ERROR eError = DCExampleGetDevPAddrs(
+				psBuffer->pvAllocHandle, &sDevPAddr, i,
+				DC_OSGetPageSize());
+			if (PVRSRV_OK == eError) {
+				DC_OSDebugPrintf(
+					DBGLVL_INFO,
+					": DCExampleBufferUnmap: DCExample unmap address 0x%016llx\n",
+					sDevPAddr.uiAddr);
 			}
 		}
 	}
@@ -1255,29 +1270,34 @@ static void DCExampleReleaseDriverData(const IMG_BOOL bFromDeInit)
 
 		psDeviceData = IMG_CONTAINER_OF(psNode, DCEX_DEVICE, sListNode);
 
-		if (bFromDeInit)
-		{
+		if (bFromDeInit) {
 			/* Unregister the device before freeing */
-			psDeviceData->sPVRServicesFuncs.pfnDCUnregisterDevice(psDeviceData->hSrvHandle);
+			psDeviceData->sPVRServicesFuncs.pfnDCUnregisterDevice(
+				psDeviceData->hSrvHandle);
 		}
 
 		/* Release all Heaps */
 #if defined(LMA)
-		psDeviceData->sPVRServicesFuncs.pfnPhysHeapRelease(psDeviceData->psPhysHeap);
+		psDeviceData->sPVRServicesFuncs.pfnPhysHeapRelease(
+			psDeviceData->psPhysHeap);
 #endif
 
 		/* Close all connection handles */
-		DC_OSPVRServicesConnectionClose(psDeviceData->hPVRServicesConnection);
+		DC_OSPVRServicesConnectionClose(
+			psDeviceData->hPVRServicesConnection);
 
 		/* Release all associated buffers for this device */
 		DC_OSMutexLock(psDeviceData->hBufListLock);
-		dllist_foreach_node(&psDeviceData->sBufListNode, psBufNode, psBufNext)
+		dllist_foreach_node(&psDeviceData->sBufListNode, psBufNode,
+				    psBufNext)
 		{
-			psBuffer = IMG_CONTAINER_OF(psBufNode, DCEX_BUFFER, sListNode);
+			psBuffer = IMG_CONTAINER_OF(psBufNode, DCEX_BUFFER,
+						    sListNode);
 
 			/* Free all LMA / Virtual Buffer allocations */
 #if defined(LMA)
-			_DCExampleFreeLMABuffer(psBuffer->psDevice, psBuffer->uiAllocHandle);
+			_DCExampleFreeLMABuffer(psBuffer->psDevice,
+						psBuffer->uiAllocHandle);
 #else
 			DCExampleVirtualFree(psBuffer->pvAllocHandle);
 #endif
@@ -1304,15 +1324,17 @@ static void DCExampleReleaseDriverData(const IMG_BOOL bFromDeInit)
 }
 
 #if defined(INTEGRITY_OS)
-static PVRSRV_ERROR DCExampleAcquireKernelMappingData(IMG_HANDLE hBuffer, IMG_HANDLE *phMapping, void **ppPhysAddr)
+static PVRSRV_ERROR DCExampleAcquireKernelMappingData(IMG_HANDLE hBuffer,
+						      IMG_HANDLE *phMapping,
+						      void **ppPhysAddr)
 {
 	DCEX_BUFFER *psBuffer = (DCEX_BUFFER *)hBuffer;
-	if (!psBuffer)
-	{
+	if (!psBuffer) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	return DCExampleOSAcquireKernelMappingData(psBuffer->pvAllocHandle, phMapping, ppPhysAddr);
+	return DCExampleOSAcquireKernelMappingData(psBuffer->pvAllocHandle,
+						   phMapping, ppPhysAddr);
 }
 #endif
 
@@ -1337,22 +1359,23 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 	dllist_init(&g_sDeviceDataListHead);
 
 	eError = DC_OSMutexCreate(&g_hDevDataListLock);
-	if (PVRSRV_OK != eError)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, " - %s: Failed to create g_hDevDataListLock (%d)\n", __func__, eError);
+	if (PVRSRV_OK != eError) {
+		DC_OSDebugPrintf(
+			DBGLVL_ERROR,
+			" - %s: Failed to create g_hDevDataListLock (%d)\n",
+			__func__, eError);
 		goto fail_nolocks;
 	}
 
 	/* Check the module params and setup global buffer size state */
-	if (!CheckBufferDimensions())
-	{
+	if (!CheckBufferDimensions()) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
 	psModuleParams = DCExampleGetModuleParameters();
-	if (NULL == psModuleParams)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR, ": Cannot fetch module parameters\n");
+	if (NULL == psModuleParams) {
+		DC_OSDebugPrintf(DBGLVL_ERROR,
+				 ": Cannot fetch module parameters\n");
 		return PVRSRV_ERROR_NO_DEVICEDATA_FOUND;
 	}
 
@@ -1360,19 +1383,18 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 	uiNumDevicesConfigured = psModuleParams->ui32NumDevices;
 
 	/* Validate the number-of-devices passed in as a driver parameter */
-	if (uiNumDevicesConfigured > PVRSRV_MAX_DEVICES)
-	{
-		DC_OSDebugPrintf(DBGLVL_ERROR,
-		                 "num_devices '%u': exceeds PVRSRV_MAX_DEVICES '%u'\n",
-		                 uiNumDevicesConfigured, PVRSRV_MAX_DEVICES);
+	if (uiNumDevicesConfigured > PVRSRV_MAX_DEVICES) {
+		DC_OSDebugPrintf(
+			DBGLVL_ERROR,
+			"num_devices '%u': exceeds PVRSRV_MAX_DEVICES '%u'\n",
+			uiNumDevicesConfigured, PVRSRV_MAX_DEVICES);
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 
-	DCEX_DEBUG_PRINT("%s: Num Registered = %u\n", __func__, uiNumDevicesConfigured);
+	DCEX_DEBUG_PRINT("%s: Num Registered = %u\n", __func__,
+			 uiNumDevicesConfigured);
 
-	for (uiCurDev = 0; uiCurDev < uiNumDevicesConfigured; uiCurDev++)
-	{
-
+	for (uiCurDev = 0; uiCurDev < uiNumDevicesConfigured; uiCurDev++) {
 		/*
 			If the display controller hasn't already been initialised elsewhere
 			in the system then it should be initialised here.
@@ -1387,11 +1409,11 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 			by registering the same callbacks with different private data)
 		*/
 
-		DCEX_DEBUG_PRINT("%s: Initialising device %u\n", __func__, uiCurDev);
+		DCEX_DEBUG_PRINT("%s: Initialising device %u\n", __func__,
+				 uiCurDev);
 
 		psDeviceData = DC_OSCallocMem(sizeof(DCEX_DEVICE));
-		if (psDeviceData == NULL)
-		{
+		if (psDeviceData == NULL) {
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 			goto fail_devicealloc;
 		}
@@ -1400,56 +1422,67 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 		dllist_init(&psDeviceData->sBufListNode);
 
 		eError = DC_OSMutexCreate(&psDeviceData->hBufListLock);
-		if (PVRSRV_OK != eError)
-		{
-			DC_OSDebugPrintf(DBGLVL_ERROR, " - %s: Failed to create hBufListLock (%d)\n",  __func__, eError);
+		if (PVRSRV_OK != eError) {
+			DC_OSDebugPrintf(
+				DBGLVL_ERROR,
+				" - %s: Failed to create hBufListLock (%d)\n",
+				__func__, eError);
 			goto fail_servicesconnectionclose;
 		}
 
-		eError = DC_OSPVRServicesConnectionOpen(&psDeviceData->hPVRServicesConnection);
-		if (eError != PVRSRV_OK)
-		{
-			DC_OSDebugPrintf(DBGLVL_ERROR, " - %s: Failed to open connection to PVR Services (%d)\n", __func__, eError);
+		eError = DC_OSPVRServicesConnectionOpen(
+			&psDeviceData->hPVRServicesConnection);
+		if (eError != PVRSRV_OK) {
+			DC_OSDebugPrintf(
+				DBGLVL_ERROR,
+				" - %s: Failed to open connection to PVR Services (%d)\n",
+				__func__, eError);
 			goto fail_servicesconnectionclose;
 		}
 
-		eError = DC_OSPVRServicesSetupFuncs(psDeviceData->hPVRServicesConnection, &psDeviceData->sPVRServicesFuncs);
-		if (eError != PVRSRV_OK)
-		{
-			DC_OSDebugPrintf(DBGLVL_ERROR, " - %s: Failed to setup PVR Services function table (%d)\n", __func__, eError);
+		eError = DC_OSPVRServicesSetupFuncs(
+			psDeviceData->hPVRServicesConnection,
+			&psDeviceData->sPVRServicesFuncs);
+		if (eError != PVRSRV_OK) {
+			DC_OSDebugPrintf(
+				DBGLVL_ERROR,
+				" - %s: Failed to setup PVR Services function table (%d)\n",
+				__func__, eError);
 			goto fail_servicesconnectionclose;
 		}
 
 #if defined(LMA)
-		psDevNode = psDeviceData->sPVRServicesFuncs.pfnGetDeviceInstance(uiCurDev);
-		PVR_GOTO_IF_INVALID_PARAM(psDevNode != NULL, eError, fail_devicealloc);
+		psDevNode =
+			psDeviceData->sPVRServicesFuncs.pfnGetDeviceInstance(
+				uiCurDev);
+		PVR_GOTO_IF_INVALID_PARAM(psDevNode != NULL, eError,
+					  fail_devicealloc);
 		/*
 			If the display is using card memory then we need to know
 			where that memory is so we have to acquire the heap we want
 			to use (a carveout of the card memory) so we can get it's address
 		*/
 		eError = psDeviceData->sPVRServicesFuncs.pfnPhysHeapAcquireByID(
-					PVRSRV_PHYS_HEAP_DISPLAY,
-					psDevNode,
-					&psDeviceData->psPhysHeap);
+			PVRSRV_PHYS_HEAP_DISPLAY, psDevNode,
+			&psDeviceData->psPhysHeap);
 
-		if (eError != PVRSRV_OK)
-		{
+		if (eError != PVRSRV_OK) {
 			goto fail_heapacquire;
 		}
 
 		/* Verify we're operating on a LMA heap */
-		DC_ASSERT(psDeviceData->sPVRServicesFuncs.pfnPhysHeapGetType(psDeviceData->psPhysHeap) == PHYS_HEAP_TYPE_LMA);
+		DC_ASSERT(psDeviceData->sPVRServicesFuncs.pfnPhysHeapGetType(
+				  psDeviceData->psPhysHeap) ==
+			  PHYS_HEAP_TYPE_LMA);
 
 		eError = psDeviceData->sPVRServicesFuncs.pfnPhysHeapGetCpuPAddr(
-					psDeviceData->psPhysHeap,
-					&psDeviceData->sDispStartAddr);
+			psDeviceData->psPhysHeap,
+			&psDeviceData->sDispStartAddr);
 
 		DC_ASSERT(eError == PVRSRV_OK);
 
 		eError = psDeviceData->sPVRServicesFuncs.pfnPhysHeapGetSize(
-					psDeviceData->psPhysHeap,
-					&psDeviceData->uiDispMemSize);
+			psDeviceData->psPhysHeap, &psDeviceData->uiDispMemSize);
 
 		DC_ASSERT(eError == PVRSRV_OK);
 #endif
@@ -1464,8 +1497,7 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 		*/
 		psBuffer = DC_OSCallocMem(sizeof(DCEX_BUFFER));
 
-		if (psBuffer == NULL)
-		{
+		if (psBuffer == NULL) {
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 			goto fail_bufferalloc;
 		}
@@ -1477,22 +1509,28 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 		psBuffer->ui32Width = psModuleParams->ui32Width;
 		psBuffer->ui32Height = psModuleParams->ui32Height;
 		psBuffer->ui32ByteStride = ui32ByteStride;
-		psBuffer->ui32Size = psBuffer->ui32Height * psBuffer->ui32ByteStride;
-		psBuffer->ui32Size += (psBuffer->ui32Size >> 4); /* Speculative extra 6.25% for FBC overhead. */
-		psBuffer->ui32Size = (psBuffer->ui32Size + DC_OSGetPageSize() - 1) & DC_OSGetPageMask();
+		psBuffer->ui32Size =
+			psBuffer->ui32Height * psBuffer->ui32ByteStride;
+		psBuffer->ui32Size +=
+			(psBuffer->ui32Size >>
+			 4); /* Speculative extra 6.25% for FBC overhead. */
+		psBuffer->ui32Size =
+			(psBuffer->ui32Size + DC_OSGetPageSize() - 1) &
+			DC_OSGetPageMask();
 		psBuffer->psDevice = psDeviceData;
 		psBuffer->bIsSysBuffer = IMG_TRUE;
 
 #if defined(LMA)
 		/* Simple allocator, assume all buffers are going to be the same size. */
 		ui64BufferCount = psDeviceData->uiDispMemSize;
-		ui64BufferCount = DC_OSDiv64(ui64BufferCount, psBuffer->ui32Size);
+		ui64BufferCount =
+			DC_OSDiv64(ui64BufferCount, psBuffer->ui32Size);
 
-		psDeviceData->ui32BufferCount = (IMG_UINT32) ui64BufferCount;
-		DC_ASSERT((IMG_UINT32) ui64BufferCount == psDeviceData->ui32BufferCount);
+		psDeviceData->ui32BufferCount = (IMG_UINT32)ui64BufferCount;
+		DC_ASSERT((IMG_UINT32)ui64BufferCount ==
+			  psDeviceData->ui32BufferCount);
 
-		if (psDeviceData->ui32BufferCount > 32)
-		{
+		if (psDeviceData->ui32BufferCount > 32) {
 			psDeviceData->ui32BufferCount = 32;
 		}
 
@@ -1500,19 +1538,21 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 		psDeviceData->ui32BufferUseMask = 0;
 
 		DC_OSDebugPrintf(DBGLVL_INFO, " Buffers: %u (%u bytes each)\n",
-		                 psDeviceData->ui32BufferCount, psDeviceData->ui32BufferSize);
+				 psDeviceData->ui32BufferCount,
+				 psDeviceData->ui32BufferSize);
 
-		psBuffer->uiAllocHandle = _DCExampleAllocLMABuffer(psDeviceData);
-		if (psBuffer->uiAllocHandle == 0)
-		{
+		psBuffer->uiAllocHandle =
+			_DCExampleAllocLMABuffer(psDeviceData);
+		if (psBuffer->uiAllocHandle == 0) {
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 			goto fail_buffermemalloc;
 		}
-		DCEX_DEBUG_PRINT("Allocate system buffer handle = %p\n", psBuffer->uiAllocHandle);
+		DCEX_DEBUG_PRINT("Allocate system buffer handle = %p\n",
+				 psBuffer->uiAllocHandle);
 #else
-		psBuffer->pvAllocHandle = DCExampleVirtualAllocUncached(psBuffer->ui32Size);
-		if (psBuffer->pvAllocHandle == NULL)
-		{
+		psBuffer->pvAllocHandle =
+			DCExampleVirtualAllocUncached(psBuffer->ui32Size);
+		if (psBuffer->pvAllocHandle == NULL) {
 			eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 			goto fail_buffermemalloc;
 		}
@@ -1522,41 +1562,43 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 		/* Initialise DC Function Table */
 		DC_OSMemSet(&sDCFunctions, 0, sizeof(sDCFunctions));
 
-		sDCFunctions.pfnGetInfo					= DCExampleGetInfo;
-		sDCFunctions.pfnPanelQueryCount			= DCExamplePanelQueryCount;
-		sDCFunctions.pfnPanelQuery				= DCExamplePanelQuery;
-		sDCFunctions.pfnFormatQuery				= DCExampleFormatQuery;
-		sDCFunctions.pfnDimQuery				= DCExampleDimQuery;
-		sDCFunctions.pfnSetBlank				= NULL;
-		sDCFunctions.pfnSetVSyncReporting		= NULL;
-		sDCFunctions.pfnLastVSyncQuery			= NULL;
-		sDCFunctions.pfnContextCreate			= DCExampleContextCreate;
-		sDCFunctions.pfnContextDestroy			= DCExampleContextDestroy;
-		sDCFunctions.pfnContextConfigure		= DCExampleContextConfigure;
-		sDCFunctions.pfnContextConfigureCheck	= DCExampleContextConfigureCheck;
-		sDCFunctions.pfnBufferAlloc				= DCExampleBufferAlloc;
-		sDCFunctions.pfnBufferAcquire			= DCExampleBufferAcquire;
-		sDCFunctions.pfnBufferRelease			= DCExampleBufferRelease;
-		sDCFunctions.pfnBufferFree				= DCExampleBufferFree;
+		sDCFunctions.pfnGetInfo = DCExampleGetInfo;
+		sDCFunctions.pfnPanelQueryCount = DCExamplePanelQueryCount;
+		sDCFunctions.pfnPanelQuery = DCExamplePanelQuery;
+		sDCFunctions.pfnFormatQuery = DCExampleFormatQuery;
+		sDCFunctions.pfnDimQuery = DCExampleDimQuery;
+		sDCFunctions.pfnSetBlank = NULL;
+		sDCFunctions.pfnSetVSyncReporting = NULL;
+		sDCFunctions.pfnLastVSyncQuery = NULL;
+		sDCFunctions.pfnContextCreate = DCExampleContextCreate;
+		sDCFunctions.pfnContextDestroy = DCExampleContextDestroy;
+		sDCFunctions.pfnContextConfigure = DCExampleContextConfigure;
+		sDCFunctions.pfnContextConfigureCheck =
+			DCExampleContextConfigureCheck;
+		sDCFunctions.pfnBufferAlloc = DCExampleBufferAlloc;
+		sDCFunctions.pfnBufferAcquire = DCExampleBufferAcquire;
+		sDCFunctions.pfnBufferRelease = DCExampleBufferRelease;
+		sDCFunctions.pfnBufferFree = DCExampleBufferFree;
 #if !defined(LMA)
-		sDCFunctions.pfnBufferImport			= DCExampleBufferImport;
+		sDCFunctions.pfnBufferImport = DCExampleBufferImport;
 #endif
-		sDCFunctions.pfnBufferMap				= DCExampleBufferMap;
-		sDCFunctions.pfnBufferUnmap				= DCExampleBufferUnmap;
-		sDCFunctions.pfnBufferSystemAcquire		= DCExampleBufferSystemAcquire;
-		sDCFunctions.pfnBufferSystemRelease		= DCExampleBufferSystemRelease;
+		sDCFunctions.pfnBufferMap = DCExampleBufferMap;
+		sDCFunctions.pfnBufferUnmap = DCExampleBufferUnmap;
+		sDCFunctions.pfnBufferSystemAcquire =
+			DCExampleBufferSystemAcquire;
+		sDCFunctions.pfnBufferSystemRelease =
+			DCExampleBufferSystemRelease;
 #if defined(INTEGRITY_OS)
-		sDCFunctions.pfnAcquireKernelMappingData = DCExampleAcquireKernelMappingData;
+		sDCFunctions.pfnAcquireKernelMappingData =
+			DCExampleAcquireKernelMappingData;
 #endif
 
 		/*
 			Register our DC driver with services
 		*/
 		eError = psDeviceData->sPVRServicesFuncs.pfnDCRegisterDevice(
-					&sDCFunctions,
-					MAX_COMMANDS_INFLIGHT,
-					psDeviceData,
-					&psDeviceData->hSrvHandle);
+			&sDCFunctions, MAX_COMMANDS_INFLIGHT, psDeviceData,
+			&psDeviceData->hSrvHandle);
 
 		/*
 		    We may fail to register if we've had more instances enabled than
@@ -1564,50 +1606,51 @@ PVRSRV_ERROR DCExampleInit(IMG_UINT32 *puiNumDevices)
 		    device we should allow access to all of the devices currently
 		    registered.
 		 */
-		if (eError != PVRSRV_OK)
-		{
-			DC_OSDebugPrintf(DBGLVL_WARNING,
-			                 "pfnDCRegisterDevice failed (%d). %u devices registered\n",
-			                  eError, uiCurDev);
-			if (uiCurDev > 0)
-			{
+		if (eError != PVRSRV_OK) {
+			DC_OSDebugPrintf(
+				DBGLVL_WARNING,
+				"pfnDCRegisterDevice failed (%d). %u devices registered\n",
+				eError, uiCurDev);
+			if (uiCurDev > 0) {
 				/* Free psSystemBuffer and psDeviceData */
 #if defined(LMA)
-				_DCExampleFreeLMABuffer(psBuffer->psDevice,
-				                        psBuffer->uiAllocHandle);
-				psDeviceData->sPVRServicesFuncs.pfnPhysHeapRelease(psDeviceData->psPhysHeap);
+				_DCExampleFreeLMABuffer(
+					psBuffer->psDevice,
+					psBuffer->uiAllocHandle);
+				psDeviceData->sPVRServicesFuncs
+					.pfnPhysHeapRelease(
+						psDeviceData->psPhysHeap);
 #else
 				DCExampleVirtualFree(psBuffer->pvAllocHandle);
 #endif
 				DC_OSFreeMem(psBuffer);
-				DC_OSPVRServicesConnectionClose(psDeviceData->hPVRServicesConnection);
+				DC_OSPVRServicesConnectionClose(
+					psDeviceData->hPVRServicesConnection);
 				DC_OSFreeMem(psDeviceData);
 				/* Allow access to successfully discovered devices */
-				if (puiNumDevices)
-				{
+				if (puiNumDevices) {
 					*puiNumDevices = uiCurDev;
 				}
 				return PVRSRV_OK;
-			}
-			else
-			{
+			} else {
 				goto fail_register;
 			}
 		}
 
 		/* Save the device data somewhere we can retrieve it */
 		DC_OSMutexLock(g_hDevDataListLock);
-		dllist_add_to_tail(&g_sDeviceDataListHead, &psDeviceData->sListNode);
+		dllist_add_to_tail(&g_sDeviceDataListHead,
+				   &psDeviceData->sListNode);
 		DC_OSMutexUnlock(g_hDevDataListLock);
 
 		/* Store the system buffer on the device hook */
 		DC_OSMutexLock(psDeviceData->hBufListLock);
-		dllist_add_to_tail(&psDeviceData->sBufListNode, &psBuffer->sListNode);
+		dllist_add_to_tail(&psDeviceData->sBufListNode,
+				   &psBuffer->sListNode);
 		DC_OSMutexUnlock(psDeviceData->hBufListLock);
-	}	/* End of loop over # devices to create */
+	} /* End of loop over # devices to create */
 
-	if (puiNumDevices)
-	{
+	if (puiNumDevices) {
 		*puiNumDevices = uiNumDevicesConfigured;
 	}
 	return PVRSRV_OK;
@@ -1621,10 +1664,10 @@ fail_register:
 	 * We need to free these first, and then clean up any already established
 	 * contents which will be hanging from the DLLIST_NODEs
 	 */
-	if (!dllist_node_is_in_list(&psBuffer->sListNode))
-	{
+	if (!dllist_node_is_in_list(&psBuffer->sListNode)) {
 #if defined(LMA)
-		_DCExampleFreeLMABuffer(psBuffer->psDevice, psBuffer->uiAllocHandle);
+		_DCExampleFreeLMABuffer(psBuffer->psDevice,
+					psBuffer->uiAllocHandle);
 #else
 		DCExampleVirtualFree(psBuffer->pvAllocHandle);
 #endif
@@ -1632,31 +1675,29 @@ fail_register:
 
 fail_buffermemalloc:
 	/* Free all buffer allocations */
-	if (!dllist_node_is_in_list(&psBuffer->sListNode))
-	{
+	if (!dllist_node_is_in_list(&psBuffer->sListNode)) {
 		DC_OSFreeMem(psBuffer);
 	}
 
 fail_bufferalloc:
 	/* Release all Heaps */
 #if defined(LMA)
-	if (!dllist_node_is_in_list(&psDeviceData->sListNode))
-	{
-		psDeviceData->sPVRServicesFuncs.pfnPhysHeapRelease(psDeviceData->psPhysHeap);
+	if (!dllist_node_is_in_list(&psDeviceData->sListNode)) {
+		psDeviceData->sPVRServicesFuncs.pfnPhysHeapRelease(
+			psDeviceData->psPhysHeap);
 	}
 fail_heapacquire:
 #endif
 
 	/* Close all connection handles */
-	if (!dllist_node_is_in_list(&psDeviceData->sListNode))
-	{
-		DC_OSPVRServicesConnectionClose(psDeviceData->hPVRServicesConnection);
+	if (!dllist_node_is_in_list(&psDeviceData->sListNode)) {
+		DC_OSPVRServicesConnectionClose(
+			psDeviceData->hPVRServicesConnection);
 	}
 
 fail_servicesconnectionclose:
 	/* Release all OS memory */
-	if (!dllist_node_is_in_list(&psDeviceData->sListNode))
-	{
+	if (!dllist_node_is_in_list(&psDeviceData->sListNode)) {
 		DC_OSFreeMem(psDeviceData);
 	}
 
@@ -1676,7 +1717,6 @@ fail_nolocks:
 
 void DCExampleDeinit(void)
 {
-
 	DCExampleReleaseDriverData(IMG_TRUE);
 
 	/* Free the global list locks. */

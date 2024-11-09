@@ -34,8 +34,7 @@ THE SOFTWARE.
 #if !defined(IMGPIXFMTS_H)
 #define IMGPIXFMTS_H
 
-typedef enum _IMG_PIXFMT_
-{
+typedef enum _IMG_PIXFMT_ {
 	IMG_PIXFMT_UNKNOWN = 0,
 	IMG_PIXFMT_RESERVED_1 = 1,
 	IMG_PIXFMT_RESERVED_2 = 2,

@@ -61,7 +61,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <services_kernel_client.h>
 #endif
 
-
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
 #include "virt_validation_defs.h"
 #endif
@@ -76,112 +75,123 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define OS_THREAD_DESTROY_TIMEOUT_US 100000ULL
 #define OS_THREAD_DESTROY_RETRY_COUNT 10
 
-typedef enum _POLL_FLAGS_
-{
+typedef enum _POLL_FLAGS_ {
 	POLL_FLAG_NONE = 0, /* No message or dump is printed on poll timeout */
 	POLL_FLAG_LOG_ERROR = 1, /* Log error on poll timeout */
 	POLL_FLAG_DEBUG_DUMP = 2 /* Print debug dump on poll timeout */
 } POLL_FLAGS;
 
-typedef struct _BUILD_INFO_
-{
-	IMG_UINT32	ui32BuildOptions;
-	IMG_UINT32	ui32BuildVersion;
-	IMG_UINT32	ui32BuildRevision;
-	IMG_UINT32	ui32BuildType;
-#define BUILD_TYPE_DEBUG	0
-#define BUILD_TYPE_RELEASE	1
+typedef struct _BUILD_INFO_ {
+	IMG_UINT32 ui32BuildOptions;
+	IMG_UINT32 ui32BuildVersion;
+	IMG_UINT32 ui32BuildRevision;
+	IMG_UINT32 ui32BuildType;
+#define BUILD_TYPE_DEBUG 0
+#define BUILD_TYPE_RELEASE 1
 	/* The above fields are self explanatory */
 	/* B.V.N.C can be added later if required */
 } BUILD_INFO;
 
-typedef struct _DRIVER_INFO_
-{
-	BUILD_INFO	sUMBuildInfo;
-	BUILD_INFO	sKMBuildInfo;
-	IMG_UINT8	ui8UMSupportedArch;
-	IMG_UINT8	ui8KMBitArch;
+typedef struct _DRIVER_INFO_ {
+	BUILD_INFO sUMBuildInfo;
+	BUILD_INFO sKMBuildInfo;
+	IMG_UINT8 ui8UMSupportedArch;
+	IMG_UINT8 ui8KMBitArch;
 
-#define	BUILD_ARCH_64BIT			(1 << 0)
-#define	BUILD_ARCH_32BIT			(1 << 1)
-#define	BUILD_ARCH_BOTH		(BUILD_ARCH_32BIT | BUILD_ARCH_64BIT)
-	IMG_BOOL	bIsNoMatch;
-}DRIVER_INFO;
+#define BUILD_ARCH_64BIT (1 << 0)
+#define BUILD_ARCH_32BIT (1 << 1)
+#define BUILD_ARCH_BOTH (BUILD_ARCH_32BIT | BUILD_ARCH_64BIT)
+	IMG_BOOL bIsNoMatch;
+} DRIVER_INFO;
 
+typedef struct PVRSRV_DATA_TAG {
+	DRIVER_INFO sDriverInfo;
+	IMG_UINT32 ui32DPFErrorCount; /*!< Number of Fatal/Error DPFs */
 
-typedef struct PVRSRV_DATA_TAG
-{
-	DRIVER_INFO           sDriverInfo;
-	IMG_UINT32            ui32DPFErrorCount;                 /*!< Number of Fatal/Error DPFs */
-
-	POSWR_LOCK            hDeviceNodeListLock;            /*!< Read-Write lock to protect the list of devices */
-	PVRSRV_DEVICE_NODE    *psDeviceNodeList;              /*!< List head of device nodes */
-	IMG_UINT32            ui32RegisteredDevices;
-	PVRSRV_DEVICE_NODE    *psHostMemDeviceNode;           /*!< DeviceNode to be used for device independent
+	POSWR_LOCK
+		hDeviceNodeListLock; /*!< Read-Write lock to protect the list of devices */
+	PVRSRV_DEVICE_NODE *psDeviceNodeList; /*!< List head of device nodes */
+	IMG_UINT32 ui32RegisteredDevices;
+	PVRSRV_DEVICE_NODE *
+		psHostMemDeviceNode; /*!< DeviceNode to be used for device independent
 	                                                        host based memory allocations where the DevMem
 	                                                        framework is to be used e.g. TL */
-	PVRSRV_SERVICES_STATE eServicesState;                 /*!< global driver state */
+	PVRSRV_SERVICES_STATE eServicesState; /*!< global driver state */
 
-	IMG_HANDLE            hGlobalEventObject;             /*!< OS Global Event Object */
-	IMG_UINT32            ui32GEOConsecutiveTimeouts;     /*!< OS Global Event Object Timeouts */
+	IMG_HANDLE hGlobalEventObject; /*!< OS Global Event Object */
+	IMG_UINT32
+		ui32GEOConsecutiveTimeouts; /*!< OS Global Event Object Timeouts */
 
-	IMG_HANDLE            hCleanupThread;                 /*!< Cleanup thread */
-	IMG_HANDLE            hCleanupEventObject;            /*!< Event object to drive cleanup thread */
-	POS_SPINLOCK          hCleanupThreadWorkListLock;     /*!< Lock protecting the cleanup thread work list */
-	IMG_PID               cleanupThreadPid;               /*!< Cleanup thread process id */
-	uintptr_t             cleanupThreadTid;               /*!< Cleanup thread id */
-	ATOMIC_T              i32NumCleanupItemsQueued;       /*!< Number of items in cleanup thread work list */
-	ATOMIC_T              i32NumCleanupItemsNotCompleted; /*!< Number of items dropped from cleanup thread work list
+	IMG_HANDLE hCleanupThread; /*!< Cleanup thread */
+	IMG_HANDLE
+		hCleanupEventObject; /*!< Event object to drive cleanup thread */
+	POS_SPINLOCK
+		hCleanupThreadWorkListLock; /*!< Lock protecting the cleanup thread work list */
+	IMG_PID cleanupThreadPid; /*!< Cleanup thread process id */
+	uintptr_t cleanupThreadTid; /*!< Cleanup thread id */
+	ATOMIC_T i32NumCleanupItemsQueued; /*!< Number of items in cleanup thread work list */
+	ATOMIC_T i32NumCleanupItemsNotCompleted; /*!< Number of items dropped from cleanup thread work list
 	                                                           after retry limit reached */
-	ATOMIC_T              i32CleanupItemTypes[PVRSRV_CLEANUP_TYPE_LAST];         /*!< Array containing the counts for different cleanup item types. */
+	ATOMIC_T i32CleanupItemTypes
+		[PVRSRV_CLEANUP_TYPE_LAST]; /*!< Array containing the counts for different cleanup item types. */
 
-	IMG_HANDLE            hDevicesWatchdogThread;         /*!< Devices watchdog thread */
-	IMG_HANDLE            hDevicesWatchdogEvObj;          /*! Event object to drive devices watchdog thread */
-	volatile IMG_UINT32   ui32DevicesWatchdogPwrTrans;    /*! Number of off -> on power state transitions */
+	IMG_HANDLE hDevicesWatchdogThread; /*!< Devices watchdog thread */
+	IMG_HANDLE
+		hDevicesWatchdogEvObj; /*! Event object to drive devices watchdog thread */
+	volatile IMG_UINT32
+		ui32DevicesWatchdogPwrTrans; /*! Number of off -> on power state transitions */
 #if !defined(PVRSRV_SERVER_THREADS_INDEFINITE_SLEEP)
-	volatile IMG_UINT32   ui32DevicesWatchdogTimeout;     /*! Timeout for the Devices watchdog Thread */
+	volatile IMG_UINT32
+		ui32DevicesWatchdogTimeout; /*! Timeout for the Devices watchdog Thread */
 #endif
 
 #if defined(SUPPORT_AUTOVZ)
-	IMG_HANDLE            hAutoVzWatchdogThread;          /*!< Devices watchdog thread */
-	IMG_HANDLE            hAutoVzWatchdogEvObj;           /*! Event object to drive devices watchdog thread */
+	IMG_HANDLE hAutoVzWatchdogThread; /*!< Devices watchdog thread */
+	IMG_HANDLE
+		hAutoVzWatchdogEvObj; /*! Event object to drive devices watchdog thread */
 #endif
 
-	POS_LOCK              hHWPerfHostPeriodicThread_Lock; /*!< Lock for the HWPerf Host periodic thread */
-	IMG_HANDLE            hHWPerfHostPeriodicThread;      /*!< HWPerf Host periodic thread */
-	IMG_HANDLE            hHWPerfHostPeriodicEvObj;       /*! Event object to drive HWPerf thread */
-	volatile IMG_BOOL     bHWPerfHostThreadStop;
-	IMG_UINT32            ui32HWPerfHostThreadTimeout;
+	POS_LOCK hHWPerfHostPeriodicThread_Lock; /*!< Lock for the HWPerf Host periodic thread */
+	IMG_HANDLE hHWPerfHostPeriodicThread; /*!< HWPerf Host periodic thread */
+	IMG_HANDLE
+		hHWPerfHostPeriodicEvObj; /*! Event object to drive HWPerf thread */
+	volatile IMG_BOOL bHWPerfHostThreadStop;
+	IMG_UINT32 ui32HWPerfHostThreadTimeout;
 
-	POS_LOCK              hClientStreamTableLock;         /*!< Lock for the client stream hash */
-	HASH_TABLE            *psClientStreamTable;           /*!< Hash table for client streams */
+	POS_LOCK hClientStreamTableLock; /*!< Lock for the client stream hash */
+	HASH_TABLE *psClientStreamTable; /*!< Hash table for client streams */
 
-	IMG_HANDLE            hPvzConnection;                 /*!< PVZ connection used for cross-VM hyper-calls */
-	POS_LOCK              hPvzConnectionLock;             /*!< Lock protecting PVZ connection */
+	IMG_HANDLE
+		hPvzConnection; /*!< PVZ connection used for cross-VM hyper-calls */
+	POS_LOCK hPvzConnectionLock; /*!< Lock protecting PVZ connection */
 
-	IMG_BOOL              bUnload;                        /*!< Driver unload is in progress */
+	IMG_BOOL bUnload; /*!< Driver unload is in progress */
 
-	IMG_HANDLE            hTLCtrlStream;                  /*! Control plane for TL streams */
+	IMG_HANDLE hTLCtrlStream; /*! Control plane for TL streams */
 
-	IMG_HANDLE            hDriverThreadEventObject;       /*! Event object relating to multi-threading in the Server */
-	IMG_BOOL              bDriverSuspended;               /*! if TRUE, the driver is suspended and new threads should not enter */
-	ATOMIC_T              iNumActiveDriverThreads;        /*! Number of threads active in the Server */
+	IMG_HANDLE
+		hDriverThreadEventObject; /*! Event object relating to multi-threading in the Server */
+	IMG_BOOL bDriverSuspended; /*! if TRUE, the driver is suspended and new threads should not enter */
+	ATOMIC_T iNumActiveDriverThreads; /*! Number of threads active in the Server */
 
-	PMR                   *psInfoPagePMR;                 /*! Handle to exportable PMR of the information page. */
-	IMG_UINT32            *pui32InfoPage;                 /*! CPU memory mapping for information page. */
-	DEVMEM_MEMDESC        *psInfoPageMemDesc;             /*! Memory descriptor of the information page. */
-	POS_LOCK              hInfoPageLock;                  /*! Lock guarding access to information page. */
+	PMR *psInfoPagePMR; /*! Handle to exportable PMR of the information page. */
+	IMG_UINT32 *pui32InfoPage; /*! CPU memory mapping for information page. */
+	DEVMEM_MEMDESC *
+		psInfoPageMemDesc; /*! Memory descriptor of the information page. */
+	POS_LOCK hInfoPageLock; /*! Lock guarding access to information page. */
 
-	IMG_HANDLE            hThreadsDbgReqNotify;
+	IMG_HANDLE hThreadsDbgReqNotify;
 
-
-	IMG_UINT32            ui32PDumpBoundDevice;           /*!< PDump is bound to the device first connected to */
-	ATOMIC_T              iNumDriverTasksActive;          /*!< Number of device-agnostic tasks active in the server */
-	PVRSRV_DRIVER_MODE    aeModuleParamDriverMode[PVRSRV_MAX_DEVICES]; /*!< Driver Mode for each device requested at launch */
+	IMG_UINT32
+		ui32PDumpBoundDevice; /*!< PDump is bound to the device first connected to */
+	ATOMIC_T iNumDriverTasksActive; /*!< Number of device-agnostic tasks active in the server */
+	PVRSRV_DRIVER_MODE aeModuleParamDriverMode
+		[PVRSRV_MAX_DEVICES]; /*!< Driver Mode for each device requested at launch */
 } PVRSRV_DATA;
 
 /* Function pointer used to invalidate cache between loops in wait/poll for value functions */
-typedef PVRSRV_ERROR (*PFN_INVALIDATE_CACHEFUNC)(const volatile void*, IMG_UINT64, PVRSRV_CACHE_OP);
+typedef PVRSRV_ERROR (*PFN_INVALIDATE_CACHEFUNC)(const volatile void *,
+						 IMG_UINT64, PVRSRV_CACHE_OP);
 
 /*!
 ******************************************************************************
@@ -194,21 +204,40 @@ typedef PVRSRV_ERROR (*PFN_INVALIDATE_CACHEFUNC)(const volatile void*, IMG_UINT6
 PVRSRV_DATA *PVRSRVGetPVRSRVData(void);
 PVRSRV_DRIVER_MODE PVRSRVGetVzModeByDevNum(IMG_UINT32 ui32DevNum);
 
-#define PVRSRV_KM_ERRORS                     ( PVRSRVGetPVRSRVData() ? PVRSRVGetPVRSRVData()->ui32DPFErrorCount : IMG_UINT32_MAX)
-#define PVRSRV_ERROR_LIMIT_REACHED                (PVRSRV_KM_ERRORS == IMG_UINT32_MAX)
-#define PVRSRV_REPORT_ERROR()                do { if (!(PVRSRV_ERROR_LIMIT_REACHED)) { PVRSRVGetPVRSRVData()->ui32DPFErrorCount++; } } while (0)
+#define PVRSRV_KM_ERRORS                                                    \
+	(PVRSRVGetPVRSRVData() ? PVRSRVGetPVRSRVData()->ui32DPFErrorCount : \
+				 IMG_UINT32_MAX)
+#define PVRSRV_ERROR_LIMIT_REACHED (PVRSRV_KM_ERRORS == IMG_UINT32_MAX)
+#define PVRSRV_REPORT_ERROR()                                       \
+	do {                                                        \
+		if (!(PVRSRV_ERROR_LIMIT_REACHED)) {                \
+			PVRSRVGetPVRSRVData()->ui32DPFErrorCount++; \
+		}                                                   \
+	} while (0)
 
-#define PVRSRV_VZ_MODE_FROM_DEVNODE(pnode)     (pnode->psDevConfig->eDriverMode)
-#define PVRSRV_VZ_MODE_FROM_DEVINFO(pdevinfo)  (pdevinfo->psDeviceNode->psDevConfig->eDriverMode)
-#define PVRSRV_VZ_MODE_FROM_DEVCFG(pdevcfg)    (pdevcfg->eDriverMode)
-#define PVRSRV_VZ_MODE_FROM_DEVID(devid)       (PVRSRVGetVzModeByDevNum(devid))
+#define PVRSRV_VZ_MODE_FROM_DEVNODE(pnode) (pnode->psDevConfig->eDriverMode)
+#define PVRSRV_VZ_MODE_FROM_DEVINFO(pdevinfo) \
+	(pdevinfo->psDeviceNode->psDevConfig->eDriverMode)
+#define PVRSRV_VZ_MODE_FROM_DEVCFG(pdevcfg) (pdevcfg->eDriverMode)
+#define PVRSRV_VZ_MODE_FROM_DEVID(devid) (PVRSRVGetVzModeByDevNum(devid))
 
-#define PVRSRV_VZ_MODE_IS(_expr, _struct, dev) (DRIVER_MODE_##_expr == PVRSRV_VZ_MODE_FROM_##_struct(dev))
+#define PVRSRV_VZ_MODE_IS(_expr, _struct, dev) \
+	(DRIVER_MODE_##_expr == PVRSRV_VZ_MODE_FROM_##_struct(dev))
 
-#define PVRSRV_VZ_RETN_IF_MODE(_expr, _struct, dev)         do { if (  PVRSRV_VZ_MODE_IS(_expr, _struct, dev)) { return; } } while (0)
-#define PVRSRV_VZ_RET_IF_MODE(_expr, _struct, dev, _rc)     do { if (  PVRSRV_VZ_MODE_IS(_expr, _struct, dev)) { return (_rc); } } while (0)
+#define PVRSRV_VZ_RETN_IF_MODE(_expr, _struct, dev)           \
+	do {                                                  \
+		if (PVRSRV_VZ_MODE_IS(_expr, _struct, dev)) { \
+			return;                               \
+		}                                             \
+	} while (0)
+#define PVRSRV_VZ_RET_IF_MODE(_expr, _struct, dev, _rc)       \
+	do {                                                  \
+		if (PVRSRV_VZ_MODE_IS(_expr, _struct, dev)) { \
+			return (_rc);                         \
+		}                                             \
+	} while (0)
 
-#define PVRSRV_VZ_TIME_SLICE_MAX	(100UL)
+#define PVRSRV_VZ_TIME_SLICE_MAX (100UL)
 
 typedef struct _PHYS_HEAP_ITERATOR_ PHYS_HEAP_ITERATOR;
 
@@ -229,8 +258,8 @@ typedef struct _PHYS_HEAP_ITERATOR_ PHYS_HEAP_ITERATOR;
  @Return PVRSRV_OK upon success and PVRSRV_ERROR otherwise.
 ******************************************************************************/
 PVRSRV_ERROR LMA_HeapIteratorCreate(PVRSRV_DEVICE_NODE *psDevNode,
-                                    PVRSRV_PHYS_HEAP ePhysHeap,
-                                    PHYS_HEAP_ITERATOR **ppsIter);
+				    PVRSRV_PHYS_HEAP ePhysHeap,
+				    PHYS_HEAP_ITERATOR **ppsIter);
 
 /*!
 ******************************************************************************
@@ -270,8 +299,7 @@ PVRSRV_ERROR LMA_HeapIteratorReset(PHYS_HEAP_ITERATOR *psIter);
  @Return IMG TRUE if a segment was found and retrieved, IMG_FALSE otherwise.
 ******************************************************************************/
 IMG_BOOL LMA_HeapIteratorNext(PHYS_HEAP_ITERATOR *psIter,
-                              IMG_DEV_PHYADDR *psDevPAddr,
-                              IMG_UINT64 *puiSize);
+			      IMG_DEV_PHYADDR *psDevPAddr, IMG_UINT64 *puiSize);
 
 /*!
 ******************************************************************************
@@ -287,8 +315,8 @@ IMG_BOOL LMA_HeapIteratorNext(PHYS_HEAP_ITERATOR *psIter,
  @Return PVRSRV_OK upon success and PVRSRV_otherwise.
 ******************************************************************************/
 PVRSRV_ERROR LMA_HeapIteratorGetHeapStats(PHYS_HEAP_ITERATOR *psIter,
-                                          IMG_UINT64 *puiTotalSize,
-                                          IMG_UINT64 *puiInUseSize);
+					  IMG_UINT64 *puiTotalSize,
+					  IMG_UINT64 *puiInUseSize);
 
 /*!
 ******************************************************************************
@@ -312,11 +340,10 @@ PVRSRV_ERROR LMA_HeapIteratorGetHeapStats(PHYS_HEAP_ITERATOR *psIter,
  @Return   PVRSRV_ERROR :
 ******************************************************************************/
 PVRSRV_ERROR PVRSRVPollForValueKM(PVRSRV_DEVICE_NODE *psDevNode,
-		volatile IMG_UINT32 __iomem *pui32LinMemAddr,
-		IMG_UINT32                   ui32Value,
-		IMG_UINT32                   ui32Mask,
-		POLL_FLAGS                   ePollFlags,
-		PFN_INVALIDATE_CACHEFUNC     pfnFwInvalidate);
+				  volatile IMG_UINT32 __iomem *pui32LinMemAddr,
+				  IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+				  POLL_FLAGS ePollFlags,
+				  PFN_INVALIDATE_CACHEFUNC pfnFwInvalidate);
 
 /*!
 ******************************************************************************
@@ -336,9 +363,8 @@ PVRSRV_ERROR PVRSRVPollForValueKM(PVRSRV_DEVICE_NODE *psDevNode,
 ******************************************************************************/
 PVRSRV_ERROR
 PVRSRVWaitForValueKM(volatile IMG_UINT32 __iomem *pui32LinMemAddr,
-                     IMG_UINT32                  ui32Value,
-                     IMG_UINT32                  ui32Mask,
-                     PFN_INVALIDATE_CACHEFUNC    pfnFwInvalidate);
+		     IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+		     PFN_INVALIDATE_CACHEFUNC pfnFwInvalidate);
 
 /*!
 ******************************************************************************
@@ -378,7 +404,8 @@ IMG_BOOL PVRSRVSystemSnoopingOfCPUCache(PVRSRV_DEVICE_CONFIG *psDevConfig);
 
  @Return : IMG_TRUE if the device has non-mappable part of local memory
 ******************************************************************************/
-IMG_BOOL PVRSRVSystemHasNonMappableLocalMemory(PVRSRV_DEVICE_CONFIG *psDevConfig);
+IMG_BOOL
+PVRSRVSystemHasNonMappableLocalMemory(PVRSRV_DEVICE_CONFIG *psDevConfig);
 
 /*!
 ******************************************************************************
@@ -386,14 +413,13 @@ IMG_BOOL PVRSRVSystemHasNonMappableLocalMemory(PVRSRV_DEVICE_CONFIG *psDevConfig
 
  @Description	: Waits for at least ui32Cycles of the Device clk.
 ******************************************************************************/
-void PVRSRVSystemWaitCycles(PVRSRV_DEVICE_CONFIG *psDevConfig, IMG_UINT32 ui32Cycles);
+void PVRSRVSystemWaitCycles(PVRSRV_DEVICE_CONFIG *psDevConfig,
+			    IMG_UINT32 ui32Cycles);
 
-PVRSRV_ERROR PVRSRVSystemInstallDeviceLISR(void *pvOSDevice,
-										   IMG_UINT32 ui32IRQ,
-										   const IMG_CHAR *pszName,
-										   PFN_LISR pfnLISR,
-										   void *pvData,
-										   IMG_HANDLE *phLISRData);
+PVRSRV_ERROR PVRSRVSystemInstallDeviceLISR(void *pvOSDevice, IMG_UINT32 ui32IRQ,
+					   const IMG_CHAR *pszName,
+					   PFN_LISR pfnLISR, void *pvData,
+					   IMG_HANDLE *phLISRData);
 
 PVRSRV_ERROR PVRSRVSystemUninstallDeviceLISR(IMG_HANDLE hLISRData);
 
@@ -407,7 +433,8 @@ int PVRSRVGetDriverStatus(void);
 
  @Return : IMG_TRUE if the given bridge group is enabled
 ******************************************************************************/
-static inline IMG_BOOL PVRSRVIsBridgeEnabled(IMG_HANDLE hServices, IMG_UINT32 ui32BridgeGroup)
+static inline IMG_BOOL PVRSRVIsBridgeEnabled(IMG_HANDLE hServices,
+					     IMG_UINT32 ui32BridgeGroup)
 {
 	IMG_UINT32 ui32Bridges;
 	IMG_UINT32 ui32Offset;
@@ -415,26 +442,24 @@ static inline IMG_BOOL PVRSRVIsBridgeEnabled(IMG_HANDLE hServices, IMG_UINT32 ui
 	PVR_UNREFERENCED_PARAMETER(hServices);
 
 #if defined(SUPPORT_RGX)
-	if (ui32BridgeGroup >= PVRSRV_BRIDGE_RGX_FIRST)
-	{
+	if (ui32BridgeGroup >= PVRSRV_BRIDGE_RGX_FIRST) {
 		ui32Bridges = gui32RGXBridges;
 		ui32Offset = PVRSRV_BRIDGE_RGX_FIRST;
-	}
-	else
+	} else
 #endif /* SUPPORT_RGX */
 	{
 		ui32Bridges = gui32PVRBridges;
 		ui32Offset = PVRSRV_BRIDGE_FIRST;
 	}
 
-	return (IMG_BOOL)(((1U << (ui32BridgeGroup - ui32Offset)) & ui32Bridges) != 0);
+	return (IMG_BOOL)(((1U << (ui32BridgeGroup - ui32Offset)) &
+			   ui32Bridges) != 0);
 }
-
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
 #if defined(EMULATOR)
-	void SetAxiProtOSid(IMG_HANDLE hSysData, IMG_UINT32 ui32OSid, IMG_BOOL bState);
-	void SetTrustedDeviceAceEnabled(IMG_HANDLE hSysData);
+void SetAxiProtOSid(IMG_HANDLE hSysData, IMG_UINT32 ui32OSid, IMG_BOOL bState);
+void SetTrustedDeviceAceEnabled(IMG_HANDLE hSysData);
 #endif
 #endif
 
@@ -469,8 +494,8 @@ PVRSRV_ERROR PVRSRVDestroyHWPerfHostThread(void);
 @Input          ui32Flags    Find heap that matches flags.
 @Return         PHYS_HEAP_CONFIG*  Return a config, or NULL if not found.
 */ /**************************************************************************/
-PHYS_HEAP_CONFIG* PVRSRVFindPhysHeapConfig(PVRSRV_DEVICE_CONFIG *psDevConfig,
-										   PHYS_HEAP_USAGE_FLAGS ui32Flags);
+PHYS_HEAP_CONFIG *PVRSRVFindPhysHeapConfig(PVRSRV_DEVICE_CONFIG *psDevConfig,
+					   PHYS_HEAP_USAGE_FLAGS ui32Flags);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVGetDeviceInstance
@@ -478,7 +503,7 @@ PHYS_HEAP_CONFIG* PVRSRVFindPhysHeapConfig(PVRSRV_DEVICE_CONFIG *psDevConfig,
 @Input          ui32Instance         Device instance to find
 @Return         PVRSRV_DEVICE_NODE*  Return a device node, or NULL if not found.
 */ /**************************************************************************/
-PVRSRV_DEVICE_NODE* PVRSRVGetDeviceInstance(IMG_UINT32 ui32Instance);
+PVRSRV_DEVICE_NODE *PVRSRVGetDeviceInstance(IMG_UINT32 ui32Instance);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVGetDeviceInstanceByKernelDevID
@@ -486,7 +511,8 @@ PVRSRV_DEVICE_NODE* PVRSRVGetDeviceInstance(IMG_UINT32 ui32Instance);
 @Input          i32OSInstance        OS device Id to find
 @Return         PVRSRV_DEVICE_NODE*  Return a device node, or NULL if not found.
 */ /**************************************************************************/
-PVRSRV_DEVICE_NODE *PVRSRVGetDeviceInstanceByKernelDevID(IMG_INT32 i32OSInstance);
+PVRSRV_DEVICE_NODE *
+PVRSRVGetDeviceInstanceByKernelDevID(IMG_INT32 i32OSInstance);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVAcquireInternalID

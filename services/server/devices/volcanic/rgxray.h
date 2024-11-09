@@ -54,7 +54,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "sync_internal.h"
 #include "connection_server.h"
 
-
 typedef struct _RGX_SERVER_RAY_CONTEXT_ RGX_SERVER_RAY_CONTEXT;
 
 /*!
@@ -63,16 +62,12 @@ typedef struct _RGX_SERVER_RAY_CONTEXT_ RGX_SERVER_RAY_CONTEXT;
 
 
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXCreateRayContextKM(CONNECTION_DATA		*psConnection,
-										 PVRSRV_DEVICE_NODE		*psDeviceNode,
-										 IMG_INT32				i32Priority,
-										 IMG_HANDLE				hMemCtxPrivData,
-										 IMG_UINT32				ui32ContextFlags,
-										 IMG_UINT32				ui32StaticRayContextStateSize,
-										 IMG_PBYTE				pStaticRayContextState,
-										 IMG_UINT64				ui64RobustnessAddress,
-										 IMG_UINT32				ui32MaxDeadlineMS,
-										 RGX_SERVER_RAY_CONTEXT	**ppsRayContext);
+PVRSRV_ERROR PVRSRVRGXCreateRayContextKM(
+	CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDeviceNode,
+	IMG_INT32 i32Priority, IMG_HANDLE hMemCtxPrivData,
+	IMG_UINT32 ui32ContextFlags, IMG_UINT32 ui32StaticRayContextStateSize,
+	IMG_PBYTE pStaticRayContextState, IMG_UINT64 ui64RobustnessAddress,
+	IMG_UINT32 ui32MaxDeadlineMS, RGX_SERVER_RAY_CONTEXT **ppsRayContext);
 
 /*!
 *******************************************************************************
@@ -85,7 +80,6 @@ PVRSRV_ERROR PVRSRVRGXCreateRayContextKM(CONNECTION_DATA		*psConnection,
 ******************************************************************************/
 PVRSRV_ERROR PVRSRVRGXDestroyRayContextKM(RGX_SERVER_RAY_CONTEXT *psRayContext);
 
-
 /*!
 *******************************************************************************
  @Function	PVRSRVRGXKickRDMKM
@@ -95,22 +89,15 @@ PVRSRV_ERROR PVRSRVRGXDestroyRayContextKM(RGX_SERVER_RAY_CONTEXT *psRayContext);
 
  @Return   PVRSRV_ERROR
 ******************************************************************************/
-PVRSRV_ERROR PVRSRVRGXKickRDMKM(RGX_SERVER_RAY_CONTEXT	*psRayContext,
-								IMG_UINT32				ui32ClientUpdateCount,
-								SYNC_PRIMITIVE_BLOCK	**pauiClientUpdateUFODevVarBlock,
-								IMG_UINT32				*paui32ClientUpdateSyncOffset,
-								IMG_UINT32				*paui32ClientUpdateValue,
-								PVRSRV_FENCE			iCheckFence,
-								PVRSRV_TIMELINE			iUpdateTimeline,
-								PVRSRV_FENCE			*piUpdateFence,
-								IMG_CHAR				pcszUpdateFenceName[PVRSRV_SYNC_NAME_LENGTH],
-								IMG_UINT32				ui32CmdSize,
-								IMG_PBYTE				pui8DMCmd,
-								IMG_UINT32				ui32PDumpFlags,
-								IMG_UINT32				ui32ExtJobRef,
-								IMG_UINT32				ui32AccStructSizeInBytes,
-								IMG_UINT32				ui32DispatchSize,
-								IMG_UINT64				ui64DeadlineInus);
-
+PVRSRV_ERROR PVRSRVRGXKickRDMKM(
+	RGX_SERVER_RAY_CONTEXT *psRayContext, IMG_UINT32 ui32ClientUpdateCount,
+	SYNC_PRIMITIVE_BLOCK **pauiClientUpdateUFODevVarBlock,
+	IMG_UINT32 *paui32ClientUpdateSyncOffset,
+	IMG_UINT32 *paui32ClientUpdateValue, PVRSRV_FENCE iCheckFence,
+	PVRSRV_TIMELINE iUpdateTimeline, PVRSRV_FENCE *piUpdateFence,
+	IMG_CHAR pcszUpdateFenceName[PVRSRV_SYNC_NAME_LENGTH],
+	IMG_UINT32 ui32CmdSize, IMG_PBYTE pui8DMCmd, IMG_UINT32 ui32PDumpFlags,
+	IMG_UINT32 ui32ExtJobRef, IMG_UINT32 ui32AccStructSizeInBytes,
+	IMG_UINT32 ui32DispatchSize, IMG_UINT64 ui64DeadlineInus);
 
 #endif /* RGXRAY_H_ */

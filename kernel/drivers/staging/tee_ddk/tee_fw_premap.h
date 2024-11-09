@@ -50,48 +50,47 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* MMU Protection flags */
 /* These are specified generically and in a h/w independent way, and
    are interpreted at each level (PC/PD/PT) separately. */
-#define PROT_FLAG                           0
-#define MMU_PROTFLAGS_INVALID               0x80000000U
+#define PROT_FLAG 0
+#define MMU_PROTFLAGS_INVALID 0x80000000U
 
 /* The following flags should be supplied by the caller: */
-#define MMU_PROTFLAGS_READABLE              (1U<<0)
-#define MMU_PROTFLAGS_WRITEABLE             (1U<<1)
-#define MMU_PROTFLAGS_CACHE_COHERENT        (1U<<2)
-#define MMU_PROTFLAGS_CACHED                (1U<<3)
+#define MMU_PROTFLAGS_READABLE (1U << 0)
+#define MMU_PROTFLAGS_WRITEABLE (1U << 1)
+#define MMU_PROTFLAGS_CACHE_COHERENT (1U << 2)
+#define MMU_PROTFLAGS_CACHED (1U << 3)
 
-#define MMU_MAX_LEVEL  3
+#define MMU_MAX_LEVEL 3
 
 /*!< Memory that only the PM and Meta can access */
-#define PMMETA_PROTECT                      (1U << 0)
+#define PMMETA_PROTECT (1U << 0)
 
 /* Device specific MMU flags */
-#define MMU_PROTFLAGS_DEVICE_OFFSET         16
-#define MMU_PROTFLAGS_DEVICE_MASK           0x000F0000UL
-#define MMU_PROTFLAGS_DEVICE(n)	\
-			(((n) << MMU_PROTFLAGS_DEVICE_OFFSET) & \
-			MMU_PROTFLAGS_DEVICE_MASK)
+#define MMU_PROTFLAGS_DEVICE_OFFSET 16
+#define MMU_PROTFLAGS_DEVICE_MASK 0x000F0000UL
+#define MMU_PROTFLAGS_DEVICE(n) \
+	(((n) << MMU_PROTFLAGS_DEVICE_OFFSET) & MMU_PROTFLAGS_DEVICE_MASK)
 
 #if (RGX_FEATURE_MMU_VERSION != 4)
 #error "Only cores with MMU_VERSION 4 currently supported."
 #endif
 
-#define RGX_MMUCTRL_PTE_PROTMASK	(RGX_MMUCTRL_PT_DATA_PM_META_PROTECT_EN | \
-		~RGX_MMUCTRL_PT_DATA_AXCACHE_CLRMSK | \
-		RGX_MMUCTRL_PT_DATA_ENTRY_PENDING_EN | \
-		RGX_MMUCTRL_PT_DATA_PM_SRC_EN | \
-		RGX_MMUCTRL_PT_DATA_CC_EN | \
-		RGX_MMUCTRL_PT_DATA_READ_ONLY_EN | \
-		RGX_MMUCTRL_PT_DATA_VALID_EN)
+#define RGX_MMUCTRL_PTE_PROTMASK                                     \
+	(RGX_MMUCTRL_PT_DATA_PM_META_PROTECT_EN |                    \
+	 ~RGX_MMUCTRL_PT_DATA_AXCACHE_CLRMSK |                       \
+	 RGX_MMUCTRL_PT_DATA_ENTRY_PENDING_EN |                      \
+	 RGX_MMUCTRL_PT_DATA_PM_SRC_EN | RGX_MMUCTRL_PT_DATA_CC_EN | \
+	 RGX_MMUCTRL_PT_DATA_READ_ONLY_EN | RGX_MMUCTRL_PT_DATA_VALID_EN)
 
 /*
  * protection bits for MMU_VERSION >= 4
  * MMU4 has no PENDING or PAGE_SIZE fields in PxE
  */
-#define RGX_MMU4CTRL_PTE_PROTMASK	(RGX_MMUCTRL_PTE_PROTMASK & ~RGX_MMUCTRL_PT_DATA_ENTRY_PENDING_EN)
+#define RGX_MMU4CTRL_PTE_PROTMASK \
+	(RGX_MMUCTRL_PTE_PROTMASK & ~RGX_MMUCTRL_PT_DATA_ENTRY_PENDING_EN)
 
-#define RGX_MMU4CTRL_PDE_PROTMASK	(RGX_MMUCTRL_PD_DATA_VALID_EN)
+#define RGX_MMU4CTRL_PDE_PROTMASK (RGX_MMUCTRL_PD_DATA_VALID_EN)
 
-#define RGX_MMU4CTRL_PCE_PROTMASK	(RGX_MMUCTRL_PC_DATA_VALID_EN)
+#define RGX_MMU4CTRL_PCE_PROTMASK (RGX_MMUCTRL_PC_DATA_VALID_EN)
 
 /*
 	The Memory Management Unit (MMU) performs device virtual to physical
@@ -114,8 +113,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 	We have one per MMU context in case we have mixed UMA/LMA devices
 	within the same system.
  */
-typedef struct _MMU_PHYSMEM_CONTEXT_
-{
+typedef struct _MMU_PHYSMEM_CONTEXT_ {
 	/*! Associated MMU_CONTEXT */
 	struct _MMU_CONTEXT_ *psMMUContext;
 } MMU_PHYSMEM_CONTEXT;
@@ -124,8 +122,7 @@ typedef struct _MMU_PHYSMEM_CONTEXT_
 	Memory descriptor for MMU objects. There can be more than one memory
 	descriptor per MMU memory allocation.
  */
-typedef struct _MMU_MEMORY_DESC_
-{
+typedef struct _MMU_MEMORY_DESC_ {
 	/*! Device Physical address of physical backing */
 	IMG_DEV_PHYADDR sDevPAddr;
 	/*! CPU virtual address of physical backing */
@@ -138,8 +135,7 @@ typedef struct _MMU_MEMORY_DESC_
 	MMU level structure. This is generic and is used
 	for all levels (PC, PD, PT).
  */
-typedef struct _MMU_LEVEL_INFO_
-{
+typedef struct _MMU_LEVEL_INFO_ {
 	/*! MemDesc for this level */
 	MMU_MEMORY_DESC sMemDesc;
 
@@ -150,8 +146,7 @@ typedef struct _MMU_LEVEL_INFO_
 /*!
 	MMU context structure
  */
-typedef struct _MMU_CONTEXT_
-{
+typedef struct _MMU_CONTEXT_ {
 	/*! For allocation and deallocation of the physical memory where
 	    the pagetables live */
 	struct _MMU_PHYSMEM_CONTEXT_ *psPhysMemCtx;
@@ -164,12 +159,11 @@ typedef struct _MMU_CONTEXT_
 /*!
 	The level of the MMU
 */
-typedef enum
-{
-	MMU_LEVEL_0 = 0,	/* Level 0 = Page */
-	MMU_LEVEL_1,		/* Level 1 = Page Table */
-	MMU_LEVEL_2,		/* Level 2 = Page Directory */
-	MMU_LEVEL_3,		/* Level 1 = Page Catalog */
+typedef enum {
+	MMU_LEVEL_0 = 0, /* Level 0 = Page */
+	MMU_LEVEL_1, /* Level 1 = Page Table */
+	MMU_LEVEL_2, /* Level 2 = Page Directory */
+	MMU_LEVEL_3, /* Level 1 = Page Catalog */
 	MMU_LEVEL_LAST
 } MMU_LEVEL;
 
@@ -190,13 +184,13 @@ typedef enum
 			v == 10 -> 4MB DP
 */
 
-#define PC_INDEX_MASK                       0xFFC0000000
-#define PC_INDEX_SHIFT                      30
-#define PD_INDEX_MASK                       0x003FE00000
-#define PD_INDEX_SHIFT                      21
+#define PC_INDEX_MASK 0xFFC0000000
+#define PC_INDEX_SHIFT 30
+#define PD_INDEX_MASK 0x003FE00000
+#define PD_INDEX_SHIFT 21
 /* (v == 0) --> 4KB page table setting */
-#define PT_INDEX_MASK                       0x00001FF000
-#define PT_INDEX_SHIFT                      12
+#define PT_INDEX_MASK 0x00001FF000
+#define PT_INDEX_SHIFT 12
 
 /*
 	P(C/D/T) Entry Config:
@@ -206,58 +200,56 @@ typedef enum
 	-----------------------------------------------------
 	where v is the variable page table modifier and is optional
 */
-typedef struct _MMU_PxE_CONFIG_
-{
-	MMU_LEVEL	ePxLevel;        /*! MMU Level this config describes */
-	IMG_UINT8	uiBytesPerEntry; /*! Size of an entry in bytes */
+typedef struct _MMU_PxE_CONFIG_ {
+	MMU_LEVEL ePxLevel; /*! MMU Level this config describes */
+	IMG_UINT8 uiBytesPerEntry; /*! Size of an entry in bytes */
 
-	IMG_UINT64	uiAddrMask;      /*! Physical address mask */
-	IMG_UINT8	uiAddrShift;     /*! Physical address shift */
-	IMG_UINT8	uiAddrLog2Align; /*! Physical address Log 2 alignment */
+	IMG_UINT64 uiAddrMask; /*! Physical address mask */
+	IMG_UINT8 uiAddrShift; /*! Physical address shift */
+	IMG_UINT8 uiAddrLog2Align; /*! Physical address Log 2 alignment */
 
-	IMG_UINT64	uiVarCtrlMask;   /*! Variable control mask */
-	IMG_UINT8	uiVarCtrlShift;  /*! Variable control shift */
+	IMG_UINT64 uiVarCtrlMask; /*! Variable control mask */
+	IMG_UINT8 uiVarCtrlShift; /*! Variable control shift */
 
-	IMG_UINT64	uiProtMask;      /*! Protection flags mask */
-	IMG_UINT8	uiProtShift;     /*! Protection flags shift */
+	IMG_UINT64 uiProtMask; /*! Protection flags mask */
+	IMG_UINT8 uiProtShift; /*! Protection flags shift */
 
-	IMG_UINT64	uiValidEnMask;   /*! Entry valid bit mask */
-	IMG_UINT8	uiValidEnShift;  /*! Entry valid bit shift */
+	IMG_UINT64 uiValidEnMask; /*! Entry valid bit mask */
+	IMG_UINT8 uiValidEnShift; /*! Entry valid bit shift */
 } MMU_PxE_CONFIG;
 
 /*!
 	MMU virtual address split
 */
-typedef struct _MMU_DEVVADDR_CONFIG_
-{
+typedef struct _MMU_DEVVADDR_CONFIG_ {
 	/*! Page catalogue index mask */
-	IMG_UINT64	uiPCIndexMask;
+	IMG_UINT64 uiPCIndexMask;
 	/*! Page catalogue index shift */
-	IMG_UINT8	uiPCIndexShift;
+	IMG_UINT8 uiPCIndexShift;
 	/*! Total number of PC entries */
-	IMG_UINT32	uiNumEntriesPC;
+	IMG_UINT32 uiNumEntriesPC;
 
 	/*! Page directory mask */
-	IMG_UINT64	uiPDIndexMask;
+	IMG_UINT64 uiPDIndexMask;
 	/*! Page directory shift */
-	IMG_UINT8	uiPDIndexShift;
+	IMG_UINT8 uiPDIndexShift;
 	/*! Total number of PD entries */
-	IMG_UINT32	uiNumEntriesPD;
+	IMG_UINT32 uiNumEntriesPD;
 
 	/*! Page table mask */
-	IMG_UINT64	uiPTIndexMask;
+	IMG_UINT64 uiPTIndexMask;
 	/*! Page index shift */
-	IMG_UINT8	uiPTIndexShift;
+	IMG_UINT8 uiPTIndexShift;
 	/*! Total number of PT entries */
-	IMG_UINT32	uiNumEntriesPT;
+	IMG_UINT32 uiNumEntriesPT;
 
 	/*! Page offset mask */
-	IMG_UINT64	uiPageOffsetMask;
+	IMG_UINT64 uiPageOffsetMask;
 	/*! Page offset shift */
-	IMG_UINT8	uiPageOffsetShift;
+	IMG_UINT8 uiPageOffsetShift;
 
 	/*! First virtual address mappable for this config */
-	IMG_UINT64	uiOffsetInBytes;
+	IMG_UINT64 uiOffsetInBytes;
 
 } MMU_DEVVADDR_CONFIG;
 

@@ -49,19 +49,16 @@ typedef struct _SECURE_CLEANUP_DATA_ {
 } SECURE_CLEANUP_DATA;
 
 PVRSRV_ERROR PMRSecureExportPMR(CONNECTION_DATA *psConnection,
-                                PVRSRV_DEVICE_NODE * psDevNode,
-                                PMR *psPMR,
-                                IMG_SECURE_TYPE *phSecure,
-                                PMR **ppsPMR,
-                                CONNECTION_DATA **ppsSecureConnection);
+				PVRSRV_DEVICE_NODE *psDevNode, PMR *psPMR,
+				IMG_SECURE_TYPE *phSecure, PMR **ppsPMR,
+				CONNECTION_DATA **ppsSecureConnection);
 
 PVRSRV_ERROR PMRSecureUnexportPMR(PMR *psPMR);
 
 PVRSRV_ERROR PMRSecureImportPMR(CONNECTION_DATA *psConnection,
-                                PVRSRV_DEVICE_NODE *psDevNode,
-                                IMG_SECURE_TYPE hSecure,
-                                PMR **ppsPMR,
-                                IMG_DEVMEM_SIZE_T *puiSize,
-                                IMG_DEVMEM_ALIGN_T *puiAlign);
+				PVRSRV_DEVICE_NODE *psDevNode,
+				IMG_SECURE_TYPE hSecure, PMR **ppsPMR,
+				IMG_DEVMEM_SIZE_T *puiSize,
+				IMG_DEVMEM_ALIGN_T *puiAlign);
 
 PVRSRV_ERROR PMRSecureUnimportPMR(PMR *psPMR);

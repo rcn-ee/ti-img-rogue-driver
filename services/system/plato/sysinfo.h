@@ -44,28 +44,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(SYSINFO_H)
 #define SYSINFO_H
 
-#define SYS_RGX_DEV_VENDOR_ID	(0x1AEE)
-#define SYS_RGX_DEV_DEVICE_ID	(0x0003)
+#define SYS_RGX_DEV_VENDOR_ID (0x1AEE)
+#define SYS_RGX_DEV_DEVICE_ID (0x0003)
 
 /*!< System specific poll/timeout details */
 #if defined(VIRTUAL_PLATFORM) || defined(EMULATOR)
 /* Emulator clock ~600 times slower than HW */
-#define MAX_HW_TIME_US                           (300000000)
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (100000)
+#define MAX_HW_TIME_US (300000000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (100000)
 
 #if defined(VIRTUAL_PLATFORM)
-#define EVENT_OBJECT_TIMEOUT_US                  (120000000)
+#define EVENT_OBJECT_TIMEOUT_US (120000000)
 #elif defined(EMULATOR)
-#define EVENT_OBJECT_TIMEOUT_US                  (2000000)
+#define EVENT_OBJECT_TIMEOUT_US (2000000)
 #endif
 
 #else
-#define MAX_HW_TIME_US                           (500000)
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1500)//(10000)
-#define EVENT_OBJECT_TIMEOUT_US                  (100000)
+#define MAX_HW_TIME_US (500000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (1500) //(10000)
+#define EVENT_OBJECT_TIMEOUT_US (100000)
 #endif
 
 #define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
-#define WAIT_TRY_COUNT                           (10000)
+#define WAIT_TRY_COUNT (10000)
 
 #endif /* !defined(SYSINFO_H) */

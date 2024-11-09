@@ -46,34 +46,32 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if !defined(__SYSDATA_H__)
 #define __SYSDATA_H__
 
-typedef struct _SYS_INTERRUPT_DATA_
-{
-	void			*psSysData;
-	const IMG_CHAR	*pszName;
-	PFN_SYS_LISR	pfnLISR;
-	void			*pvData;
-	IMG_UINT32		ui32InterruptFlag;
-	IMG_UINT32		ui32IRQ;
+typedef struct _SYS_INTERRUPT_DATA_ {
+	void *psSysData;
+	const IMG_CHAR *pszName;
+	PFN_SYS_LISR pfnLISR;
+	void *pvData;
+	IMG_UINT32 ui32InterruptFlag;
+	IMG_UINT32 ui32IRQ;
 } SYS_INTERRUPT_DATA;
 
-typedef struct _SYS_DATA_
-{
-	IMG_HANDLE			hRGXPCI;
+typedef struct _SYS_DATA_ {
+	IMG_HANDLE hRGXPCI;
 
-	IMG_CHAR			*pszVersion;
+	IMG_CHAR *pszVersion;
 
-	IMG_CPU_PHYADDR		sSystemRegCpuPBase;
-	void				*pvSystemRegCpuVBase;
-	size_t				uiSystemRegSize;
+	IMG_CPU_PHYADDR sSystemRegCpuPBase;
+	void *pvSystemRegCpuVBase;
+	size_t uiSystemRegSize;
 
-	IMG_CPU_PHYADDR		sLocalMemCpuPBase;
-	size_t				uiLocalMemSize;
+	IMG_CPU_PHYADDR sLocalMemCpuPBase;
+	size_t uiLocalMemSize;
 
-	IMG_HANDLE			hLISR;
-	IMG_UINT32			ui32IRQ;
+	IMG_HANDLE hLISR;
+	IMG_UINT32 ui32IRQ;
 
 	/* Rogue and PDP */
-	SYS_INTERRUPT_DATA	sInterruptData[2];
+	SYS_INTERRUPT_DATA sInterruptData[2];
 
 #if defined(SUPPORT_LMA_SUSPEND_TO_RAM) && defined(__x86_64__)
 	PVRSRV_DEVICE_CONFIG *psDevConfig;

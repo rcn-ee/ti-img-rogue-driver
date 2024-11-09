@@ -51,35 +51,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SYS_RGX_ACTIVE_POWER_LATENCY_MS (10)
 #define MAX_SYSTEMS 32
 
-typedef struct _SYS_INTERRUPT_DATA_
-{
-	void			*psSysData;
-	const IMG_CHAR	*pszName;
-	PFN_SYS_LISR	pfnLISR;
-	void			*pvData;
-	IMG_UINT32		ui32InterruptFlag;
-	IMG_UINT32		ui32IRQ;
+typedef struct _SYS_INTERRUPT_DATA_ {
+	void *psSysData;
+	const IMG_CHAR *pszName;
+	PFN_SYS_LISR pfnLISR;
+	void *pvData;
+	IMG_UINT32 ui32InterruptFlag;
+	IMG_UINT32 ui32IRQ;
 } SYS_INTERRUPT_DATA;
 
 typedef struct _SYS_DATA_ SYS_DATA;
 
-struct _SYS_DATA_
-{
-	IMG_HANDLE					hRGXPCI;
+struct _SYS_DATA_ {
+	IMG_HANDLE hRGXPCI;
 
-	void						*pvSystemRegCpuVBase;
-	size_t						uiSystemRegSize;
+	void *pvSystemRegCpuVBase;
+	size_t uiSystemRegSize;
 
-#if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_LOCAL) || (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
-	IMG_UINT64					ui64MappedMemCpuPAddr;
-	IMG_UINT64					ui64MappedMemSize;
+#if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_LOCAL) || \
+	(PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
+	IMG_UINT64 ui64MappedMemCpuPAddr;
+	IMG_UINT64 ui64MappedMemSize;
 #endif
 
-	IMG_HANDLE					hLISR;
-	IMG_UINT32					ui32IRQ;
+	IMG_HANDLE hLISR;
+	IMG_UINT32 ui32IRQ;
 
 	/* Rogue, PDP and HDMI */
-	SYS_INTERRUPT_DATA			sInterruptData[PLATO_IRQ_MAX];
+	SYS_INTERRUPT_DATA sInterruptData[PLATO_IRQ_MAX];
 };
 
 /* Helpers for getting DDR/GPU/PLL clock speed */
@@ -87,42 +86,40 @@ IMG_UINT32 SysGetPlatoMemClockSpeed(void);
 IMG_UINT32 SysGetPlatoCoreClockSpeed(void);
 IMG_UINT32 SysGetPlatoPLLClockSpeed(IMG_UINT32 ui32ClockSpeed);
 
-#if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_LOCAL) || (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
+#if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_LOCAL) || \
+	(PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
 void PlatoLocalCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-					  IMG_UINT32 ui32NumOfAddr,
-					  IMG_DEV_PHYADDR *psDevPAddr,
-					  IMG_CPU_PHYADDR *psCpuPAddr);
+				  IMG_UINT32 ui32NumOfAddr,
+				  IMG_DEV_PHYADDR *psDevPAddr,
+				  IMG_CPU_PHYADDR *psCpuPAddr);
 
 void PlatoLocalDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-					  IMG_UINT32 ui32NumOfAddr,
-					  IMG_CPU_PHYADDR *psCpuPAddr,
-					  IMG_DEV_PHYADDR *psDevPAddr);
+				  IMG_UINT32 ui32NumOfAddr,
+				  IMG_CPU_PHYADDR *psCpuPAddr,
+				  IMG_DEV_PHYADDR *psDevPAddr);
 #endif
-#if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HOST) || (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
+#if (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HOST) || \
+	(PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID)
 void PlatoSystemCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-					   IMG_UINT32 ui32NumOfAddr,
-					   IMG_DEV_PHYADDR *psDevPAddr,
-					   IMG_CPU_PHYADDR *psCpuPAddr);
+				   IMG_UINT32 ui32NumOfAddr,
+				   IMG_DEV_PHYADDR *psDevPAddr,
+				   IMG_CPU_PHYADDR *psCpuPAddr);
 
 void PlatoSystemDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-					   IMG_UINT32 ui32NumOfAddr,
-					   IMG_CPU_PHYADDR *psCpuPAddr,
-					   IMG_DEV_PHYADDR *psDevPAddr);
+				   IMG_UINT32 ui32NumOfAddr,
+				   IMG_CPU_PHYADDR *psCpuPAddr,
+				   IMG_DEV_PHYADDR *psDevPAddr);
 #endif /* (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HOST) || (PLATO_MEMORY_CONFIG == PLATO_MEMORY_HYBRID) */
 
-PVRSRV_ERROR PlatoMapRegisters(SYS_DATA *psDevData,
-	IMG_UINT32 ui32BaseNum,
-	IMG_UINT32 ui32Offset,
-	IMG_UINT32 ui32Size,
-	void ** pvCpuVAddr);
+PVRSRV_ERROR PlatoMapRegisters(SYS_DATA *psDevData, IMG_UINT32 ui32BaseNum,
+			       IMG_UINT32 ui32Offset, IMG_UINT32 ui32Size,
+			       void **pvCpuVAddr);
 
-void PlatoUnmapRegisters(SYS_DATA *psDevData,
-	void * pvBase,
-	IMG_UINT32 ui32BaseNum,
-	IMG_UINT32 ui32Offset,
-	IMG_UINT32 ui32Size);
+void PlatoUnmapRegisters(SYS_DATA *psDevData, void *pvBase,
+			 IMG_UINT32 ui32BaseNum, IMG_UINT32 ui32Offset,
+			 IMG_UINT32 ui32Size);
 
-#if (PLATO_MEMORY_CONFIG != PLATO_MEMORY_LOCAL) && \
+#if (PLATO_MEMORY_CONFIG != PLATO_MEMORY_LOCAL) &&      \
 	(PLATO_MEMORY_CONFIG != PLATO_MEMORY_HYBRID) && \
 	(PLATO_MEMORY_CONFIG == PLATO_MEMORY_HOST)
 #error "PLATO_MEMORY_CONFIG not valid"

@@ -45,9 +45,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv_error.h"
 
 #if defined(LMA)
-	#define DRVNAME	"dc_example_LMA"
+#define DRVNAME "dc_example_LMA"
 #else
-	#define DRVNAME	"dc_example_UMA"
+#define DRVNAME "dc_example_UMA"
 #endif
 
 #define MODNAME "dc_example"
@@ -57,8 +57,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
 /* Module parameters */
-typedef struct _DC_EXAMPLE_MODULE_PARAMETERS_
-{
+typedef struct _DC_EXAMPLE_MODULE_PARAMETERS_ {
 	IMG_UINT32 ui32Width;
 	IMG_UINT32 ui32Height;
 	IMG_UINT32 ui32Depth;
@@ -73,13 +72,17 @@ typedef struct _DC_EXAMPLE_MODULE_PARAMETERS_
 
 const DC_EXAMPLE_MODULE_PARAMETERS *DCExampleGetModuleParameters(void);
 
-void        *DCExampleVirtualAllocUncached(size_t uiSize);
-IMG_BOOL     DCExampleVirtualFree(void *pvAllocHandle);
-PVRSRV_ERROR DCExampleGetLinAddr(void *pvAllocHandle, IMG_CPU_VIRTADDR *ppvLinAddr);
-PVRSRV_ERROR DCExampleGetDevPAddrs(void *pvAllocHandle, IMG_DEV_PHYADDR *pasDevPAddr,
+void *DCExampleVirtualAllocUncached(size_t uiSize);
+IMG_BOOL DCExampleVirtualFree(void *pvAllocHandle);
+PVRSRV_ERROR DCExampleGetLinAddr(void *pvAllocHandle,
+				 IMG_CPU_VIRTADDR *ppvLinAddr);
+PVRSRV_ERROR DCExampleGetDevPAddrs(void *pvAllocHandle,
+				   IMG_DEV_PHYADDR *pasDevPAddr,
 				   uint32_t uiPageNo, size_t uiSize);
 #if defined(INTEGRITY_OS)
-PVRSRV_ERROR DCExampleOSAcquireKernelMappingData(void *pvAllocHandle, IMG_HANDLE *phMapping, void **ppPhysAddr);
+PVRSRV_ERROR DCExampleOSAcquireKernelMappingData(void *pvAllocHandle,
+						 IMG_HANDLE *phMapping,
+						 void **ppPhysAddr);
 #endif
 
 /******************************************************************************

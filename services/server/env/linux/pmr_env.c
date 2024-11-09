@@ -47,14 +47,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pmr_env.h"
 #include "physmem_dmabuf_internal.h"
 
-void
-PMREnvInitialize(PMR_ENV *psPMREnv)
+void PMREnvInitialize(PMR_ENV *psPMREnv)
 {
 	memset(psPMREnv, 0, sizeof(*psPMREnv));
 }
 
-void
-PMREnvFinalize(PMR_ENV *psPMREnv)
+void PMREnvFinalize(PMR_ENV *psPMREnv)
 {
 	void *pvDmaBufExportData;
 
@@ -63,16 +61,14 @@ PMREnvFinalize(PMR_ENV *psPMREnv)
 		PhysmemDmaBufExportFinalize(pvDmaBufExportData);
 }
 
-void
-PMREnvDmaBufSetExportData(PMR *psPMR, void *pvData)
+void PMREnvDmaBufSetExportData(PMR *psPMR, void *pvData)
 {
 	PMR_ENV *psPMREnv = PMREnvGetData(psPMR);
 
 	smp_store_release(&psPMREnv->pvDmaBufExportData, pvData);
 }
 
-void *
-PMREnvDmaBufGetExportData(PMR *psPMR)
+void *PMREnvDmaBufGetExportData(PMR *psPMR)
 {
 	PMR_ENV *psPMREnv = PMREnvGetData(psPMR);
 	void *pvDmaBufExportData;

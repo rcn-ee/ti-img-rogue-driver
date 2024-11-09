@@ -83,7 +83,8 @@ static INLINE IMG_PUINT32 GetInfoPage(SHARED_DEV_CONNECTION hDevConnection)
 @Return        Info Page debug flags
 */
 /*****************************************************************************/
-static INLINE IMG_UINT32 GetInfoPageDebugFlags(SHARED_DEV_CONNECTION hDevConnection)
+static INLINE IMG_UINT32
+GetInfoPageDebugFlags(SHARED_DEV_CONNECTION hDevConnection)
 {
 	return GetInfoPage(hDevConnection)[DEBUG_FEATURE_FLAGS];
 }

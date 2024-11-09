@@ -54,8 +54,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 #define FW_BLOCK_SIZE 4096L
 
-typedef enum
-{
+typedef enum {
 	META_CODE = 0,
 	META_PRIVATE_DATA,
 	META_COREMEM_CODE,
@@ -73,15 +72,13 @@ typedef enum
 	RISCV_COREMEM_DATA,
 } RGX_FW_SECTION_ID;
 
-typedef enum
-{
+typedef enum {
 	NONE = 0,
 	FW_CODE,
 	FW_DATA,
 	FW_COREMEM_CODE,
 	FW_COREMEM_DATA
 } RGX_FW_SECTION_TYPE;
-
 
 /*
  * FW binary format with FW info attached:
@@ -105,30 +102,29 @@ typedef enum
  *                          FILE_SIZE
  */
 
-#define FW_INFO_VERSION  (2)
+#define FW_INFO_VERSION (2)
 
 /* Firmware is built for open source driver and uses open source version numbering */
 #define FW_INFO_FLAGS_OPEN_SOURCE (1U)
 
-typedef struct
-{
+typedef struct {
 	/* FW_INFO_VERSION 1 */
-	IMG_UINT32 ui32InfoVersion;      /* FW info version */
-	IMG_UINT32 ui32HeaderLen;        /* Header length */
-	IMG_UINT32 ui32LayoutEntryNum;   /* Number of entries in the layout table */
-	IMG_UINT32 ui32LayoutEntrySize;  /* Size of an entry in the layout table */
+	IMG_UINT32 ui32InfoVersion; /* FW info version */
+	IMG_UINT32 ui32HeaderLen; /* Header length */
+	IMG_UINT32 ui32LayoutEntryNum; /* Number of entries in the layout table */
+	IMG_UINT32 ui32LayoutEntrySize; /* Size of an entry in the layout table */
 	IMG_UINT64 RGXFW_ALIGN ui64BVNC; /* BVNC */
-	IMG_UINT32 ui32FwPageSize;       /* Page size of processor on which firmware executes */
-	IMG_UINT32 ui32Flags;            /* Compatibility flags */
+	IMG_UINT32
+		ui32FwPageSize; /* Page size of processor on which firmware executes */
+	IMG_UINT32 ui32Flags; /* Compatibility flags */
 
 	/* FW_INFO_VERSION 2 */
-	IMG_UINT16 ui16PVRVersionMajor;  /* DDK major version number */
-	IMG_UINT16 ui16PVRVersionMinor;  /* DDK minor version number */
-	IMG_UINT32 ui32PVRVersionBuild;  /* DDK build number */
+	IMG_UINT16 ui16PVRVersionMajor; /* DDK major version number */
+	IMG_UINT16 ui16PVRVersionMinor; /* DDK minor version number */
+	IMG_UINT32 ui32PVRVersionBuild; /* DDK build number */
 } RGX_FW_INFO_HEADER;
 
-typedef struct
-{
+typedef struct {
 	RGX_FW_SECTION_ID eId;
 	RGX_FW_SECTION_TYPE eType;
 	IMG_UINT32 ui32BaseAddr;

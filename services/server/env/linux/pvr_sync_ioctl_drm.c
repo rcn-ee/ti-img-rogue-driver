@@ -81,8 +81,7 @@ pvr_sync_connection_private_data(void *connection_data)
 	return NULL;
 }
 
-struct pvr_sync_file_data *
-pvr_sync_get_private_data(struct file *file)
+struct pvr_sync_file_data *pvr_sync_get_private_data(struct file *file)
 {
 	CONNECTION_DATA *connection_data = LinuxSyncConnectionFromFile(file);
 
@@ -128,7 +127,8 @@ void pvr_sync_close(void *connection_data)
 		pr_err("%s: ERROR (%d) returned by pvr_sync_close_common()\n",
 		       __func__, iErr);
 
-	iErr = OSConnectionPrivateDataDeInit(PVRSRVConnectionPrivateData(connection_data));
+	iErr = OSConnectionPrivateDataDeInit(
+		PVRSRVConnectionPrivateData(connection_data));
 	if (iErr != 0)
 		pr_err("%s: ERROR (%d) returned by OSConnectionPrivateDataDeInit()\n",
 		       __func__, iErr);
@@ -137,9 +137,8 @@ void pvr_sync_close(void *connection_data)
 		kfree(connection_data);
 }
 
-
-int pvr_sync_rename_ioctl(struct drm_device __maybe_unused *dev,
-			  void *arg, struct drm_file *file)
+int pvr_sync_rename_ioctl(struct drm_device __maybe_unused *dev, void *arg,
+			  struct drm_file *file)
 {
 	return pvr_sync_ioctl_common_rename(file->filp, arg);
 }
@@ -156,20 +155,20 @@ int pvr_sw_sync_create_fence_ioctl(struct drm_device __maybe_unused *dev,
 	return pvr_sync_ioctl_common_sw_create_fence(file->filp, arg);
 }
 
-int pvr_sw_sync_inc_ioctl(struct drm_device __maybe_unused *dev,
-			  void *arg, struct drm_file *file)
+int pvr_sw_sync_inc_ioctl(struct drm_device __maybe_unused *dev, void *arg,
+			  struct drm_file *file)
 {
 	return pvr_sync_ioctl_common_sw_inc(file->filp, arg);
 }
 
 int pvr_sync_ioctl_force_exp_only(struct drm_device __maybe_unused *dev,
-			  void *arg, struct drm_file *file)
+				  void *arg, struct drm_file *file)
 {
 	return pvr_sync_ioctl_common_force_exp_only(file->filp, arg);
 }
 
-int pvr_export_fence_sync_create_fence_ioctl(struct drm_device __maybe_unused *dev,
-			  void *arg, struct drm_file *file)
+int pvr_export_fence_sync_create_fence_ioctl(
+	struct drm_device __maybe_unused *dev, void *arg, struct drm_file *file)
 {
 	return pvr_sync_ioctl_common_create_export_fence(file->filp, arg);
 }

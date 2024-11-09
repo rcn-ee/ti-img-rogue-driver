@@ -59,7 +59,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/dma-mapping.h>
 #endif
 
-
 /*
  * In systems that support trusted device address protection, there are three
  * physical heaps from which pages should be allocated:
@@ -68,14 +67,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * - one heap for allocations holding secured DRM data
  */
 
-#define PHYS_HEAP_IDX_GENERAL     0
-#define PHYS_HEAP_IDX_FW          1
+#define PHYS_HEAP_IDX_GENERAL 0
+#define PHYS_HEAP_IDX_FW 1
 
 #if defined(SUPPORT_TRUSTED_DEVICE)
-#define PHYS_HEAP_IDX_TDFWMEM     2
+#define PHYS_HEAP_IDX_TDFWMEM 2
 #define PHYS_HEAP_IDX_TDSECUREBUF 3
 #elif defined(SUPPORT_DEDICATED_FW_MEMORY)
-#define PHYS_HEAP_IDX_FW_MEMORY   2
+#define PHYS_HEAP_IDX_FW_MEMORY 2
 #endif
 
 /* Change to test CPU_LOCAL sys layers*/
@@ -90,7 +89,7 @@ static DECLARE_PHYS_HEAP_SPAS_REGION(sSpasSystemMemory);
 #endif
 
 static PVRSRV_ERROR PhysHeapsCreate(PHYS_HEAP_CONFIG **ppasPhysHeapsOut,
-									IMG_UINT32 *puiPhysHeapCountOut)
+				    IMG_UINT32 *puiPhysHeapCountOut)
 {
 	/*
 	 * This function is called during device initialisation, which on Linux,
@@ -107,18 +106,22 @@ static PVRSRV_ERROR PhysHeapsCreate(PHYS_HEAP_CONFIG **ppasPhysHeapsOut,
 #endif
 
 	pasPhysHeaps = OSAllocZMem(sizeof(*pasPhysHeaps) * uiHeapCount);
-	if (!pasPhysHeaps)
-	{
+	if (!pasPhysHeaps) {
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 
 	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].eType = PHYS_HEAP_TYPE_UMA;
-	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].ui32UsageFlags = UMA_HEAP_USAGE_FLAG;
-	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.pszPDumpMemspaceName = "SYSMEM";
-	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.psMemFuncs = &g_sUmaHeapFns;
-	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.pszHeapName = "uma_local";
+	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].ui32UsageFlags =
+		UMA_HEAP_USAGE_FLAG;
+	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.pszPDumpMemspaceName =
+		"SYSMEM";
+	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.psMemFuncs =
+		&g_sUmaHeapFns;
+	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.pszHeapName =
+		"uma_local";
 #if defined(PVRSRV_ENABLE_XD_MEM)
-	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.psSpasRegion = &sSpasSystemMemory;
+	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.psSpasRegion =
+		&sSpasSystemMemory;
 #endif
 #if defined(PVRSRV_INTERNAL_IPA_FEATURE_TESTING)
 	/* Provide a specific set of Intermediate Physical Address modifiers
@@ -131,40 +134,53 @@ static PVRSRV_ERROR PhysHeapsCreate(PHYS_HEAP_CONFIG **ppasPhysHeapsOut,
 	 * This will result in the PhysAddr values having bits 53..55 set with '3'
 	 * by default.
 	 */
-	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.pszPDumpMemspaceName = "SYSMEM_IPA";
+	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].uConfig.sUMA.pszPDumpMemspaceName =
+		"SYSMEM_IPA";
 	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].sIPAConfig.ui8IPAPolicyDefault = 3;
 	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].sIPAConfig.ui8IPAPolicyMask = 7;
 	pasPhysHeaps[PHYS_HEAP_IDX_GENERAL].sIPAConfig.ui8IPAPolicyShift = 52;
 #endif
 
-	 pasPhysHeaps[PHYS_HEAP_IDX_FW].eType = PHYS_HEAP_TYPE_UMA;
-	 pasPhysHeaps[PHYS_HEAP_IDX_FW].ui32UsageFlags = PHYS_HEAP_USAGE_FW_SHARED;
-	 pasPhysHeaps[PHYS_HEAP_IDX_FW].uConfig.sUMA.pszPDumpMemspaceName = "SYSMEM_FW";
-	 pasPhysHeaps[PHYS_HEAP_IDX_FW].uConfig.sUMA.psMemFuncs = &g_sUmaHeapFns;
-	 pasPhysHeaps[PHYS_HEAP_IDX_FW].uConfig.sUMA.pszHeapName = "uma_fw_shared";
-
+	pasPhysHeaps[PHYS_HEAP_IDX_FW].eType = PHYS_HEAP_TYPE_UMA;
+	pasPhysHeaps[PHYS_HEAP_IDX_FW].ui32UsageFlags =
+		PHYS_HEAP_USAGE_FW_SHARED;
+	pasPhysHeaps[PHYS_HEAP_IDX_FW].uConfig.sUMA.pszPDumpMemspaceName =
+		"SYSMEM_FW";
+	pasPhysHeaps[PHYS_HEAP_IDX_FW].uConfig.sUMA.psMemFuncs = &g_sUmaHeapFns;
+	pasPhysHeaps[PHYS_HEAP_IDX_FW].uConfig.sUMA.pszHeapName =
+		"uma_fw_shared";
 
 #if defined(SUPPORT_TRUSTED_DEVICE)
 	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].eType = PHYS_HEAP_TYPE_UMA;
 	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].ui32UsageFlags =
 		PHYS_HEAP_USAGE_FW_CODE | PHYS_HEAP_USAGE_FW_PRIV_DATA;
-	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].uConfig.sUMA.pszPDumpMemspaceName = "TDFWMEM";
-	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].uConfig.sUMA.psMemFuncs = &g_sUmaHeapFns;
-	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].uConfig.sUMA.pszHeapName = "uma_tdfwmem";
+	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].uConfig.sUMA.pszPDumpMemspaceName =
+		"TDFWMEM";
+	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].uConfig.sUMA.psMemFuncs =
+		&g_sUmaHeapFns;
+	pasPhysHeaps[PHYS_HEAP_IDX_TDFWMEM].uConfig.sUMA.pszHeapName =
+		"uma_tdfwmem";
 
 	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].eType = PHYS_HEAP_TYPE_UMA;
-	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].ui32UsageFlags = PHYS_HEAP_USAGE_GPU_SECURE;
-	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].uConfig.sUMA.pszPDumpMemspaceName = "TDSECBUFMEM";
-	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].uConfig.sUMA.psMemFuncs = &g_sUmaHeapFns;
-	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].uConfig.sUMA.pszHeapName = "uma_tdsecbufmem";
+	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].ui32UsageFlags =
+		PHYS_HEAP_USAGE_GPU_SECURE;
+	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF]
+		.uConfig.sUMA.pszPDumpMemspaceName = "TDSECBUFMEM";
+	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].uConfig.sUMA.psMemFuncs =
+		&g_sUmaHeapFns;
+	pasPhysHeaps[PHYS_HEAP_IDX_TDSECUREBUF].uConfig.sUMA.pszHeapName =
+		"uma_tdsecbufmem";
 
 #elif defined(SUPPORT_DEDICATED_FW_MEMORY)
 	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].eType = PHYS_HEAP_TYPE_UMA;
 	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].ui32UsageFlags =
 		PHYS_HEAP_USAGE_FW_CODE | PHYS_HEAP_USAGE_FW_PRIV_DATA;
-	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].uConfig.sUMA.pszPDumpMemspaceName = "DEDICATEDFWMEM";
-	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].uConfig.sUMA.psMemFuncs = &g_sUmaHeapFns;
-	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].uConfig.sUMA.pszHeapName = "uma_dedicatedfwmem";
+	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].uConfig.sUMA.pszPDumpMemspaceName =
+		"DEDICATEDFWMEM";
+	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].uConfig.sUMA.psMemFuncs =
+		&g_sUmaHeapFns;
+	pasPhysHeaps[PHYS_HEAP_IDX_FW_MEMORY].uConfig.sUMA.pszHeapName =
+		"uma_dedicatedfwmem";
 #endif
 
 	*ppasPhysHeapsOut = pasPhysHeaps;
@@ -178,17 +194,17 @@ static void PhysHeapsDestroy(PHYS_HEAP_CONFIG *pasPhysHeaps)
 	OSFreeMem(pasPhysHeaps);
 }
 
-static void SysDevFeatureDepInit(PVRSRV_DEVICE_CONFIG *psDevConfig, IMG_UINT64 ui64Features)
+static void SysDevFeatureDepInit(PVRSRV_DEVICE_CONFIG *psDevConfig,
+				 IMG_UINT64 ui64Features)
 {
 #if defined(SUPPORT_AXI_ACE_TEST)
-		if ( ui64Features & RGX_FEATURE_AXI_ACELITE_BIT_MASK)
-		{
-			psDevConfig->eCacheSnoopingMode		= PVRSRV_DEVICE_SNOOP_CPU_ONLY;
-		}else
+	if (ui64Features & RGX_FEATURE_AXI_ACELITE_BIT_MASK) {
+		psDevConfig->eCacheSnoopingMode = PVRSRV_DEVICE_SNOOP_CPU_ONLY;
+	} else
 #endif
-		{
-			psDevConfig->eCacheSnoopingMode		= PVRSRV_DEVICE_SNOOP_NONE;
-		}
+	{
+		psDevConfig->eCacheSnoopingMode = PVRSRV_DEVICE_SNOOP_NONE;
+	}
 }
 
 PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
@@ -204,56 +220,56 @@ PVRSRV_ERROR SysDevInit(void *pvOSDevice, PVRSRV_DEVICE_CONFIG **ppsDevConfig)
 	dma_set_mask(pvOSDevice, DMA_BIT_MASK(40));
 #endif
 
-	psDevConfig = OSAllocZMem(sizeof(*psDevConfig) +
-							  sizeof(*psRGXData) +
-							  sizeof(*psRGXTimingInfo));
-	if (!psDevConfig)
-	{
+	psDevConfig = OSAllocZMem(sizeof(*psDevConfig) + sizeof(*psRGXData) +
+				  sizeof(*psRGXTimingInfo));
+	if (!psDevConfig) {
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 
-	psRGXData = (RGX_DATA *)((IMG_CHAR *)psDevConfig + sizeof(*psDevConfig));
-	psRGXTimingInfo = (RGX_TIMING_INFORMATION *)((IMG_CHAR *)psRGXData + sizeof(*psRGXData));
+	psRGXData =
+		(RGX_DATA *)((IMG_CHAR *)psDevConfig + sizeof(*psDevConfig));
+	psRGXTimingInfo = (RGX_TIMING_INFORMATION *)((IMG_CHAR *)psRGXData +
+						     sizeof(*psRGXData));
 
 	eError = PhysHeapsCreate(&pasPhysHeaps, &uiPhysHeapCount);
-	if (eError)
-	{
+	if (eError) {
 		goto ErrorFreeDevConfig;
 	}
 
 	/* Setup RGX specific timing data */
-	psRGXTimingInfo->ui32CoreClockSpeed        = RGX_NOHW_CORE_CLOCK_SPEED;
-	psRGXTimingInfo->bEnableActivePM           = IMG_FALSE;
-	psRGXTimingInfo->bEnableRDPowIsland        = IMG_FALSE;
-	psRGXTimingInfo->ui32ActivePMLatencyms     = SYS_RGX_ACTIVE_POWER_LATENCY_MS;
+	psRGXTimingInfo->ui32CoreClockSpeed = RGX_NOHW_CORE_CLOCK_SPEED;
+	psRGXTimingInfo->bEnableActivePM = IMG_FALSE;
+	psRGXTimingInfo->bEnableRDPowIsland = IMG_FALSE;
+	psRGXTimingInfo->ui32ActivePMLatencyms =
+		SYS_RGX_ACTIVE_POWER_LATENCY_MS;
 
 	/* Set up the RGX data */
 	psRGXData->psRGXTimingInfo = psRGXTimingInfo;
 
 	/* Setup the device config */
-	psDevConfig->pvOSDevice				= pvOSDevice;
-	psDevConfig->pszName                = "nohw";
-	psDevConfig->pszVersion             = NULL;
+	psDevConfig->pvOSDevice = pvOSDevice;
+	psDevConfig->pszName = "nohw";
+	psDevConfig->pszVersion = NULL;
 
 	/* Device setup information */
-	psDevConfig->sRegsCpuPBase.uiAddr   = 0x00f00000;
-	psDevConfig->ui32RegsSize           = 0x100000;
-	psDevConfig->ui32IRQ                = 0x00000bad;
+	psDevConfig->sRegsCpuPBase.uiAddr = 0x00f00000;
+	psDevConfig->ui32RegsSize = 0x100000;
+	psDevConfig->ui32IRQ = 0x00000bad;
 
-	psDevConfig->pasPhysHeaps			= pasPhysHeaps;
-	psDevConfig->ui32PhysHeapCount		= uiPhysHeapCount;
+	psDevConfig->pasPhysHeaps = pasPhysHeaps;
+	psDevConfig->ui32PhysHeapCount = uiPhysHeapCount;
 	psDevConfig->eDefaultHeap = UMA_DEFAULT_HEAP;
 
 	/* No power management on no HW system */
-	psDevConfig->pfnPrePowerState       = NULL;
-	psDevConfig->pfnPostPowerState      = NULL;
+	psDevConfig->pfnPrePowerState = NULL;
+	psDevConfig->pfnPostPowerState = NULL;
 
 	/* No clock frequency either */
-	psDevConfig->pfnClockFreqGet        = NULL;
+	psDevConfig->pfnClockFreqGet = NULL;
 
-	psDevConfig->hDevData               = psRGXData;
+	psDevConfig->hDevData = psRGXData;
 
-	psDevConfig->bDevicePA0IsValid       = IMG_FALSE;
+	psDevConfig->bDevicePA0IsValid = IMG_FALSE;
 	psDevConfig->pfnSysDevFeatureDepInit = SysDevFeatureDepInit;
 
 	/* Setup other system specific stuff */
@@ -291,12 +307,9 @@ void SysDevDeInit(PVRSRV_DEVICE_CONFIG *psDevConfig)
 	OSFreeMem(psDevConfig);
 }
 
-PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData,
-								  IMG_UINT32 ui32IRQ,
-								  const IMG_CHAR *pszName,
-								  PFN_LISR pfnLISR,
-								  void *pvData,
-								  IMG_HANDLE *phLISRData)
+PVRSRV_ERROR SysInstallDeviceLISR(IMG_HANDLE hSysData, IMG_UINT32 ui32IRQ,
+				  const IMG_CHAR *pszName, PFN_LISR pfnLISR,
+				  void *pvData, IMG_HANDLE *phLISRData)
 {
 	PVR_UNREFERENCED_PARAMETER(hSysData);
 	PVR_UNREFERENCED_PARAMETER(ui32IRQ);
@@ -316,8 +329,8 @@ PVRSRV_ERROR SysUninstallDeviceLISR(IMG_HANDLE hLISRData)
 }
 
 PVRSRV_ERROR SysDebugInfo(PVRSRV_DEVICE_CONFIG *psDevConfig,
-				DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-				void *pvDumpDebugFile)
+			  DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			  void *pvDumpDebugFile)
 {
 	PVR_UNREFERENCED_PARAMETER(psDevConfig);
 	PVR_UNREFERENCED_PARAMETER(pfnDumpDebugPrintf);

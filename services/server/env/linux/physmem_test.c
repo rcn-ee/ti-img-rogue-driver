@@ -53,9 +53,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "physmem_lma.h"
 #include "pvrsrv.h"
 
-#define PHYSMEM_TEST_PAGES        2     /* Mem test pages */
-#define PHYSMEM_TEST_PASSES_MAX   1000  /* Limit number of passes to some reasonable value */
-
+#define PHYSMEM_TEST_PAGES 2 /* Mem test pages */
+#define PHYSMEM_TEST_PASSES_MAX \
+	1000 /* Limit number of passes to some reasonable value */
 
 /* Test patterns for mem test */
 
@@ -80,67 +80,26 @@ static const IMG_UINT64 gui64Patterns[] = {
 };
 
 static const IMG_UINT32 gui32Patterns[] = {
-	0,
-	0xffffffffU,
-	0x55555555U,
-	0xaaaaaaaaU,
-	0x11111111U,
-	0x22222222U,
-	0x44444444U,
-	0x88888888U,
-	0x33333333U,
-	0x66666666U,
-	0x99999999U,
-	0xccccccccU,
-	0x77777777U,
-	0xbbbbbbbbU,
-	0xddddddddU,
-	0xeeeeeeeeU,
-	0x7a6c725cU,
+	0,	     0xffffffffU, 0x55555555U, 0xaaaaaaaaU, 0x11111111U,
+	0x22222222U, 0x44444444U, 0x88888888U, 0x33333333U, 0x66666666U,
+	0x99999999U, 0xccccccccU, 0x77777777U, 0xbbbbbbbbU, 0xddddddddU,
+	0xeeeeeeeeU, 0x7a6c725cU,
 };
 
 static const IMG_UINT16 gui16Patterns[] = {
-	0,
-	0xffffU,
-	0x5555U,
-	0xaaaaU,
-	0x1111U,
-	0x2222U,
-	0x4444U,
-	0x8888U,
-	0x3333U,
-	0x6666U,
-	0x9999U,
-	0xccccU,
-	0x7777U,
-	0xbbbbU,
-	0xddddU,
-	0xeeeeU,
-	0x7a6cU,
+	0,	 0xffffU, 0x5555U, 0xaaaaU, 0x1111U, 0x2222U,
+	0x4444U, 0x8888U, 0x3333U, 0x6666U, 0x9999U, 0xccccU,
+	0x7777U, 0xbbbbU, 0xddddU, 0xeeeeU, 0x7a6cU,
 };
 
 static const IMG_UINT8 gui8Patterns[] = {
-	0,
-	0xffU,
-	0x55U,
-	0xaaU,
-	0x11U,
-	0x22U,
-	0x44U,
-	0x88U,
-	0x33U,
-	0x66U,
-	0x99U,
-	0xccU,
-	0x77U,
-	0xbbU,
-	0xddU,
-	0xeeU,
-	0x6cU,
+	0,     0xffU, 0x55U, 0xaaU, 0x11U, 0x22U, 0x44U, 0x88U, 0x33U,
+	0x66U, 0x99U, 0xccU, 0x77U, 0xbbU, 0xddU, 0xeeU, 0x6cU,
 };
 
 static PVRSRV_ERROR
-PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags)
+PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode,
+			       PVRSRV_MEMALLOCFLAGS_T uiFlags)
 {
 	PVRSRV_ERROR eError, eError1;
 	PHYS_HEAP *psHeap;
@@ -148,9 +107,11 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 
 	PMR *psPMR = NULL;
 	PMR *psSpacingPMR = NULL, *psSecondSpacingPMR = NULL;
-	IMG_UINT32 aui32MappingTableFirstAlloc[4] = {0,1,2,3};
-	IMG_UINT32 aui32MappingTableSecondAlloc[8] = {4,5,6,7,8,9,10,11};
-	IMG_UINT32 aui32MappingTableThirdAlloc[4] = {12,13,14,15};
+	IMG_UINT32 aui32MappingTableFirstAlloc[4] = { 0, 1, 2, 3 };
+	IMG_UINT32 aui32MappingTableSecondAlloc[8] = {
+		4, 5, 6, 7, 8, 9, 10, 11
+	};
+	IMG_UINT32 aui32MappingTableThirdAlloc[4] = { 12, 13, 14, 15 };
 	IMG_UINT32 ui32NoMappingTable = 0;
 	IMG_UINT8 *pcWriteBuffer, *pcReadBuffer;
 	IMG_BOOL *pbValid;
@@ -162,8 +123,7 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 	void *pvKernAddr = NULL;
 
 	eError = PhysHeapAcquireByID(PVRSRV_GET_PHYS_HEAP_HINT(uiFlags),
-	                             psDeviceNode,
-	                             &psHeap);
+				     psDeviceNode, &psHeap);
 	PVR_LOG_GOTO_IF_ERROR(eError, "PhysHeapAcquireByID", ErrorReturn);
 
 	psHeapPolicy = PhysHeapGetPolicy(psHeap);
@@ -171,8 +131,7 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 	PhysHeapRelease(psHeap);
 
 	/* If this is the case then it's not supported and so don't attempt the test */
-	if (psHeapPolicy != PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG)
-	{
+	if (psHeapPolicy != PHYS_HEAP_POLICY_ALLOC_ALLOW_NONCONTIG) {
 		return PVRSRV_OK;
 	}
 
@@ -197,34 +156,26 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 
 	/* Allocate Sparse PMR with SPARSE | READ | WRITE | UNCACHED_WC attributes */
 	uiFlags |= PVRSRV_MEMALLOCFLAG_SPARSE_NO_SCRATCH_BACKING |
-				PVRSRV_MEMALLOCFLAG_CPU_READABLE |
-				PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
-				PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
+		   PVRSRV_MEMALLOCFLAG_CPU_READABLE |
+		   PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
+		   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
 
 	/*
 	 * Construct a sparse PMR attempting to ensure the allocations
 	 * are physically non contiguous but sequentially placed in the mapping
 	 * table.
 	 */
-	for (uiAttempts = 3; uiAttempts > 0; uiAttempts--)
-	{
+	for (uiAttempts = 3; uiAttempts > 0; uiAttempts--) {
 		/* Allocate a sparse PMR from given physical heap - CPU/GPU/FW */
-		eError = PhysmemNewRamBackedPMR(NULL,
-										psDeviceNode,
-										ui32NumOfPages * uiPageSize,
-										4,
-										ui32NumOfPages,
-										aui32MappingTableFirstAlloc,
-										OSGetPageShift(),
-										uiFlags,
-										sizeof("PMRContiguousSparseMappingTest"),
-										"PMRContiguousSparseMappingTest",
-										OSGetCurrentClientProcessIDKM(),
-										&psPMR,
-										PDUMP_NONE,
-										NULL);
-		if (eError != PVRSRV_OK)
-		{
+		eError = PhysmemNewRamBackedPMR(
+			NULL, psDeviceNode, ui32NumOfPages * uiPageSize, 4,
+			ui32NumOfPages, aui32MappingTableFirstAlloc,
+			OSGetPageShift(), uiFlags,
+			sizeof("PMRContiguousSparseMappingTest"),
+			"PMRContiguousSparseMappingTest",
+			OSGetCurrentClientProcessIDKM(), &psPMR, PDUMP_NONE,
+			NULL);
+		if (eError != PVRSRV_OK) {
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate a PMR"));
 			goto ErrorFreeReadBuffer;
 		}
@@ -232,126 +183,118 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 		/* Allocate some memory from the same physheap so that we can ensure
 		 * the allocations aren't linear
 		 */
-		eError = PhysmemNewRamBackedPMR(NULL,
-										psDeviceNode,
-										ui32NumOfPages * uiPageSize,
-										1,
-										1,
-										&ui32NoMappingTable,
-										OSGetPageShift(),
-										uiFlags,
-										sizeof("PMRContiguousSparseMappingTest"),
-										"PMRContiguousSparseMappingTest",
-										OSGetCurrentClientProcessIDKM(),
-										&psSpacingPMR,
-										PDUMP_NONE,
-										NULL);
-		if (eError != PVRSRV_OK)
-		{
+		eError = PhysmemNewRamBackedPMR(
+			NULL, psDeviceNode, ui32NumOfPages * uiPageSize, 1, 1,
+			&ui32NoMappingTable, OSGetPageShift(), uiFlags,
+			sizeof("PMRContiguousSparseMappingTest"),
+			"PMRContiguousSparseMappingTest",
+			OSGetCurrentClientProcessIDKM(), &psSpacingPMR,
+			PDUMP_NONE, NULL);
+		if (eError != PVRSRV_OK) {
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate a PMR"));
 			goto ErrorUnrefPMR;
 		}
 
 		/* Allocate 8 more physical pages on the Sparse PMR */
-		eError = PMR_ChangeSparseMem(psPMR,
-									 8,
-									 aui32MappingTableSecondAlloc,
-									 0,
-									 NULL,
-									 uiFlags | SPARSE_RESIZE_ALLOC);
-		PVR_LOG_GOTO_IF_ERROR(eError, "PMR_ChangeSparseMem", ErrorUnrefSpacingPMR);
+		eError = PMR_ChangeSparseMem(psPMR, 8,
+					     aui32MappingTableSecondAlloc, 0,
+					     NULL,
+					     uiFlags | SPARSE_RESIZE_ALLOC);
+		PVR_LOG_GOTO_IF_ERROR(eError, "PMR_ChangeSparseMem",
+				      ErrorUnrefSpacingPMR);
 
 		/* Allocate some more memory from the same physheap so that we can ensure
 		 * the allocations aren't linear
 		 */
-		eError = PhysmemNewRamBackedPMR(NULL,
-										psDeviceNode,
-										ui32NumOfPages * uiPageSize,
-										1,
-										1,
-										&ui32NoMappingTable,
-										OSGetPageShift(),
-										uiFlags,
-										sizeof("PMRContiguousSparseMappingTest"),
-										"PMRContiguousSparseMappingTest",
-										OSGetCurrentClientProcessIDKM(),
-										&psSecondSpacingPMR,
-										PDUMP_NONE,
-										NULL);
-		if (eError != PVRSRV_OK)
-		{
+		eError = PhysmemNewRamBackedPMR(
+			NULL, psDeviceNode, ui32NumOfPages * uiPageSize, 1, 1,
+			&ui32NoMappingTable, OSGetPageShift(), uiFlags,
+			sizeof("PMRContiguousSparseMappingTest"),
+			"PMRContiguousSparseMappingTest",
+			OSGetCurrentClientProcessIDKM(), &psSecondSpacingPMR,
+			PDUMP_NONE, NULL);
+		if (eError != PVRSRV_OK) {
 			PVR_DPF((PVR_DBG_ERROR, "Failed to allocate a PMR"));
 			goto ErrorUnrefSpacingPMR;
 		}
 
 		/* Allocate final 4 physical pages on the Sparse PMR */
-		eError = PMR_ChangeSparseMem(psPMR,
-									 4,
-									 aui32MappingTableThirdAlloc,
-									 0,
-									 NULL,
-									 uiFlags | SPARSE_RESIZE_ALLOC);
-		PVR_LOG_GOTO_IF_ERROR(eError, "PMR_ChangeSparseMem", ErrorUnrefSecondSpacingPMR);
+		eError = PMR_ChangeSparseMem(psPMR, 4,
+					     aui32MappingTableThirdAlloc, 0,
+					     NULL,
+					     uiFlags | SPARSE_RESIZE_ALLOC);
+		PVR_LOG_GOTO_IF_ERROR(eError, "PMR_ChangeSparseMem",
+				      ErrorUnrefSecondSpacingPMR);
 
 		/*
 		 * Check we have in fact managed to obtain a PMR with non contiguous
 		 * physical pages.
 		 */
 		eError = PMRLockSysPhysAddresses(psPMR);
-		if (eError != PVRSRV_OK)
-		{
+		if (eError != PVRSRV_OK) {
 			PVR_DPF((PVR_DBG_ERROR, "Failed to lock PMR"));
 			goto ErrorUnrefSecondSpacingPMR;
 		}
 
 		/* Get the Device physical addresses of the pages */
-		eError = PMR_DevPhysAddr(psPMR, OSGetPageShift(), ui32NumOfPages, 0, apsDevPAddr, pbValid, CPU_USE);
-		if (eError != PVRSRV_OK)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "Failed to map PMR pages into device physical addresses"));
+		eError = PMR_DevPhysAddr(psPMR, OSGetPageShift(),
+					 ui32NumOfPages, 0, apsDevPAddr,
+					 pbValid, CPU_USE);
+		if (eError != PVRSRV_OK) {
+			PVR_DPF((
+				PVR_DBG_ERROR,
+				"Failed to map PMR pages into device physical addresses"));
 			goto ErrorUnlockPhysAddresses;
 		}
 
 		{
 			IMG_BOOL bPhysicallyContiguous = IMG_TRUE;
 			IMG_DEV_PHYADDR sPrevDevPAddr = apsDevPAddr[0];
-			for (i = 1; i < ui32NumOfPages && bPhysicallyContiguous; i++)
-			{
-				if (apsDevPAddr[i].uiAddr != sPrevDevPAddr.uiAddr + uiPageSize)
-				{
+			for (i = 1; i < ui32NumOfPages && bPhysicallyContiguous;
+			     i++) {
+				if (apsDevPAddr[i].uiAddr !=
+				    sPrevDevPAddr.uiAddr + uiPageSize) {
 					bPhysicallyContiguous = IMG_FALSE;
 				}
 				sPrevDevPAddr = apsDevPAddr[i];
 			}
 
-			if (bPhysicallyContiguous)
-			{
+			if (bPhysicallyContiguous) {
 				/* We haven't yet managed to create the mapping scenario we
 				 * require: unwind and attempt again.
 				 */
 				eError1 = PMRUnlockSysPhysAddresses(psPMR);
-				if (eError1 != PVRSRV_OK)
-				{
-					eError = (eError == PVRSRV_OK)? eError1 : eError;
-					PVR_DPF((PVR_DBG_ERROR, "Failed to unlock PMR"));
+				if (eError1 != PVRSRV_OK) {
+					eError = (eError == PVRSRV_OK) ?
+							 eError1 :
+							 eError;
+					PVR_DPF((PVR_DBG_ERROR,
+						 "Failed to unlock PMR"));
 				}
 				eError1 = PMRUnrefPMR(psPMR);
-				if (eError1 != PVRSRV_OK)
-				{
-					eError = (eError == PVRSRV_OK)? eError1 : eError;
-					PVR_DPF((PVR_DBG_ERROR, "Failed to free PMR"));
+				if (eError1 != PVRSRV_OK) {
+					eError = (eError == PVRSRV_OK) ?
+							 eError1 :
+							 eError;
+					PVR_DPF((PVR_DBG_ERROR,
+						 "Failed to free PMR"));
 				}
 				eError1 = PMRUnrefPMR(psSpacingPMR);
-				if (eError1 != PVRSRV_OK)
-				{
-					eError = (eError == PVRSRV_OK)? eError1 : eError;
-					PVR_DPF((PVR_DBG_ERROR, "Failed to free Spacing PMR"));
+				if (eError1 != PVRSRV_OK) {
+					eError = (eError == PVRSRV_OK) ?
+							 eError1 :
+							 eError;
+					PVR_DPF((PVR_DBG_ERROR,
+						 "Failed to free Spacing PMR"));
 				}
 				eError1 = PMRUnrefPMR(psSecondSpacingPMR);
-				if (eError1 != PVRSRV_OK)
-				{
-					eError = (eError == PVRSRV_OK)? eError1 : eError;
-					PVR_DPF((PVR_DBG_ERROR, "Failed to free Second Spacing PMR"));
+				if (eError1 != PVRSRV_OK) {
+					eError = (eError == PVRSRV_OK) ?
+							 eError1 :
+							 eError;
+					PVR_DPF((
+						PVR_DBG_ERROR,
+						"Failed to free Second Spacing PMR"));
 				}
 			} else {
 				/* We have the scenario, break out of the attempt loop */
@@ -360,25 +303,29 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 		}
 	}
 
-	if (uiAttempts == 0)
-	{
+	if (uiAttempts == 0) {
 		/* We can't create the scenario, very unlikely this would happen */
-		PVR_LOG_GOTO_IF_ERROR(PVRSRV_ERROR_MEMORY_TEST_FAILED,
-		                      "Unable to create Non Contiguous PMR scenario",
-		                      ErrorFreeReadBuffer);
+		PVR_LOG_GOTO_IF_ERROR(
+			PVRSRV_ERROR_MEMORY_TEST_FAILED,
+			"Unable to create Non Contiguous PMR scenario",
+			ErrorFreeReadBuffer);
 	}
 
 	/* We have the PMR scenario to test, now attempt to map the whole PMR,
 	 * write and then read from it
 	 */
-	eError = PMRAcquireSparseKernelMappingData(psPMR, 0, ui32NumOfPages * uiPageSize, &pvKernAddr, &uiMappedSize, &hPrivData);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to Acquire Kernel Mapping of PMR"));
+	eError = PMRAcquireSparseKernelMappingData(psPMR, 0,
+						   ui32NumOfPages * uiPageSize,
+						   &pvKernAddr, &uiMappedSize,
+						   &hPrivData);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Failed to Acquire Kernel Mapping of PMR"));
 		goto ErrorUnlockPhysAddresses;
 	}
 
-	OSCachedMemCopyWMB(pvKernAddr, pcWriteBuffer, ui32NumOfPages * uiPageSize);
+	OSCachedMemCopyWMB(pvKernAddr, pcWriteBuffer,
+			   ui32NumOfPages * uiPageSize);
 
 	eError = PMRReleaseKernelMappingData(psPMR, hPrivData);
 	PVR_LOG_IF_ERROR(eError, "PMRReleaseKernelMappingData");
@@ -386,26 +333,30 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 	/*
 	 * Release and reacquire the mapping to exercise the mapping paths
 	 */
-	eError = PMRAcquireSparseKernelMappingData(psPMR, 0, ui32NumOfPages * uiPageSize, &pvKernAddr, &uiMappedSize, &hPrivData);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to Acquire Kernel Mapping of PMR"));
+	eError = PMRAcquireSparseKernelMappingData(psPMR, 0,
+						   ui32NumOfPages * uiPageSize,
+						   &pvKernAddr, &uiMappedSize,
+						   &hPrivData);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Failed to Acquire Kernel Mapping of PMR"));
 		goto ErrorUnlockPhysAddresses;
 	}
 
 	OSCachedMemSetWMB(pcReadBuffer, 0x0, ui32NumOfPages * uiPageSize);
-	OSCachedMemCopyWMB(pcReadBuffer, pvKernAddr, ui32NumOfPages * uiPageSize);
+	OSCachedMemCopyWMB(pcReadBuffer, pvKernAddr,
+			   ui32NumOfPages * uiPageSize);
 
 	eError = PMRReleaseKernelMappingData(psPMR, hPrivData);
 	PVR_LOG_IF_ERROR(eError, "PMRReleaseKernelMappingData");
 
-	for (i = 0; i < ui32NumOfPages * uiPageSize; i++)
-	{
-		if (pcReadBuffer[i] != pcWriteBuffer[i])
-		{
-			PVR_DPF((PVR_DBG_ERROR,
-			         "%s: Test failed. Got (0x%hhx), expected (0x%hhx)! @ %u",
-			         __func__, pcReadBuffer[i], pcWriteBuffer[i], i));
+	for (i = 0; i < ui32NumOfPages * uiPageSize; i++) {
+		if (pcReadBuffer[i] != pcWriteBuffer[i]) {
+			PVR_DPF((
+				PVR_DBG_ERROR,
+				"%s: Test failed. Got (0x%hhx), expected (0x%hhx)! @ %u",
+				__func__, pcReadBuffer[i], pcWriteBuffer[i],
+				i));
 			eError = PVRSRV_ERROR_MEMORY_TEST_FAILED;
 			goto ErrorUnlockPhysAddresses;
 		}
@@ -414,31 +365,27 @@ PMRContiguousSparseMappingTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOC
 ErrorUnlockPhysAddresses:
 	/* Unlock and Unref the PMR to destroy it */
 	eError1 = PMRUnlockSysPhysAddresses(psPMR);
-	if (eError1 != PVRSRV_OK)
-	{
-		eError = (eError == PVRSRV_OK)? eError1 : eError;
+	if (eError1 != PVRSRV_OK) {
+		eError = (eError == PVRSRV_OK) ? eError1 : eError;
 		PVR_DPF((PVR_DBG_ERROR, "Failed to unlock PMR"));
 	}
 
 ErrorUnrefSecondSpacingPMR:
 	eError1 = PMRUnrefPMR(psSecondSpacingPMR);
-	if (eError1 != PVRSRV_OK)
-	{
-		eError = (eError == PVRSRV_OK)? eError1 : eError;
+	if (eError1 != PVRSRV_OK) {
+		eError = (eError == PVRSRV_OK) ? eError1 : eError;
 		PVR_DPF((PVR_DBG_ERROR, "Failed to free Second Spacing PMR"));
 	}
 ErrorUnrefSpacingPMR:
 	eError1 = PMRUnrefPMR(psSpacingPMR);
-	if (eError1 != PVRSRV_OK)
-	{
-		eError = (eError == PVRSRV_OK)? eError1 : eError;
+	if (eError1 != PVRSRV_OK) {
+		eError = (eError == PVRSRV_OK) ? eError1 : eError;
 		PVR_DPF((PVR_DBG_ERROR, "Failed to free Spacing PMR"));
 	}
 ErrorUnrefPMR:
 	eError1 = PMRUnrefPMR(psPMR);
-	if (eError1 != PVRSRV_OK)
-	{
-		eError = (eError == PVRSRV_OK)? eError1 : eError;
+	if (eError1 != PVRSRV_OK) {
+		eError = (eError == PVRSRV_OK) ? eError1 : eError;
 		PVR_DPF((PVR_DBG_ERROR, "Failed to free PMR"));
 	}
 
@@ -455,8 +402,8 @@ ErrorReturn:
 }
 
 /* Test for PMR factory validation */
-static PVRSRV_ERROR
-PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags)
+static PVRSRV_ERROR PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode,
+				      PVRSRV_MEMALLOCFLAGS_T uiFlags)
 {
 	PVRSRV_ERROR eError, eError1;
 	IMG_UINT32 i = 0, j = 0, ui32Index = 0;
@@ -490,38 +437,29 @@ PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFla
 	PVR_LOG_GOTO_IF_NOMEM(pcReadBuffer, eError, ErrorFreeWriteBuffer);
 
 	/* Allocate OS memory for mapping table */
-	pui32MappingTable = (IMG_UINT32 *)OSAllocMem(ui32NumOfPhysPages * sizeof(*pui32MappingTable));
+	pui32MappingTable = (IMG_UINT32 *)OSAllocMem(
+		ui32NumOfPhysPages * sizeof(*pui32MappingTable));
 	PVR_LOG_GOTO_IF_NOMEM(pui32MappingTable, eError, ErrorFreeReadBuffer);
 
 	/* Pages having even index will have physical backing in PMR */
-	for (ui32Index=0; ui32Index < ui32NumOfPages; ui32Index+=2)
-	{
+	for (ui32Index = 0; ui32Index < ui32NumOfPages; ui32Index += 2) {
 		pui32MappingTable[i++] = ui32Index;
 	}
 
 	/* Allocate Sparse PMR with SPARSE | READ | WRITE | UNCACHED_WC attributes */
 	uiFlags |= PVRSRV_MEMALLOCFLAG_SPARSE_NO_SCRATCH_BACKING |
-				PVRSRV_MEMALLOCFLAG_CPU_READABLE |
-				PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
-				PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
+		   PVRSRV_MEMALLOCFLAG_CPU_READABLE |
+		   PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
+		   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
 
 	/* Allocate a sparse PMR from given physical heap - CPU/GPU/FW */
-	eError = PhysmemNewRamBackedPMR(NULL,
-									psDeviceNode,
-									ui32NumOfPages * uiPageSize,
-									ui32NumOfPhysPages,
-									ui32NumOfPages,
-									pui32MappingTable,
-									OSGetPageShift(),
-									uiFlags,
-									sizeof("PMR ValidationTest"),
-									"PMR ValidationTest",
-									OSGetCurrentClientProcessIDKM(),
-									&psPMR,
-									PDUMP_NONE,
-									NULL);
-	if (eError != PVRSRV_OK)
-	{
+	eError = PhysmemNewRamBackedPMR(
+		NULL, psDeviceNode, ui32NumOfPages * uiPageSize,
+		ui32NumOfPhysPages, ui32NumOfPages, pui32MappingTable,
+		OSGetPageShift(), uiFlags, sizeof("PMR ValidationTest"),
+		"PMR ValidationTest", OSGetCurrentClientProcessIDKM(), &psPMR,
+		PDUMP_NONE, NULL);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR, "Failed to allocate a PMR"));
 		goto ErrorFreeMappingTable;
 	}
@@ -530,28 +468,28 @@ PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFla
 	 * of underlying memory pages.
 	 */
 	eError = PMRLockSysPhysAddresses(psPMR);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR, "Failed to lock PMR"));
 		goto ErrorUnrefPMR;
 	}
 
 	/* Get the Device physical addresses of the pages */
-	eError = PMR_DevPhysAddr(psPMR, OSGetPageShift(), ui32NumOfPages, 0, apsDevPAddr, pbValid, CPU_USE);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "Failed to map PMR pages into device physical addresses"));
+	eError = PMR_DevPhysAddr(psPMR, OSGetPageShift(), ui32NumOfPages, 0,
+				 apsDevPAddr, pbValid, CPU_USE);
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"Failed to map PMR pages into device physical addresses"));
 		goto ErrorUnlockPhysAddresses;
 	}
 
 	/* Check whether device address of each physical page is OS PAGE_SIZE aligned */
-	for (i = 0; i < ui32NumOfPages; i++)
-	{
-		if (pbValid[i])
-		{
-			if ((apsDevPAddr[i].uiAddr & OSGetPageMask()) != 0)
-			{
-				PVR_DPF((PVR_DBG_ERROR, "Physical memory of PMR is not page aligned"));
+	for (i = 0; i < ui32NumOfPages; i++) {
+		if (pbValid[i]) {
+			if ((apsDevPAddr[i].uiAddr & OSGetPageMask()) != 0) {
+				PVR_DPF((
+					PVR_DBG_ERROR,
+					"Physical memory of PMR is not page aligned"));
 				eError = PVRSRV_ERROR_MEMORY_TEST_FAILED;
 				goto ErrorUnlockPhysAddresses;
 			}
@@ -561,17 +499,19 @@ PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFla
 	/* Acquire kernel virtual address of each physical page and write to it
 	 * and then release it.
 	 */
-	for (i = 0; i < ui32NumOfPages; i++)
-	{
-		if (pbValid[i])
-		{
-			eError = PMRAcquireSparseKernelMappingData(psPMR, (i * uiPageSize), uiPageSize, &pvKernAddr, &uiMappedSize, &hPrivData);
-			if (eError != PVRSRV_OK)
-			{
-				PVR_DPF((PVR_DBG_ERROR, "Failed to Acquire Kernel Mapping of PMR"));
+	for (i = 0; i < ui32NumOfPages; i++) {
+		if (pbValid[i]) {
+			eError = PMRAcquireSparseKernelMappingData(
+				psPMR, (i * uiPageSize), uiPageSize,
+				&pvKernAddr, &uiMappedSize, &hPrivData);
+			if (eError != PVRSRV_OK) {
+				PVR_DPF((
+					PVR_DBG_ERROR,
+					"Failed to Acquire Kernel Mapping of PMR"));
 				goto ErrorUnlockPhysAddresses;
 			}
-			OSCachedMemCopyWMB(pvKernAddr, pcWriteBuffer, OSGetPageSize());
+			OSCachedMemCopyWMB(pvKernAddr, pcWriteBuffer,
+					   OSGetPageSize());
 
 			eError = PMRReleaseKernelMappingData(psPMR, hPrivData);
 			PVR_LOG_IF_ERROR(eError, "PMRReleaseKernelMappingData");
@@ -581,30 +521,33 @@ PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFla
 	/* Acquire kernel virtual address of each physical page and read
 	 * from it and check where contents are intact.
 	 */
-	for (i = 0; i < ui32NumOfPages; i++)
-	{
-		if (pbValid[i])
-		{
-			eError = PMRAcquireSparseKernelMappingData(psPMR, (i * uiPageSize), uiPageSize, &pvKernAddr, &uiMappedSize, &hPrivData);
-			if (eError != PVRSRV_OK)
-			{
-				PVR_DPF((PVR_DBG_ERROR, "Failed to Acquire Kernel Mapping of PMR"));
+	for (i = 0; i < ui32NumOfPages; i++) {
+		if (pbValid[i]) {
+			eError = PMRAcquireSparseKernelMappingData(
+				psPMR, (i * uiPageSize), uiPageSize,
+				&pvKernAddr, &uiMappedSize, &hPrivData);
+			if (eError != PVRSRV_OK) {
+				PVR_DPF((
+					PVR_DBG_ERROR,
+					"Failed to Acquire Kernel Mapping of PMR"));
 				goto ErrorUnlockPhysAddresses;
 			}
 			OSCachedMemSetWMB(pcReadBuffer, 0x0, uiPageSize);
-			OSCachedMemCopyWMB(pcReadBuffer, pvKernAddr, uiMappedSize);
+			OSCachedMemCopyWMB(pcReadBuffer, pvKernAddr,
+					   uiMappedSize);
 
 			eError = PMRReleaseKernelMappingData(psPMR, hPrivData);
 			PVR_LOG_IF_ERROR(eError, "PMRReleaseKernelMappingData");
 
-			for (j = 0; j < uiPageSize; j++)
-			{
-				if (pcReadBuffer[j] != pcWriteBuffer[j])
-				{
-					PVR_DPF((PVR_DBG_ERROR,
-					         "%s: Test failed. Got (0x%hhx), expected (0x%hhx)!",
-					         __func__, pcReadBuffer[j], pcWriteBuffer[j]));
-					eError = PVRSRV_ERROR_MEMORY_TEST_FAILED;
+			for (j = 0; j < uiPageSize; j++) {
+				if (pcReadBuffer[j] != pcWriteBuffer[j]) {
+					PVR_DPF((
+						PVR_DBG_ERROR,
+						"%s: Test failed. Got (0x%hhx), expected (0x%hhx)!",
+						__func__, pcReadBuffer[j],
+						pcWriteBuffer[j]));
+					eError =
+						PVRSRV_ERROR_MEMORY_TEST_FAILED;
 					goto ErrorUnlockPhysAddresses;
 				}
 			}
@@ -614,17 +557,15 @@ PMRValidationTest(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFla
 ErrorUnlockPhysAddresses:
 	/* Unlock and Unref the PMR to destroy it */
 	eError1 = PMRUnlockSysPhysAddresses(psPMR);
-	if (eError1 != PVRSRV_OK)
-	{
-		eError = (eError == PVRSRV_OK)? eError1 : eError;
+	if (eError1 != PVRSRV_OK) {
+		eError = (eError == PVRSRV_OK) ? eError1 : eError;
 		PVR_DPF((PVR_DBG_ERROR, "Failed to unlock PMR"));
 	}
 
 ErrorUnrefPMR:
 	eError1 = PMRUnrefPMR(psPMR);
-	if (eError1 != PVRSRV_OK)
-	{
-		eError = (eError == PVRSRV_OK)? eError1 : eError;
+	if (eError1 != PVRSRV_OK) {
+		eError = (eError == PVRSRV_OK) ? eError1 : eError;
 		PVR_DPF((PVR_DBG_ERROR, "Failed to free PMR"));
 	}
 ErrorFreeMappingTable:
@@ -641,136 +582,134 @@ ErrorFreePMRPageListMem:
 	return eError;
 }
 
-#define DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, Patterns, NumOfPatterns, Error, ptr, i) \
-	for (i = 0; i < NumOfPatterns; i++) \
-	{ \
-		/* Write pattern */ \
-		for (ptr = StartAddr; ptr < EndAddr; ptr++) \
-		{ \
-			*ptr = Patterns[i]; \
-		} \
-		\
-		/* Read back and validate pattern */ \
-		for (ptr = StartAddr; ptr < EndAddr ; ptr++) \
-		{ \
-			if (*ptr != Patterns[i]) \
-			{ \
-				Error = PVRSRV_ERROR_MEMORY_TEST_FAILED; \
-				break; \
-			} \
-		} \
-		\
-		if (Error != PVRSRV_OK) \
-		{ \
-			break; \
-		} \
+#define DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, Patterns, NumOfPatterns, \
+				Error, ptr, i)                               \
+	for (i = 0; i < NumOfPatterns; i++) {                                \
+		/* Write pattern */                                          \
+		for (ptr = StartAddr; ptr < EndAddr; ptr++) {                \
+			*ptr = Patterns[i];                                  \
+		}                                                            \
+                                                                             \
+		/* Read back and validate pattern */                         \
+		for (ptr = StartAddr; ptr < EndAddr; ptr++) {                \
+			if (*ptr != Patterns[i]) {                           \
+				Error = PVRSRV_ERROR_MEMORY_TEST_FAILED;     \
+				break;                                       \
+			}                                                    \
+		}                                                            \
+                                                                             \
+		if (Error != PVRSRV_OK) {                                    \
+			break;                                               \
+		}                                                            \
 	}
 
-static PVRSRV_ERROR
-TestPatternU8(void *pvKernAddr, size_t uiMappedSize)
+static PVRSRV_ERROR TestPatternU8(void *pvKernAddr, size_t uiMappedSize)
 {
-	IMG_UINT8 *StartAddr = (IMG_UINT8 *) pvKernAddr;
-	IMG_UINT8 *EndAddr = ((IMG_UINT8 *) pvKernAddr) + (uiMappedSize / sizeof(IMG_UINT8));
+	IMG_UINT8 *StartAddr = (IMG_UINT8 *)pvKernAddr;
+	IMG_UINT8 *EndAddr =
+		((IMG_UINT8 *)pvKernAddr) + (uiMappedSize / sizeof(IMG_UINT8));
 	IMG_UINT8 *p;
 	IMG_UINT32 i;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	PVR_ASSERT((uiMappedSize % sizeof(IMG_UINT8)) == 0);
 
-	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui8Patterns, sizeof(gui8Patterns)/sizeof(IMG_UINT8), eError, p, i);
-	if (eError != PVRSRV_OK)
-	{
+	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui8Patterns,
+				sizeof(gui8Patterns) / sizeof(IMG_UINT8),
+				eError, p, i);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: Test failed. Got (0x%hhx), expected (0x%hhx)!",
-		         __func__, *p, gui8Patterns[i]));
+			 "%s: Test failed. Got (0x%hhx), expected (0x%hhx)!",
+			 __func__, *p, gui8Patterns[i]));
 	}
 
 	return eError;
 }
 
-
-static PVRSRV_ERROR
-TestPatternU16(void *pvKernAddr, size_t uiMappedSize)
+static PVRSRV_ERROR TestPatternU16(void *pvKernAddr, size_t uiMappedSize)
 {
-	IMG_UINT16 *StartAddr = (IMG_UINT16 *) pvKernAddr;
-	IMG_UINT16 *EndAddr = ((IMG_UINT16 *) pvKernAddr) + (uiMappedSize / sizeof(IMG_UINT16));
+	IMG_UINT16 *StartAddr = (IMG_UINT16 *)pvKernAddr;
+	IMG_UINT16 *EndAddr = ((IMG_UINT16 *)pvKernAddr) +
+			      (uiMappedSize / sizeof(IMG_UINT16));
 	IMG_UINT16 *p;
 	IMG_UINT32 i;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	PVR_ASSERT((uiMappedSize % sizeof(IMG_UINT16)) == 0);
 
-	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui16Patterns, sizeof(gui16Patterns)/sizeof(IMG_UINT16), eError, p, i);
-	if (eError != PVRSRV_OK)
-	{
+	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui16Patterns,
+				sizeof(gui16Patterns) / sizeof(IMG_UINT16),
+				eError, p, i);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: Test failed. Got (0x%hx), expected (0x%hx)!",
-		         __func__, *p, gui16Patterns[i]));
+			 "%s: Test failed. Got (0x%hx), expected (0x%hx)!",
+			 __func__, *p, gui16Patterns[i]));
 	}
 
 	return eError;
 }
 
-static PVRSRV_ERROR
-TestPatternU32(void *pvKernAddr, size_t uiMappedSize)
+static PVRSRV_ERROR TestPatternU32(void *pvKernAddr, size_t uiMappedSize)
 {
-	IMG_UINT32 *StartAddr = (IMG_UINT32 *) pvKernAddr;
-	IMG_UINT32 *EndAddr = ((IMG_UINT32 *) pvKernAddr) + (uiMappedSize / sizeof(IMG_UINT32));
+	IMG_UINT32 *StartAddr = (IMG_UINT32 *)pvKernAddr;
+	IMG_UINT32 *EndAddr = ((IMG_UINT32 *)pvKernAddr) +
+			      (uiMappedSize / sizeof(IMG_UINT32));
 	IMG_UINT32 *p;
 	IMG_UINT32 i;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	PVR_ASSERT((uiMappedSize % sizeof(IMG_UINT32)) == 0);
 
-	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui32Patterns, sizeof(gui32Patterns)/sizeof(IMG_UINT32), eError, p, i);
-	if (eError != PVRSRV_OK)
-	{
+	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui32Patterns,
+				sizeof(gui32Patterns) / sizeof(IMG_UINT32),
+				eError, p, i);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: Test failed. Got (0x%x), expected (0x%x)!",
-		         __func__, *p, gui32Patterns[i]));
+			 "%s: Test failed. Got (0x%x), expected (0x%x)!",
+			 __func__, *p, gui32Patterns[i]));
 	}
 
 	return eError;
 }
 
-static PVRSRV_ERROR
-TestPatternU64(void *pvKernAddr, size_t uiMappedSize)
+static PVRSRV_ERROR TestPatternU64(void *pvKernAddr, size_t uiMappedSize)
 {
-	IMG_UINT64 *StartAddr = (IMG_UINT64 *) pvKernAddr;
-	IMG_UINT64 *EndAddr = ((IMG_UINT64 *) pvKernAddr) + (uiMappedSize / sizeof(IMG_UINT64));
+	IMG_UINT64 *StartAddr = (IMG_UINT64 *)pvKernAddr;
+	IMG_UINT64 *EndAddr = ((IMG_UINT64 *)pvKernAddr) +
+			      (uiMappedSize / sizeof(IMG_UINT64));
 	IMG_UINT64 *p;
 	IMG_UINT32 i;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	PVR_ASSERT((uiMappedSize % sizeof(IMG_UINT64)) == 0);
 
-	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui64Patterns, sizeof(gui64Patterns)/sizeof(IMG_UINT64), eError, p, i);
-	if (eError != PVRSRV_OK)
-	{
+	DO_MEMTEST_FOR_PATTERNS(StartAddr, EndAddr, gui64Patterns,
+				sizeof(gui64Patterns) / sizeof(IMG_UINT64),
+				eError, p, i);
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: Test failed. Got (0x%llx), expected (0x%llx)!",
-		         __func__, *p, gui64Patterns[i]));
+			 "%s: Test failed. Got (0x%llx), expected (0x%llx)!",
+			 __func__, *p, gui64Patterns[i]));
 	}
 
 	return eError;
 }
 
-static PVRSRV_ERROR
-TestSplitCacheline(void *pvKernAddr, size_t uiMappedSize)
+static PVRSRV_ERROR TestSplitCacheline(void *pvKernAddr, size_t uiMappedSize)
 {
 	PVRSRV_ERROR eError = PVRSRV_OK;
 	size_t uiCacheLineSize;
 	size_t uiBlockSize;
 	size_t j;
 	IMG_UINT8 *pcWriteBuffer, *pcReadBuffer;
-	IMG_UINT8 *StartAddr = (IMG_UINT8 *) pvKernAddr;
+	IMG_UINT8 *StartAddr = (IMG_UINT8 *)pvKernAddr;
 	IMG_UINT8 *EndAddr, *p;
 
-	uiCacheLineSize = OSCPUCacheAttributeSize(OS_CPU_CACHE_ATTRIBUTE_LINE_SIZE);
+	uiCacheLineSize =
+		OSCPUCacheAttributeSize(OS_CPU_CACHE_ATTRIBUTE_LINE_SIZE);
 
-	if (uiCacheLineSize > 0)
-	{
-		uiBlockSize = (uiCacheLineSize * 2)/3; /* split cacheline */
+	if (uiCacheLineSize > 0) {
+		uiBlockSize = (uiCacheLineSize * 2) / 3; /* split cacheline */
 
 		pcWriteBuffer = OSAllocMem(uiBlockSize);
 		PVR_LOG_RETURN_IF_NOMEM(pcWriteBuffer, "OSAllocMem");
@@ -779,28 +718,31 @@ TestSplitCacheline(void *pvKernAddr, size_t uiMappedSize)
 		OSCachedMemSet(pcWriteBuffer, 0xAB, uiBlockSize);
 
 		pcReadBuffer = OSAllocMem(uiBlockSize);
-		PVR_LOG_GOTO_IF_NOMEM(pcReadBuffer, eError, ErrorFreeWriteBuffer);
+		PVR_LOG_GOTO_IF_NOMEM(pcReadBuffer, eError,
+				      ErrorFreeWriteBuffer);
 
 		/* Fit only complete blocks in uiMappedSize, ignore leftover bytes */
-		EndAddr = StartAddr + (uiBlockSize * (uiMappedSize / uiBlockSize));
+		EndAddr = StartAddr +
+			  (uiBlockSize * (uiMappedSize / uiBlockSize));
 
 		/* Write blocks into the memory */
-		for (p = StartAddr; p < EndAddr; p += uiBlockSize)
-		{
+		for (p = StartAddr; p < EndAddr; p += uiBlockSize) {
 			OSCachedMemCopy(p, pcWriteBuffer, uiBlockSize);
 		}
 
 		/* Read back blocks and check */
-		for (p = StartAddr; p < EndAddr; p += uiBlockSize)
-		{
+		for (p = StartAddr; p < EndAddr; p += uiBlockSize) {
 			OSCachedMemCopy(pcReadBuffer, p, uiBlockSize);
 
-			for (j = 0; j < uiBlockSize; j++)
-			{
-				if (pcReadBuffer[j] != pcWriteBuffer[j])
-				{
-					PVR_DPF((PVR_DBG_ERROR, "%s: Test failed. Got (0x%hhx), expected (0x%hhx)!", __func__, pcReadBuffer[j], pcWriteBuffer[j]));
-					eError = PVRSRV_ERROR_MEMORY_TEST_FAILED;
+			for (j = 0; j < uiBlockSize; j++) {
+				if (pcReadBuffer[j] != pcWriteBuffer[j]) {
+					PVR_DPF((
+						PVR_DBG_ERROR,
+						"%s: Test failed. Got (0x%hhx), expected (0x%hhx)!",
+						__func__, pcReadBuffer[j],
+						pcWriteBuffer[j]));
+					eError =
+						PVRSRV_ERROR_MEMORY_TEST_FAILED;
 					goto ErrorMemTestFailed;
 				}
 			}
@@ -816,8 +758,8 @@ ErrorFreeWriteBuffer:
 }
 
 /* Memory test - writes and reads back different patterns to memory and validate the same */
-static PVRSRV_ERROR
-MemTestPatterns(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags)
+static PVRSRV_ERROR MemTestPatterns(PVRSRV_DEVICE_NODE *psDeviceNode,
+				    PVRSRV_MEMALLOCFLAGS_T uiFlags)
 {
 	PVRSRV_ERROR eError;
 	IMG_UINT32 ui32MappingTable = 0;
@@ -830,24 +772,15 @@ MemTestPatterns(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags
 
 	/* Allocate PMR with READ | WRITE | WRITE_COMBINE attributes */
 	uiFlags |= PVRSRV_MEMALLOCFLAG_CPU_READABLE |
-			   PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
-			   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
+		   PVRSRV_MEMALLOCFLAG_CPU_WRITEABLE |
+		   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED_WC;
 
 	/*Allocate a PMR from given physical heap */
-	eError = PhysmemNewRamBackedPMR(NULL,
-									psDeviceNode,
-									uiPageSize * PHYSMEM_TEST_PAGES,
-									1,
-									1,
-									&ui32MappingTable,
-									OSGetPageShift(),
-									uiFlags,
-									sizeof("PMR PhysMemTest"),
-									"PMR PhysMemTest",
-									OSGetCurrentClientProcessIDKM(),
-									&psPMR,
-									PDUMP_NONE,
-									NULL);
+	eError = PhysmemNewRamBackedPMR(
+		NULL, psDeviceNode, uiPageSize * PHYSMEM_TEST_PAGES, 1, 1,
+		&ui32MappingTable, OSGetPageShift(), uiFlags,
+		sizeof("PMR PhysMemTest"), "PMR PhysMemTest",
+		OSGetCurrentClientProcessIDKM(), &psPMR, PDUMP_NONE, NULL);
 	PVR_LOG_RETURN_IF_ERROR(eError, "PhysmemNewRamBackedPMR");
 
 	/* Check whether allocated PMR can be locked and obtain physical
@@ -859,33 +792,33 @@ MemTestPatterns(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags
 	/* Map the physical page(s) into kernel space, acquire kernel mapping
 	 * for PMR.
 	 */
-	eError = PMRAcquireKernelMappingData(psPMR, 0, uiPageSize * PHYSMEM_TEST_PAGES, &pvKernAddr, &uiMappedSize, &hPrivData);
-	PVR_LOG_GOTO_IF_ERROR(eError, "PMRAcquireKernelMappingData", ErrorUnlockPhysAddresses);
+	eError = PMRAcquireKernelMappingData(psPMR, 0,
+					     uiPageSize * PHYSMEM_TEST_PAGES,
+					     &pvKernAddr, &uiMappedSize,
+					     &hPrivData);
+	PVR_LOG_GOTO_IF_ERROR(eError, "PMRAcquireKernelMappingData",
+			      ErrorUnlockPhysAddresses);
 
 	PVR_ASSERT((uiPageSize * PHYSMEM_TEST_PAGES) == uiMappedSize);
 
 	/* Test various patterns */
 	eError = TestPatternU64(pvKernAddr, uiMappedSize);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		goto ErrorReleaseKernelMappingData;
 	}
 
 	eError = TestPatternU32(pvKernAddr, uiMappedSize);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		goto ErrorReleaseKernelMappingData;
 	}
 
 	eError = TestPatternU16(pvKernAddr, uiMappedSize);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		goto ErrorReleaseKernelMappingData;
 	}
 
 	eError = TestPatternU8(pvKernAddr, uiMappedSize);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		goto ErrorReleaseKernelMappingData;
 	}
 
@@ -893,54 +826,50 @@ MemTestPatterns(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags
 	eError = TestSplitCacheline(pvKernAddr, uiMappedSize);
 
 ErrorReleaseKernelMappingData:
-	(void) PMRReleaseKernelMappingData(psPMR, hPrivData);
+	(void)PMRReleaseKernelMappingData(psPMR, hPrivData);
 
 ErrorUnlockPhysAddresses:
 	/* Unlock and Unref the PMR to destroy it, ignore returned value */
-	(void) PMRUnlockSysPhysAddresses(psPMR);
+	(void)PMRUnlockSysPhysAddresses(psPMR);
 ErrorUnrefPMR:
-	(void) PMRUnrefPMR(psPMR);
+	(void)PMRUnrefPMR(psPMR);
 
 	return eError;
 }
 
-static PVRSRV_ERROR
-PhysMemTestRun(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags, IMG_UINT32 ui32Passes)
+static PVRSRV_ERROR PhysMemTestRun(PVRSRV_DEVICE_NODE *psDeviceNode,
+				   PVRSRV_MEMALLOCFLAGS_T uiFlags,
+				   IMG_UINT32 ui32Passes)
 {
 	PVRSRV_ERROR eError;
 	IMG_UINT32 i;
 
 	/* PMR validation test */
 	eError = PMRValidationTest(psDeviceNode, uiFlags);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: PMR Contiguous PhysHeap self test failed! %"PVRSRV_MEMALLOCFLAGS_FMTSPEC,
-		         __func__,
-		         uiFlags));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: PMR Contiguous PhysHeap self test failed! %" PVRSRV_MEMALLOCFLAGS_FMTSPEC,
+			__func__, uiFlags));
 		return eError;
 	}
 
 	eError = PMRContiguousSparseMappingTest(psDeviceNode, uiFlags);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-		         "%s: PMR Non-contiguous PhysHeap self test failed! %"PVRSRV_MEMALLOCFLAGS_FMTSPEC,
-		         __func__,
-		         uiFlags));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: PMR Non-contiguous PhysHeap self test failed! %" PVRSRV_MEMALLOCFLAGS_FMTSPEC,
+			__func__, uiFlags));
 		return eError;
 	}
 
-
-	for (i = 0; i < ui32Passes; i++)
-	{
+	for (i = 0; i < ui32Passes; i++) {
 		/* Mem test */
 		eError = MemTestPatterns(psDeviceNode, uiFlags);
-		if (eError != PVRSRV_OK)
-		{
+		if (eError != PVRSRV_OK) {
 			PVR_DPF((PVR_DBG_ERROR,
-			         "%s: [Pass#%u] MemTestPatterns failed!",
-			         __func__, i));
+				 "%s: [Pass#%u] MemTestPatterns failed!",
+				 __func__, i));
 			break;
 		}
 	}
@@ -949,42 +878,46 @@ PhysMemTestRun(PVRSRV_DEVICE_NODE *psDeviceNode, PVRSRV_MEMALLOCFLAGS_T uiFlags,
 }
 
 PVRSRV_ERROR
-PhysMemTest(PVRSRV_DEVICE_NODE *psDeviceNode, void *pvDevConfig, IMG_UINT32 ui32MemTestPasses)
+PhysMemTest(PVRSRV_DEVICE_NODE *psDeviceNode, void *pvDevConfig,
+	    IMG_UINT32 ui32MemTestPasses)
 {
 	PVRSRV_DEVICE_CONFIG *psDevConfig = pvDevConfig;
 	IMG_UINT32 i;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	/* validate memtest passes requested */
-	ui32MemTestPasses = (ui32MemTestPasses > PHYSMEM_TEST_PASSES_MAX)? PHYSMEM_TEST_PASSES_MAX : ui32MemTestPasses;
+	ui32MemTestPasses = (ui32MemTestPasses > PHYSMEM_TEST_PASSES_MAX) ?
+				    PHYSMEM_TEST_PASSES_MAX :
+				    ui32MemTestPasses;
 
-	for (i = 0; i < psDevConfig->ui32PhysHeapCount; i++)
-	{
+	for (i = 0; i < psDevConfig->ui32PhysHeapCount; i++) {
 		PHYS_HEAP_CONFIG *psHeapConfig = &psDevConfig->pasPhysHeaps[i];
 
-		if (psHeapConfig->ui32UsageFlags & PHYS_HEAP_USAGE_GPU_LOCAL)
-		{
+		if (psHeapConfig->ui32UsageFlags & PHYS_HEAP_USAGE_GPU_LOCAL) {
 			/* GPU local mem (should be only up to 1 heap) */
-			eError = PhysMemTestRun(psDeviceNode, PHYS_HEAP_USAGE_GPU_LOCAL, ui32MemTestPasses);
-			PVR_LOG_GOTO_IF_ERROR(eError, "GPU local memory test failed!", ErrorPhysMemTestEnd);
+			eError = PhysMemTestRun(psDeviceNode,
+						PHYS_HEAP_USAGE_GPU_LOCAL,
+						ui32MemTestPasses);
+			PVR_LOG_GOTO_IF_ERROR(eError,
+					      "GPU local memory test failed!",
+					      ErrorPhysMemTestEnd);
 		}
 
-		if (psHeapConfig->ui32UsageFlags & PHYS_HEAP_USAGE_CPU_LOCAL)
-		{
+		if (psHeapConfig->ui32UsageFlags & PHYS_HEAP_USAGE_CPU_LOCAL) {
 			/* CPU local mem (should be only up to 1 heap) */
-			eError = PhysMemTestRun(psDeviceNode, PHYS_HEAP_USAGE_CPU_LOCAL, ui32MemTestPasses);
-			PVR_LOG_GOTO_IF_ERROR(eError, "CPU local memory test failed!", ErrorPhysMemTestEnd);
+			eError = PhysMemTestRun(psDeviceNode,
+						PHYS_HEAP_USAGE_CPU_LOCAL,
+						ui32MemTestPasses);
+			PVR_LOG_GOTO_IF_ERROR(eError,
+					      "CPU local memory test failed!",
+					      ErrorPhysMemTestEnd);
 		}
 	}
-
 
 ErrorPhysMemTestEnd:
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		PVR_DPF((PVR_DBG_ERROR, "PhysMemTest: Failed."));
-	}
-	else
-	{
+	} else {
 		PVR_LOG(("PhysMemTest: Passed."));
 	}
 

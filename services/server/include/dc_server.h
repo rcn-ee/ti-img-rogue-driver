@@ -51,107 +51,91 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "dc_external.h"
 
-#define DC_MAX_DEVICE_COUNT		(1)
-#define DC_MAX_PANEL_COUNT		(1)
-#define DC_MAX_FORMATS			(1)
-#define DC_MAX_DIMENSIONS		(1)
-#define DC_MAX_PIPE_COUNT		(1)
+#define DC_MAX_DEVICE_COUNT (1)
+#define DC_MAX_PANEL_COUNT (1)
+#define DC_MAX_FORMATS (1)
+#define DC_MAX_DIMENSIONS (1)
+#define DC_MAX_PIPE_COUNT (1)
 
 typedef struct _DC_DEVICE_ DC_DEVICE;
 typedef struct _DC_DISPLAY_CONTEXT_ DC_DISPLAY_CONTEXT;
 typedef struct _DC_BUFFER_ DC_BUFFER;
-typedef DC_BUFFER* DC_PIN_HANDLE;
+typedef DC_BUFFER *DC_PIN_HANDLE;
 
 PVRSRV_ERROR DCDevicesQueryCount(IMG_UINT32 *pui32DeviceCount);
 
 PVRSRV_ERROR DCDevicesEnumerate(CONNECTION_DATA *psConnection,
-								PVRSRV_DEVICE_NODE *psDevNode,
-								IMG_UINT32 ui32DeviceArraySize,
-								IMG_UINT32 *pui32DeviceCount,
-								IMG_UINT32 *paui32DeviceIndex);
+				PVRSRV_DEVICE_NODE *psDevNode,
+				IMG_UINT32 ui32DeviceArraySize,
+				IMG_UINT32 *pui32DeviceCount,
+				IMG_UINT32 *paui32DeviceIndex);
 
 PVRSRV_ERROR DCDeviceAcquire(CONNECTION_DATA *psConnection,
-							 PVRSRV_DEVICE_NODE *psDevNode,
-							 IMG_UINT32 ui32DeviceIndex,
-							 DC_DEVICE **ppsDevice);
+			     PVRSRV_DEVICE_NODE *psDevNode,
+			     IMG_UINT32 ui32DeviceIndex, DC_DEVICE **ppsDevice);
 
 PVRSRV_ERROR DCDeviceRelease(DC_DEVICE *psDevice);
 
-PVRSRV_ERROR DCGetInfo(DC_DEVICE *psDevice,
-					   DC_DISPLAY_INFO *psDisplayInfo);
+PVRSRV_ERROR DCGetInfo(DC_DEVICE *psDevice, DC_DISPLAY_INFO *psDisplayInfo);
 
-PVRSRV_ERROR DCPanelQueryCount(DC_DEVICE *psDevice,
-								IMG_UINT32 *pui32NumPanels);
+PVRSRV_ERROR DCPanelQueryCount(DC_DEVICE *psDevice, IMG_UINT32 *pui32NumPanels);
 
-PVRSRV_ERROR DCPanelQuery(DC_DEVICE *psDevice,
-						   IMG_UINT32 ui32PanelsArraySize,
-						   IMG_UINT32 *pui32NumPanels,
-						   PVRSRV_PANEL_INFO *pasPanelInfo);
+PVRSRV_ERROR DCPanelQuery(DC_DEVICE *psDevice, IMG_UINT32 ui32PanelsArraySize,
+			  IMG_UINT32 *pui32NumPanels,
+			  PVRSRV_PANEL_INFO *pasPanelInfo);
 
-PVRSRV_ERROR DCFormatQuery(DC_DEVICE *psDevice,
-							 IMG_UINT32 ui32FormatArraySize,
-							 PVRSRV_SURFACE_FORMAT *pasFormat,
-							 IMG_UINT32 *pui32Supported);
+PVRSRV_ERROR DCFormatQuery(DC_DEVICE *psDevice, IMG_UINT32 ui32FormatArraySize,
+			   PVRSRV_SURFACE_FORMAT *pasFormat,
+			   IMG_UINT32 *pui32Supported);
 
-PVRSRV_ERROR DCDimQuery(DC_DEVICE *psDevice,
-						  IMG_UINT32 ui32DimSize,
-						  PVRSRV_SURFACE_DIMS *pasDim,
-						  IMG_UINT32 *pui32Supported);
+PVRSRV_ERROR DCDimQuery(DC_DEVICE *psDevice, IMG_UINT32 ui32DimSize,
+			PVRSRV_SURFACE_DIMS *pasDim,
+			IMG_UINT32 *pui32Supported);
 
-PVRSRV_ERROR DCSetBlank(DC_DEVICE *psDevice,
-						IMG_BOOL bEnabled);
+PVRSRV_ERROR DCSetBlank(DC_DEVICE *psDevice, IMG_BOOL bEnabled);
 
-PVRSRV_ERROR DCSetVSyncReporting(DC_DEVICE *psDevice,
-								 IMG_BOOL bEnabled);
+PVRSRV_ERROR DCSetVSyncReporting(DC_DEVICE *psDevice, IMG_BOOL bEnabled);
 
-PVRSRV_ERROR DCLastVSyncQuery(DC_DEVICE *psDevice,
-							  IMG_INT64 *pi64Timestamp);
+PVRSRV_ERROR DCLastVSyncQuery(DC_DEVICE *psDevice, IMG_INT64 *pi64Timestamp);
 
 PVRSRV_ERROR DCSystemBufferAcquire(DC_DEVICE *psDevice,
-								   IMG_UINT32 *pui32ByteStride,
-								   DC_BUFFER **ppsBuffer);
+				   IMG_UINT32 *pui32ByteStride,
+				   DC_BUFFER **ppsBuffer);
 
 PVRSRV_ERROR DCSystemBufferRelease(DC_BUFFER *psBuffer);
 
 PVRSRV_ERROR DCDisplayContextCreate(DC_DEVICE *psDevice,
-									DC_DISPLAY_CONTEXT **ppsDisplayContext);
+				    DC_DISPLAY_CONTEXT **ppsDisplayContext);
 
 PVRSRV_ERROR DCDisplayContextFlush(void);
 
-PVRSRV_ERROR DCDisplayContextConfigureCheck(DC_DISPLAY_CONTEXT *psDisplayContext,
-											IMG_UINT32 ui32PipeCount,
-											PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
-											DC_BUFFER **papsBuffers);
+PVRSRV_ERROR DCDisplayContextConfigureCheck(
+	DC_DISPLAY_CONTEXT *psDisplayContext, IMG_UINT32 ui32PipeCount,
+	PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib, DC_BUFFER **papsBuffers);
 
-PVRSRV_ERROR DCDisplayContextConfigure(DC_DISPLAY_CONTEXT *psDisplayContext,
-									   IMG_UINT32 ui32PipeCount,
-									   PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
-									   DC_BUFFER **papsBuffers,
-									   IMG_UINT32 ui32DisplayPeriod,
-									   IMG_UINT32 ui32MaxDepth,
-									   PVRSRV_FENCE iAcquireFence,
-									   PVRSRV_TIMELINE iReleaseFenceTimeline,
-									   PVRSRV_FENCE *piReleaseFence);
+PVRSRV_ERROR DCDisplayContextConfigure(
+	DC_DISPLAY_CONTEXT *psDisplayContext, IMG_UINT32 ui32PipeCount,
+	PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib, DC_BUFFER **papsBuffers,
+	IMG_UINT32 ui32DisplayPeriod, IMG_UINT32 ui32MaxDepth,
+	PVRSRV_FENCE iAcquireFence, PVRSRV_TIMELINE iReleaseFenceTimeline,
+	PVRSRV_FENCE *piReleaseFence);
 
 PVRSRV_ERROR DCDisplayContextDestroy(DC_DISPLAY_CONTEXT *psDisplayContext);
 
 PVRSRV_ERROR DCBufferAlloc(DC_DISPLAY_CONTEXT *psDisplayContext,
-						   DC_BUFFER_CREATE_INFO *psSurfInfo,
-						   IMG_UINT32 *pui32ByteStride,
-						   DC_BUFFER **ppsBuffer);
+			   DC_BUFFER_CREATE_INFO *psSurfInfo,
+			   IMG_UINT32 *pui32ByteStride, DC_BUFFER **ppsBuffer);
 
 PVRSRV_ERROR DCBufferFree(DC_BUFFER *psBuffer);
 
 PVRSRV_ERROR DCBufferImport(DC_DISPLAY_CONTEXT *psDisplayContext,
-							IMG_UINT32 ui32NumPlanes,
-							PMR **papsImport,
-							DC_BUFFER_IMPORT_INFO *psSurfAttrib,
-							DC_BUFFER **ppsBuffer);
+			    IMG_UINT32 ui32NumPlanes, PMR **papsImport,
+			    DC_BUFFER_IMPORT_INFO *psSurfAttrib,
+			    DC_BUFFER **ppsBuffer);
 
 PVRSRV_ERROR DCBufferUnimport(DC_BUFFER *psBuffer);
 
-PVRSRV_ERROR DCBufferAcquire(DC_BUFFER *psBuffer,
-							 PMR **psPMR);
+PVRSRV_ERROR DCBufferAcquire(DC_BUFFER *psBuffer, PMR **psPMR);
 
 PVRSRV_ERROR DCBufferRelease(PMR *psPMR);
 

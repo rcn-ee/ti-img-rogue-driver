@@ -49,16 +49,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *  Supported log2 page size values for RGX_GENERAL_NON_4K_HEAP_ID
  */
 #define RGX_HEAP_PAGE_SHIFTS_DEF \
-	X(4KB, 12U) \
-	X(16KB, 14U) \
-	X(64KB, 16U) \
-	X(256KB, 18U) \
-	X(1MB, 20U) \
+	X(4KB, 12U)              \
+	X(16KB, 14U)             \
+	X(64KB, 16U)             \
+	X(256KB, 18U)            \
+	X(1MB, 20U)              \
 	X(2MB, 21U)
 
-typedef enum RGX_HEAP_PAGE_SHIFTS_TAG
-{
-#define X(_name, _shift) RGX_HEAP_ ## _name ## _PAGE_SHIFT = _shift,
+typedef enum RGX_HEAP_PAGE_SHIFTS_TAG {
+#define X(_name, _shift) RGX_HEAP_##_name##_PAGE_SHIFT = _shift,
 	RGX_HEAP_PAGE_SHIFTS_DEF
 #undef X
 } RGX_HEAP_PAGE_SHIFTS;

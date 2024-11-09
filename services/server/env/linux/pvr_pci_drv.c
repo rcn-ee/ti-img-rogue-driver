@@ -106,13 +106,9 @@ static int pvr_probe(struct pci_dev *pdev, const struct pci_device_id *ent)
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 11, 0))
 	DRM_INFO("Initialized %s %d.%d.%d %s for %s on minor %d\n",
-		pvr_drm_pci_driver.name,
-		pvr_drm_pci_driver.major,
-		pvr_drm_pci_driver.minor,
-		pvr_drm_pci_driver.patchlevel,
-		pvr_drm_pci_driver.date,
-		pci_name(pdev),
-		ddev->primary->index);
+		 pvr_drm_pci_driver.name, pvr_drm_pci_driver.major,
+		 pvr_drm_pci_driver.minor, pvr_drm_pci_driver.patchlevel,
+		 pvr_drm_pci_driver.date, pci_name(pdev), ddev->primary->index);
 #endif
 	return 0;
 
@@ -159,7 +155,8 @@ static const struct pci_device_id pvr_pci_ids[] = {
 	{ PCI_DEVICE(SYS_RGX_DEV_VENDOR_ID, SYS_RGX_DEV1_DEVICE_ID) },
 #endif
 #if defined(SYS_RGX_DEV_FROST_VENDOR_ID)
-	{ PCI_DEVICE(SYS_RGX_DEV_FROST_VENDOR_ID, SYS_RGX_DEV_FROST_DEVICE_ID) },
+	{ PCI_DEVICE(SYS_RGX_DEV_FROST_VENDOR_ID,
+		     SYS_RGX_DEV_FROST_DEVICE_ID) },
 #endif
 	{ 0 }
 };
@@ -167,12 +164,12 @@ static const struct pci_device_id pvr_pci_ids[] = {
 MODULE_DEVICE_TABLE(pci, pvr_pci_ids);
 
 static struct pci_driver pvr_pci_driver = {
-	.name		= DRVNAME,
-	.driver.pm	= &pvr_pm_ops,
-	.id_table	= pvr_pci_ids,
-	.probe		= pvr_probe,
-	.remove		= pvr_remove,
-	.shutdown	= pvr_shutdown,
+	.name = DRVNAME,
+	.driver.pm = &pvr_pm_ops,
+	.id_table = pvr_pci_ids,
+	.probe = pvr_probe,
+	.remove = pvr_remove,
+	.shutdown = pvr_shutdown,
 };
 
 static int __init pvr_init(void)

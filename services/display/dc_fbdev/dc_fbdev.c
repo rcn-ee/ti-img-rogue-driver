@@ -49,7 +49,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "powervr/imgpixfmts.h"
 #include "pvrmodule.h" /* for MODULE_LICENSE() */
 
-#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6,1,0))
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 1, 0))
 #error dc_fbdev is not supported for Linux version 6.1.0 or later.
 #endif
 
@@ -57,45 +57,39 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #error dc_fbdev needs Linux framebuffer support. Enable it in your kernel.
 #endif
 
-#define DRVNAME					"dc_fbdev"
-#define DEVNAME					DRVNAME
-#define MAX_COMMANDS_IN_FLIGHT	2
+#define DRVNAME "dc_fbdev"
+#define DEVNAME DRVNAME
+#define MAX_COMMANDS_IN_FLIGHT 2
 
 #if defined(DC_FBDEV_NUM_PREFERRED_BUFFERS)
-#define NUM_PREFERRED_BUFFERS	DC_FBDEV_NUM_PREFERRED_BUFFERS
+#define NUM_PREFERRED_BUFFERS DC_FBDEV_NUM_PREFERRED_BUFFERS
 #else
-#define NUM_PREFERRED_BUFFERS	2
+#define NUM_PREFERRED_BUFFERS 2
 #endif
 
-#define FALLBACK_REFRESH_RATE		60
-#define FALLBACK_DPI				160
+#define FALLBACK_REFRESH_RATE 60
+#define FALLBACK_DPI 160
 
-typedef struct
-{
-	IMG_HANDLE			hSrvHandle;
-	IMG_UINT32			ePixFormat;
-	struct fb_info		*psLINFBInfo;
-	bool				bCanFlip;
-}
-DC_FBDEV_DEVICE;
+typedef struct {
+	IMG_HANDLE hSrvHandle;
+	IMG_UINT32 ePixFormat;
+	struct fb_info *psLINFBInfo;
+	bool bCanFlip;
+} DC_FBDEV_DEVICE;
 
-typedef struct
-{
-	DC_FBDEV_DEVICE		*psDeviceData;
-	IMG_HANDLE			hLastConfigData;
-	IMG_UINT32		ui32AllocUseMask;
-}
-DC_FBDEV_CONTEXT;
+typedef struct {
+	DC_FBDEV_DEVICE *psDeviceData;
+	IMG_HANDLE hLastConfigData;
+	IMG_UINT32 ui32AllocUseMask;
+} DC_FBDEV_CONTEXT;
 
-typedef struct
-{
-	DC_FBDEV_CONTEXT	*psDeviceContext;
-	IMG_UINT32			ui32Width;
-	IMG_UINT32			ui32Height;
-	IMG_UINT32			ui32ByteStride;
-	IMG_UINT32			ui32BufferID;
-}
-DC_FBDEV_BUFFER;
+typedef struct {
+	DC_FBDEV_CONTEXT *psDeviceContext;
+	IMG_UINT32 ui32Width;
+	IMG_UINT32 ui32Height;
+	IMG_UINT32 ui32ByteStride;
+	IMG_UINT32 ui32BufferID;
+} DC_FBDEV_BUFFER;
 
 static IMG_UINT32 gui32fb_devminor = 0;
 module_param_named(fb_devminor, gui32fb_devminor, uint, S_IRUGO | S_IWUSR);
@@ -103,8 +97,7 @@ module_param_named(fb_devminor, gui32fb_devminor, uint, S_IRUGO | S_IWUSR);
 static DC_FBDEV_DEVICE *gpsDeviceData;
 
 #if defined(DC_FBDEV_FORCE_CONTEXT_CLEAN)
-static
-void DC_FBDEV_Clean(IMG_HANDLE hDisplayContext, IMG_HANDLE *ahBuffers)
+static void DC_FBDEV_Clean(IMG_HANDLE hDisplayContext, IMG_HANDLE *ahBuffers)
 {
 	DC_FBDEV_DEVICE *psDeviceData;
 	DC_FBDEV_BUFFER *psBuffer;
@@ -114,11 +107,9 @@ void DC_FBDEV_Clean(IMG_HANDLE hDisplayContext, IMG_HANDLE *ahBuffers)
 	uintptr_t uiStartAddr, uiEndAddr, uiMaxLen;
 
 	/* validate incoming parameters */
-	if (!hDisplayContext ||
-		!ahBuffers       ||
-		!((DC_FBDEV_CONTEXT *)hDisplayContext)->psDeviceData ||
-		!((DC_FBDEV_CONTEXT *)hDisplayContext)->psDeviceData->psLINFBInfo)
-	{
+	if (!hDisplayContext || !ahBuffers ||
+	    !((DC_FBDEV_CONTEXT *)hDisplayContext)->psDeviceData ||
+	    !((DC_FBDEV_CONTEXT *)hDisplayContext)->psDeviceData->psLINFBInfo) {
 		return;
 	}
 
@@ -130,34 +121,33 @@ void DC_FBDEV_Clean(IMG_HANDLE hDisplayContext, IMG_HANDLE *ahBuffers)
 
 	/* calc. framebuffer start/end addresses */
 	ui32ByteSize = psBuffer->ui32ByteStride * psBuffer->ui32Height;
-	uiStartAddr  = (uintptr_t)psDeviceData->psLINFBInfo->screen_base;
+	uiStartAddr = (uintptr_t)psDeviceData->psLINFBInfo->screen_base;
 	uiStartAddr += psBuffer->ui32BufferID * ui32ByteSize;
-	uiMaxLen     = psDeviceData->psLINFBInfo->fix.smem_len;
-	uiMaxLen    -= psBuffer->ui32BufferID * ui32ByteSize;
-	uiEndAddr    = uiStartAddr + ui32MaxLen;
+	uiMaxLen = psDeviceData->psLINFBInfo->fix.smem_len;
+	uiMaxLen -= psBuffer->ui32BufferID * ui32ByteSize;
+	uiEndAddr = uiStartAddr + ui32MaxLen;
 
 	/* outer framebuffer inter-page loop */
-	pvVirtStart  = (IMG_BYTE *)((uintptr_t)uiStartAddr & (~(PAGE_SIZE-1)));
-	while ((uintptr_t)pvVirtStart < uiEndAddr)
-	{
+	pvVirtStart = (IMG_BYTE *)((uintptr_t)uiStartAddr & (~(PAGE_SIZE - 1)));
+	while ((uintptr_t)pvVirtStart < uiEndAddr) {
 #if !(defined(ARM64) && defined(X86))
 		/* crossing (possibly discontiguous) page boundary, translate virt -> phys page */
 		sCPUPhysStart.uiAddr =
-		page_to_phys(vmalloc_to_page(pvVirtStart));
-		pbPhysEnd = (IMG_UINT32 *)((uintptr_t)sCpuPAddr.uiAddr & (~(PAGE_SIZE-1)));
+			page_to_phys(vmalloc_to_page(pvVirtStart));
+		pbPhysEnd = (IMG_UINT32 *)((uintptr_t)sCpuPAddr.uiAddr &
+					   (~(PAGE_SIZE - 1)));
 #endif
 
 		/* inner intra-page loop */
-		while (pvVirtStart < (pvVirtStart + PAGE_SIZE))
-		{
+		while (pvVirtStart < (pvVirtStart + PAGE_SIZE)) {
 			/* per-arch d-cache flush mechanism */
 #if defined(CONFIG_X86)
-			asm volatile("clflush %0" : "+m" (*pvVirtStart));
+			asm volatile("clflush %0" : "+m"(*pvVirtStart));
 #elif defined(CONFIG_ARM64)
-			asm volatile ("dc civac, %0" :: "r" (pvVirtStart));
+			asm volatile("dc civac, %0" ::"r"(pvVirtStart));
 #elif defined(CONFIG_ARM)
-			unsigned long uiLockFlags = {0};
-			spinlock_t spinlock = {0};
+			unsigned long uiLockFlags = { 0 };
+			spinlock_t spinlock = { 0 };
 			flush_cache_all();
 #if defined(CONFIG_OUTER_CACHE)
 			spin_lock_init(&spinlock);
@@ -169,7 +159,8 @@ void DC_FBDEV_Clean(IMG_HANDLE hDisplayContext, IMG_HANDLE *ahBuffers)
 			PVR_UNREFERENCED_PARAMETER(spinlock);
 			return;
 #elif defined(CONFIG_MIPS)
-			dma_cache_sync(pvOSDevice, (void *)pvVirtStart, PAGE_SIZE, DMA_TO_DEVICE);
+			dma_cache_sync(pvOSDevice, (void *)pvVirtStart,
+				       PAGE_SIZE, DMA_TO_DEVICE);
 #elif defined(CONFIG_META)
 			writeback_dcache_region((void *)pbPhysEnd, PAGE_SIZE);
 #else
@@ -187,34 +178,31 @@ void DC_FBDEV_Clean(IMG_HANDLE hDisplayContext, IMG_HANDLE *ahBuffers)
 }
 #endif
 
-static
-void DC_FBDEV_GetInfo(IMG_HANDLE hDeviceData,
-                      DC_DISPLAY_INFO *psDisplayInfo)
+static void DC_FBDEV_GetInfo(IMG_HANDLE hDeviceData,
+			     DC_DISPLAY_INFO *psDisplayInfo)
 {
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 
 	strncpy(psDisplayInfo->szDisplayName, DRVNAME " 1", DC_NAME_SIZE);
 
-	psDisplayInfo->ui32MinDisplayPeriod	= 0;
-	psDisplayInfo->ui32MaxDisplayPeriod	= 1;
-	psDisplayInfo->ui32MaxPipes			= 1;
-	psDisplayInfo->bUnlatchedSupported	= IMG_FALSE;
+	psDisplayInfo->ui32MinDisplayPeriod = 0;
+	psDisplayInfo->ui32MaxDisplayPeriod = 1;
+	psDisplayInfo->ui32MaxPipes = 1;
+	psDisplayInfo->bUnlatchedSupported = IMG_FALSE;
 }
 
-static
-PVRSRV_ERROR DC_FBDEV_PanelQueryCount(IMG_HANDLE hDeviceData,
-									  IMG_UINT32 *pui32NumPanels)
+static PVRSRV_ERROR DC_FBDEV_PanelQueryCount(IMG_HANDLE hDeviceData,
+					     IMG_UINT32 *pui32NumPanels)
 {
 	PVR_UNREFERENCED_PARAMETER(hDeviceData);
 	*pui32NumPanels = 1;
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DC_FBDEV_PanelQuery(IMG_HANDLE hDeviceData,
-								 IMG_UINT32 ui32PanelsArraySize,
-								 IMG_UINT32 *pui32NumPanels,
-								 PVRSRV_PANEL_INFO *psPanelInfo)
+static PVRSRV_ERROR DC_FBDEV_PanelQuery(IMG_HANDLE hDeviceData,
+					IMG_UINT32 ui32PanelsArraySize,
+					IMG_UINT32 *pui32NumPanels,
+					PVRSRV_PANEL_INFO *psPanelInfo)
 {
 	DC_FBDEV_DEVICE *psDeviceData = hDeviceData;
 	struct fb_var_screeninfo *psVar = &psDeviceData->psLINFBInfo->var;
@@ -229,11 +217,14 @@ PVRSRV_ERROR DC_FBDEV_PanelQuery(IMG_HANDLE hDeviceData,
 
 	*pui32NumPanels = 1;
 
-	psPanelInfo[0].sSurfaceInfo.sFormat.ePixFormat = psDeviceData->ePixFormat;
-	psPanelInfo[0].sSurfaceInfo.sDims.ui32Width    = psVar->xres;
-	psPanelInfo[0].sSurfaceInfo.sDims.ui32Height   = psVar->yres;
-	psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout = PVRSRV_SURFACE_MEMLAYOUT_STRIDED;
-	psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode = IMG_FB_COMPRESSION_NONE;
+	psPanelInfo[0].sSurfaceInfo.sFormat.ePixFormat =
+		psDeviceData->ePixFormat;
+	psPanelInfo[0].sSurfaceInfo.sDims.ui32Width = psVar->xres;
+	psPanelInfo[0].sSurfaceInfo.sDims.ui32Height = psVar->yres;
+	psPanelInfo[0].sSurfaceInfo.sFormat.eMemLayout =
+		PVRSRV_SURFACE_MEMLAYOUT_STRIDED;
+	psPanelInfo[0].sSurfaceInfo.sFormat.u.sFBCLayout.eFBCompressionMode =
+		IMG_FB_COMPRESSION_NONE;
 
 	/* Conformant fbdev drivers should have 'var' and mode in sync by now,
 	 * but some don't (like drmfb), so try a couple of different ways to
@@ -244,44 +235,44 @@ PVRSRV_ERROR DC_FBDEV_PanelQuery(IMG_HANDLE hDeviceData,
 	else if (psDeviceData->psLINFBInfo->mode)
 		fb_videomode_to_var(&sVar, psDeviceData->psLINFBInfo->mode);
 
-	/* Override the refresh rate when defined. */
+		/* Override the refresh rate when defined. */
 #ifdef DC_FBDEV_REFRESH
 	psPanelInfo[0].ui32RefreshRate = DC_FBDEV_REFRESH;
 #else
-	if (sVar.xres > 0 && sVar.yres > 0 && sVar.pixclock > 0)
-	{
-		psPanelInfo[0].ui32RefreshRate = 1000000000LU /
-			((sVar.upper_margin + sVar.lower_margin +
-			  sVar.yres + sVar.vsync_len) *
-			 (sVar.left_margin  + sVar.right_margin +
-			  sVar.xres + sVar.hsync_len) *
-			 (sVar.pixclock / 1000));
-	}
-	else
+	if (sVar.xres > 0 && sVar.yres > 0 && sVar.pixclock > 0) {
+		psPanelInfo[0].ui32RefreshRate =
+			1000000000LU / ((sVar.upper_margin + sVar.lower_margin +
+					 sVar.yres + sVar.vsync_len) *
+					(sVar.left_margin + sVar.right_margin +
+					 sVar.xres + sVar.hsync_len) *
+					(sVar.pixclock / 1000));
+	} else
 		psPanelInfo[0].ui32RefreshRate = FALLBACK_REFRESH_RATE;
 #endif
 
 	psPanelInfo[0].ui32XDpi =
-		((int)sVar.width > 0) ? (254000 / sVar.width * psVar->xres / 10000) : FALLBACK_DPI;
+		((int)sVar.width > 0) ?
+			(254000 / sVar.width * psVar->xres / 10000) :
+			FALLBACK_DPI;
 
-	psPanelInfo[0].ui32YDpi	=
-		((int)sVar.height > 0) ? 254000 / sVar.height * psVar->yres / 10000 : FALLBACK_DPI;
+	psPanelInfo[0].ui32YDpi =
+		((int)sVar.height > 0) ?
+			254000 / sVar.height * psVar->yres / 10000 :
+			FALLBACK_DPI;
 
 	unlock_fb_info(psDeviceData->psLINFBInfo);
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DC_FBDEV_FormatQuery(IMG_HANDLE hDeviceData,
-								  IMG_UINT32 ui32NumFormats,
-								  PVRSRV_SURFACE_FORMAT *pasFormat,
-								  IMG_UINT32 *pui32Supported)
+static PVRSRV_ERROR DC_FBDEV_FormatQuery(IMG_HANDLE hDeviceData,
+					 IMG_UINT32 ui32NumFormats,
+					 PVRSRV_SURFACE_FORMAT *pasFormat,
+					 IMG_UINT32 *pui32Supported)
 {
 	DC_FBDEV_DEVICE *psDeviceData = hDeviceData;
 	int i;
 
-	for (i = 0; i < ui32NumFormats; i++)
-	{
+	for (i = 0; i < ui32NumFormats; i++) {
 		pui32Supported[i] = 0;
 
 		if (pasFormat[i].ePixFormat == psDeviceData->ePixFormat)
@@ -291,11 +282,10 @@ PVRSRV_ERROR DC_FBDEV_FormatQuery(IMG_HANDLE hDeviceData,
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DC_FBDEV_DimQuery(IMG_HANDLE hDeviceData,
-							   IMG_UINT32 ui32NumDims,
-							   PVRSRV_SURFACE_DIMS *psDim,
-							   IMG_UINT32 *pui32Supported)
+static PVRSRV_ERROR DC_FBDEV_DimQuery(IMG_HANDLE hDeviceData,
+				      IMG_UINT32 ui32NumDims,
+				      PVRSRV_SURFACE_DIMS *psDim,
+				      IMG_UINT32 *pui32Supported)
 {
 	DC_FBDEV_DEVICE *psDeviceData = hDeviceData;
 	struct fb_var_screeninfo *psVar = &psDeviceData->psLINFBInfo->var;
@@ -308,29 +298,26 @@ PVRSRV_ERROR DC_FBDEV_DimQuery(IMG_HANDLE hDeviceData,
 	lock_fb_info(psDeviceData->psLINFBInfo);
 #endif
 
-	for (i = 0; i < ui32NumDims; i++)
-	{
+	for (i = 0; i < ui32NumDims; i++) {
 		pui32Supported[i] = 0;
 
-		if (psDim[i].ui32Width  == psVar->xres &&
+		if (psDim[i].ui32Width == psVar->xres &&
 		    psDim[i].ui32Height == psVar->yres)
-		    pui32Supported[i]++;
+			pui32Supported[i]++;
 	}
 
 	unlock_fb_info(psDeviceData->psLINFBInfo);
 	return PVRSRV_OK;
 }
 
-static
-PVRSRV_ERROR DC_FBDEV_ContextCreate(IMG_HANDLE hDeviceData,
-									IMG_HANDLE *hDisplayContext)
+static PVRSRV_ERROR DC_FBDEV_ContextCreate(IMG_HANDLE hDeviceData,
+					   IMG_HANDLE *hDisplayContext)
 {
 	DC_FBDEV_CONTEXT *psDeviceContext;
 	PVRSRV_ERROR eError = PVRSRV_OK;
 
 	psDeviceContext = kzalloc(sizeof(DC_FBDEV_CONTEXT), GFP_KERNEL);
-	if (!psDeviceContext)
-	{
+	if (!psDeviceContext) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_out;
 	}
@@ -342,11 +329,9 @@ err_out:
 	return eError;
 }
 
-static PVRSRV_ERROR
-DC_FBDEV_ContextConfigureCheck(IMG_HANDLE hDisplayContext,
-							   IMG_UINT32 ui32PipeCount,
-							   PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
-							   IMG_HANDLE *ahBuffers)
+static PVRSRV_ERROR DC_FBDEV_ContextConfigureCheck(
+	IMG_HANDLE hDisplayContext, IMG_UINT32 ui32PipeCount,
+	PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib, IMG_HANDLE *ahBuffers)
 {
 	DC_FBDEV_CONTEXT *psDeviceContext = hDisplayContext;
 	DC_FBDEV_DEVICE *psDeviceData = psDeviceContext->psDeviceData;
@@ -354,21 +339,18 @@ DC_FBDEV_ContextConfigureCheck(IMG_HANDLE hDisplayContext,
 	DC_FBDEV_BUFFER *psBuffer;
 	PVRSRV_ERROR eError;
 
-	if (ui32PipeCount != 1)
-	{
+	if (ui32PipeCount != 1) {
 		eError = PVRSRV_ERROR_DC_TOO_MANY_PIPES;
 		goto err_out;
 	}
 
-	if (!ahBuffers)
-	{
+	if (!ahBuffers) {
 		eError = PVRSRV_ERROR_DC_INVALID_CONFIG;
 		goto err_out;
 	}
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0))
-	if (!lock_fb_info(psDeviceData->psLINFBInfo))
-	{
+	if (!lock_fb_info(psDeviceData->psLINFBInfo)) {
 		eError = PVRSRV_ERROR_RETRY;
 		goto err_out;
 	}
@@ -378,31 +360,28 @@ DC_FBDEV_ContextConfigureCheck(IMG_HANDLE hDisplayContext,
 
 	psBuffer = ahBuffers[0];
 
-	if (pasSurfAttrib[0].sCrop.sDims.ui32Width  != psVar->xres ||
-		pasSurfAttrib[0].sCrop.sDims.ui32Height != psVar->yres ||
-		pasSurfAttrib[0].sCrop.i32XOffset != 0 ||
-		pasSurfAttrib[0].sCrop.i32YOffset != 0)
-	{
+	if (pasSurfAttrib[0].sCrop.sDims.ui32Width != psVar->xres ||
+	    pasSurfAttrib[0].sCrop.sDims.ui32Height != psVar->yres ||
+	    pasSurfAttrib[0].sCrop.i32XOffset != 0 ||
+	    pasSurfAttrib[0].sCrop.i32YOffset != 0) {
 		eError = PVRSRV_ERROR_DC_INVALID_CROP_RECT;
 		goto err_unlock;
 	}
 
 	if (pasSurfAttrib[0].sDisplay.sDims.ui32Width !=
-		pasSurfAttrib[0].sCrop.sDims.ui32Width ||
-		pasSurfAttrib[0].sDisplay.sDims.ui32Height !=
-		pasSurfAttrib[0].sCrop.sDims.ui32Height ||
-		pasSurfAttrib[0].sDisplay.i32XOffset !=
-		pasSurfAttrib[0].sCrop.i32XOffset ||
-		pasSurfAttrib[0].sDisplay.i32YOffset !=
-		pasSurfAttrib[0].sCrop.i32YOffset)
-	{
+		    pasSurfAttrib[0].sCrop.sDims.ui32Width ||
+	    pasSurfAttrib[0].sDisplay.sDims.ui32Height !=
+		    pasSurfAttrib[0].sCrop.sDims.ui32Height ||
+	    pasSurfAttrib[0].sDisplay.i32XOffset !=
+		    pasSurfAttrib[0].sCrop.i32XOffset ||
+	    pasSurfAttrib[0].sDisplay.i32YOffset !=
+		    pasSurfAttrib[0].sCrop.i32YOffset) {
 		eError = PVRSRV_ERROR_DC_INVALID_DISPLAY_RECT;
 		goto err_unlock;
 	}
 
-	if (psBuffer->ui32Width  != psVar->xres &&
-		psBuffer->ui32Height != psVar->yres)
-	{
+	if (psBuffer->ui32Width != psVar->xres &&
+	    psBuffer->ui32Height != psVar->yres) {
 		eError = PVRSRV_ERROR_DC_INVALID_BUFFER_DIMS;
 		goto err_unlock;
 	}
@@ -414,13 +393,12 @@ err_out:
 	return eError;
 }
 
-static
-void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
-								   IMG_UINT32 ui32PipeCount,
-								   PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
-								   IMG_HANDLE *ahBuffers,
-								   IMG_UINT32 ui32DisplayPeriod,
-								   IMG_HANDLE hConfigData)
+static void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
+				      IMG_UINT32 ui32PipeCount,
+				      PVRSRV_SURFACE_CONFIG_INFO *pasSurfAttrib,
+				      IMG_HANDLE *ahBuffers,
+				      IMG_UINT32 ui32DisplayPeriod,
+				      IMG_HANDLE hConfigData)
 {
 	DC_FBDEV_CONTEXT *psDeviceContext = hDisplayContext;
 	DC_FBDEV_DEVICE *psDeviceData = psDeviceContext->psDeviceData;
@@ -433,12 +411,10 @@ void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
 
 	sVar.yoffset = 0;
 
-	if (ui32PipeCount != 0)
-	{
+	if (ui32PipeCount != 0) {
 		BUG_ON(ahBuffers == NULL);
 
-		if (psDeviceData->bCanFlip)
-		{
+		if (psDeviceData->bCanFlip) {
 			DC_FBDEV_BUFFER *psBuffer = ahBuffers[0];
 			sVar.yoffset = sVar.yres * psBuffer->ui32BufferID;
 		}
@@ -449,8 +425,7 @@ void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 3, 0))
-	if (!lock_fb_info(psDeviceData->psLINFBInfo))
-	{
+	if (!lock_fb_info(psDeviceData->psLINFBInfo)) {
 		return;
 	}
 #else
@@ -465,17 +440,14 @@ void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
 	 * modifications to yres_virtual after a blank.)
 	 */
 	if (psDeviceData->bCanFlip &&
-		sVar.yres_virtual < sVar.yres * NUM_PREFERRED_BUFFERS)
-	{
+	    sVar.yres_virtual < sVar.yres * NUM_PREFERRED_BUFFERS) {
 		sVar.activate = FB_ACTIVATE_NOW;
 		sVar.yres_virtual = sVar.yres * NUM_PREFERRED_BUFFERS;
 
 		err = fb_set_var(psDeviceData->psLINFBInfo, &sVar);
 		if (err)
 			pr_err("fb_set_var failed (err=%d)\n", err);
-	}
-	else
-	{
+	} else {
 		err = fb_pan_display(psDeviceData->psLINFBInfo, &sVar);
 		if (err)
 			pr_err("fb_pan_display failed (err=%d)\n", err);
@@ -484,17 +456,13 @@ void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
 	console_unlock();
 	unlock_fb_info(psDeviceData->psLINFBInfo);
 
-	if (psDeviceContext->hLastConfigData)
-	{
+	if (psDeviceContext->hLastConfigData) {
 		DCDisplayConfigurationRetired(psDeviceContext->hLastConfigData);
 	}
 
-	if (ui32PipeCount != 0)
-	{
+	if (ui32PipeCount != 0) {
 		psDeviceContext->hLastConfigData = hConfigData;
-	}
-	else
-	{
+	} else {
 		/* If the pipe count is zero, we're tearing down. Don't record
 		 * any new configurations.
 		 */
@@ -508,8 +476,7 @@ void DC_FBDEV_ContextConfigure(IMG_HANDLE hDisplayContext,
 	}
 }
 
-static
-void DC_FBDEV_ContextDestroy(IMG_HANDLE hDisplayContext)
+static void DC_FBDEV_ContextDestroy(IMG_HANDLE hDisplayContext)
 {
 	DC_FBDEV_CONTEXT *psDeviceContext = hDisplayContext;
 
@@ -517,26 +484,23 @@ void DC_FBDEV_ContextDestroy(IMG_HANDLE hDisplayContext)
 	kfree(psDeviceContext);
 }
 
-static
-IMG_BOOL DC_FBDEV_GetBufferID(DC_FBDEV_CONTEXT *psDeviceContext, IMG_UINT32 *pui32BufferID)
+static IMG_BOOL DC_FBDEV_GetBufferID(DC_FBDEV_CONTEXT *psDeviceContext,
+				     IMG_UINT32 *pui32BufferID)
 {
 	IMG_UINT32 ui32IDLimit;
 	IMG_UINT32 ui32BufferID;
 
-	if (psDeviceContext->psDeviceData->bCanFlip)
-	{
+	if (psDeviceContext->psDeviceData->bCanFlip) {
 		ui32IDLimit = NUM_PREFERRED_BUFFERS;
-	}
-	else
-	{
+	} else {
 		ui32IDLimit = 1;
 	}
 
-	for (ui32BufferID = 0; ui32BufferID < ui32IDLimit; ++ui32BufferID)
-	{
-		if ((psDeviceContext->ui32AllocUseMask & (1UL << ui32BufferID)) == 0)
-		{
-			psDeviceContext->ui32AllocUseMask |= (1UL << ui32BufferID);
+	for (ui32BufferID = 0; ui32BufferID < ui32IDLimit; ++ui32BufferID) {
+		if ((psDeviceContext->ui32AllocUseMask &
+		     (1UL << ui32BufferID)) == 0) {
+			psDeviceContext->ui32AllocUseMask |=
+				(1UL << ui32BufferID);
 
 			*pui32BufferID = ui32BufferID;
 
@@ -546,21 +510,18 @@ IMG_BOOL DC_FBDEV_GetBufferID(DC_FBDEV_CONTEXT *psDeviceContext, IMG_UINT32 *pui
 	return IMG_FALSE;
 }
 
-static
-void DC_FBDEV_PutBufferID(DC_FBDEV_CONTEXT *psDeviceContext, IMG_UINT32 ui32BufferID)
+static void DC_FBDEV_PutBufferID(DC_FBDEV_CONTEXT *psDeviceContext,
+				 IMG_UINT32 ui32BufferID)
 {
 	psDeviceContext->ui32AllocUseMask &= ~(1UL << ui32BufferID);
 }
 
 #define BYTE_TO_PAGES(range) (((range) + (PAGE_SIZE - 1)) >> PAGE_SHIFT)
 
-static
-PVRSRV_ERROR DC_FBDEV_BufferAlloc(IMG_HANDLE hDisplayContext,
-								  DC_BUFFER_CREATE_INFO *psCreateInfo,
-								  IMG_DEVMEM_LOG2ALIGN_T *puiLog2PageSize,
-								  IMG_UINT32 *pui32PageCount,
-								  IMG_UINT32 *pui32ByteStride,
-								  IMG_HANDLE *phBuffer)
+static PVRSRV_ERROR DC_FBDEV_BufferAlloc(
+	IMG_HANDLE hDisplayContext, DC_BUFFER_CREATE_INFO *psCreateInfo,
+	IMG_DEVMEM_LOG2ALIGN_T *puiLog2PageSize, IMG_UINT32 *pui32PageCount,
+	IMG_UINT32 *pui32ByteStride, IMG_HANDLE *phBuffer)
 {
 	DC_FBDEV_CONTEXT *psDeviceContext = hDisplayContext;
 	DC_FBDEV_DEVICE *psDeviceData = psDeviceContext->psDeviceData;
@@ -569,15 +530,13 @@ PVRSRV_ERROR DC_FBDEV_BufferAlloc(IMG_HANDLE hDisplayContext,
 	DC_FBDEV_BUFFER *psBuffer;
 	IMG_UINT32 ui32ByteSize;
 
-	if (psSurfInfo->sFormat.ePixFormat != psDeviceData->ePixFormat)
-	{
+	if (psSurfInfo->sFormat.ePixFormat != psDeviceData->ePixFormat) {
 		eError = PVRSRV_ERROR_UNSUPPORTED_PIXEL_FORMAT;
 		goto err_out;
 	}
 
 	psBuffer = kmalloc(sizeof(DC_FBDEV_BUFFER), GFP_KERNEL);
-	if (!psBuffer)
-	{
+	if (!psBuffer) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_out;
 	}
@@ -589,8 +548,7 @@ PVRSRV_ERROR DC_FBDEV_BufferAlloc(IMG_HANDLE hDisplayContext,
 	psBuffer->ui32Width = psSurfInfo->sDims.ui32Width;
 	psBuffer->ui32Height = psSurfInfo->sDims.ui32Height;
 
-	if (!DC_FBDEV_GetBufferID(psDeviceContext, &psBuffer->ui32BufferID))
-	{
+	if (!DC_FBDEV_GetBufferID(psDeviceContext, &psBuffer->ui32BufferID)) {
 		eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 		goto err_free;
 	}
@@ -598,9 +556,9 @@ PVRSRV_ERROR DC_FBDEV_BufferAlloc(IMG_HANDLE hDisplayContext,
 	ui32ByteSize = psBuffer->ui32ByteStride * psBuffer->ui32Height;
 
 	*puiLog2PageSize = PAGE_SHIFT;
-	*pui32PageCount	 = BYTE_TO_PAGES(ui32ByteSize);
+	*pui32PageCount = BYTE_TO_PAGES(ui32ByteSize);
 	*pui32ByteStride = psBuffer->ui32ByteStride;
-	*phBuffer	 = psBuffer;
+	*phBuffer = psBuffer;
 
 	return PVRSRV_OK;
 
@@ -611,14 +569,14 @@ err_out:
 	return eError;
 }
 
-static
-PVRSRV_ERROR DC_FBDEV_BufferAcquire(IMG_HANDLE hBuffer,
-									IMG_DEV_PHYADDR *pasDevPAddr,
-									void **ppvLinAddr)
+static PVRSRV_ERROR DC_FBDEV_BufferAcquire(IMG_HANDLE hBuffer,
+					   IMG_DEV_PHYADDR *pasDevPAddr,
+					   void **ppvLinAddr)
 {
 	DC_FBDEV_BUFFER *psBuffer = hBuffer;
 	DC_FBDEV_DEVICE *psDeviceData = psBuffer->psDeviceContext->psDeviceData;
-	IMG_UINT32 ui32ByteSize = psBuffer->ui32ByteStride * psBuffer->ui32Height;
+	IMG_UINT32 ui32ByteSize =
+		psBuffer->ui32ByteStride * psBuffer->ui32Height;
 	uintptr_t uiStartAddr;
 	IMG_UINT32 i, ui32MaxLen;
 
@@ -630,15 +588,14 @@ PVRSRV_ERROR DC_FBDEV_BufferAcquire(IMG_HANDLE hBuffer,
 
 	uiStartAddr += psBuffer->ui32BufferID * ui32ByteSize;
 	ui32MaxLen = psDeviceData->psLINFBInfo->fix.smem_len -
-				 psBuffer->ui32BufferID * ui32ByteSize;
+		     psBuffer->ui32BufferID * ui32ByteSize;
 
-	for (i = 0; i < BYTE_TO_PAGES(ui32ByteSize); i++)
-	{
+	for (i = 0; i < BYTE_TO_PAGES(ui32ByteSize); i++) {
 		BUG_ON(i * PAGE_SIZE >= ui32MaxLen);
 		pasDevPAddr[i].uiAddr = uiStartAddr + (i * PAGE_SIZE);
 #if defined(DC_FBDEV_USE_SCREEN_BASE)
-		pasDevPAddr[i].uiAddr =
-		page_to_phys(vmalloc_to_page((void *)(uintptr_t)pasDevPAddr[i].uiAddr));
+		pasDevPAddr[i].uiAddr = page_to_phys(vmalloc_to_page(
+			(void *)(uintptr_t)pasDevPAddr[i].uiAddr));
 #endif
 	}
 
@@ -686,17 +643,15 @@ static bool DC_FBDEV_FlipPossible(struct fb_info *psLINFBInfo)
 	int err;
 
 	if (!psLINFBInfo->fix.xpanstep && !psLINFBInfo->fix.ypanstep &&
-		!psLINFBInfo->fix.ywrapstep)
-	{
+	    !psLINFBInfo->fix.ywrapstep) {
 		pr_err("The fbdev device detected does not support ypan/ywrap. "
-			   "Flipping disabled.\n");
+		       "Flipping disabled.\n");
 		return false;
 	}
 
-	if ((psLINFBInfo->fix.line_length * sVar.yres) % PAGE_SIZE != 0)
-	{
+	if ((psLINFBInfo->fix.line_length * sVar.yres) % PAGE_SIZE != 0) {
 		pr_err("Line length (in bytes) x yres is not a multiple of "
-			   "page size. Flipping disabled.\n");
+		       "page size. Flipping disabled.\n");
 		return false;
 	}
 
@@ -710,16 +665,14 @@ static bool DC_FBDEV_FlipPossible(struct fb_info *psLINFBInfo)
 	sVar.yres_virtual = sVar.yres * NUM_PREFERRED_BUFFERS;
 
 	err = fb_set_var(psLINFBInfo, &sVar);
-	if (err)
-	{
+	if (err) {
 		pr_err("fb_set_var failed (err=%d). Flipping disabled.\n", err);
 		return false;
 	}
 
-	if (sVar.yres * NUM_PREFERRED_BUFFERS > sVar.yres_virtual)
-	{
+	if (sVar.yres * NUM_PREFERRED_BUFFERS > sVar.yres_virtual) {
 		pr_err("Failed to obtain additional buffer space. "
-			   "Flipping disabled.\n");
+		       "Flipping disabled.\n");
 		return false;
 	}
 
@@ -728,10 +681,10 @@ static bool DC_FBDEV_FlipPossible(struct fb_info *psLINFBInfo)
 	 * and more memory allocated, so we can actually take advantage of
 	 * the increased yres_virtual.
 	 */
-	if (psLINFBInfo->fix.smem_len < psLINFBInfo->fix.line_length * sVar.yres_virtual)
-	{
+	if (psLINFBInfo->fix.smem_len <
+	    psLINFBInfo->fix.line_length * sVar.yres_virtual) {
 		pr_err("'fix' not re-allocated with sufficient buffer space. "
-			   "Flipping disabled.\n");
+		       "Flipping disabled.\n");
 		return false;
 	}
 
@@ -740,24 +693,23 @@ static bool DC_FBDEV_FlipPossible(struct fb_info *psLINFBInfo)
 
 static int DC_FBDEV_Probe(struct platform_device *psDev)
 {
-	static DC_DEVICE_FUNCTIONS sDCFunctions =
-	{
-		.pfnGetInfo					= DC_FBDEV_GetInfo,
-		.pfnPanelQueryCount			= DC_FBDEV_PanelQueryCount,
-		.pfnPanelQuery				= DC_FBDEV_PanelQuery,
-		.pfnFormatQuery				= DC_FBDEV_FormatQuery,
-		.pfnDimQuery				= DC_FBDEV_DimQuery,
-		.pfnSetBlank				= NULL,
-		.pfnSetVSyncReporting		= NULL,
-		.pfnLastVSyncQuery			= NULL,
-		.pfnContextCreate			= DC_FBDEV_ContextCreate,
-		.pfnContextDestroy			= DC_FBDEV_ContextDestroy,
-		.pfnContextConfigure		= DC_FBDEV_ContextConfigure,
-		.pfnContextConfigureCheck	= DC_FBDEV_ContextConfigureCheck,
-		.pfnBufferAlloc				= DC_FBDEV_BufferAlloc,
-		.pfnBufferAcquire			= DC_FBDEV_BufferAcquire,
-		.pfnBufferRelease			= DC_FBDEV_BufferRelease,
-		.pfnBufferFree				= DC_FBDEV_BufferFree,
+	static DC_DEVICE_FUNCTIONS sDCFunctions = {
+		.pfnGetInfo = DC_FBDEV_GetInfo,
+		.pfnPanelQueryCount = DC_FBDEV_PanelQueryCount,
+		.pfnPanelQuery = DC_FBDEV_PanelQuery,
+		.pfnFormatQuery = DC_FBDEV_FormatQuery,
+		.pfnDimQuery = DC_FBDEV_DimQuery,
+		.pfnSetBlank = NULL,
+		.pfnSetVSyncReporting = NULL,
+		.pfnLastVSyncQuery = NULL,
+		.pfnContextCreate = DC_FBDEV_ContextCreate,
+		.pfnContextDestroy = DC_FBDEV_ContextDestroy,
+		.pfnContextConfigure = DC_FBDEV_ContextConfigure,
+		.pfnContextConfigureCheck = DC_FBDEV_ContextConfigureCheck,
+		.pfnBufferAlloc = DC_FBDEV_BufferAlloc,
+		.pfnBufferAcquire = DC_FBDEV_BufferAcquire,
+		.pfnBufferRelease = DC_FBDEV_BufferRelease,
+		.pfnBufferFree = DC_FBDEV_BufferFree,
 	};
 
 	struct fb_info *psLINFBInfo;
@@ -765,23 +717,20 @@ static int DC_FBDEV_Probe(struct platform_device *psDev)
 	int err = -ENODEV;
 	PVRSRV_ERROR eDcRegErr;
 
-	if (gui32fb_devminor >= FB_MAX)
-	{
+	if (gui32fb_devminor >= FB_MAX) {
 		pr_err("Invalid Linux framebuffer device minor number!\n"
-			   "fb_devminor (%u) >= FB_MAX (%u)",
-				gui32fb_devminor,
-				FB_MAX);
+		       "fb_devminor (%u) >= FB_MAX (%u)",
+		       gui32fb_devminor, FB_MAX);
 		goto err_out;
 	}
 
 	psLINFBInfo = registered_fb[gui32fb_devminor];
-	if (!psLINFBInfo)
-	{
+	if (!psLINFBInfo) {
 		pr_err("No Linux framebuffer (/dev/fbdev%u) device is registered!\n"
-			   "Deferring device probe.\n"
-			   "Check you have a framebuffer driver compiled into your "
-			   "kernel\nand that it is enabled on the cmdline.\n",
-			   gui32fb_devminor);
+		       "Deferring device probe.\n"
+		       "Check you have a framebuffer driver compiled into your "
+		       "kernel\nand that it is enabled on the cmdline.\n",
+		       gui32fb_devminor);
 		err = -EPROBE_DEFER;
 		goto err_out;
 	}
@@ -796,38 +745,34 @@ static int DC_FBDEV_Probe(struct platform_device *psDev)
 	console_lock();
 
 	/* Filter out broken FB devices */
-	if (!psLINFBInfo->fix.smem_len || !psLINFBInfo->fix.line_length)
-	{
+	if (!psLINFBInfo->fix.smem_len || !psLINFBInfo->fix.line_length) {
 		pr_err("The fbdev device detected had a zero smem_len or "
-			   "line_length,\nwhich suggests it is a broken driver.\n");
+		       "line_length,\nwhich suggests it is a broken driver.\n");
 		goto err_unlock;
 	}
 
 	if (psLINFBInfo->fix.type != FB_TYPE_PACKED_PIXELS ||
-		psLINFBInfo->fix.visual != FB_VISUAL_TRUECOLOR)
-	{
+	    psLINFBInfo->fix.visual != FB_VISUAL_TRUECOLOR) {
 		pr_err("The fbdev device detected is not truecolor with packed "
-			   "pixels.\n");
+		       "pixels.\n");
 		goto err_unlock;
 	}
 
-	if (psLINFBInfo->var.bits_per_pixel == 32)
-	{
-		if (psLINFBInfo->var.red.length   != 8  ||
-			psLINFBInfo->var.green.length != 8  ||
-			psLINFBInfo->var.blue.length  != 8  ||
-			psLINFBInfo->var.red.offset   != 16 ||
-			psLINFBInfo->var.green.offset != 8  ||
-			psLINFBInfo->var.blue.offset  != 0)
-		{
+	if (psLINFBInfo->var.bits_per_pixel == 32) {
+		if (psLINFBInfo->var.red.length != 8 ||
+		    psLINFBInfo->var.green.length != 8 ||
+		    psLINFBInfo->var.blue.length != 8 ||
+		    psLINFBInfo->var.red.offset != 16 ||
+		    psLINFBInfo->var.green.offset != 8 ||
+		    psLINFBInfo->var.blue.offset != 0) {
 			pr_err("The fbdev device detected uses an unrecognized "
-				   "32bit pixel format (%u/%u/%u, %u/%u/%u)\n",
-				   psLINFBInfo->var.red.length,
-				   psLINFBInfo->var.green.length,
-				   psLINFBInfo->var.blue.length,
-				   psLINFBInfo->var.red.offset,
-				   psLINFBInfo->var.green.offset,
-				   psLINFBInfo->var.blue.offset);
+			       "32bit pixel format (%u/%u/%u, %u/%u/%u)\n",
+			       psLINFBInfo->var.red.length,
+			       psLINFBInfo->var.green.length,
+			       psLINFBInfo->var.blue.length,
+			       psLINFBInfo->var.red.offset,
+			       psLINFBInfo->var.green.offset,
+			       psLINFBInfo->var.blue.offset);
 			goto err_unlock;
 		}
 #if defined(DC_FBDEV_FORCE_XRGB8888)
@@ -835,44 +780,38 @@ static int DC_FBDEV_Probe(struct platform_device *psDev)
 #else
 		ePixFormat = IMG_PIXFMT_B8G8R8A8_UNORM;
 #endif
-	}
-	else if (psLINFBInfo->var.bits_per_pixel == 16)
-	{
-		if (psLINFBInfo->var.red.length   != 5  ||
-			psLINFBInfo->var.green.length != 6  ||
-			psLINFBInfo->var.blue.length  != 5  ||
-			psLINFBInfo->var.red.offset   != 11 ||
-			psLINFBInfo->var.green.offset != 5  ||
-			psLINFBInfo->var.blue.offset  != 0)
-		{
+	} else if (psLINFBInfo->var.bits_per_pixel == 16) {
+		if (psLINFBInfo->var.red.length != 5 ||
+		    psLINFBInfo->var.green.length != 6 ||
+		    psLINFBInfo->var.blue.length != 5 ||
+		    psLINFBInfo->var.red.offset != 11 ||
+		    psLINFBInfo->var.green.offset != 5 ||
+		    psLINFBInfo->var.blue.offset != 0) {
 			pr_err("The fbdev device detected uses an unrecognized "
-				   "16bit pixel format (%u/%u/%u, %u/%u/%u)\n",
-				   psLINFBInfo->var.red.length,
-				   psLINFBInfo->var.green.length,
-				   psLINFBInfo->var.blue.length,
-				   psLINFBInfo->var.red.offset,
-				   psLINFBInfo->var.green.offset,
-				   psLINFBInfo->var.blue.offset);
+			       "16bit pixel format (%u/%u/%u, %u/%u/%u)\n",
+			       psLINFBInfo->var.red.length,
+			       psLINFBInfo->var.green.length,
+			       psLINFBInfo->var.blue.length,
+			       psLINFBInfo->var.red.offset,
+			       psLINFBInfo->var.green.offset,
+			       psLINFBInfo->var.blue.offset);
 			goto err_unlock;
 		}
 		ePixFormat = IMG_PIXFMT_B5G6R5_UNORM;
-	}
-	else
-	{
+	} else {
 		pr_err("The fbdev device detected uses an unsupported "
-			   "bpp (%u).\n", psLINFBInfo->var.bits_per_pixel);
+		       "bpp (%u).\n",
+		       psLINFBInfo->var.bits_per_pixel);
 		goto err_unlock;
 	}
 
-	if (!try_module_get(psLINFBInfo->fbops->owner))
-	{
+	if (!try_module_get(psLINFBInfo->fbops->owner)) {
 		pr_err("try_module_get() failed");
 		goto err_unlock;
 	}
 
 	if (psLINFBInfo->fbops->fb_open &&
-		psLINFBInfo->fbops->fb_open(psLINFBInfo, 0) != 0)
-	{
+	    psLINFBInfo->fbops->fb_open(psLINFBInfo, 0) != 0) {
 		pr_err("fb_open() failed");
 		goto err_module_put;
 	}
@@ -884,10 +823,8 @@ static int DC_FBDEV_Probe(struct platform_device *psDev)
 	gpsDeviceData->psLINFBInfo = psLINFBInfo;
 	gpsDeviceData->ePixFormat = ePixFormat;
 
-	eDcRegErr = DCRegisterDevice(&sDCFunctions,
-	                             MAX_COMMANDS_IN_FLIGHT,
-	                             gpsDeviceData,
-	                             &gpsDeviceData->hSrvHandle);
+	eDcRegErr = DCRegisterDevice(&sDCFunctions, MAX_COMMANDS_IN_FLIGHT,
+				     gpsDeviceData, &gpsDeviceData->hSrvHandle);
 
 	if (eDcRegErr == PVRSRV_ERROR_RETRY)
 		err = -EPROBE_DEFER;
@@ -899,22 +836,21 @@ static int DC_FBDEV_Probe(struct platform_device *psDev)
 
 	pr_info("Found usable fbdev device (%s):\n"
 #if defined(DC_FBDEV_USE_SCREEN_BASE)
-			"range (virtual)  = 0x%lx-0x%lx\n"
+		"range (virtual)  = 0x%lx-0x%lx\n"
 #else
-			"range (physical) = 0x%lx-0x%lx\n"
+		"range (physical) = 0x%lx-0x%lx\n"
 #endif
-			"size (bytes)     = 0x%x\n"
-			"xres x yres      = %ux%u\n"
-			"xres x yres (v)  = %ux%u\n"
-			"img pix fmt      = %u\n"
-			"flipping?        = %d\n",
-			psLINFBInfo->fix.id,
-			psLINFBInfo->fix.smem_start,
-			psLINFBInfo->fix.smem_start + psLINFBInfo->fix.smem_len,
-			psLINFBInfo->fix.smem_len,
-			psLINFBInfo->var.xres, psLINFBInfo->var.yres,
-			psLINFBInfo->var.xres_virtual, psLINFBInfo->var.yres_virtual,
-			ePixFormat, gpsDeviceData->bCanFlip);
+		"size (bytes)     = 0x%x\n"
+		"xres x yres      = %ux%u\n"
+		"xres x yres (v)  = %ux%u\n"
+		"img pix fmt      = %u\n"
+		"flipping?        = %d\n",
+		psLINFBInfo->fix.id, psLINFBInfo->fix.smem_start,
+		psLINFBInfo->fix.smem_start + psLINFBInfo->fix.smem_len,
+		psLINFBInfo->fix.smem_len, psLINFBInfo->var.xres,
+		psLINFBInfo->var.yres, psLINFBInfo->var.xres_virtual,
+		psLINFBInfo->var.yres_virtual, ePixFormat,
+		gpsDeviceData->bCanFlip);
 	err = 0;
 err_unlock:
 	console_unlock();
@@ -937,7 +873,7 @@ static int DC_FBDEV_Remove(struct platform_device *psDev)
 	console_lock();
 
 	if (psLINFBInfo->fbops->fb_release)
-	   psLINFBInfo->fbops->fb_release(psLINFBInfo, 0);
+		psLINFBInfo->fbops->fb_release(psLINFBInfo, 0);
 
 	module_put(psLINFBInfo->fbops->owner);
 
@@ -954,10 +890,9 @@ static void DC_FBDEV_Shutdown(struct platform_device *psDev)
 {
 }
 
-static struct platform_device_id dc_fbdev_platform_device_id_table[] =
-{
+static struct platform_device_id dc_fbdev_platform_device_id_table[] = {
 	{ .name = DEVNAME, .driver_data = 0 },
-	{ },
+	{},
 };
 
 static struct platform_driver dc_fbdev_platform_driver =
@@ -972,10 +907,9 @@ static struct platform_driver dc_fbdev_platform_driver =
 	.id_table      = dc_fbdev_platform_device_id_table,
 };
 
-static struct platform_device_info dc_fbdev_device_info =
-{
+static struct platform_device_info dc_fbdev_device_info = {
 	.name = DEVNAME,
-	.id   = -1,
+	.id = -1,
 };
 
 static struct platform_device *dc_fbdev;
@@ -985,15 +919,13 @@ static int __init DC_FBDEV_init(void)
 	int err;
 
 	dc_fbdev = platform_device_register_full(&dc_fbdev_device_info);
-	if (IS_ERR(dc_fbdev))
-	{
+	if (IS_ERR(dc_fbdev)) {
 		err = PTR_ERR(dc_fbdev);
 		goto err_clear_device;
 	}
 
 	err = platform_driver_register(&dc_fbdev_platform_driver);
-	if (err)
-	{
+	if (err) {
 		goto err_device_unregister;
 	}
 
@@ -1008,8 +940,7 @@ err_clear_device:
 
 static void __exit DC_FBDEV_exit(void)
 {
-	if (dc_fbdev)
-	{
+	if (dc_fbdev) {
 		platform_device_unregister(dc_fbdev);
 	}
 

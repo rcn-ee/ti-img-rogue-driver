@@ -49,6 +49,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * PhysMemTest
  */
 PVRSRV_ERROR
-PhysMemTest(PVRSRV_DEVICE_NODE *psDeviceNode, void *pvDevConfig, IMG_UINT32 ui32MemTestPasses);
+PhysMemTest(PVRSRV_DEVICE_NODE *psDeviceNode, void *pvDevConfig,
+	    IMG_UINT32 ui32MemTestPasses);
 
 #endif /* SRVSRV_PHYSMEM_TEST_H */

@@ -61,10 +61,8 @@ static int display_enabled_open(struct inode *inode, struct file *file)
 	return 0;
 }
 
-static ssize_t display_enabled_read(struct file *file,
-				    char __user *user_buffer,
-				    size_t count,
-				    loff_t *position_ptr)
+static ssize_t display_enabled_read(struct file *file, char __user *user_buffer,
+				    size_t count, loff_t *position_ptr)
 {
 	struct drm_device *dev = file->private_data;
 	struct pdp_drm_private *dev_priv = dev->dev_private;
@@ -95,8 +93,7 @@ static ssize_t display_enabled_read(struct file *file,
 
 static ssize_t display_enabled_write(struct file *file,
 				     const char __user *user_buffer,
-				     size_t count,
-				     loff_t *position)
+				     size_t count, loff_t *position)
 {
 	struct drm_device *dev = file->private_data;
 	struct pdp_drm_private *dev_priv = dev->dev_private;
@@ -111,7 +108,8 @@ static ssize_t display_enabled_write(struct file *file,
 	buffer[count] = '\0';
 
 	if (!kstrtobool(buffer, &dev_priv->display_enabled) && dev_priv->crtc)
-		pdp_crtc_set_plane_enabled(dev_priv->crtc, dev_priv->display_enabled);
+		pdp_crtc_set_plane_enabled(dev_priv->crtc,
+					   dev_priv->display_enabled);
 
 	return count;
 }
@@ -146,7 +144,7 @@ static int pdp_debugfs_create(struct drm_minor *minor, const char *name,
 	}
 
 	node->minor = minor;
-	node->info_ent = (void *) fops;
+	node->info_ent = (void *)fops;
 
 	mutex_lock(&minor->debugfs_lock);
 	list_add(&node->list, &minor->debugfs_list);
@@ -164,13 +162,11 @@ void pdp_debugfs_init(struct drm_minor *minor)
 {
 	int err;
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
-	err = pdp_debugfs_create(minor, PDP_DEBUGFS_DISPLAY_ENABLED,
-				 0100644,
+	err = pdp_debugfs_create(minor, PDP_DEBUGFS_DISPLAY_ENABLED, 0100644,
 				 &pdp_display_enabled_fops);
 #else
 	struct dentry *dent = debugfs_create_file(PDP_DEBUGFS_DISPLAY_ENABLED,
-						  0100644,
-						  minor->debugfs_root,
+						  0100644, minor->debugfs_root,
 						  minor->dev,
 						  &pdp_display_enabled_fops);
 	err = !dent;
@@ -188,7 +184,7 @@ void pdp_debugfs_init(struct drm_minor *minor)
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
 void pdp_debugfs_cleanup(struct drm_minor *minor)
 {
-	drm_debugfs_remove_files((struct drm_info_list *) &pdp_display_enabled_fops,
-				 1, minor);
+	drm_debugfs_remove_files(
+		(struct drm_info_list *)&pdp_display_enabled_fops, 1, minor);
 }
 #endif

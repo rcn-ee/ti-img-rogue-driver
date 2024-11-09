@@ -70,5 +70,4 @@ OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH
 DAMAGE.
 */ /**************************************************************************/
 
-
-PVRSRV_ERROR HdcpConfigure(HDMI_DEVICE * pvDevice);
+PVRSRV_ERROR HdcpConfigure(HDMI_DEVICE *pvDevice);

@@ -48,73 +48,70 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxdevice.h"
 
 /* Valid values for TC_MEMORY_CONFIG configuration option */
-#define TC_MEMORY_LOCAL			(1)
-#define TC_MEMORY_HOST			(2)
-#define TC_MEMORY_HYBRID		(3)
+#define TC_MEMORY_LOCAL (1)
+#define TC_MEMORY_HOST (2)
+#define TC_MEMORY_HYBRID (3)
 
 #if defined(SUPPORT_DISPLAY_CLASS)
 /* Memory reserved for use by the PDP DC. */
-#define RGX_TC_RESERVE_DC_MEM_SIZE	((TC_DISPLAY_MEM_SIZE) * 1024 * 1024)
+#define RGX_TC_RESERVE_DC_MEM_SIZE ((TC_DISPLAY_MEM_SIZE) * 1024 * 1024)
 #endif
 
 #define SYS_RGX_ACTIVE_POWER_LATENCY_MS (10)
 
-#define TC_SYSTEM_NAME			"apollo"
+#define TC_SYSTEM_NAME "apollo"
 
 #if (TC_MEMORY_CONFIG == TC_MEMORY_LOCAL)
 static void TCLocalCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-					  IMG_UINT32 ui32NumOfAddr,
-					  IMG_DEV_PHYADDR *psDevPAddr,
-					  IMG_CPU_PHYADDR *psCpuPAddr);
+				      IMG_UINT32 ui32NumOfAddr,
+				      IMG_DEV_PHYADDR *psDevPAddr,
+				      IMG_CPU_PHYADDR *psCpuPAddr);
 
 static void TCLocalDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-					  IMG_UINT32 ui32NumOfAddr,
-					  IMG_CPU_PHYADDR *psCpuPAddr,
-					  IMG_DEV_PHYADDR *psDevPAddr);
+				      IMG_UINT32 ui32NumOfAddr,
+				      IMG_CPU_PHYADDR *psCpuPAddr,
+				      IMG_DEV_PHYADDR *psDevPAddr);
 
 #elif (TC_MEMORY_CONFIG == TC_MEMORY_HOST)
 static void TCSystemCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-					   IMG_UINT32 ui32NumOfAddr,
-					   IMG_DEV_PHYADDR *psDevPAddr,
-					   IMG_CPU_PHYADDR *psCpuPAddr);
+				       IMG_UINT32 ui32NumOfAddr,
+				       IMG_DEV_PHYADDR *psDevPAddr,
+				       IMG_CPU_PHYADDR *psCpuPAddr);
 
 static void TCSystemDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-					   IMG_UINT32 ui32NumOfAddr,
-					   IMG_CPU_PHYADDR *psCpuPAddr,
-					   IMG_DEV_PHYADDR *psDevPAddr);
+				       IMG_UINT32 ui32NumOfAddr,
+				       IMG_CPU_PHYADDR *psCpuPAddr,
+				       IMG_DEV_PHYADDR *psDevPAddr);
 
 #elif (TC_MEMORY_CONFIG == TC_MEMORY_HYBRID)
 static void TCHybridCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-					  IMG_UINT32 ui32NumOfAddr,
-					  IMG_DEV_PHYADDR *psDevPAddr,
-					  IMG_CPU_PHYADDR *psCpuPAddr);
+				       IMG_UINT32 ui32NumOfAddr,
+				       IMG_DEV_PHYADDR *psDevPAddr,
+				       IMG_CPU_PHYADDR *psCpuPAddr);
 
 static void TCHybridDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-					  IMG_UINT32 ui32NumOfAddr,
-					  IMG_CPU_PHYADDR *psCpuPAddr,
-					  IMG_DEV_PHYADDR *psDevPAddr);
+				       IMG_UINT32 ui32NumOfAddr,
+				       IMG_CPU_PHYADDR *psCpuPAddr,
+				       IMG_DEV_PHYADDR *psDevPAddr);
 
 #endif /* (TC_MEMORY_CONFIG == TC_MEMORY_HYBRID) */
 
 #if (TC_MEMORY_CONFIG == TC_MEMORY_LOCAL)
-static PHYS_HEAP_FUNCTIONS gsLocalPhysHeapFuncs =
-{
+static PHYS_HEAP_FUNCTIONS gsLocalPhysHeapFuncs = {
 	/* pfnCpuPAddrToDevPAddr */
 	TCLocalCpuPAddrToDevPAddr,
 	/* pfnDevPAddrToCpuPAddr */
 	TCLocalDevPAddrToCpuPAddr,
 };
 #elif (TC_MEMORY_CONFIG == TC_MEMORY_HOST)
-static PHYS_HEAP_FUNCTIONS gsSystemPhysHeapFuncs =
-{
+static PHYS_HEAP_FUNCTIONS gsSystemPhysHeapFuncs = {
 	/* pfnCpuPAddrToDevPAddr */
 	TCSystemCpuPAddrToDevPAddr,
 	/* pfnDevPAddrToCpuPAddr */
 	TCSystemDevPAddrToCpuPAddr,
 };
 #elif (TC_MEMORY_CONFIG == TC_MEMORY_HYBRID)
-static PHYS_HEAP_FUNCTIONS gsHybridPhysHeapFuncs =
-{
+static PHYS_HEAP_FUNCTIONS gsHybridPhysHeapFuncs = {
 	/* pfnCpuPAddrToDevPAddr */
 	TCHybridCpuPAddrToDevPAddr,
 	/* pfnDevPAddrToCpuPAddr */

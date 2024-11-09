@@ -54,72 +54,49 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_pdumpmm_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpLoadMem(IMG_HANDLE hBridge,
-						IMG_HANDLE hPMR,
-						IMG_DEVMEM_OFFSET_T uiOffset,
-						IMG_DEVMEM_SIZE_T uiSize,
-						IMG_UINT32 ui32PDumpFlags, IMG_BOOL bbZero);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpLoadMem(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32PDumpFlags, IMG_BOOL bbZero);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpLoadMemValue32(IMG_HANDLE hBridge,
-						       IMG_HANDLE hPMR,
-						       IMG_DEVMEM_OFFSET_T uiOffset,
-						       IMG_UINT32 ui32Value,
-						       IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpLoadMemValue32(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_UINT32 ui32Value, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpLoadMemValue64(IMG_HANDLE hBridge,
-						       IMG_HANDLE hPMR,
-						       IMG_DEVMEM_OFFSET_T uiOffset,
-						       IMG_UINT64 ui64Value,
-						       IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpLoadMemValue64(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_UINT64 ui64Value, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpSaveToFile(IMG_HANDLE hBridge,
-						   IMG_HANDLE hPMR,
-						   IMG_DEVMEM_OFFSET_T uiOffset,
-						   IMG_DEVMEM_SIZE_T uiSize,
-						   IMG_UINT32 ui32ArraySize,
-						   const IMG_CHAR * puiFileName,
-						   IMG_UINT32 ui32uiFileOffset);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpSaveToFile(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_DEVMEM_SIZE_T uiSize, IMG_UINT32 ui32ArraySize,
+	const IMG_CHAR *puiFileName, IMG_UINT32 ui32uiFileOffset);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpSymbolicAddr(IMG_HANDLE hBridge,
-						     IMG_HANDLE hPMR,
-						     IMG_DEVMEM_OFFSET_T uiOffset,
-						     IMG_UINT32 ui32MemspaceNameLen,
-						     IMG_CHAR * puiMemspaceName,
-						     IMG_UINT32 ui32SymbolicAddrLen,
-						     IMG_CHAR * puiSymbolicAddr,
-						     IMG_DEVMEM_OFFSET_T * puiNewOffset,
-						     IMG_DEVMEM_OFFSET_T * puiNextSymName);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpSymbolicAddr(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_UINT32 ui32MemspaceNameLen, IMG_CHAR *puiMemspaceName,
+	IMG_UINT32 ui32SymbolicAddrLen, IMG_CHAR *puiSymbolicAddr,
+	IMG_DEVMEM_OFFSET_T *puiNewOffset, IMG_DEVMEM_OFFSET_T *puiNextSymName);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpPol32(IMG_HANDLE hBridge,
-					      IMG_HANDLE hPMR,
-					      IMG_DEVMEM_OFFSET_T uiOffset,
-					      IMG_UINT32 ui32Value,
-					      IMG_UINT32 ui32Mask,
-					      PDUMP_POLL_OPERATOR eOperator,
-					      IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpPol32(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+	PDUMP_POLL_OPERATOR eOperator, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpCheck32(IMG_HANDLE hBridge,
-						IMG_HANDLE hPMR,
-						IMG_DEVMEM_OFFSET_T uiOffset,
-						IMG_UINT32 ui32Value,
-						IMG_UINT32 ui32Mask,
-						PDUMP_POLL_OPERATOR eOperator,
-						IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpCheck32(
+	IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_OFFSET_T uiOffset,
+	IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+	PDUMP_POLL_OPERATOR eOperator, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpCBP(IMG_HANDLE hBridge,
-					    IMG_HANDLE hPMR,
+IMG_INTERNAL PVRSRV_ERROR BridgePMRPDumpCBP(IMG_HANDLE hBridge, IMG_HANDLE hPMR,
 					    IMG_DEVMEM_OFFSET_T uiReadOffset,
 					    IMG_DEVMEM_OFFSET_T uiWriteOffset,
 					    IMG_DEVMEM_SIZE_T uiPacketSize,
 					    IMG_DEVMEM_SIZE_T uiBufferSize);
 
-IMG_INTERNAL PVRSRV_ERROR BridgeDevmemIntPDumpSaveToFileVirtual(IMG_HANDLE hBridge,
-								IMG_HANDLE hDevmemServerContext,
-								IMG_DEV_VIRTADDR sAddress,
-								IMG_DEVMEM_SIZE_T uiSize,
-								IMG_UINT32 ui32ArraySize,
-								const IMG_CHAR * puiFileName,
-								IMG_UINT32 ui32FileOffset,
-								IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgeDevmemIntPDumpSaveToFileVirtual(
+	IMG_HANDLE hBridge, IMG_HANDLE hDevmemServerContext,
+	IMG_DEV_VIRTADDR sAddress, IMG_DEVMEM_SIZE_T uiSize,
+	IMG_UINT32 ui32ArraySize, const IMG_CHAR *puiFileName,
+	IMG_UINT32 ui32FileOffset, IMG_UINT32 ui32PDumpFlags);
 
 #endif /* CLIENT_PDUMPMM_BRIDGE_H */

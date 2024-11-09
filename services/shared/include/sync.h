@@ -77,7 +77,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*****************************************************************************/
 PVRSRV_ERROR
 SyncPrimContextCreate(SHARED_DEV_CONNECTION hDevConnection,
-                      PSYNC_PRIM_CONTEXT    *hSyncPrimContext);
+		      PSYNC_PRIM_CONTEXT *hSyncPrimContext);
 
 /*************************************************************************/ /*!
 @Function       SyncPrimContextDestroy
@@ -90,8 +90,7 @@ SyncPrimContextCreate(SHARED_DEV_CONNECTION hDevConnection,
 @Return         None
 */
 /*****************************************************************************/
-void
-SyncPrimContextDestroy(PSYNC_PRIM_CONTEXT hSyncPrimContext);
+void SyncPrimContextDestroy(PSYNC_PRIM_CONTEXT hSyncPrimContext);
 
 /*************************************************************************/ /*!
 @Function       SyncPrimAlloc
@@ -111,9 +110,8 @@ SyncPrimContextDestroy(PSYNC_PRIM_CONTEXT hSyncPrimContext);
 */
 /*****************************************************************************/
 PVRSRV_ERROR
-SyncPrimAlloc(PSYNC_PRIM_CONTEXT      hSyncPrimContext,
-              PVRSRV_CLIENT_SYNC_PRIM **ppsSync,
-              const IMG_CHAR          *pszClassName);
+SyncPrimAlloc(PSYNC_PRIM_CONTEXT hSyncPrimContext,
+	      PVRSRV_CLIENT_SYNC_PRIM **ppsSync, const IMG_CHAR *pszClassName);
 
 /*************************************************************************/ /*!
 @Function       SyncPrimFree
@@ -173,8 +171,7 @@ SyncPrimNoHwUpdate(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value);
 @Return         None
 */
 /*****************************************************************************/
-void
-SyncPrimPDump(PVRSRV_CLIENT_SYNC_PRIM *psSync);
+void SyncPrimPDump(PVRSRV_CLIENT_SYNC_PRIM *psSync);
 
 /*************************************************************************/ /*!
 @Function       SyncPrimPDumpValue
@@ -188,8 +185,7 @@ SyncPrimPDump(PVRSRV_CLIENT_SYNC_PRIM *psSync);
 @Return         None
 */
 /*****************************************************************************/
-void
-SyncPrimPDumpValue(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value);
+void SyncPrimPDumpValue(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value);
 
 /*************************************************************************/ /*!
 @Function       SyncPrimPDumpPol
@@ -207,12 +203,9 @@ SyncPrimPDumpValue(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value);
 @Return         None
 */
 /*****************************************************************************/
-void
-SyncPrimPDumpPol(PVRSRV_CLIENT_SYNC_PRIM *psSync,
-				 IMG_UINT32 ui32Value,
-				 IMG_UINT32 ui32Mask,
-				 PDUMP_POLL_OPERATOR eOperator,
-				 IMG_UINT32 ui32PDumpFlags);
+void SyncPrimPDumpPol(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value,
+		      IMG_UINT32 ui32Mask, PDUMP_POLL_OPERATOR eOperator,
+		      IMG_UINT32 ui32PDumpFlags);
 
 /*************************************************************************/ /*!
 @Function       SyncPrimPDumpCBP
@@ -230,19 +223,16 @@ SyncPrimPDumpPol(PVRSRV_CLIENT_SYNC_PRIM *psSync,
 @Return         None
 */
 /*****************************************************************************/
-void
-SyncPrimPDumpCBP(PVRSRV_CLIENT_SYNC_PRIM *psSync,
-				 IMG_UINT64 uiWriteOffset,
-				 IMG_UINT64 uiPacketSize,
-				 IMG_UINT64 uiBufferSize);
+void SyncPrimPDumpCBP(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT64 uiWriteOffset,
+		      IMG_UINT64 uiPacketSize, IMG_UINT64 uiBufferSize);
 
 #else
 
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(SyncPrimPDumpValue)
 #endif
-static INLINE void
-SyncPrimPDumpValue(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value)
+static INLINE void SyncPrimPDumpValue(PVRSRV_CLIENT_SYNC_PRIM *psSync,
+				      IMG_UINT32 ui32Value)
 {
 	PVR_UNREFERENCED_PARAMETER(psSync);
 	PVR_UNREFERENCED_PARAMETER(ui32Value);
@@ -251,8 +241,7 @@ SyncPrimPDumpValue(PVRSRV_CLIENT_SYNC_PRIM *psSync, IMG_UINT32 ui32Value)
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(SyncPrimPDump)
 #endif
-static INLINE void
-SyncPrimPDump(PVRSRV_CLIENT_SYNC_PRIM *psSync)
+static INLINE void SyncPrimPDump(PVRSRV_CLIENT_SYNC_PRIM *psSync)
 {
 	PVR_UNREFERENCED_PARAMETER(psSync);
 }
@@ -260,12 +249,10 @@ SyncPrimPDump(PVRSRV_CLIENT_SYNC_PRIM *psSync)
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(SyncPrimPDumpPol)
 #endif
-static INLINE void
-SyncPrimPDumpPol(PVRSRV_CLIENT_SYNC_PRIM *psSync,
-				 IMG_UINT32 ui32Value,
-				 IMG_UINT32 ui32Mask,
-				 PDUMP_POLL_OPERATOR eOperator,
-				 IMG_UINT32 ui32PDumpFlags)
+static INLINE void SyncPrimPDumpPol(PVRSRV_CLIENT_SYNC_PRIM *psSync,
+				    IMG_UINT32 ui32Value, IMG_UINT32 ui32Mask,
+				    PDUMP_POLL_OPERATOR eOperator,
+				    IMG_UINT32 ui32PDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(psSync);
 	PVR_UNREFERENCED_PARAMETER(ui32Value);
@@ -277,11 +264,10 @@ SyncPrimPDumpPol(PVRSRV_CLIENT_SYNC_PRIM *psSync,
 #ifdef INLINE_IS_PRAGMA
 #pragma inline(SyncPrimPDumpCBP)
 #endif
-static INLINE void
-SyncPrimPDumpCBP(PVRSRV_CLIENT_SYNC_PRIM *psSync,
-				 IMG_UINT64 uiWriteOffset,
-				 IMG_UINT64 uiPacketSize,
-				 IMG_UINT64 uiBufferSize)
+static INLINE void SyncPrimPDumpCBP(PVRSRV_CLIENT_SYNC_PRIM *psSync,
+				    IMG_UINT64 uiWriteOffset,
+				    IMG_UINT64 uiPacketSize,
+				    IMG_UINT64 uiBufferSize)
 {
 	PVR_UNREFERENCED_PARAMETER(psSync);
 	PVR_UNREFERENCED_PARAMETER(uiWriteOffset);

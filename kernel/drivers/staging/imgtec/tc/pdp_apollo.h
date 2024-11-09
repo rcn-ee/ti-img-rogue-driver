@@ -45,13 +45,12 @@
 #include <linux/device.h>
 #include <linux/types.h>
 
-bool pdp_apollo_clocks_set(struct device *dev,
-			   void __iomem *pdp_reg, void __iomem *pll_reg,
-			   u32 clock_in_mhz,
-			   void __iomem *odn_core_reg,
-			   u32 hdisplay, u32 vdisplay);
+bool pdp_apollo_clocks_set(struct device *dev, void __iomem *pdp_reg,
+			   void __iomem *pll_reg, u32 clock_in_mhz,
+			   void __iomem *odn_core_reg, u32 hdisplay,
+			   u32 vdisplay);
 
-void pdp_apollo_set_updates_enabled(struct device *dev,	void __iomem *pdp_reg,
+void pdp_apollo_set_updates_enabled(struct device *dev, void __iomem *pdp_reg,
 				    bool enable);
 
 void pdp_apollo_set_syncgen_enabled(struct device *dev, void __iomem *pdp_reg,
@@ -71,18 +70,15 @@ void pdp_apollo_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 
 void pdp_apollo_reset_planes(struct device *dev, void __iomem *pdp_reg);
 
-void pdp_apollo_set_surface(struct device *dev,	void __iomem *pdp_reg,
-			    u32 plane, u32 address,
-			    u32 posx, u32 posy,
-			    u32 width, u32 height, u32 stride,
-			    u32 format, u32 alpha, bool blend);
+void pdp_apollo_set_surface(struct device *dev, void __iomem *pdp_reg,
+			    u32 plane, u32 address, u32 posx, u32 posy,
+			    u32 width, u32 height, u32 stride, u32 format,
+			    u32 alpha, bool blend);
 
 void pdp_apollo_mode_set(struct device *dev, void __iomem *pdp_reg,
-			 u32 h_display, u32 v_display,
-			 u32 hbps, u32 ht, u32 has,
-			 u32 hlbs, u32 hfps, u32 hrbs,
-			 u32 vbps, u32 vt, u32 vas,
-			 u32 vtbs, u32 vfps, u32 vbbs,
+			 u32 h_display, u32 v_display, u32 hbps, u32 ht,
+			 u32 has, u32 hlbs, u32 hfps, u32 hrbs, u32 vbps,
+			 u32 vt, u32 vas, u32 vtbs, u32 vfps, u32 vbbs,
 			 bool nhsync, bool nvsync);
 
 #endif /* __PDP_APOLLO_H__ */

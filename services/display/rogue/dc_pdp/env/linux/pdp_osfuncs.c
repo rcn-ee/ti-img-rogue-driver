@@ -61,20 +61,20 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "dc_pdp.h"
 #include "img_defs.h"
 
-#define DCPDP_WIDTH_MIN			(640)
-#define DCPDP_WIDTH_MAX			(1280)
-#define DCPDP_HEIGHT_MIN		(480)
-#define DCPDP_HEIGHT_MAX		(1024)
+#define DCPDP_WIDTH_MIN (640)
+#define DCPDP_WIDTH_MAX (1280)
+#define DCPDP_HEIGHT_MIN (480)
+#define DCPDP_HEIGHT_MAX (1024)
 
-#define DCPDP_DEBUGFS_DISPLAY_ENABLED	"display_enabled"
+#define DCPDP_DEBUGFS_DISPLAY_ENABLED "display_enabled"
 
 #if defined(DCPDP_WIDTH) && !defined(DCPDP_HEIGHT)
 #error ERROR: DCPDP_WIDTH defined but DCPDP_HEIGHT not defined
 #elif !defined(DCPDP_WIDTH) && defined(DCPDP_HEIGHT)
 #error ERROR: DCPDP_HEIGHT defined but DCPDP_WIDTH not defined
 #elif !defined(DCPDP_WIDTH) && !defined(DCPDP_HEIGHT)
-#define DCPDP_WIDTH			DCPDP_WIDTH_MAX
-#define DCPDP_HEIGHT			DCPDP_HEIGHT_MAX
+#define DCPDP_WIDTH DCPDP_WIDTH_MAX
+#define DCPDP_HEIGHT DCPDP_HEIGHT_MAX
 #elif (DCPDP_WIDTH > DCPDP_WIDTH_MAX)
 #error ERROR: DCPDP_WIDTH too large (max: 1280)
 #elif (DCPDP_WIDTH < DCPDP_WIDTH_MIN)
@@ -85,27 +85,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #error ERROR: DCPDP_HEIGHT too small (max: 480)
 #endif
 
-struct DCPDP_DEVICE_PRIV_TAG
-{
-	struct device		*psDev;
-	DCPDP_DEVICE		*psPDPDevice;
+struct DCPDP_DEVICE_PRIV_TAG {
+	struct device *psDev;
+	DCPDP_DEVICE *psPDPDevice;
 
-	IMG_HANDLE		hServicesConnection;
-	DC_SERVICES_FUNCS	sServicesFuncs;
+	IMG_HANDLE hServicesConnection;
+	DC_SERVICES_FUNCS sServicesFuncs;
 
-	IMG_CPU_PHYADDR		sPDPRegCpuPAddr;
-	IMG_UINT32		ui32PDPRegSize;
-	IMG_CPU_PHYADDR		sPLLRegCpuPAddr;
-	IMG_UINT32		ui32PLLRegSize;
+	IMG_CPU_PHYADDR sPDPRegCpuPAddr;
+	IMG_UINT32 ui32PDPRegSize;
+	IMG_CPU_PHYADDR sPLLRegCpuPAddr;
+	IMG_UINT32 ui32PLLRegSize;
 
-	struct dentry		*psDebugFSEntryDir;
-	struct dentry		*psDisplayEnabledEntry;
+	struct dentry *psDebugFSEntryDir;
+	struct dentry *psDisplayEnabledEntry;
 
 #if defined(DCPDP_REGISTER_DRIVER)
-	PFN_LISR		pfnLISR;
-	void			*pvLISRData;
+	PFN_LISR pfnLISR;
+	void *pvLISRData;
 #else
-	IMG_HANDLE		hLISRData;
+	IMG_HANDLE hLISRData;
 #endif
 };
 
@@ -114,15 +113,14 @@ static DCPDP_DEVICE_PRIV *g_psDevicePriv;
 #endif
 
 /* PDP module parameters */
-DCPDP_MODULE_PARAMETERS sModuleParams =
-{
-	.ui32PDPEnabled = 1,
-	.ui32PDPWidth   = DCPDP_WIDTH,
-	.ui32PDPHeight  = DCPDP_HEIGHT
-};
-module_param_named(mem_en, sModuleParams.ui32PDPEnabled, uint, S_IRUGO | S_IWUSR);
-module_param_named(width,  sModuleParams.ui32PDPWidth,   uint, S_IRUGO | S_IWUSR);
-module_param_named(height, sModuleParams.ui32PDPHeight,  uint, S_IRUGO | S_IWUSR);
+DCPDP_MODULE_PARAMETERS sModuleParams = { .ui32PDPEnabled = 1,
+					  .ui32PDPWidth = DCPDP_WIDTH,
+					  .ui32PDPHeight = DCPDP_HEIGHT };
+module_param_named(mem_en, sModuleParams.ui32PDPEnabled, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(width, sModuleParams.ui32PDPWidth, uint, S_IRUGO | S_IWUSR);
+module_param_named(height, sModuleParams.ui32PDPHeight, uint,
+		   S_IRUGO | S_IWUSR);
 
 const DCPDP_MODULE_PARAMETERS *DCPDPGetModuleParameters(void)
 {
@@ -132,30 +130,28 @@ const DCPDP_MODULE_PARAMETERS *DCPDPGetModuleParameters(void)
 IMG_CPU_PHYADDR DCPDPGetAddrRangeStart(DCPDP_DEVICE_PRIV *psDevicePriv,
 				       DCPDP_ADDRESS_RANGE eRange)
 {
-	switch (eRange)
-	{
-		default:
-			DC_ASSERT(!"Unsupported address range");
-			__fallthrough;
-		case DCPDP_ADDRESS_RANGE_PDP:
-			return psDevicePriv->sPDPRegCpuPAddr;
-		case DCPDP_ADDRESS_RANGE_PLL:
-			return psDevicePriv->sPLLRegCpuPAddr;
+	switch (eRange) {
+	default:
+		DC_ASSERT(!"Unsupported address range");
+		__fallthrough;
+	case DCPDP_ADDRESS_RANGE_PDP:
+		return psDevicePriv->sPDPRegCpuPAddr;
+	case DCPDP_ADDRESS_RANGE_PLL:
+		return psDevicePriv->sPLLRegCpuPAddr;
 	}
 }
 
 IMG_UINT32 DCPDPGetAddrRangeSize(DCPDP_DEVICE_PRIV *psDevicePriv,
 				 DCPDP_ADDRESS_RANGE eRange)
 {
-	switch (eRange)
-	{
-		default:
-			DC_ASSERT(!"Unsupported address range");
-			__fallthrough;
-		case DCPDP_ADDRESS_RANGE_PDP:
-			return psDevicePriv->ui32PDPRegSize;
-		case DCPDP_ADDRESS_RANGE_PLL:
-			return psDevicePriv->ui32PLLRegSize;
+	switch (eRange) {
+	default:
+		DC_ASSERT(!"Unsupported address range");
+		__fallthrough;
+	case DCPDP_ADDRESS_RANGE_PDP:
+		return psDevicePriv->ui32PDPRegSize;
+	case DCPDP_ADDRESS_RANGE_PLL:
+		return psDevicePriv->ui32PLLRegSize;
 	}
 }
 
@@ -164,9 +160,8 @@ static void DCPDPLISRHandlerWrapper(void *pvData)
 {
 	DCPDP_DEVICE_PRIV *psDevicePriv = pvData;
 
-	if (psDevicePriv->pfnLISR != NULL)
-	{
-		(void) psDevicePriv->pfnLISR(psDevicePriv->pvLISRData);
+	if (psDevicePriv->pfnLISR != NULL) {
+		(void)psDevicePriv->pfnLISR(psDevicePriv->pvLISRData);
 	}
 }
 #endif
@@ -178,31 +173,29 @@ PVRSRV_ERROR DCPDPInstallDeviceLISR(DCPDP_DEVICE_PRIV *psDevicePriv,
 	struct device *psParentDev = psDevicePriv->psDev->parent;
 	int iErr;
 
-	if (psDevicePriv->pfnLISR != NULL)
-	{
+	if (psDevicePriv->pfnLISR != NULL) {
 		return PVRSRV_ERROR_ISR_ALREADY_INSTALLED;
 	}
 
 	psDevicePriv->pfnLISR = pfnLISR;
 	psDevicePriv->pvLISRData = pvData;
 
-	iErr = tc_set_interrupt_handler(psParentDev,
-					TC_INTERRUPT_PDP,
-					DCPDPLISRHandlerWrapper,
-					psDevicePriv);
-	if (iErr)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to install interrupt handler (err=%d)\n",
+	iErr = tc_set_interrupt_handler(psParentDev, TC_INTERRUPT_PDP,
+					DCPDPLISRHandlerWrapper, psDevicePriv);
+	if (iErr) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to install interrupt handler (err=%d)\n",
 		       __func__, iErr);
 		return PVRSRV_ERROR_UNABLE_TO_INSTALL_ISR;
 	}
 
 	iErr = tc_enable_interrupt(psParentDev, TC_INTERRUPT_PDP);
-	if (iErr)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to enable interrupts (err=%d)\n",
+	if (iErr) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to enable interrupts (err=%d)\n",
 		       __func__, iErr);
-		tc_set_interrupt_handler(psParentDev, TC_INTERRUPT_PDP, NULL, NULL);
+		tc_set_interrupt_handler(psParentDev, TC_INTERRUPT_PDP, NULL,
+					 NULL);
 		psDevicePriv->pfnLISR = NULL;
 		psDevicePriv->pvLISRData = NULL;
 		return PVRSRV_ERROR_UNABLE_TO_INSTALL_ISR;
@@ -210,17 +203,13 @@ PVRSRV_ERROR DCPDPInstallDeviceLISR(DCPDP_DEVICE_PRIV *psDevicePriv,
 
 	return PVRSRV_OK;
 #else
-	if (psDevicePriv->hLISRData != NULL)
-	{
+	if (psDevicePriv->hLISRData != NULL) {
 		return PVRSRV_ERROR_ISR_ALREADY_INSTALLED;
 	}
 
-	return psDevicePriv->sServicesFuncs.pfnSysInstallDeviceLISR(psDevicePriv->psDev,
-								    DCPDP_INTERRUPT_ID,
-								    DRVNAME,
-								    pfnLISR,
-								    pvData,
-								    &psDevicePriv->hLISRData);
+	return psDevicePriv->sServicesFuncs.pfnSysInstallDeviceLISR(
+		psDevicePriv->psDev, DCPDP_INTERRUPT_ID, DRVNAME, pfnLISR,
+		pvData, &psDevicePriv->hLISRData);
 #endif
 }
 
@@ -230,17 +219,17 @@ PVRSRV_ERROR DCPDPUninstallDeviceLISR(DCPDP_DEVICE_PRIV *psDevicePriv)
 	struct device *psParentDev = psDevicePriv->psDev->parent;
 	int iErr;
 
-	if (psDevicePriv->pfnLISR == NULL)
-	{
+	if (psDevicePriv->pfnLISR == NULL) {
 		return PVRSRV_ERROR_ISR_NOT_INSTALLED;
 	}
 
 	tc_disable_interrupt(psParentDev, TC_INTERRUPT_PDP);
 
-	iErr = tc_set_interrupt_handler(psParentDev, TC_INTERRUPT_PDP, NULL, NULL);
-	if (iErr)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to uninstall interrupt handler (err=%d)\n",
+	iErr = tc_set_interrupt_handler(psParentDev, TC_INTERRUPT_PDP, NULL,
+					NULL);
+	if (iErr) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to uninstall interrupt handler (err=%d)\n",
 		       __func__, iErr);
 		return PVRSRV_ERROR_UNABLE_TO_INSTALL_ISR;
 	}
@@ -252,14 +241,12 @@ PVRSRV_ERROR DCPDPUninstallDeviceLISR(DCPDP_DEVICE_PRIV *psDevicePriv)
 #else
 	PVRSRV_ERROR eError;
 
-	if (psDevicePriv->hLISRData == NULL)
-	{
+	if (psDevicePriv->hLISRData == NULL) {
 		return PVRSRV_ERROR_ISR_NOT_INSTALLED;
 	}
 
 	eError = PVRSRVSystemUninstallDeviceLISR(psDevicePriv->hLISRData);
-	if (eError == PVRSRV_OK)
-	{
+	if (eError == PVRSRV_OK) {
 		psDevicePriv->hLISRData = NULL;
 	}
 
@@ -275,8 +262,7 @@ static int DisplayEnabledOpen(struct inode *psINode, struct file *psFile)
 }
 
 static ssize_t DisplayEnabledRead(struct file *psFile,
-				  char __user *psUserBuffer,
-				  size_t uiCount,
+				  char __user *psUserBuffer, size_t uiCount,
 				  loff_t *puiPosition)
 {
 	loff_t uiPosition = *puiPosition;
@@ -284,28 +270,22 @@ static ssize_t DisplayEnabledRead(struct file *psFile,
 	size_t uiBufferSize = ARRAY_SIZE(pszBuffer);
 	int iErr;
 
-	if (uiPosition < 0)
-	{
+	if (uiPosition < 0) {
 		return -EINVAL;
-	}
-	else if (uiPosition >= uiBufferSize || uiCount == 0)
-	{
+	} else if (uiPosition >= uiBufferSize || uiCount == 0) {
 		return 0;
 	}
 
-	if (sModuleParams.ui32PDPEnabled)
-	{
+	if (sModuleParams.ui32PDPEnabled) {
 		pszBuffer[0] = 'Y';
 	}
 
-	if (uiCount > uiBufferSize - uiPosition)
-	{
+	if (uiCount > uiBufferSize - uiPosition) {
 		uiCount = uiBufferSize - uiPosition;
 	}
 
 	iErr = copy_to_user(psUserBuffer, &pszBuffer[uiPosition], uiCount);
-	if (iErr)
-	{
+	if (iErr) {
 		return -EFAULT;
 	}
 
@@ -316,8 +296,7 @@ static ssize_t DisplayEnabledRead(struct file *psFile,
 
 static ssize_t DisplayEnabledWrite(struct file *psFile,
 				   const char __user *psUserBuffer,
-				   size_t uiCount,
-				   loff_t *puiPosition)
+				   size_t uiCount, loff_t *puiPosition)
 {
 	DCPDP_DEVICE_PRIV *psDevicePriv = psFile->private_data;
 	char pszBuffer[3];
@@ -327,25 +306,23 @@ static ssize_t DisplayEnabledWrite(struct file *psFile,
 	uiCount = min(uiCount, ARRAY_SIZE(pszBuffer) - 1);
 
 	iErr = copy_from_user(pszBuffer, psUserBuffer, uiCount);
-	if (iErr)
-	{
+	if (iErr) {
 		return -EFAULT;
 	}
 
 	pszBuffer[uiCount] = '\0';
 
-	if (kstrtobool(pszBuffer, &bPDPEnabled) == 0)
-	{
+	if (kstrtobool(pszBuffer, &bPDPEnabled) == 0) {
 		sModuleParams.ui32PDPEnabled = bPDPEnabled ? 1 : 0;
 
-		DCPDPEnableMemoryRequest(psDevicePriv->psPDPDevice, bPDPEnabled);
+		DCPDPEnableMemoryRequest(psDevicePriv->psPDPDevice,
+					 bPDPEnabled);
 	}
 
 	return uiCount;
 }
 
-static const struct file_operations gsDisplayEnabledFileOps =
-{
+static const struct file_operations gsDisplayEnabledFileOps = {
 	.owner = THIS_MODULE,
 	.open = DisplayEnabledOpen,
 	.read = DisplayEnabledRead,
@@ -356,23 +333,22 @@ static const struct file_operations gsDisplayEnabledFileOps =
 static void DCPDPDebugFSInit(DCPDP_DEVICE_PRIV *psDevicePriv)
 {
 	psDevicePriv->psDebugFSEntryDir = debugfs_create_dir(DRVNAME, NULL);
-	if (IS_ERR_OR_NULL(psDevicePriv->psDebugFSEntryDir))
-	{
-		printk(KERN_WARNING DRVNAME " - %s: Failed to create '%s' debugfs root directory "
-		       "(debugfs entries won't be available)\n", __func__, DRVNAME);
+	if (IS_ERR_OR_NULL(psDevicePriv->psDebugFSEntryDir)) {
+		printk(KERN_WARNING DRVNAME
+		       " - %s: Failed to create '%s' debugfs root directory "
+		       "(debugfs entries won't be available)\n",
+		       __func__, DRVNAME);
 		psDevicePriv->psDebugFSEntryDir = NULL;
 		return;
 	}
 
-	psDevicePriv->psDisplayEnabledEntry =
-		debugfs_create_file(DCPDP_DEBUGFS_DISPLAY_ENABLED,
-				    S_IFREG | S_IRUGO | S_IWUSR,
-				    psDevicePriv->psDebugFSEntryDir,
-				    psDevicePriv,
-				    &gsDisplayEnabledFileOps);
-	if (IS_ERR_OR_NULL(psDevicePriv->psDisplayEnabledEntry))
-	{
-		printk(KERN_WARNING DRVNAME " - %s: Failed to create '%s' debugfs entry\n",
+	psDevicePriv->psDisplayEnabledEntry = debugfs_create_file(
+		DCPDP_DEBUGFS_DISPLAY_ENABLED, S_IFREG | S_IRUGO | S_IWUSR,
+		psDevicePriv->psDebugFSEntryDir, psDevicePriv,
+		&gsDisplayEnabledFileOps);
+	if (IS_ERR_OR_NULL(psDevicePriv->psDisplayEnabledEntry)) {
+		printk(KERN_WARNING DRVNAME
+		       " - %s: Failed to create '%s' debugfs entry\n",
 		       __func__, DCPDP_DEBUGFS_DISPLAY_ENABLED);
 		psDevicePriv->psDisplayEnabledEntry = NULL;
 		return;
@@ -381,37 +357,35 @@ static void DCPDPDebugFSInit(DCPDP_DEVICE_PRIV *psDevicePriv)
 
 static void DCPDPDebugFSDeInit(DCPDP_DEVICE_PRIV *psDevicePriv)
 {
-	if (psDevicePriv->psDisplayEnabledEntry != NULL)
-	{
+	if (psDevicePriv->psDisplayEnabledEntry != NULL) {
 		debugfs_remove(psDevicePriv->psDisplayEnabledEntry);
 		psDevicePriv->psDisplayEnabledEntry = NULL;
 	}
 
-	if (psDevicePriv->psDebugFSEntryDir != NULL)
-	{
+	if (psDevicePriv->psDebugFSEntryDir != NULL) {
 		debugfs_remove(psDevicePriv->psDebugFSEntryDir);
 		psDevicePriv->psDebugFSEntryDir = NULL;
 	}
 }
 
-
 static PVRSRV_ERROR DCPDPServicesInit(DCPDP_DEVICE_PRIV *psDevicePriv)
 {
 	PVRSRV_ERROR eError;
 
-	eError = DC_OSPVRServicesConnectionOpen(&psDevicePriv->hServicesConnection);
-	if (eError != PVRSRV_OK)
-	{
-		printk(KERN_WARNING DRVNAME " - %s: Failed to open connection to PVR Services (%d)\n",
+	eError = DC_OSPVRServicesConnectionOpen(
+		&psDevicePriv->hServicesConnection);
+	if (eError != PVRSRV_OK) {
+		printk(KERN_WARNING DRVNAME
+		       " - %s: Failed to open connection to PVR Services (%d)\n",
 		       __func__, eError);
 		return eError;
 	}
 
 	eError = DC_OSPVRServicesSetupFuncs(psDevicePriv->hServicesConnection,
 					    &psDevicePriv->sServicesFuncs);
-	if (eError != PVRSRV_OK)
-	{
-		printk(KERN_WARNING DRVNAME " - %s: Failed to setup PVR Services function table (%d)\n",
+	if (eError != PVRSRV_OK) {
+		printk(KERN_WARNING DRVNAME
+		       " - %s: Failed to setup PVR Services function table (%d)\n",
 		       __func__, eError);
 		goto ErrorServicesConnectionClose;
 	}
@@ -437,13 +411,15 @@ static void DCPDPServicesDeInit(DCPDP_DEVICE_PRIV *psDevicePriv)
 static int DCPDPPCIDevicePrivInit(DCPDP_DEVICE_PRIV *psDevicePriv,
 				  struct pci_dev *psPCIDev)
 {
-	IMG_UINT32 ui32RegBaseAddr = DC_OSAddrRangeStart(&psPCIDev->dev,
-							 DCPDP_REG_PCI_BASENUM);
+	IMG_UINT32 ui32RegBaseAddr =
+		DC_OSAddrRangeStart(&psPCIDev->dev, DCPDP_REG_PCI_BASENUM);
 
-	psDevicePriv->sPDPRegCpuPAddr.uiAddr = ui32RegBaseAddr + DCPDP_PCI_PDP_REG_OFFSET;
+	psDevicePriv->sPDPRegCpuPAddr.uiAddr =
+		ui32RegBaseAddr + DCPDP_PCI_PDP_REG_OFFSET;
 	psDevicePriv->ui32PDPRegSize = DCPDP_PCI_PDP_REG_SIZE;
 
-	psDevicePriv->sPLLRegCpuPAddr.uiAddr = ui32RegBaseAddr + DCPDP_PCI_PLL_REG_OFFSET;
+	psDevicePriv->sPLLRegCpuPAddr.uiAddr =
+		ui32RegBaseAddr + DCPDP_PCI_PLL_REG_OFFSET;
 	psDevicePriv->ui32PLLRegSize = DCPDP_PCI_PLL_REG_SIZE;
 
 	return 0;
@@ -454,29 +430,29 @@ static int DCPDPPlatformDevicePrivInit(DCPDP_DEVICE_PRIV *psDevicePriv,
 {
 	struct resource *psRegs;
 
-	psRegs = platform_get_resource_byname(psPlatDev, IORESOURCE_MEM, "pdp-regs");
-	if (psRegs == NULL)
-	{
+	psRegs = platform_get_resource_byname(psPlatDev, IORESOURCE_MEM,
+					      "pdp-regs");
+	if (psRegs == NULL) {
 		printk(KERN_ERR DRVNAME " - %s: Failed to get PDP registers\n",
-			   __func__);
+		       __func__);
 		return -ENXIO;
 	}
 
 	psDevicePriv->sPDPRegCpuPAddr.uiAddr =
 		IMG_CAST_TO_CPUPHYADDR_UINT(psRegs->start);
-	psDevicePriv->ui32PDPRegSize = (IMG_UINT32) resource_size(psRegs);
+	psDevicePriv->ui32PDPRegSize = (IMG_UINT32)resource_size(psRegs);
 
-	psRegs = platform_get_resource_byname(psPlatDev, IORESOURCE_MEM, "pll-regs");
-	if (psRegs == NULL)
-	{
+	psRegs = platform_get_resource_byname(psPlatDev, IORESOURCE_MEM,
+					      "pll-regs");
+	if (psRegs == NULL) {
 		printk(KERN_ERR DRVNAME " - %s: Failed to get PLL registers\n",
-			   __func__);
+		       __func__);
 		return -ENXIO;
 	}
 
 	psDevicePriv->sPLLRegCpuPAddr.uiAddr =
 		IMG_CAST_TO_CPUPHYADDR_UINT(psRegs->start);
-	psDevicePriv->ui32PLLRegSize = (IMG_UINT32) resource_size(psRegs);
+	psDevicePriv->ui32PLLRegSize = (IMG_UINT32)resource_size(psRegs);
 
 	return 0;
 }
@@ -488,10 +464,10 @@ static DCPDP_DEVICE_PRIV *DCPDPDevicePrivCreate(struct device *psDev)
 	int iRet;
 
 	psDevicePriv = DC_OSCallocMem(sizeof(*psDevicePriv));
-	if (psDevicePriv == NULL)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to allocate device private data\n",
-			   __func__);
+	if (psDevicePriv == NULL) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to allocate device private data\n",
+		       __func__);
 		iRet = -ENOMEM;
 		goto ErrorReturn;
 	}
@@ -499,34 +475,28 @@ static DCPDP_DEVICE_PRIV *DCPDPDevicePrivCreate(struct device *psDev)
 	psDevicePriv->psDev = psDev;
 
 	eError = DCPDPServicesInit(psDevicePriv);
-	if (eError != PVRSRV_OK)
-	{
+	if (eError != PVRSRV_OK) {
 		iRet = -ENODEV;
 		goto ErrorFreeDevicePriv;
 	}
 
-	if (dev_is_pci(psDev))
-	{
+	if (dev_is_pci(psDev)) {
 		iRet = DCPDPPCIDevicePrivInit(psDevicePriv, to_pci_dev(psDev));
-	}
-	else
-	{
+	} else {
 		iRet = DCPDPPlatformDevicePrivInit(psDevicePriv,
 						   to_platform_device(psDev));
 	}
 
-	if (iRet != 0)
-	{
+	if (iRet != 0) {
 		goto ErrorServicesDeInit;
 	}
 
-	eError = DCPDPInit(psDevicePriv,
-			   &psDevicePriv->sServicesFuncs,
+	eError = DCPDPInit(psDevicePriv, &psDevicePriv->sServicesFuncs,
 			   &psDevicePriv->psPDPDevice);
-	if (eError != PVRSRV_OK)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to initialise device (%d)\n",
-			   __func__, eError);
+	if (eError != PVRSRV_OK) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to initialise device (%d)\n",
+		       __func__, eError);
 		iRet = -ENODEV;
 		goto ErrorServicesDeInit;
 	}
@@ -559,16 +529,15 @@ static int DCPDPProbe(struct platform_device *psPlatDev)
 	int iRet;
 
 	iRet = tc_enable(psPlatDev->dev.parent);
-	if (iRet)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to enable device (err=%d)\n",
-			   __func__, iRet);
+	if (iRet) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to enable device (err=%d)\n",
+		       __func__, iRet);
 		return iRet;
 	}
 
 	psDevicePriv = DCPDPDevicePrivCreate(&psPlatDev->dev);
-	if (IS_ERR(psDevicePriv))
-	{
+	if (IS_ERR(psDevicePriv)) {
 		tc_disable(psPlatDev->dev.parent);
 		return PTR_ERR(psDevicePriv);
 	}
@@ -583,8 +552,7 @@ static int DCPDPRemove(struct platform_device *psPlatDev)
 	DCPDP_DEVICE_PRIV *psDevicePriv;
 
 	psDevicePriv = platform_get_drvdata(psPlatDev);
-	if (WARN_ON(psDevicePriv == NULL))
-	{
+	if (WARN_ON(psDevicePriv == NULL)) {
 		return -ENODEV;
 	}
 
@@ -601,10 +569,9 @@ static void DCPDPShutdown(struct platform_device *psPlatDev)
 	PVR_UNREFERENCED_PARAMETER(psPlatDev);
 }
 
-static struct platform_device_id DCPDPPlatformDeviceIDTable[] =
-{
+static struct platform_device_id DCPDPPlatformDeviceIDTable[] = {
 	{ .name = APOLLO_DEVICE_NAME_PDP, .driver_data = PDP_VERSION_APOLLO },
-	{ },
+	{},
 };
 
 static struct platform_driver DCPDPPlatformDriver =
@@ -630,21 +597,25 @@ static int __init dc_pdp_init(void)
 	struct pci_dev *psPCIDev;
 	int error;
 
-	psPCIDev = pci_get_device(DCPDP_VENDOR_ID_POWERVR, DCPDP_DEVICE_ID_PCI_APOLLO_FPGA, NULL);
-	if (psPCIDev == NULL)
-	{
-		psPCIDev = pci_get_device(DCPDP_VENDOR_ID_POWERVR, DCPDP_DEVICE_ID_PCIE_APOLLO_FPGA, NULL);
-		if (psPCIDev == NULL)
-		{
-			printk(KERN_ERR DRVNAME " - %s: Failed to get PCI device\n", __func__);
+	psPCIDev = pci_get_device(DCPDP_VENDOR_ID_POWERVR,
+				  DCPDP_DEVICE_ID_PCI_APOLLO_FPGA, NULL);
+	if (psPCIDev == NULL) {
+		psPCIDev = pci_get_device(DCPDP_VENDOR_ID_POWERVR,
+					  DCPDP_DEVICE_ID_PCIE_APOLLO_FPGA,
+					  NULL);
+		if (psPCIDev == NULL) {
+			printk(KERN_ERR DRVNAME
+			       " - %s: Failed to get PCI device\n",
+			       __func__);
 			return -ENODEV;
 		}
 	}
 
 	error = pci_enable_device(psPCIDev);
-	if (error != 0)
-	{
-		printk(KERN_ERR DRVNAME " - %s: Failed to enable PCI device (%d)\n", __func__, error);
+	if (error != 0) {
+		printk(KERN_ERR DRVNAME
+		       " - %s: Failed to enable PCI device (%d)\n",
+		       __func__, error);
 		return -ENODEV;
 	}
 
@@ -655,8 +626,7 @@ static int __init dc_pdp_init(void)
 	   will have done a pci_enable_device. */
 	pci_disable_device(psPCIDev);
 
-	if (IS_ERR(psDevicePriv))
-	{
+	if (IS_ERR(psDevicePriv)) {
 		return PTR_ERR(psDevicePriv);
 	}
 
@@ -667,8 +637,7 @@ static int __init dc_pdp_init(void)
 
 static void __exit dc_pdp_deinit(void)
 {
-	if (g_psDevicePriv)
-	{
+	if (g_psDevicePriv) {
 		DCPDPDevicePrivDestroy(g_psDevicePriv);
 		g_psDevicePriv = NULL;
 	}

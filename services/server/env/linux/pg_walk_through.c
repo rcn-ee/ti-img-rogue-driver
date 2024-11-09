@@ -54,11 +54,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * and must be writable. A get_page is done on the returned page structure.
  */
 static IMG_BOOL _CPUVAddrToPFN(struct vm_area_struct *psVMArea,
-                              uintptr_t uCPUVAddr,
-                              unsigned long *pui32PFN,
-                              struct page **ppsPage)
+			       uintptr_t uCPUVAddr, unsigned long *pui32PFN,
+			       struct page **ppsPage)
 {
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,12,0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 12, 0))
 	pgd_t *psPGD;
 	p4d_t *psP4D;
 	pud_t *psPUD;
@@ -73,7 +72,7 @@ static IMG_BOOL _CPUVAddrToPFN(struct vm_area_struct *psVMArea,
 	*ppsPage = NULL;
 
 	/* Walk the page tables to find the PTE */
-#if (LINUX_VERSION_CODE < KERNEL_VERSION(5,12,0))
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 12, 0))
 	psPGD = pgd_offset(psMM, uCPUVAddr);
 	if (pgd_none(*psPGD) || pgd_bad(*psPGD))
 		return bRet;
@@ -97,16 +96,15 @@ static IMG_BOOL _CPUVAddrToPFN(struct vm_area_struct *psVMArea,
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5,12,0) */
 
 	/* Check if the returned PTE is actually valid and writable */
-	if ((pte_none(*psPTE) == 0) && (pte_present(*psPTE) != 0) && (pte_write(*psPTE) != 0))
-	{
+	if ((pte_none(*psPTE) == 0) && (pte_present(*psPTE) != 0) &&
+	    (pte_write(*psPTE) != 0)) {
 		*pui32PFN = pte_pfn(*psPTE);
 		bRet = IMG_TRUE;
 
 		/* In case the pfn is valid, meaning it is a RAM page and not
 		 * IO-remapped, we can get the actual page struct from it.
 		 */
-		if (pfn_valid(*pui32PFN))
-		{
+		if (pfn_valid(*pui32PFN)) {
 			*ppsPage = pfn_to_page(*pui32PFN);
 
 			get_page(*ppsPage);
@@ -121,9 +119,8 @@ static IMG_BOOL _CPUVAddrToPFN(struct vm_area_struct *psVMArea,
 /* Find the VMA to a given CPU virtual address and do a page table walk
  * to find the corresponding pfns
  */
-PVRSRV_ERROR _TryFindVMA(IMG_DEVMEM_SIZE_T uiSize,
-                         uintptr_t pvCpuVAddr,
-                         PMR_WRAP_DATA *psPrivData)
+PVRSRV_ERROR _TryFindVMA(IMG_DEVMEM_SIZE_T uiSize, uintptr_t pvCpuVAddr,
+			 PMR_WRAP_DATA *psPrivData)
 {
 	struct vm_area_struct *psVMArea;
 	uintptr_t pvCpuVAddrEnd = pvCpuVAddr + uiSize;
@@ -135,76 +132,71 @@ PVRSRV_ERROR _TryFindVMA(IMG_DEVMEM_SIZE_T uiSize,
 
 	/* Find the VMA and check that it is the expected one for this VAddr */
 	psVMArea = find_vma(current->mm, pvCpuVAddr);
-	if ((psVMArea == NULL) || (psVMArea != psPrivData->psVMArea))
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-				"%s: Couldn't find memory region containing start address %p",
-				__func__,
-				(void*) pvCpuVAddr));
+	if ((psVMArea == NULL) || (psVMArea != psPrivData->psVMArea)) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Couldn't find memory region containing start address %p",
+			__func__, (void *)pvCpuVAddr));
 		eError = PVRSRV_ERROR_INVALID_CPU_ADDR;
 		goto eUnlockReturn;
 	}
 
 	/* Make sure that we've been given a valid end-address */
-	if (pvCpuVAddrEnd >= psVMArea->vm_end)
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-		        "%s: End address %p is outside of the region returned by find_vma",
-		        __func__, (void *) pvCpuVAddrEnd));
+	if (pvCpuVAddrEnd >= psVMArea->vm_end) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: End address %p is outside of the region returned by find_vma",
+			__func__, (void *)pvCpuVAddrEnd));
 		eError = PVRSRV_ERROR_BAD_PARAM_SIZE;
 		goto eUnlockReturn;
 	}
 
 	/* Does the region represent memory mapped I/O? */
-	if (!(psVMArea->vm_flags & VM_IO))
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-				"%s: Memory region does not represent memory mapped I/O (VMA flags: 0x%lx)",
-				__func__,
-				psVMArea->vm_flags));
+	if (!(psVMArea->vm_flags & VM_IO)) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: Memory region does not represent memory mapped I/O (VMA flags: 0x%lx)",
+			__func__, psVMArea->vm_flags));
 		eError = PVRSRV_ERROR_INVALID_FLAGS;
 		goto eUnlockReturn;
 	}
 
 	/* We require read and write access */
-	if ((psVMArea->vm_flags & (VM_READ | VM_WRITE)) != (VM_READ | VM_WRITE))
-	{
-		PVR_DPF((PVR_DBG_ERROR,
-				"%s: No read/write access to memory region (VMA flags: 0x%lx)",
-				__func__,
-				psVMArea->vm_flags));
+	if ((psVMArea->vm_flags & (VM_READ | VM_WRITE)) !=
+	    (VM_READ | VM_WRITE)) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"%s: No read/write access to memory region (VMA flags: 0x%lx)",
+			__func__, psVMArea->vm_flags));
 		eError = PVRSRV_ERROR_INVALID_FLAGS;
 		goto eUnlockReturn;
 	}
 
 	/* Do the actual page table walk and fill the private data arrays
 	 * for page structs and physical addresses */
-	for (uAddr = pvCpuVAddr, i = 0;
-	     uAddr < pvCpuVAddrEnd;
-	     uAddr += PAGE_SIZE, i++)
-	{
+	for (uAddr = pvCpuVAddr, i = 0; uAddr < pvCpuVAddrEnd;
+	     uAddr += PAGE_SIZE, i++) {
 		unsigned long ui32PFN = 0;
 
 		PVR_ASSERT(i < psPrivData->uiTotalNumPages);
 
-		if (!_CPUVAddrToPFN(psVMArea, uAddr, &ui32PFN, &psPrivData->ppsPageArray[i]))
-		{
+		if (!_CPUVAddrToPFN(psVMArea, uAddr, &ui32PFN,
+				    &psPrivData->ppsPageArray[i])) {
 			PVR_DPF((PVR_DBG_ERROR,
-					"%s: Invalid CPU virtual address",
-					__func__));
+				 "%s: Invalid CPU virtual address", __func__));
 			eError = PVRSRV_ERROR_FAILED_TO_ACQUIRE_PAGES;
 			goto eReleasePages;
 		}
 
-		psPrivData->ppvPhysAddr[i].uiAddr = IMG_CAST_TO_CPUPHYADDR_UINT(ui32PFN << PAGE_SHIFT);
+		psPrivData->ppvPhysAddr[i].uiAddr =
+			IMG_CAST_TO_CPUPHYADDR_UINT(ui32PFN << PAGE_SHIFT);
 		psPrivData->uiNumBackedPages += 1;
 
-		if ((((IMG_UINT64) psPrivData->ppvPhysAddr[i].uiAddr) >> PAGE_SHIFT) != ui32PFN)
-		{
+		if ((((IMG_UINT64)psPrivData->ppvPhysAddr[i].uiAddr) >>
+		     PAGE_SHIFT) != ui32PFN) {
 			PVR_DPF((PVR_DBG_ERROR,
-					"%s: Page frame number out of range (%lu)",
-					__func__,
-					ui32PFN));
+				 "%s: Page frame number out of range (%lu)",
+				 __func__, ui32PFN));
 			eError = PVRSRV_ERROR_FAILED_TO_ACQUIRE_PAGES;
 			goto eReleasePages;
 		}
@@ -216,11 +208,9 @@ PVRSRV_ERROR _TryFindVMA(IMG_DEVMEM_SIZE_T uiSize,
 	return eError;
 
 eReleasePages:
-	for (; i != 0; i--)
-	{
-		if (psPrivData->ppsPageArray[i-1] != NULL)
-		{
-			put_page(psPrivData->ppsPageArray[i-1]);
+	for (; i != 0; i--) {
+		if (psPrivData->ppsPageArray[i - 1] != NULL) {
+			put_page(psPrivData->ppsPageArray[i - 1]);
 		}
 	}
 eUnlockReturn:

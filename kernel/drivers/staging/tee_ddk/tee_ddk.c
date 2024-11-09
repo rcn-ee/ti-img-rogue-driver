@@ -54,12 +54,12 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "rgxfwimageutils.h"
 #include "rgxstartstop.h"
 
-
 static void *fwcode, *fwdata, *fwcorememcode, *fwcorememdata;
 void *regbank = NULL;
 PVRSRV_DEVICE_FEATURE_CONFIG *psDevFeatureCfg = NULL;
 
-PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_FW_PARAMS *psTDFWParams)
+PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData,
+			      PVRSRV_FW_PARAMS *psTDFWParams)
 {
 	SYS_DATA *psSysData = hSysData;
 	PVRSRV_ERROR eError;
@@ -68,8 +68,7 @@ PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_FW_PARAMS *psTDFWParam
 	RGX_FW_INFO_HEADER sFWInfoHeader;
 	IMG_UINT64 ui64FwBinarySize;
 
-	if (psSysData == NULL)
-	{
+	if (psSysData == NULL) {
 		eError = PVRSRV_ERROR_INVALID_PARAMS;
 		goto exit;
 	}
@@ -77,22 +76,21 @@ PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_FW_PARAMS *psTDFWParam
 	/* retrieve the core configuration data */
 	psDevFeatureCfg = &psSysData->sDevFeatureCfg;
 
-	RGXGetFWImageAllocSize(NULL,
-	                       psTDFWParams->pvFirmware,
-	                       psTDFWParams->ui32FirmwareSize,
-	                       &fwcodesize,
-	                       &fwdatasize,
-	                       &fwcorememcodesize,
-	                       &fwcorememdatasize,
-	                       &sFWInfoHeader);
+	RGXGetFWImageAllocSize(NULL, psTDFWParams->pvFirmware,
+			       psTDFWParams->ui32FirmwareSize, &fwcodesize,
+			       &fwdatasize, &fwcorememcodesize,
+			       &fwcorememdatasize, &sFWInfoHeader);
 
-	ui64FwBinarySize = (fwcodesize+fwdatasize+fwcorememcodesize+fwcorememdatasize);
-	if (psSysData->ui64FwPrivateHeapSize < ui64FwBinarySize)
-	{
+	ui64FwBinarySize = (fwcodesize + fwdatasize + fwcorememcodesize +
+			    fwcorememdatasize);
+	if (psSysData->ui64FwPrivateHeapSize < ui64FwBinarySize) {
 		eError = PVRSRV_ERROR_INSUFFICIENT_PHYS_HEAP_MEMORY;
-		RGXErrorLog(NULL, "%s: Firmware Private heap too small to fit the Fw binary"
-		                  " (heap=0x%llX; required=0x%llX)", __func__,
-		                   psSysData->ui64FwPrivateHeapSize, ui64FwBinarySize);
+		RGXErrorLog(
+			NULL,
+			"%s: Firmware Private heap too small to fit the Fw binary"
+			" (heap=0x%llX; required=0x%llX)",
+			__func__, psSysData->ui64FwPrivateHeapSize,
+			ui64FwBinarySize);
 		goto exit;
 	}
 
@@ -100,65 +98,69 @@ PVRSRV_ERROR TEE_LoadFirmware(IMG_HANDLE hSysData, PVRSRV_FW_PARAMS *psTDFWParam
 
 #if defined(RGX_FEATURE_META)
 	fwdatapa = psSysData->ui64FwHeapCpuBase +
-	           (psTDFWParams->uFWP.sMeta.sFWDataDevVAddr.uiAddr - FWHEAP_GPU_VA);
-	fwcorememcodepa = psSysData->ui64FwHeapCpuBase +
-	                  (psTDFWParams->uFWP.sMeta.sFWCorememCodeDevVAddr.uiAddr - FWHEAP_GPU_VA);
-	fwcorememdatapa = psSysData->ui64FwHeapCpuBase +
-	                  (psTDFWParams->uFWP.sMeta.sFWCorememDataDevVAddr.uiAddr - FWHEAP_GPU_VA);
+		   (psTDFWParams->uFWP.sMeta.sFWDataDevVAddr.uiAddr -
+		    FWHEAP_GPU_VA);
+	fwcorememcodepa =
+		psSysData->ui64FwHeapCpuBase +
+		(psTDFWParams->uFWP.sMeta.sFWCorememCodeDevVAddr.uiAddr -
+		 FWHEAP_GPU_VA);
+	fwcorememdatapa =
+		psSysData->ui64FwHeapCpuBase +
+		(psTDFWParams->uFWP.sMeta.sFWCorememDataDevVAddr.uiAddr -
+		 FWHEAP_GPU_VA);
 #elif defined(RGX_FEATURE_RISCV_FW_PROCESSOR)
 	fwdatapa = psSysData->ui64FwHeapCpuBase +
-	           (psTDFWParams->uFWP.sRISCV.sFWDataDevVAddr.uiAddr - FWHEAP_GPU_VA);
+		   (psTDFWParams->uFWP.sRISCV.sFWDataDevVAddr.uiAddr -
+		    FWHEAP_GPU_VA);
 
-	fwcorememcodepa = psSysData->ui64FwHeapCpuBase +
-	                  (psTDFWParams->uFWP.sRISCV.sFWCorememCodeDevVAddr.uiAddr - FWHEAP_GPU_VA);
+	fwcorememcodepa =
+		psSysData->ui64FwHeapCpuBase +
+		(psTDFWParams->uFWP.sRISCV.sFWCorememCodeDevVAddr.uiAddr -
+		 FWHEAP_GPU_VA);
 
-	fwcorememdatapa = psSysData->ui64FwHeapCpuBase +
-	                  (psTDFWParams->uFWP.sRISCV.sFWCorememDataDevVAddr.uiAddr - FWHEAP_GPU_VA);
+	fwcorememdatapa =
+		psSysData->ui64FwHeapCpuBase +
+		(psTDFWParams->uFWP.sRISCV.sFWCorememDataDevVAddr.uiAddr -
+		 FWHEAP_GPU_VA);
 #else
 #error "Unsupported FW CPU architecture."
 #endif
 
 	/* CPU mappings */
 	fwcode = (void __iomem *)ioremap(fwcodepa, fwcodesize);
-	if (fwcode == NULL)
-	{
+	if (fwcode == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
 		goto exit;
 	}
 	memset(fwcode, 0, fwcodesize);
 
 	fwdata = (void __iomem *)ioremap(fwdatapa, fwdatasize);
-	if (fwdata == NULL)
-	{
+	if (fwdata == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
 		goto fwdata_fail;
 	}
 	memset(fwdata, 0, fwdatasize);
 
-	fwcorememcode = (void __iomem *)ioremap(fwcorememcodepa, fwcorememcodesize);
-	if (fwcorememcode == NULL)
-	{
+	fwcorememcode =
+		(void __iomem *)ioremap(fwcorememcodepa, fwcorememcodesize);
+	if (fwcorememcode == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
 		goto fwcorememcode_fail;
 	}
 	memset(fwcorememcode, 0, fwcorememcodesize);
 
-	fwcorememdata = (void __iomem *)ioremap(fwcorememdatapa, fwcorememdatasize);
-	if (fwcorememdata == NULL)
-	{
+	fwcorememdata =
+		(void __iomem *)ioremap(fwcorememdatapa, fwcorememdatasize);
+	if (fwcorememdata == NULL) {
 		eError = PVRSRV_ERROR_BAD_MAPPING;
 		goto fwcorememdata_fail;
 	}
 	memset(fwcorememdata, 0, fwcorememdatasize);
 
 	/* Load the FW code in secure memory */
-	eError = RGXProcessFWImage(NULL,
-	                           psTDFWParams->pvFirmware,
-	                           fwcode,
-	                           fwdata,
-	                           fwcorememcode,
-	                           fwcorememdata,
-	                           &psTDFWParams->uFWP);
+	eError = RGXProcessFWImage(NULL, psTDFWParams->pvFirmware, fwcode,
+				   fwdata, fwcorememcode, fwcorememdata,
+				   &psTDFWParams->uFWP);
 
 	iounmap(fwcorememdata);
 fwcorememdata_fail:
@@ -171,12 +173,14 @@ exit:
 	return eError;
 }
 
-PVRSRV_ERROR TEE_SetPowerParams(IMG_HANDLE hSysData, PVRSRV_TD_POWER_PARAMS *psTDPowerParams)
+PVRSRV_ERROR TEE_SetPowerParams(IMG_HANDLE hSysData,
+				PVRSRV_TD_POWER_PARAMS *psTDPowerParams)
 {
 	SYS_DATA *psSysData = hSysData;
 
 	return (psSysData->ui32SysDataSize == sizeof(SYS_DATA)) ?
-	        PVRSRV_OK : PVRSRV_ERROR_BAD_PARAM_SIZE;
+		       PVRSRV_OK :
+		       PVRSRV_ERROR_BAD_PARAM_SIZE;
 }
 
 PVRSRV_ERROR TEE_RGXStart(IMG_HANDLE hSysData)
@@ -184,17 +188,17 @@ PVRSRV_ERROR TEE_RGXStart(IMG_HANDLE hSysData)
 	PVRSRV_ERROR eErr;
 	SYS_DATA *psSysData = hSysData;
 
-	regbank = (void __iomem *)ioremap(psSysData->ui64GpuRegisterBase, FPGA_RGX_REG_SIZE);
-	if (regbank == NULL)
-	{
+	regbank = (void __iomem *)ioremap(psSysData->ui64GpuRegisterBase,
+					  FPGA_RGX_REG_SIZE);
+	if (regbank == NULL) {
 		RGXErrorLog(NULL, "%s: failed to map regbank memory", __func__);
 		return PVRSRV_ERROR_BAD_MAPPING;
 	}
 
 	eErr = PVRSRVConfigureMMU(psSysData);
-	if (eErr != PVRSRV_OK)
-	{
-		RGXErrorLog(NULL, "%s: PVRSRVConfigureMMU() failed (%u)", __func__, eErr);
+	if (eErr != PVRSRV_OK) {
+		RGXErrorLog(NULL, "%s: PVRSRVConfigureMMU() failed (%u)",
+			    __func__, eErr);
 		return eErr;
 	}
 

@@ -51,29 +51,29 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/reservation.h>
 
 /* Reservation object types */
-#define dma_resv			reservation_object
-#define dma_resv_list			reservation_object_list
+#define dma_resv reservation_object
+#define dma_resv_list reservation_object_list
 
 /* Reservation object functions */
-#define dma_resv_add_excl_fence		reservation_object_add_excl_fence
-#define dma_resv_add_shared_fence	reservation_object_add_shared_fence
-#define dma_resv_fini			reservation_object_fini
-#define dma_resv_get_excl		reservation_object_get_excl
-#define dma_resv_get_list		reservation_object_get_list
-#define dma_resv_held			reservation_object_held
-#define dma_resv_init			reservation_object_init
-#define dma_resv_reserve_shared		reservation_object_reserve_shared
-#define dma_resv_test_signaled_rcu	reservation_object_test_signaled_rcu
-#define dma_resv_wait_timeout_rcu	reservation_object_wait_timeout_rcu
+#define dma_resv_add_excl_fence reservation_object_add_excl_fence
+#define dma_resv_add_shared_fence reservation_object_add_shared_fence
+#define dma_resv_fini reservation_object_fini
+#define dma_resv_get_excl reservation_object_get_excl
+#define dma_resv_get_list reservation_object_get_list
+#define dma_resv_held reservation_object_held
+#define dma_resv_init reservation_object_init
+#define dma_resv_reserve_shared reservation_object_reserve_shared
+#define dma_resv_test_signaled_rcu reservation_object_test_signaled_rcu
+#define dma_resv_wait_timeout_rcu reservation_object_wait_timeout_rcu
 #endif
 
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(5, 14, 0))
 
-#define dma_resv_shared_list   dma_resv_get_list
-#define dma_resv_excl_fence    dma_resv_get_excl
-#define dma_resv_wait_timeout  dma_resv_wait_timeout_rcu
+#define dma_resv_shared_list dma_resv_get_list
+#define dma_resv_excl_fence dma_resv_get_excl
+#define dma_resv_wait_timeout dma_resv_wait_timeout_rcu
 #define dma_resv_test_signaled dma_resv_test_signaled_rcu
-#define dma_resv_get_fences    dma_resv_get_fences_rcu
+#define dma_resv_get_fences dma_resv_get_fences_rcu
 
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(5, 14, 0)) */
 

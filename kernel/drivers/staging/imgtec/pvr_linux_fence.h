@@ -56,10 +56,10 @@
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 10, 0)) && \
 	!defined(CHROMIUMOS_KERNEL_HAS_DMA_FENCE)
 /* Structures */
-#define	dma_fence fence
+#define dma_fence fence
 #define dma_fence_array fence_array
-#define	dma_fence_cb fence_cb
-#define	dma_fence_ops fence_ops
+#define dma_fence_cb fence_cb
+#define dma_fence_ops fence_ops
 
 /* Defines and Enums */
 #define DMA_FENCE_FLAG_ENABLE_SIGNAL_BIT FENCE_FLAG_ENABLE_SIGNAL_BIT
@@ -67,7 +67,7 @@
 #define DMA_FENCE_FLAG_USER_BITS FENCE_FLAG_USER_BITS
 
 #define DMA_FENCE_ERR FENCE_ERR
-#define	DMA_FENCE_TRACE FENCE_TRACE
+#define DMA_FENCE_TRACE FENCE_TRACE
 #define DMA_FENCE_WARN FENCE_WARN
 
 /* Functions */
@@ -86,8 +86,8 @@
 #define dma_fence_wait fence_wait
 #define to_dma_fence_array to_fence_array
 
-static inline signed long
-dma_fence_wait_timeout(struct dma_fence *fence, bool intr, signed long timeout)
+static inline signed long dma_fence_wait_timeout(struct dma_fence *fence,
+						 bool intr, signed long timeout)
 {
 	signed long lret;
 

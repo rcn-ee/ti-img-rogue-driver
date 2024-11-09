@@ -72,7 +72,6 @@ DAMAGE.
 #include "hdmi.h"
 #include "hdcp.h"
 
-
 /*
 
 Steps for configuring HDCP:
@@ -87,10 +86,9 @@ Steps for configuring HDCP:
 8. SHA-1 calculation if connected to a repeater
 
 */
-PVRSRV_ERROR HdcpConfigure(HDMI_DEVICE * pvDevice)
+PVRSRV_ERROR HdcpConfigure(HDMI_DEVICE *pvDevice)
 {
+	HDMI_CHECKPOINT;
 
-    HDMI_CHECKPOINT;
-
-    return PVRSRV_OK;
+	return PVRSRV_OK;
 }

@@ -58,33 +58,26 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * descriptor for it.
  */
 PVRSRV_ERROR
-DevmemXAllocPhysical(DEVMEM_CONTEXT *psCtx,
-                    IMG_UINT32 uiNumPages,
-                    IMG_UINT32 uiLog2PageSize,
-                    PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                    const IMG_CHAR *pszText,
-                    DEVMEMX_PHYSDESC **ppsPhysDesc);
+DevmemXAllocPhysical(DEVMEM_CONTEXT *psCtx, IMG_UINT32 uiNumPages,
+		     IMG_UINT32 uiLog2PageSize, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+		     const IMG_CHAR *pszText, DEVMEMX_PHYSDESC **ppsPhysDesc);
 
 /* DevmemXReleasePhysical()
  *
  * Removes a physical device allocation if all references
  * to it are dropped, otherwise just decreases the refcount.
  */
-void
-DevmemXReleasePhysical(DEVMEMX_PHYSDESC *psPhysDesc);
+void DevmemXReleasePhysical(DEVMEMX_PHYSDESC *psPhysDesc);
 
 /* DevmemAllocVirtualAddr()
  *
  * Reserve a requested device virtual range and return
  * a virtual descriptor for it.
  */
-IMG_INTERNAL PVRSRV_ERROR
-DevmemXAllocVirtualAddr(DEVMEM_HEAP* hHeap,
-                   IMG_UINT32 uiNumPages,
-                   PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                   const IMG_CHAR *pszText,
-                   IMG_DEV_VIRTADDR sVirtAddr,
-                   DEVMEMX_VIRTDESC **ppsVirtDesc);
+IMG_INTERNAL PVRSRV_ERROR DevmemXAllocVirtualAddr(
+	DEVMEM_HEAP *hHeap, IMG_UINT32 uiNumPages,
+	PVRSRV_MEMALLOCFLAGS_T uiFlags, const IMG_CHAR *pszText,
+	IMG_DEV_VIRTADDR sVirtAddr, DEVMEMX_VIRTDESC **ppsVirtDesc);
 
 /* DevmemAllocVirtual()
  *
@@ -92,12 +85,10 @@ DevmemXAllocVirtualAddr(DEVMEM_HEAP* hHeap,
  * a virtual descriptor for it.
  */
 PVRSRV_ERROR
-DevmemXAllocVirtual(DEVMEM_HEAP* hHeap,
-                   IMG_UINT32 uiNumPages,
-                   PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                   const IMG_CHAR *pszText,
-                   DEVMEMX_VIRTDESC **ppsVirtDesc,
-                   IMG_DEV_VIRTADDR *psVirtAddr);
+DevmemXAllocVirtual(DEVMEM_HEAP *hHeap, IMG_UINT32 uiNumPages,
+		    PVRSRV_MEMALLOCFLAGS_T uiFlags, const IMG_CHAR *pszText,
+		    DEVMEMX_VIRTDESC **ppsVirtDesc,
+		    IMG_DEV_VIRTADDR *psVirtAddr);
 
 /* DevmemXFreeVirtual()
  *
@@ -112,20 +103,17 @@ DevmemXFreeVirtual(DEVMEMX_VIRTDESC *psVirtDesc);
  * Map memory from a physical descriptor into a virtual range.
  */
 PVRSRV_ERROR
-DevmemXMapVirtualRange(IMG_UINT32 ui32PageCount,
-                      DEVMEMX_PHYSDESC *psPhysDesc,
-                      IMG_UINT32 ui32PhysOffset,
-                      DEVMEMX_VIRTDESC *psVirtDesc,
-                      IMG_UINT32 ui32VirtOffset);
+DevmemXMapVirtualRange(IMG_UINT32 ui32PageCount, DEVMEMX_PHYSDESC *psPhysDesc,
+		       IMG_UINT32 ui32PhysOffset, DEVMEMX_VIRTDESC *psVirtDesc,
+		       IMG_UINT32 ui32VirtOffset);
 
 /* DevmemXUnmapVirtualRange()
  *
  * Unmap pages from a device virtual range.
  */
 PVRSRV_ERROR
-DevmemXUnmapVirtualRange(IMG_UINT32 ui32PageCount,
-                        DEVMEMX_VIRTDESC *psVirtDesc,
-                        IMG_UINT32 ui32VirtPgOffset);
+DevmemXUnmapVirtualRange(IMG_UINT32 ui32PageCount, DEVMEMX_VIRTDESC *psVirtDesc,
+			 IMG_UINT32 ui32VirtPgOffset);
 
 /* DevmemXMapVirtualRangeToBackingPage()
  *
@@ -133,9 +121,9 @@ DevmemXUnmapVirtualRange(IMG_UINT32 ui32PageCount,
  */
 PVRSRV_ERROR
 DevmemXMapVirtualRangeToBackingPage(DEVMEMX_VIRTDESC *psVirtDesc,
-                                    PVRSRV_MEMALLOCFLAGS_T uiMemAllocFlags,
-                                    IMG_UINT32 ui32VirtPgOffset,
-                                    IMG_UINT32 ui32PageCount);
+				    PVRSRV_MEMALLOCFLAGS_T uiMemAllocFlags,
+				    IMG_UINT32 ui32VirtPgOffset,
+				    IMG_UINT32 ui32PageCount);
 
 /* DevmemXMapPhysicalToCPU()
  *
@@ -143,7 +131,7 @@ DevmemXMapVirtualRangeToBackingPage(DEVMEMX_VIRTDESC *psVirtDesc,
  */
 PVRSRV_ERROR
 DevmemXMapPhysicalToCPU(DEVMEMX_PHYSDESC *psMemAllocPhys,
-                       IMG_CPU_VIRTADDR *psVirtAddr);
+			IMG_CPU_VIRTADDR *psVirtAddr);
 
 /* DevmemXUnmapPhysicalToCPU()
  *
@@ -156,16 +144,14 @@ DevmemXUnmapPhysicalToCPU(DEVMEMX_PHYSDESC *psMemAllocPhys);
  *
  * Reacquire the CPU mapping by incrementing the refcount.
  */
-void
-DevmemXReacquireCpuVirtAddr(DEVMEMX_PHYSDESC *psPhysDesc,
-                            void **ppvCpuVirtAddr);
+void DevmemXReacquireCpuVirtAddr(DEVMEMX_PHYSDESC *psPhysDesc,
+				 void **ppvCpuVirtAddr);
 
 /* DevmemXReleaseCpuVirtAddr()
  *
  * Release CPU mapping by decrementing the refcount.
  */
-void
-DevmemXReleaseCpuVirtAddr(DEVMEMX_PHYSDESC *psPhysDesc);
+void DevmemXReleaseCpuVirtAddr(DEVMEMX_PHYSDESC *psPhysDesc);
 
 /* DevmemXCreateDevmemMemDesc()
  *
@@ -176,8 +162,8 @@ DevmemXReleaseCpuVirtAddr(DEVMEMX_PHYSDESC *psPhysDesc);
 
 PVRSRV_ERROR
 DevmemXCreateDevmemMemDesc(DEVMEMX_PHYSDESC *psPhysDesc,
-                           DEVMEMX_VIRTDESC *psVirtDesc,
-                           DEVMEM_MEMDESC **ppsMemDesc);
+			   DEVMEMX_VIRTDESC *psVirtDesc,
+			   DEVMEM_MEMDESC **ppsMemDesc);
 
 /* DevmemXFreeDevmemMemDesc()
  *
@@ -189,33 +175,26 @@ DevmemXFreeDevmemMemDesc(DEVMEM_MEMDESC *psMemDesc);
 
 PVRSRV_ERROR
 DevmemXFlagCompatibilityCheck(PVRSRV_MEMALLOCFLAGS_T uiPhysFlags,
-                              PVRSRV_MEMALLOCFLAGS_T uiVirtFlags);
+			      PVRSRV_MEMALLOCFLAGS_T uiVirtFlags);
 
 PVRSRV_ERROR
 DevmemXPhysDescAlloc(DEVMEMX_PHYSDESC **ppsPhysDesc);
 
-void
-DevmemXPhysDescInit(DEVMEMX_PHYSDESC *psPhysDesc,
-                    IMG_HANDLE hPMR,
-                    IMG_UINT32 uiNumPages,
-                    IMG_UINT32 uiLog2PageSize,
-                    PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                    SHARED_DEV_CONNECTION hConnection);
+void DevmemXPhysDescInit(DEVMEMX_PHYSDESC *psPhysDesc, IMG_HANDLE hPMR,
+			 IMG_UINT32 uiNumPages, IMG_UINT32 uiLog2PageSize,
+			 PVRSRV_MEMALLOCFLAGS_T uiFlags,
+			 SHARED_DEV_CONNECTION hConnection);
 
-void
-DevmemXPhysDescFree(DEVMEMX_PHYSDESC *psPhysDesc);
+void DevmemXPhysDescFree(DEVMEMX_PHYSDESC *psPhysDesc);
 
-void
-DevmemXPhysDescAcquire(DEVMEMX_PHYSDESC *psPhysDesc,
-                       IMG_UINT32 uiAcquireCount);
-void
-DevmemXPhysDescRelease(DEVMEMX_PHYSDESC *psPhysDesc,
-                       IMG_UINT32 uiReleaseCount);
+void DevmemXPhysDescAcquire(DEVMEMX_PHYSDESC *psPhysDesc,
+			    IMG_UINT32 uiAcquireCount);
+void DevmemXPhysDescRelease(DEVMEMX_PHYSDESC *psPhysDesc,
+			    IMG_UINT32 uiReleaseCount);
 
 #if !defined(__KERNEL__)
-IMG_INTERNAL PVRSRV_ERROR
-DevmemXGetImportUID(DEVMEMX_PHYSDESC *psMemDescPhys,
-                    IMG_UINT64       *pui64UID);
+IMG_INTERNAL PVRSRV_ERROR DevmemXGetImportUID(DEVMEMX_PHYSDESC *psMemDescPhys,
+					      IMG_UINT64 *pui64UID);
 #endif
 
 #endif /* DEVICEMEMX_H */

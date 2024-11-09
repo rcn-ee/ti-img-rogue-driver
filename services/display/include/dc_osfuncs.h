@@ -49,16 +49,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "syscommon.h"
 
 #if defined(DEBUG)
-#define DC_ASSERT(EXPR)							\
-	do								\
-	{								\
-		if (!(EXPR))						\
-		{							\
-			DC_OSAbort(__FILE__, __LINE__);			\
-		}							\
+#define DC_ASSERT(EXPR)                                 \
+	do {                                            \
+		if (!(EXPR)) {                          \
+			DC_OSAbort(__FILE__, __LINE__); \
+		}                                       \
 	} while (0)
 #else
-#define DC_ASSERT(EXPR) (void)(EXPR) /* Null implementation of ASSERT (does nothing) */
+#define DC_ASSERT(EXPR) \
+	(void)(EXPR) /* Null implementation of ASSERT (does nothing) */
 #endif
 
 /******************************************************************************
@@ -66,22 +65,35 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  *****************************************************************************/
 
 /* Services display class function pointers */
-typedef PVRSRV_ERROR (*PFN_DC_REGISTER_DEVICE)(DC_DEVICE_FUNCTIONS *psFuncTable, IMG_UINT32 ui32MaxConfigsInFlight, IMG_HANDLE hDeviceData, IMG_HANDLE *phSrvHandle);
+typedef PVRSRV_ERROR (*PFN_DC_REGISTER_DEVICE)(
+	DC_DEVICE_FUNCTIONS *psFuncTable, IMG_UINT32 ui32MaxConfigsInFlight,
+	IMG_HANDLE hDeviceData, IMG_HANDLE *phSrvHandle);
 typedef void (*PFN_DC_UNREGISTER_DEVICE)(IMG_HANDLE hSrvHandle);
 typedef void (*PFN_DC_DISPLAY_CONFIGURATION_RETIRED)(IMG_HANDLE hConfigData);
-typedef PVRSRV_ERROR (*PFN_DC_IMPORT_BUFFER_ACQUIRE)(IMG_HANDLE hImport, IMG_DEVMEM_LOG2ALIGN_T uiLog2PageSize, IMG_UINT32 *pui32PageCount, IMG_DEV_PHYADDR **ppasDevPAddr);
-typedef void (*PFN_DC_IMPORT_BUFFER_RELEASE)(IMG_HANDLE hImport, IMG_DEV_PHYADDR *pasDevPAddr);
+typedef PVRSRV_ERROR (*PFN_DC_IMPORT_BUFFER_ACQUIRE)(
+	IMG_HANDLE hImport, IMG_DEVMEM_LOG2ALIGN_T uiLog2PageSize,
+	IMG_UINT32 *pui32PageCount, IMG_DEV_PHYADDR **ppasDevPAddr);
+typedef void (*PFN_DC_IMPORT_BUFFER_RELEASE)(IMG_HANDLE hImport,
+					     IMG_DEV_PHYADDR *pasDevPAddr);
 
 /* Services physical heap function pointers */
-typedef PVRSRV_ERROR (*PFN_PHYS_HEAP_ACQUIRE_BY_ID)(PVRSRV_PHYS_HEAP eDevPhysHeap, PPVRSRV_DEVICE_NODE psDevNode, PHYS_HEAP **ppsPhysHeap);
+typedef PVRSRV_ERROR (*PFN_PHYS_HEAP_ACQUIRE_BY_ID)(
+	PVRSRV_PHYS_HEAP eDevPhysHeap, PPVRSRV_DEVICE_NODE psDevNode,
+	PHYS_HEAP **ppsPhysHeap);
 typedef void (*PFN_PHYS_HEAP_RELEASE)(PHYS_HEAP *psPhysHeap);
 typedef PHYS_HEAP_TYPE (*PFN_PHYS_HEAP_GET_TYPE)(PHYS_HEAP *psPhysHeap);
-typedef PVRSRV_ERROR (*PFN_PHYS_HEAP_GET_SIZE)(PHYS_HEAP *psPhysHeap, IMG_UINT64 *puiSize);
-typedef PVRSRV_ERROR (*PFN_PHYS_HEAP_GET_ADDRESS)(PHYS_HEAP *psPhysHeap, IMG_CPU_PHYADDR *psCpuPAddr);
-typedef void (*PFN_PHYS_HEAP_CPU_PADDR_TO_DEV_PADDR)(PHYS_HEAP *psPhysHeap, IMG_UINT32 ui32NumOfAddr, IMG_DEV_PHYADDR *psDevPAddr, IMG_CPU_PHYADDR *psCpuPAddr);
+typedef PVRSRV_ERROR (*PFN_PHYS_HEAP_GET_SIZE)(PHYS_HEAP *psPhysHeap,
+					       IMG_UINT64 *puiSize);
+typedef PVRSRV_ERROR (*PFN_PHYS_HEAP_GET_ADDRESS)(PHYS_HEAP *psPhysHeap,
+						  IMG_CPU_PHYADDR *psCpuPAddr);
+typedef void (*PFN_PHYS_HEAP_CPU_PADDR_TO_DEV_PADDR)(
+	PHYS_HEAP *psPhysHeap, IMG_UINT32 ui32NumOfAddr,
+	IMG_DEV_PHYADDR *psDevPAddr, IMG_CPU_PHYADDR *psCpuPAddr);
 
 /* Services system functions */
-typedef PVRSRV_ERROR (*PFN_SYS_INSTALL_DEVICE_LISR)(void *pvOSDevice, IMG_UINT32 ui32IRQ, const IMG_CHAR *pszName, PFN_LISR pfnLISR, void *pvData, IMG_HANDLE *phLISRData);
+typedef PVRSRV_ERROR (*PFN_SYS_INSTALL_DEVICE_LISR)(
+	void *pvOSDevice, IMG_UINT32 ui32IRQ, const IMG_CHAR *pszName,
+	PFN_LISR pfnLISR, void *pvData, IMG_HANDLE *phLISRData);
 typedef PVRSRV_ERROR (*PFN_SYS_UNINSTALL_DEVICE_LISR)(IMG_HANDLE hLISRData);
 
 /* Other service related functions */
@@ -89,38 +101,37 @@ typedef void (*PFN_CHECK_STATUS)(void *hCmdCompCallerHandle);
 typedef const IMG_CHAR *(*PFN_GET_ERROR_STRING)(PVRSRV_ERROR eError);
 typedef PVRSRV_DEVICE_NODE *(*PFN_GET_DEVICE_INST)(IMG_UINT32 ui32Instance);
 
-#define DC_OS_BYTES_TO_PAGES(range)	(((range) + (DC_OSGetPageSize() - 1)) >> DC_OSGetPageShift())
+#define DC_OS_BYTES_TO_PAGES(range) \
+	(((range) + (DC_OSGetPageSize() - 1)) >> DC_OSGetPageShift())
 
-typedef struct DC_SERVICES_FUNCS_TAG
-{
+typedef struct DC_SERVICES_FUNCS_TAG {
 	/* Display class functions */
-	PFN_DC_REGISTER_DEVICE			pfnDCRegisterDevice;
-	PFN_DC_UNREGISTER_DEVICE		pfnDCUnregisterDevice;
-	PFN_DC_DISPLAY_CONFIGURATION_RETIRED	pfnDCDisplayConfigurationRetired;
-	PFN_DC_IMPORT_BUFFER_ACQUIRE		pfnDCImportBufferAcquire;
-	PFN_DC_IMPORT_BUFFER_RELEASE		pfnDCImportBufferRelease;
+	PFN_DC_REGISTER_DEVICE pfnDCRegisterDevice;
+	PFN_DC_UNREGISTER_DEVICE pfnDCUnregisterDevice;
+	PFN_DC_DISPLAY_CONFIGURATION_RETIRED pfnDCDisplayConfigurationRetired;
+	PFN_DC_IMPORT_BUFFER_ACQUIRE pfnDCImportBufferAcquire;
+	PFN_DC_IMPORT_BUFFER_RELEASE pfnDCImportBufferRelease;
 
 	/* Physical heap functions */
-	PFN_PHYS_HEAP_ACQUIRE_BY_ID		pfnPhysHeapAcquireByID;
-	PFN_PHYS_HEAP_RELEASE			pfnPhysHeapRelease;
-	PFN_PHYS_HEAP_GET_TYPE			pfnPhysHeapGetType;
-	PFN_PHYS_HEAP_GET_SIZE			pfnPhysHeapGetSize;
-	PFN_PHYS_HEAP_GET_ADDRESS		pfnPhysHeapGetCpuPAddr;
-	PFN_PHYS_HEAP_CPU_PADDR_TO_DEV_PADDR	pfnPhysHeapCpuPAddrToDevPAddr;
+	PFN_PHYS_HEAP_ACQUIRE_BY_ID pfnPhysHeapAcquireByID;
+	PFN_PHYS_HEAP_RELEASE pfnPhysHeapRelease;
+	PFN_PHYS_HEAP_GET_TYPE pfnPhysHeapGetType;
+	PFN_PHYS_HEAP_GET_SIZE pfnPhysHeapGetSize;
+	PFN_PHYS_HEAP_GET_ADDRESS pfnPhysHeapGetCpuPAddr;
+	PFN_PHYS_HEAP_CPU_PADDR_TO_DEV_PADDR pfnPhysHeapCpuPAddrToDevPAddr;
 
 	/* System functions */
-	PFN_SYS_INSTALL_DEVICE_LISR		pfnSysInstallDeviceLISR;
-	PFN_SYS_UNINSTALL_DEVICE_LISR		pfnSysUninstallDeviceLISR;
+	PFN_SYS_INSTALL_DEVICE_LISR pfnSysInstallDeviceLISR;
+	PFN_SYS_UNINSTALL_DEVICE_LISR pfnSysUninstallDeviceLISR;
 
 	/* Other service related functions */
-	PFN_CHECK_STATUS			pfnCheckStatus;
-	PFN_GET_ERROR_STRING			pfnGetErrorString;
-	PFN_GET_DEVICE_INST				pfnGetDeviceInstance;
+	PFN_CHECK_STATUS pfnCheckStatus;
+	PFN_GET_ERROR_STRING pfnGetErrorString;
+	PFN_GET_DEVICE_INST pfnGetDeviceInstance;
 
 } DC_SERVICES_FUNCS;
 
-typedef enum
-{
+typedef enum {
 	DBGLVL_FATAL = 0,
 	DBGLVL_ALERT,
 	DBGLVL_ERROR,
@@ -134,10 +145,13 @@ typedef enum
 void DC_OSSetDrvName(const IMG_CHAR *pszDrvName);
 void __noreturn DC_OSAbort(const IMG_CHAR *pszFile, IMG_UINT32 ui32Line);
 
-void DC_OSDebugPrintf(DC_OS_DEBUG_LEVEL eDebugLevel, const IMG_CHAR *pszFormat, ...);
+void DC_OSDebugPrintf(DC_OS_DEBUG_LEVEL eDebugLevel, const IMG_CHAR *pszFormat,
+		      ...);
 
-IMG_CHAR *DC_OSStringNCopy(IMG_CHAR *pszDest, const IMG_CHAR *pszSrc, size_t uiLength);
-IMG_INT DC_OSSNPrintf(IMG_CHAR *pszDest, size_t uiLength, const IMG_CHAR *pszFormat, ...);
+IMG_CHAR *DC_OSStringNCopy(IMG_CHAR *pszDest, const IMG_CHAR *pszSrc,
+			   size_t uiLength);
+IMG_INT DC_OSSNPrintf(IMG_CHAR *pszDest, size_t uiLength,
+		      const IMG_CHAR *pszFormat, ...);
 
 IMG_INT64 DC_OSClockns(void);
 
@@ -152,15 +166,19 @@ void DC_OSFreeMem(void *pvMem);
 void DC_OSMemSet(void *pvDest, IMG_UINT8 ui8Value, size_t uiSize);
 
 IMG_UINT32 DC_OSAddrRangeStart(void *pvDevice, IMG_UINT8 ui8BaseNum);
-void *DC_OSRequestAddrRegion(IMG_CPU_PHYADDR sCpuPAddr, IMG_UINT32 ui32Size, IMG_CHAR *pszRequestorName);
+void *DC_OSRequestAddrRegion(IMG_CPU_PHYADDR sCpuPAddr, IMG_UINT32 ui32Size,
+			     IMG_CHAR *pszRequestorName);
 void DC_OSReleaseAddrRegion(IMG_CPU_PHYADDR sCpuPAddr, IMG_UINT32 ui32Size);
 
-IMG_CPU_VIRTADDR DC_OSMapPhysAddr(IMG_CPU_PHYADDR sCpuPAddr, IMG_UINT32 ui32Size);
+IMG_CPU_VIRTADDR DC_OSMapPhysAddr(IMG_CPU_PHYADDR sCpuPAddr,
+				  IMG_UINT32 ui32Size);
 void DC_OSUnmapPhysAddr(IMG_CPU_VIRTADDR pvCpuVAddr, IMG_UINT32 ui32Size);
 
 /* Register access */
-IMG_UINT32 DC_OSReadReg32(IMG_CPU_VIRTADDR pvRegCpuVBase, IMG_UINT32 ui32Offset);
-void DC_OSWriteReg32(IMG_CPU_VIRTADDR pvRegCpuVBase, IMG_UINT32 ui32Offset, IMG_UINT32 ui32Value);
+IMG_UINT32 DC_OSReadReg32(IMG_CPU_VIRTADDR pvRegCpuVBase,
+			  IMG_UINT32 ui32Offset);
+void DC_OSWriteReg32(IMG_CPU_VIRTADDR pvRegCpuVBase, IMG_UINT32 ui32Offset,
+		     IMG_UINT32 ui32Value);
 
 /* Floating-point support */
 IMG_UINT32 DC_OSDiv64(IMG_UINT64 ui64Numerator, IMG_UINT32 ui32Denominator);
@@ -177,29 +195,35 @@ void DC_OSMutexUnlock(void *pvMutex);
 #if defined(__linux__)
 #include <linux/spinlock.h>
 typedef spinlock_t DC_SPINLOCK;
-# define DC_OSSpinLockCreate(psLock) spin_lock_init(psLock)
-# define DC_OSSpinLockDestroy(psLock) /* no need to destroy a spinlock */
+#define DC_OSSpinLockCreate(psLock) spin_lock_init(psLock)
+#define DC_OSSpinLockDestroy(psLock) /* no need to destroy a spinlock */
 /* used outside hardirqs */
-# define DC_OSSpinLockIRQSave(psLock, ulIRQFlags) spin_lock_irqsave(psLock, ulIRQFlags)
-# define DC_OSSpinUnlockIRQRestore(psLock, ulIRQFlags) spin_unlock_irqrestore(psLock, ulIRQFlags)
+#define DC_OSSpinLockIRQSave(psLock, ulIRQFlags) \
+	spin_lock_irqsave(psLock, ulIRQFlags)
+#define DC_OSSpinUnlockIRQRestore(psLock, ulIRQFlags) \
+	spin_unlock_irqrestore(psLock, ulIRQFlags)
 /* used inside hardirqs */
-# define DC_OSSpinLock(psLock) spin_lock(psLock)
-# define DC_OSSpinUnlock(psLock) spin_unlock(psLock)
+#define DC_OSSpinLock(psLock) spin_lock(psLock)
+#define DC_OSSpinUnlock(psLock) spin_unlock(psLock)
 
 #elif defined(__QNXNTO__)
 #include <pthread.h>
 typedef pthread_spinlock_t DC_SPINLOCK;
-# define DC_OSSpinLockCreate(psLock) pthread_spin_init(psLock, PTHREAD_PROCESS_PRIVATE)
-# define DC_OSSpinLockDestroy(psLock) pthread_spin_destroy(psLock)
-# define DC_OSSpinLockIRQSave(psLock, ulIRQFlags) PVR_UNREFERENCED_PARAMETER(ulIRQFlags); pthread_spin_lock(psLock)
-# define DC_OSSpinUnlockIRQRestore(psLock, ulIRQFlags) PVR_UNREFERENCED_PARAMETER(ulIRQFlags); pthread_spin_unlock(psLock)
+#define DC_OSSpinLockCreate(psLock) \
+	pthread_spin_init(psLock, PTHREAD_PROCESS_PRIVATE)
+#define DC_OSSpinLockDestroy(psLock) pthread_spin_destroy(psLock)
+#define DC_OSSpinLockIRQSave(psLock, ulIRQFlags) \
+	PVR_UNREFERENCED_PARAMETER(ulIRQFlags);  \
+	pthread_spin_lock(psLock)
+#define DC_OSSpinUnlockIRQRestore(psLock, ulIRQFlags) \
+	PVR_UNREFERENCED_PARAMETER(ulIRQFlags);       \
+	pthread_spin_unlock(psLock)
 
-# define DC_OSSpinLock(psLock) pthread_spin_lock(psLock)
-# define DC_OSSpinUnlock(psLock) pthread_spin_unlock(psLock)
+#define DC_OSSpinLock(psLock) pthread_spin_lock(psLock)
+#define DC_OSSpinUnlock(psLock) pthread_spin_unlock(psLock)
 
 #elif defined(INTEGRITY_OS)
-typedef struct DC_SPINLOCK_TAG
-{
+typedef struct DC_SPINLOCK_TAG {
 	IMG_UINT64 ui64Lock;
 } DC_SPINLOCK;
 IMG_BOOL DC_OSSpinLockCreate(void **pplMutex);
@@ -215,9 +239,11 @@ IMG_BOOL DC_OSSpinUnlock(void *plMutex);
 void DC_OSDelayus(IMG_UINT32 ui32Timeus);
 
 /* Services access */
-PVRSRV_ERROR DC_OSPVRServicesConnectionOpen(IMG_HANDLE *phPVRServicesConnection);
+PVRSRV_ERROR
+DC_OSPVRServicesConnectionOpen(IMG_HANDLE *phPVRServicesConnection);
 void DC_OSPVRServicesConnectionClose(IMG_HANDLE hPVRServicesConnection);
-PVRSRV_ERROR DC_OSPVRServicesSetupFuncs(IMG_HANDLE hPVRServicesConnection, DC_SERVICES_FUNCS *psServicesFuncs);
+PVRSRV_ERROR DC_OSPVRServicesSetupFuncs(IMG_HANDLE hPVRServicesConnection,
+					DC_SERVICES_FUNCS *psServicesFuncs);
 
 /* Workqueue functionality */
 /* OS work queue interface function pointer */
@@ -227,7 +253,9 @@ PVRSRV_ERROR DC_OSWorkQueueCreate(IMG_HANDLE *phQueue, IMG_UINT32 ui32Length);
 PVRSRV_ERROR DC_OSWorkQueueDestroy(IMG_HANDLE hQueue);
 PVRSRV_ERROR DC_OSWorkQueueFlush(IMG_HANDLE hQueue);
 
-PVRSRV_ERROR DC_OSWorkQueueCreateWorkItem(IMG_HANDLE *phWorkItem, PFN_WORK_PROCESSOR pfnProcessor, void *pvProcessorData);
+PVRSRV_ERROR DC_OSWorkQueueCreateWorkItem(IMG_HANDLE *phWorkItem,
+					  PFN_WORK_PROCESSOR pfnProcessor,
+					  void *pvProcessorData);
 
 PVRSRV_ERROR DC_OSWorkQueueDestroyWorkItem(IMG_HANDLE phWorkItem);
 PVRSRV_ERROR DC_OSWorkQueueAddWorkItem(IMG_HANDLE hQueue, IMG_HANDLE hWorkItem);

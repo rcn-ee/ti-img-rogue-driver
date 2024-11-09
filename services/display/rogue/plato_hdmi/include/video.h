@@ -74,8 +74,8 @@ DAMAGE.
 
 #include "hdmi.h"
 
-PVRSRV_ERROR VideoInitialize(HDMI_DEVICE * pvDevice);
-PVRSRV_ERROR VideoConfigureMode(HDMI_DEVICE * pvDevice);
-PVRSRV_ERROR VideoConfigureInfoframes(HDMI_DEVICE * pvDevice);
+PVRSRV_ERROR VideoInitialize(HDMI_DEVICE *pvDevice);
+PVRSRV_ERROR VideoConfigureMode(HDMI_DEVICE *pvDevice);
+PVRSRV_ERROR VideoConfigureInfoframes(HDMI_DEVICE *pvDevice);
 
 #endif

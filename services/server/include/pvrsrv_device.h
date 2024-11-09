@@ -61,26 +61,23 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 typedef struct _PVRSRV_DEVICE_CONFIG_ PVRSRV_DEVICE_CONFIG;
-typedef enum _DRIVER_MODE_
-{
-/* Do not use these enumerations directly, to query the
+typedef enum _DRIVER_MODE_ {
+	/* Do not use these enumerations directly, to query the
    current driver mode, use the PVRSRV_VZ_MODE_IS()
    macro */
-	DRIVER_MODE_NATIVE	= 0,
-	DRIVER_MODE_HOST	= 1,
-	DRIVER_MODE_GUEST	= 2,
-	DRIVER_MODE_DEFAULT	= 3,
+	DRIVER_MODE_NATIVE = 0,
+	DRIVER_MODE_HOST = 1,
+	DRIVER_MODE_GUEST = 2,
+	DRIVER_MODE_DEFAULT = 3,
 } PVRSRV_DRIVER_MODE;
 
-typedef enum
-{
+typedef enum {
 	PVRSRV_DEVICE_LOCAL_MEMORY_ARENA_MAPPABLE = 0,
 	PVRSRV_DEVICE_LOCAL_MEMORY_ARENA_NON_MAPPABLE = 1,
 	PVRSRV_DEVICE_LOCAL_MEMORY_ARENA_LAST
 } PVRSRV_DEVICE_LOCAL_MEMORY_ARENA;
 
-typedef enum _PVRSRV_DEVICE_SNOOP_MODE_
-{
+typedef enum _PVRSRV_DEVICE_SNOOP_MODE_ {
 	PVRSRV_DEVICE_SNOOP_NONE = 0,
 	PVRSRV_DEVICE_SNOOP_CPU_ONLY,
 	PVRSRV_DEVICE_SNOOP_DEVICE_ONLY,
@@ -89,31 +86,26 @@ typedef enum _PVRSRV_DEVICE_SNOOP_MODE_
 } PVRSRV_DEVICE_SNOOP_MODE;
 
 #if defined(SUPPORT_SOC_TIMER)
-typedef IMG_UINT64
-(*PFN_SYS_DEV_SOC_TIMER_READ)(IMG_HANDLE hSysData);
+typedef IMG_UINT64 (*PFN_SYS_DEV_SOC_TIMER_READ)(IMG_HANDLE hSysData);
 #endif
 
-typedef enum _PVRSRV_DEVICE_FABRIC_TYPE_
-{
+typedef enum _PVRSRV_DEVICE_FABRIC_TYPE_ {
 	PVRSRV_DEVICE_FABRIC_NONE = 0,
 	PVRSRV_DEVICE_FABRIC_ACELITE,
 	PVRSRV_DEVICE_FABRIC_FULLACE,
 } PVRSRV_DEVICE_FABRIC_TYPE;
 
-typedef IMG_UINT32
-(*PFN_SYS_DEV_CLK_FREQ_GET)(IMG_HANDLE hSysData);
+typedef IMG_UINT32 (*PFN_SYS_DEV_CLK_FREQ_GET)(IMG_HANDLE hSysData);
 
-typedef PVRSRV_ERROR
-(*PFN_SYS_PRE_POWER)(IMG_HANDLE hSysData,
-						 PVRSRV_SYS_POWER_STATE eNewPowerState,
-						 PVRSRV_SYS_POWER_STATE eCurrentPowerState,
-						 PVRSRV_POWER_FLAGS ePwrFlags);
+typedef PVRSRV_ERROR (*PFN_SYS_PRE_POWER)(
+	IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
+	PVRSRV_SYS_POWER_STATE eCurrentPowerState,
+	PVRSRV_POWER_FLAGS ePwrFlags);
 
-typedef PVRSRV_ERROR
-(*PFN_SYS_POST_POWER)(IMG_HANDLE hSysData,
-						  PVRSRV_SYS_POWER_STATE eNewPowerState,
-						  PVRSRV_SYS_POWER_STATE eCurrentPowerState,
-						  PVRSRV_POWER_FLAGS ePwrFlags);
+typedef PVRSRV_ERROR (*PFN_SYS_POST_POWER)(
+	IMG_HANDLE hSysData, PVRSRV_SYS_POWER_STATE eNewPowerState,
+	PVRSRV_SYS_POWER_STATE eCurrentPowerState,
+	PVRSRV_POWER_FLAGS ePwrFlags);
 
 /*************************************************************************/ /*!
 @Brief          Callback function type PFN_SYS_GET_POWER
@@ -135,44 +127,30 @@ typedef PVRSRV_ERROR
                                            domain is powered on
                 PVRSRV_SYS_POWER_STATE_OFF if the domain is powered off
 */ /**************************************************************************/
-typedef PVRSRV_SYS_POWER_STATE
-(*PFN_SYS_GET_POWER)(PPVRSRV_DEVICE_NODE psDevNode);
+typedef PVRSRV_SYS_POWER_STATE (*PFN_SYS_GET_POWER)(
+	PPVRSRV_DEVICE_NODE psDevNode);
 
-typedef void
-(*PFN_SYS_DEV_INTERRUPT_HANDLED)(PVRSRV_DEVICE_CONFIG *psDevConfig);
+typedef void (*PFN_SYS_DEV_INTERRUPT_HANDLED)(PVRSRV_DEVICE_CONFIG *psDevConfig);
 
-typedef PVRSRV_ERROR
-(*PFN_SYS_DEV_CHECK_MEM_ALLOC_SIZE)(IMG_HANDLE hSysData,
-									IMG_UINT64 ui64MemSize);
+typedef PVRSRV_ERROR (*PFN_SYS_DEV_CHECK_MEM_ALLOC_SIZE)(
+	IMG_HANDLE hSysData, IMG_UINT64 ui64MemSize);
 
 typedef void (*PFN_SYS_DEV_FEAT_DEP_INIT)(PVRSRV_DEVICE_CONFIG *, IMG_UINT64);
 
-typedef void
-(*PFN_SYS_DEV_HOST_CACHE_MAINTENANCE)(IMG_HANDLE hSysData,
-									PVRSRV_CACHE_OP eRequestType,
-									void *pvVirtStart,
-									void *pvVirtEnd,
-									IMG_CPU_PHYADDR sCPUPhysStart,
-									IMG_CPU_PHYADDR sCPUPhysEnd);
+typedef void (*PFN_SYS_DEV_HOST_CACHE_MAINTENANCE)(
+	IMG_HANDLE hSysData, PVRSRV_CACHE_OP eRequestType, void *pvVirtStart,
+	void *pvVirtEnd, IMG_CPU_PHYADDR sCPUPhysStart,
+	IMG_CPU_PHYADDR sCPUPhysEnd);
 
-typedef void*
-(*PFN_SLAVE_DMA_CHAN)(PVRSRV_DEVICE_CONFIG*, char*);
+typedef void *(*PFN_SLAVE_DMA_CHAN)(PVRSRV_DEVICE_CONFIG *, char *);
 
-typedef void
-(*PFN_SLAVE_DMA_FREE)(PVRSRV_DEVICE_CONFIG*,
-					  void*);
+typedef void (*PFN_SLAVE_DMA_FREE)(PVRSRV_DEVICE_CONFIG *, void *);
 
-typedef void
-(*PFN_DEV_PHY_ADDR_2_DMA_ADDR)(PVRSRV_DEVICE_CONFIG *,
-							   IMG_DMA_ADDR *,
-							   IMG_DEV_PHYADDR *,
-							   IMG_BOOL *,
-							   IMG_UINT32,
-							   IMG_BOOL);
+typedef void (*PFN_DEV_PHY_ADDR_2_DMA_ADDR)(PVRSRV_DEVICE_CONFIG *,
+					    IMG_DMA_ADDR *, IMG_DEV_PHYADDR *,
+					    IMG_BOOL *, IMG_UINT32, IMG_BOOL);
 
-
-typedef struct _PVRSRV_FW_PARAMS_
-{
+typedef struct _PVRSRV_FW_PARAMS_ {
 	const void *pvFirmware;
 	IMG_UINT32 ui32FirmwareSize;
 	const void *pvSignature;
@@ -180,18 +158,15 @@ typedef struct _PVRSRV_FW_PARAMS_
 	PVRSRV_FW_BOOT_PARAMS uFWP;
 } PVRSRV_FW_PARAMS;
 
-typedef PVRSRV_ERROR
-(*PFN_PREPARE_FW_IMAGE)(IMG_HANDLE hSysData,
-						PVRSRV_FW_PARAMS *psFWParams);
+typedef PVRSRV_ERROR (*PFN_PREPARE_FW_IMAGE)(IMG_HANDLE hSysData,
+					     PVRSRV_FW_PARAMS *psFWParams);
 
 #if defined(SUPPORT_TRUSTED_DEVICE)
 
-typedef PVRSRV_ERROR
-(*PFN_TD_SEND_FW_IMAGE)(IMG_HANDLE hSysData,
-						PVRSRV_FW_PARAMS *psTDFWParams);
+typedef PVRSRV_ERROR (*PFN_TD_SEND_FW_IMAGE)(IMG_HANDLE hSysData,
+					     PVRSRV_FW_PARAMS *psTDFWParams);
 
-typedef struct _PVRSRV_TD_POWER_PARAMS_
-{
+typedef struct _PVRSRV_TD_POWER_PARAMS_ {
 	IMG_DEV_PHYADDR sPCAddr;
 
 	/* MIPS-only fields */
@@ -201,59 +176,56 @@ typedef struct _PVRSRV_TD_POWER_PARAMS_
 	IMG_DEV_PHYADDR sDataRemapAddr;
 } PVRSRV_TD_POWER_PARAMS;
 
-typedef PVRSRV_ERROR
-(*PFN_TD_SET_POWER_PARAMS)(IMG_HANDLE hSysData,
-						   PVRSRV_TD_POWER_PARAMS *psTDPowerParams);
+typedef PVRSRV_ERROR (*PFN_TD_SET_POWER_PARAMS)(
+	IMG_HANDLE hSysData, PVRSRV_TD_POWER_PARAMS *psTDPowerParams);
 
-typedef PVRSRV_ERROR
-(*PFN_TD_RGXSTART)(IMG_HANDLE hSysData);
+typedef PVRSRV_ERROR (*PFN_TD_RGXSTART)(IMG_HANDLE hSysData);
 
-typedef PVRSRV_ERROR
-(*PFN_TD_RGXSTOP)(IMG_HANDLE hSysData);
+typedef PVRSRV_ERROR (*PFN_TD_RGXSTOP)(IMG_HANDLE hSysData);
 
 #endif /* defined(SUPPORT_TRUSTED_DEVICE) */
 
 #if defined(SUPPORT_GPUVIRT_VALIDATION)
-typedef void (*PFN_SYS_INIT_FIREWALL)(IMG_HANDLE hSysData,
-                                      IMG_UINT64[GPUVIRT_VALIDATION_NUM_REGIONS][GPUVIRT_VALIDATION_NUM_OS],
-                                      IMG_UINT64[GPUVIRT_VALIDATION_NUM_REGIONS][GPUVIRT_VALIDATION_NUM_OS]);
+typedef void (*PFN_SYS_INIT_FIREWALL)(
+	IMG_HANDLE hSysData,
+	IMG_UINT64[GPUVIRT_VALIDATION_NUM_REGIONS][GPUVIRT_VALIDATION_NUM_OS],
+	IMG_UINT64[GPUVIRT_VALIDATION_NUM_REGIONS][GPUVIRT_VALIDATION_NUM_OS]);
 #endif /* defined(SUPPORT_GPUVIRT_VALIDATION) */
 
-typedef struct _PVRSRV_ROBUSTNESS_ERR_DATA_HOST_WDG_
-{
-	IMG_UINT32 ui32Status;     /*!< FW status */
-	IMG_UINT32 ui32Reason;     /*!< Reason for FW status */
+typedef struct _PVRSRV_ROBUSTNESS_ERR_DATA_HOST_WDG_ {
+	IMG_UINT32 ui32Status; /*!< FW status */
+	IMG_UINT32 ui32Reason; /*!< Reason for FW status */
 } PVRSRV_ROBUSTNESS_ERR_DATA_HOST_WDG;
 
-typedef struct _PVRSRV_ROBUSTNESS_ERR_DATA_FW_PF_
-{
-	IMG_DEV_VIRTADDR sFWFaultAddr;     /*!< FW page fault address */
+typedef struct _PVRSRV_ROBUSTNESS_ERR_DATA_FW_PF_ {
+	IMG_DEV_VIRTADDR sFWFaultAddr; /*!< FW page fault address */
 } PVRSRV_ROBUSTNESS_ERR_DATA_FW_PF;
 
-typedef struct _PVRSRV_ROBUSTNESS_ERR_DATA_CHECKSUM_
-{
-	IMG_UINT32 ui32ExtJobRef;     /*!< External Job Reference of any affected GPU work */
-	RGXFWIF_DM eDM;               /*!< Data Master which was running any affected GPU work */
+typedef struct _PVRSRV_ROBUSTNESS_ERR_DATA_CHECKSUM_ {
+	IMG_UINT32
+		ui32ExtJobRef; /*!< External Job Reference of any affected GPU work */
+	RGXFWIF_DM
+		eDM; /*!< Data Master which was running any affected GPU work */
 } PVRSRV_ROBUSTNESS_ERR_DATA_CHECKSUM;
 
-typedef struct _PVRSRV_ROBUSTNESS_NOTIFY_DATA_
-{
+typedef struct _PVRSRV_ROBUSTNESS_NOTIFY_DATA_ {
 	RGX_CONTEXT_RESET_REASON eResetReason; /*!< Reason for error/reset */
-	IMG_PID                  pid;          /*!< Pid of process which created the errored context */
-	union
-	{
-		PVRSRV_ROBUSTNESS_ERR_DATA_CHECKSUM sChecksumErrData; /*!< Data returned for checksum errors */
-		PVRSRV_ROBUSTNESS_ERR_DATA_FW_PF    sFwPFErrData;     /*!< Data returned for FW page faults */
-		PVRSRV_ROBUSTNESS_ERR_DATA_HOST_WDG sHostWdgData;     /*!< Data returned for Host Wdg FW faults */
+	IMG_PID pid; /*!< Pid of process which created the errored context */
+	union {
+		PVRSRV_ROBUSTNESS_ERR_DATA_CHECKSUM
+			sChecksumErrData; /*!< Data returned for checksum errors */
+		PVRSRV_ROBUSTNESS_ERR_DATA_FW_PF
+			sFwPFErrData; /*!< Data returned for FW page faults */
+		PVRSRV_ROBUSTNESS_ERR_DATA_HOST_WDG
+			sHostWdgData; /*!< Data returned for Host Wdg FW faults */
 	} uErrData;
 } PVRSRV_ROBUSTNESS_NOTIFY_DATA;
 
-typedef void
-(*PFN_SYS_DEV_ERROR_NOTIFY)(IMG_HANDLE hSysData,
-						    PVRSRV_ROBUSTNESS_NOTIFY_DATA *psRobustnessErrorData);
+typedef void (*PFN_SYS_DEV_ERROR_NOTIFY)(
+	IMG_HANDLE hSysData,
+	PVRSRV_ROBUSTNESS_NOTIFY_DATA *psRobustnessErrorData);
 
-struct _PVRSRV_DEVICE_CONFIG_
-{
+struct _PVRSRV_DEVICE_CONFIG_ {
 	/*! OS device passed to SysDevInit (linux: 'struct device') */
 	void *pvOSDevice;
 
@@ -295,7 +267,7 @@ struct _PVRSRV_DEVICE_CONFIG_
 	 *    (e.g. DEFAULT) will lead to an error at device discovery.
 	 * pasPhysHeap array must contain at least one PhysHeap, the declared default heap.
 	 */
-	PVRSRV_PHYS_HEAP  eDefaultHeap;
+	PVRSRV_PHYS_HEAP eDefaultHeap;
 	PHYS_HEAP_CONFIG *pasPhysHeaps;
 	IMG_UINT32 ui32PhysHeapCount;
 
@@ -305,14 +277,14 @@ struct _PVRSRV_DEVICE_CONFIG_
 	 */
 	PFN_SYS_PRE_POWER pfnPrePowerState;
 	PFN_SYS_POST_POWER pfnPostPowerState;
-	PFN_SYS_GET_POWER  pfnGpuDomainPower;
+	PFN_SYS_GET_POWER pfnGpuDomainPower;
 
 	/*! Callback to obtain the clock frequency from the device (optional). */
 	PFN_SYS_DEV_CLK_FREQ_GET pfnClockFreqGet;
 
 #if defined(SUPPORT_SOC_TIMER)
 	/*! Callback to read SoC timer register value (mandatory). */
-	PFN_SYS_DEV_SOC_TIMER_READ	pfnSoCTimerRead;
+	PFN_SYS_DEV_SOC_TIMER_READ pfnSoCTimerRead;
 #endif
 
 	/*!
@@ -354,7 +326,7 @@ struct _PVRSRV_DEVICE_CONFIG_
 #endif /* defined(SUPPORT_TRUSTED_DEVICE) */
 
 	/*! Function that does device feature specific system layer initialisation */
-	PFN_SYS_DEV_FEAT_DEP_INIT	pfnSysDevFeatureDepInit;
+	PFN_SYS_DEV_FEAT_DEP_INIT pfnSysDevFeatureDepInit;
 
 #if defined(SUPPORT_LINUX_DVFS) || defined(SUPPORT_PDVFS)
 	PVRSRV_DVFS sDVFS;
@@ -377,7 +349,7 @@ struct _PVRSRV_DEVICE_CONFIG_
 	 *! validate the correctness of memory accesses tagged with OSIDs.
 	 *! Used for hardware validation of virtualization features only.
 	 */
-	PFN_SYS_INIT_FIREWALL		pfnSysInitFirewall;
+	PFN_SYS_INIT_FIREWALL pfnSysInitFirewall;
 #endif
 
 	/*!
@@ -387,7 +359,7 @@ struct _PVRSRV_DEVICE_CONFIG_
 	 *! RGX MISR. (e.g. any blocking or lengthy work should be performed by
 	 *! a worker queue/thread instead.)
 	 */
-	PFN_SYS_DEV_ERROR_NOTIFY	pfnSysDevErrorNotify;
+	PFN_SYS_DEV_ERROR_NOTIFY pfnSysDevErrorNotify;
 
 	/*!
 	 *!  Slave DMA channel request callbacks

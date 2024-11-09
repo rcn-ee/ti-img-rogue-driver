@@ -54,20 +54,22 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "common_rgxpdump_bridge.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpTraceBuffer(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpTraceBuffer(IMG_HANDLE hBridge,
+						 IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpSignatureBuffer(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpSignatureBuffer(IMG_HANDLE hBridge,
+						     IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpComputeCRCSignatureCheck(IMG_HANDLE hBridge,
-							      IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpComputeCRCSignatureCheck(
+	IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpCRCSignatureCheck(IMG_HANDLE hBridge,
-						       IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR
+BridgePDumpCRCSignatureCheck(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpValCheckPreCommand(IMG_HANDLE hBridge,
-							IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR
+BridgePDumpValCheckPreCommand(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags);
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpValCheckPostCommand(IMG_HANDLE hBridge,
-							 IMG_UINT32 ui32PDumpFlags);
+IMG_INTERNAL PVRSRV_ERROR
+BridgePDumpValCheckPostCommand(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags);
 
 #endif /* CLIENT_RGXPDUMP_BRIDGE_H */

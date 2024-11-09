@@ -91,7 +91,7 @@ struct pdp_drm_private {
 	enum pdp_odin_subversion subversion;
 
 	/* created by pdp_gem_init */
-	struct pdp_gem_private	*gem_priv;
+	struct pdp_gem_private *gem_priv;
 
 	/* preferred output device */
 	enum pdp_output_device outdev;
@@ -200,15 +200,14 @@ void pdp_debugfs_cleanup(struct drm_minor *minor);
 struct drm_plane *pdp_plane_create(struct drm_device *dev,
 				   enum drm_plane_type type);
 void pdp_plane_set_surface(struct drm_crtc *crtc, struct drm_plane *plane,
-			   struct drm_framebuffer *fb,
-			   const uint32_t src_x, const uint32_t src_y);
+			   struct drm_framebuffer *fb, const uint32_t src_x,
+			   const uint32_t src_y);
 
 struct drm_crtc *pdp_crtc_create(struct drm_device *dev, uint32_t number,
 				 struct drm_plane *primary_plane);
 void pdp_crtc_set_plane_enabled(struct drm_crtc *crtc, bool enable);
 void pdp_crtc_set_vblank_enabled(struct drm_crtc *crtc, bool enable);
 void pdp_crtc_irq_handler(struct drm_crtc *crtc);
-
 
 struct drm_connector *pdp_dvi_connector_create(struct drm_device *dev);
 
