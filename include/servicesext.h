@@ -54,19 +54,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
  * Lock buffer read/write flags
  */
-#define PVRSRV_LOCKFLG_READONLY		(1)		/*!< The locking process will only read the locked surface */
+#define PVRSRV_LOCKFLG_READONLY \
+	(1) /*!< The locking process will only read the locked surface */
 
 /*!
  *****************************************************************************
  *	Services State
  *****************************************************************************/
-typedef enum _PVRSRV_SERVICES_STATE_
-{
+typedef enum _PVRSRV_SERVICES_STATE_ {
 	PVRSRV_SERVICES_STATE_UNDEFINED = 0,
 	PVRSRV_SERVICES_STATE_OK,
 	PVRSRV_SERVICES_STATE_BAD,
 } PVRSRV_SERVICES_STATE;
-
 
 /*!
  *****************************************************************************
@@ -77,40 +76,45 @@ typedef enum _PVRSRV_SERVICES_STATE_
   System Power State Enum
  */
 
-#define _PVRSRV_SYS_POWER_STATES \
+#define _PVRSRV_SYS_POWER_STATES                               \
 	X(Unspecified, -1) /*!< Unspecified : Uninitialised */ \
-	X(OFF,          0) /*!< Off */ \
-	X(ON,           1) /*!< On */
+	X(OFF, 0) /*!< Off */                                  \
+	X(ON, 1) /*!< On */
 
-typedef enum _PVRSRV_SYS_POWER_STATE_
-{
+typedef enum _PVRSRV_SYS_POWER_STATE_ {
 #define X(name, value) PVRSRV_SYS_POWER_STATE_##name = value,
 	_PVRSRV_SYS_POWER_STATES
 #undef X
 
-	PVRSRV_SYS_POWER_STATE_FORCE_I32 = 0x7fffffff	/*!< Force enum to be at least 32-bits wide */
+		PVRSRV_SYS_POWER_STATE_FORCE_I32 =
+			0x7fffffff /*!< Force enum to be at least 32-bits wide */
 
-} PVRSRV_SYS_POWER_STATE, *PPVRSRV_SYS_POWER_STATE; /*!< Typedef for ptr to PVRSRV_SYS_POWER_STATE */
+} PVRSRV_SYS_POWER_STATE,
+	*PPVRSRV_SYS_POWER_STATE; /*!< Typedef for ptr to PVRSRV_SYS_POWER_STATE */
 
 /*!
   Device Power State Enum
  */
 typedef IMG_INT32 PVRSRV_DEV_POWER_STATE;
-typedef IMG_INT32 *PPVRSRV_DEV_POWER_STATE;	/*!< Typedef for ptr to PVRSRV_DEV_POWER_STATE */ /* PRQA S 3205 */
-#define PVRSRV_DEV_POWER_STATE_DEFAULT	-1	/*!< Default state for the device */
-#define PVRSRV_DEV_POWER_STATE_OFF		 0	/*!< Unpowered */
-#define PVRSRV_DEV_POWER_STATE_ON		 1	/*!< Running */
+typedef IMG_INT32 *PPVRSRV_DEV_POWER_STATE;
+	/*!< Typedef for ptr to PVRSRV_DEV_POWER_STATE */ /* PRQA S 3205 */
+#define PVRSRV_DEV_POWER_STATE_DEFAULT -1 /*!< Default state for the device */
+#define PVRSRV_DEV_POWER_STATE_OFF 0 /*!< Unpowered */
+#define PVRSRV_DEV_POWER_STATE_ON 1 /*!< Running */
 
 /*!
   Power Flags Enum
  */
 typedef IMG_UINT32 PVRSRV_POWER_FLAGS;
-#define PVRSRV_POWER_FLAGS_NONE             0U      /*!< No flags */
-#define PVRSRV_POWER_FLAGS_FORCED           (1U << 0) /*!< Power the transition should not fail */
-#define PVRSRV_POWER_FLAGS_OSPM_SUSPEND_REQ (1U << 1) /*!< Indicates an OS Power Management
+#define PVRSRV_POWER_FLAGS_NONE 0U /*!< No flags */
+#define PVRSRV_POWER_FLAGS_FORCED \
+	(1U << 0) /*!< Power the transition should not fail */
+#define PVRSRV_POWER_FLAGS_OSPM_SUSPEND_REQ \
+	(1U << 1) /*!< Indicates an OS Power Management
                                                            transition (S3/S4) has been requested.
                                                            Allows system modules to save VRAM */
-#define PVRSRV_POWER_FLAGS_OSPM_RESUME_REQ  (1U << 2) /*!< Indicates an OS Power Management
+#define PVRSRV_POWER_FLAGS_OSPM_RESUME_REQ \
+	(1U << 2) /*!< Indicates an OS Power Management
                                                            transition has been requested.
                                                            Allows system modules to load VRAM */
 
@@ -119,13 +123,12 @@ typedef IMG_UINT32 PVRSRV_POWER_FLAGS;
  * This structure is used for OS independent registry (profile) access
  *****************************************************************************/
 
-typedef struct PVRSRV_REGISTRY_INFO_TAG
-{
-	IMG_UINT32	ui32DevCookie;
-	IMG_PCHAR	pszKey;
-	IMG_PCHAR	pszValue;
-	IMG_PCHAR	pszBuf;
-	IMG_UINT32	ui32BufSize;
+typedef struct PVRSRV_REGISTRY_INFO_TAG {
+	IMG_UINT32 ui32DevCookie;
+	IMG_PCHAR pszKey;
+	IMG_PCHAR pszValue;
+	IMG_PCHAR pszBuf;
+	IMG_UINT32 ui32BufSize;
 } PVRSRV_REGISTRY_INFO, *PPVRSRV_REGISTRY_INFO;
 
 #endif /* SERVICESEXT_H */

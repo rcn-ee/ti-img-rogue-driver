@@ -51,68 +51,65 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgxpdump.h"
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpTraceBuffer(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpTraceBuffer(IMG_HANDLE hBridge,
+						 IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PVRSRVPDumpTraceBufferKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-				     ui32PDumpFlags);
+	eError = PVRSRVPDumpTraceBufferKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpSignatureBuffer(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpSignatureBuffer(IMG_HANDLE hBridge,
+						     IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PVRSRVPDumpSignatureBufferKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-					 ui32PDumpFlags);
+	eError = PVRSRVPDumpSignatureBufferKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpComputeCRCSignatureCheck(IMG_HANDLE hBridge,
-							      IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR BridgePDumpComputeCRCSignatureCheck(
+	IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags)
 {
 	PVR_UNREFERENCED_PARAMETER(ui32PDumpFlags);
 
 	return PVRSRV_ERROR_NOT_IMPLEMENTED;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpCRCSignatureCheck(IMG_HANDLE hBridge,
-						       IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR
+BridgePDumpCRCSignatureCheck(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PVRSRVPDumpCRCSignatureCheckKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-					   ui32PDumpFlags);
+	eError = PVRSRVPDumpCRCSignatureCheckKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpValCheckPreCommand(IMG_HANDLE hBridge,
-							IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR
+BridgePDumpValCheckPreCommand(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PVRSRVPDumpValCheckPreCommandKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-					    ui32PDumpFlags);
+	eError = PVRSRVPDumpValCheckPreCommandKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32PDumpFlags);
 
 	return eError;
 }
 
-IMG_INTERNAL PVRSRV_ERROR BridgePDumpValCheckPostCommand(IMG_HANDLE hBridge,
-							 IMG_UINT32 ui32PDumpFlags)
+IMG_INTERNAL PVRSRV_ERROR
+BridgePDumpValCheckPostCommand(IMG_HANDLE hBridge, IMG_UINT32 ui32PDumpFlags)
 {
 	PVRSRV_ERROR eError;
 
-	eError =
-	    PVRSRVPDumpValCheckPostCommandKM(NULL, (PVRSRV_DEVICE_NODE *) ((void *)hBridge),
-					     ui32PDumpFlags);
+	eError = PVRSRVPDumpValCheckPostCommandKM(
+		NULL, (PVRSRV_DEVICE_NODE *)((void *)hBridge), ui32PDumpFlags);
 
 	return eError;
 }

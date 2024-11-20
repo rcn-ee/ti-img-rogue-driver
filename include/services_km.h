@@ -51,28 +51,34 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #endif
 
 /*! 4k page size definition */
-#define PVRSRV_4K_PAGE_SIZE					4096U      /*!< Size of a 4K Page */
-#define PVRSRV_4K_PAGE_SIZE_ALIGNSHIFT		12          /*!< Amount to shift an address by so that
+#define PVRSRV_4K_PAGE_SIZE 4096U /*!< Size of a 4K Page */
+#define PVRSRV_4K_PAGE_SIZE_ALIGNSHIFT \
+	12 /*!< Amount to shift an address by so that
                                                           it is always page-aligned */
 /*! 16k page size definition */
-#define PVRSRV_16K_PAGE_SIZE					16384U      /*!< Size of a 16K Page */
-#define PVRSRV_16K_PAGE_SIZE_ALIGNSHIFT		14          /*!< Amount to shift an address by so that
+#define PVRSRV_16K_PAGE_SIZE 16384U /*!< Size of a 16K Page */
+#define PVRSRV_16K_PAGE_SIZE_ALIGNSHIFT \
+	14 /*!< Amount to shift an address by so that
                                                           it is always page-aligned */
 /*! 64k page size definition */
-#define PVRSRV_64K_PAGE_SIZE					65536U      /*!< Size of a 64K Page */
-#define PVRSRV_64K_PAGE_SIZE_ALIGNSHIFT		16          /*!< Amount to shift an address by so that
+#define PVRSRV_64K_PAGE_SIZE 65536U /*!< Size of a 64K Page */
+#define PVRSRV_64K_PAGE_SIZE_ALIGNSHIFT \
+	16 /*!< Amount to shift an address by so that
                                                           it is always page-aligned */
 /*! 256k page size definition */
-#define PVRSRV_256K_PAGE_SIZE					262144U      /*!< Size of a 256K Page */
-#define PVRSRV_256K_PAGE_SIZE_ALIGNSHIFT		18          /*!< Amount to shift an address by so that
+#define PVRSRV_256K_PAGE_SIZE 262144U /*!< Size of a 256K Page */
+#define PVRSRV_256K_PAGE_SIZE_ALIGNSHIFT \
+	18 /*!< Amount to shift an address by so that
                                                           it is always page-aligned */
 /*! 1MB page size definition */
-#define PVRSRV_1M_PAGE_SIZE					1048576U      /*!< Size of a 1M Page */
-#define PVRSRV_1M_PAGE_SIZE_ALIGNSHIFT		20          /*!< Amount to shift an address by so that
+#define PVRSRV_1M_PAGE_SIZE 1048576U /*!< Size of a 1M Page */
+#define PVRSRV_1M_PAGE_SIZE_ALIGNSHIFT \
+	20 /*!< Amount to shift an address by so that
                                                           it is always page-aligned */
 /*! 2MB page size definition */
-#define PVRSRV_2M_PAGE_SIZE					2097152U      /*!< Size of a 2M Page */
-#define PVRSRV_2M_PAGE_SIZE_ALIGNSHIFT		21          /*!< Amount to shift an address by so that
+#define PVRSRV_2M_PAGE_SIZE 2097152U /*!< Size of a 2M Page */
+#define PVRSRV_2M_PAGE_SIZE_ALIGNSHIFT \
+	21 /*!< Amount to shift an address by so that
                                                           it is always page-aligned */
 
 /*!
@@ -104,10 +110,15 @@ typedef struct PVRSRV_DEV_CONNECTION_TAG PVRSRV_DEV_CONNECTION;
  *    X---XXXXXXXX-------------XXX----
  */
 
-#define SRV_NO_HWPERF_CLIENT_STREAM     (1UL << 4)  /*!< Don't create HWPerf for this connection */
-#define SRV_FLAGS_CLIENT_64BIT_COMPAT   (1UL << 5)  /*!< This flags gets set if the client is 64 Bit compatible. */
-#define SRV_FLAGS_CLIENT_SLR_DISABLED   (1UL << 6)  /*!< This flag is set if the client does not want Sync Lockup Recovery (SLR) enabled. */
-#define SRV_FLAGS_PDUMPCTRL             (1UL << 31) /*!< PDump Ctrl client flag */
+#define SRV_NO_HWPERF_CLIENT_STREAM \
+	(1UL << 4) /*!< Don't create HWPerf for this connection */
+#define SRV_FLAGS_CLIENT_64BIT_COMPAT \
+	(1UL                          \
+	 << 5) /*!< This flags gets set if the client is 64 Bit compatible. */
+#define SRV_FLAGS_CLIENT_SLR_DISABLED \
+	(1UL                          \
+	 << 6) /*!< This flag is set if the client does not want Sync Lockup Recovery (SLR) enabled. */
+#define SRV_FLAGS_PDUMPCTRL (1UL << 31) /*!< PDump Ctrl client flag */
 
 /*! @} SRV_FLAGS */
 
@@ -126,55 +137,57 @@ typedef struct PVRSRV_DEV_CONNECTION_TAG PVRSRV_DEV_CONNECTION;
  *            will be set to secure for that OSid
  */
 
-#define VIRTVAL_FLAG_OSID_SHIFT        (20)
-#define SRV_VIRTVAL_FLAG_OSID_MASK     (7U << VIRTVAL_FLAG_OSID_SHIFT)
+#define VIRTVAL_FLAG_OSID_SHIFT (20)
+#define SRV_VIRTVAL_FLAG_OSID_MASK (7U << VIRTVAL_FLAG_OSID_SHIFT)
 
-#define VIRTVAL_FLAG_OSIDREG_SHIFT     (23)
-#define SRV_VIRTVAL_FLAG_OSIDREG_MASK  (7U << VIRTVAL_FLAG_OSIDREG_SHIFT)
+#define VIRTVAL_FLAG_OSIDREG_SHIFT (23)
+#define SRV_VIRTVAL_FLAG_OSIDREG_MASK (7U << VIRTVAL_FLAG_OSIDREG_SHIFT)
 
-#define VIRTVAL_FLAG_AXIPREG_SHIFT     (26)
-#define SRV_VIRTVAL_FLAG_AXIPREG_MASK  (1U << VIRTVAL_FLAG_AXIPREG_SHIFT)
+#define VIRTVAL_FLAG_AXIPREG_SHIFT (26)
+#define SRV_VIRTVAL_FLAG_AXIPREG_MASK (1U << VIRTVAL_FLAG_AXIPREG_SHIFT)
 
-#define VIRTVAL_FLAG_AXIPTD_SHIFT      (27)
-#define SRV_VIRTVAL_FLAG_AXIPTD_MASK   (1U << VIRTVAL_FLAG_AXIPTD_SHIFT)
-
+#define VIRTVAL_FLAG_AXIPTD_SHIFT (27)
+#define SRV_VIRTVAL_FLAG_AXIPTD_MASK (1U << VIRTVAL_FLAG_AXIPTD_SHIFT)
 
 /* Size of pointer on a 64 bit machine */
-#define	POINTER_SIZE_64BIT	(8U)
-
+#define POINTER_SIZE_64BIT (8U)
 
 /*
     Pdump flags which are accessible to Services clients
 */
-#define PDUMP_NONE          0x00000000U /*<! No flags */
+#define PDUMP_NONE 0x00000000U /*<! No flags */
 
-#define PDUMP_BLKDATA       0x10000000U /*<! This flag indicates block-mode PDump data to be recorded in
+#define PDUMP_BLKDATA \
+	0x10000000U /*<! This flag indicates block-mode PDump data to be recorded in
                                                           Block script stream in addition to Main script stream,
                                                           if capture mode is set to BLOCKED */
 
-#define PDUMP_CONT          0x40000000U /*<! Output this entry always regardless of framed capture range,
+#define PDUMP_CONT \
+	0x40000000U /*<! Output this entry always regardless of framed capture range,
                                                           used by client applications being dumped. */
-#define PDUMP_PERSIST       0x80000000U /*<! Output this entry always regardless of app and range,
+#define PDUMP_PERSIST \
+	0x80000000U /*<! Output this entry always regardless of app and range,
                                                           used by persistent resources created after
                                                           driver initialisation that must appear in
                                                           all PDump captures in that session. */
 
 /* Valid range of values for pdump block length in Block mode of PDump */
-#define PDUMP_BLOCKLEN_MIN          10
-#define PDUMP_BLOCKLEN_MAX          1000
+#define PDUMP_BLOCKLEN_MIN 10
+#define PDUMP_BLOCKLEN_MAX 1000
 
-#define PDUMP_FRAME_MIN             0
-#define PDUMP_FRAME_MAX             (IMG_UINT32_MAX - 1)
-#define PDUMP_FRAME_UNSET           IMG_UINT32_MAX
+#define PDUMP_FRAME_MIN 0
+#define PDUMP_FRAME_MAX (IMG_UINT32_MAX - 1)
+#define PDUMP_FRAME_UNSET IMG_UINT32_MAX
 
 /* Status of the device. */
 typedef IMG_UINT32 PVRSRV_DEVICE_STATUS;
-#define PVRSRV_DEVICE_STATUS_UNKNOWN        0U /* status of the device is unknown */
-#define PVRSRV_DEVICE_STATUS_OK             1U /* the device is operational */
-#define PVRSRV_DEVICE_STATUS_NOT_RESPONDING 2U /* the device is not responding */
-#define PVRSRV_DEVICE_STATUS_DEVICE_ERROR   3U /* the device is not operational */
+#define PVRSRV_DEVICE_STATUS_UNKNOWN 0U /* status of the device is unknown */
+#define PVRSRV_DEVICE_STATUS_OK 1U /* the device is operational */
+#define PVRSRV_DEVICE_STATUS_NOT_RESPONDING \
+	2U /* the device is not responding */
+#define PVRSRV_DEVICE_STATUS_DEVICE_ERROR 3U /* the device is not operational */
 
 #endif /* SERVICES_KM_H */
-/**************************************************************************//**
+/**************************************************************************/ /**
 End of file (services_km.h)
 ******************************************************************************/

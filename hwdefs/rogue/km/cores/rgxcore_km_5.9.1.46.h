@@ -59,12 +59,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #define FIX_HW_BRN_38344
 
-
-
 /******************************************************************************
  * Enhancements
  *****************************************************************************/
-
-
 
 #endif /* RGXCORE_KM_5_9_1_46_H */

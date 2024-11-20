@@ -46,7 +46,6 @@
 
 #define PLATO_PDP_STRIDE_SHIFT 5
 
-
 void pdp_plato_set_syncgen_enabled(struct device *dev, void __iomem *pdp_reg,
 				   bool enable)
 {
@@ -62,8 +61,7 @@ void pdp_plato_set_syncgen_enabled(struct device *dev, void __iomem *pdp_reg,
 			      PDP_SYNCCTRL_SYNCACTIVE_SHIFT,
 			      PDP_SYNCCTRL_SYNCACTIVE_MASK);
 	/* Controls polarity of pixel clock: Pixel clock is inverted */
-	value = REG_VALUE_SET(value, 0x01,
-			      PDP_SYNCCTRL_CLKPOL_SHIFT,
+	value = REG_VALUE_SET(value, 0x01, PDP_SYNCCTRL_CLKPOL_SHIFT,
 			      PDP_SYNCCTRL_CLKPOL_MASK);
 	pdp_wreg32(pdp_reg, PDP_SYNCCTRL_OFFSET, value);
 }
@@ -86,15 +84,13 @@ void pdp_plato_set_vblank_enabled(struct device *dev, void __iomem *pdp_reg,
 	pdp_wreg32(pdp_reg, PDP_INTENAB_OFFSET, value);
 }
 
-bool pdp_plato_check_and_clear_vblank(struct device *dev,
-				      void __iomem *pdp_reg)
+bool pdp_plato_check_and_clear_vblank(struct device *dev, void __iomem *pdp_reg)
 {
 	u32 value;
 
 	value = pdp_rreg32(pdp_reg, PDP_INTSTAT_OFFSET);
 
-	if (REG_VALUE_GET(value,
-			  PDP_INTSTAT_INTS_VBLNK0_SHIFT,
+	if (REG_VALUE_GET(value, PDP_INTSTAT_INTS_VBLNK0_SHIFT,
 			  PDP_INTSTAT_INTS_VBLNK0_MASK)) {
 		pdp_wreg32(pdp_reg, PDP_INTCLR_OFFSET,
 			   (1 << PDP_INTCLR_INTCLR_VBLNK0_SHIFT));
@@ -110,8 +106,8 @@ void pdp_plato_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 	u32 value;
 
 #ifdef PDP_VERBOSE
-	dev_info(dev, "Set plane %u: %s\n",
-		 plane, enable ? "enable" : "disable");
+	dev_info(dev, "Set plane %u: %s\n", plane,
+		 enable ? "enable" : "disable");
 #endif
 	value = pdp_rreg32(pdp_reg, PDP_GRPH1CTRL_OFFSET);
 	value = REG_VALUE_SET(value, enable ? 0x1 : 0x0,
@@ -120,12 +116,10 @@ void pdp_plato_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 	pdp_wreg32(pdp_reg, PDP_GRPH1CTRL_OFFSET, value);
 }
 
-void pdp_plato_set_surface(struct device *dev,
-			   void __iomem *pdp_reg, void __iomem *pdp_bif_reg,
-			   u32 plane, u64 address,
-			   u32 posx, u32 posy,
-			   u32 width, u32 height, u32 stride,
-			   u32 format, u32 alpha, bool blend)
+void pdp_plato_set_surface(struct device *dev, void __iomem *pdp_reg,
+			   void __iomem *pdp_bif_reg, u32 plane, u64 address,
+			   u32 posx, u32 posy, u32 width, u32 height,
+			   u32 stride, u32 format, u32 alpha, bool blend)
 {
 	u32 value;
 
@@ -157,9 +151,10 @@ void pdp_plato_set_surface(struct device *dev,
 	value = REG_VALUE_SET(value, address >> 32,
 			      PDP_BIF_ADDRESS_CONTROL_UPPER_ADDRESS_FIXED_SHIFT,
 			      PDP_BIF_ADDRESS_CONTROL_UPPER_ADDRESS_FIXED_MASK);
-	value = REG_VALUE_SET(value, 0x00,
-			      PDP_BIF_ADDRESS_CONTROL_MMU_ENABLE_EXT_ADDRESSING_SHIFT,
-			      PDP_BIF_ADDRESS_CONTROL_MMU_ENABLE_EXT_ADDRESSING_MASK);
+	value = REG_VALUE_SET(
+		value, 0x00,
+		PDP_BIF_ADDRESS_CONTROL_MMU_ENABLE_EXT_ADDRESSING_SHIFT,
+		PDP_BIF_ADDRESS_CONTROL_MMU_ENABLE_EXT_ADDRESSING_MASK);
 	value = REG_VALUE_SET(value, 0x01,
 			      PDP_BIF_ADDRESS_CONTROL_MMU_BYPASS_SHIFT,
 			      PDP_BIF_ADDRESS_CONTROL_MMU_BYPASS_MASK);
@@ -167,15 +162,13 @@ void pdp_plato_set_surface(struct device *dev,
 
 	/* Set the framebuffer pixel format */
 	value = pdp_rreg32(pdp_reg, PDP_GRPH1SURF_OFFSET);
-	value = REG_VALUE_SET(value, format,
-			      PDP_GRPH1SURF_GRPH1PIXFMT_SHIFT,
+	value = REG_VALUE_SET(value, format, PDP_GRPH1SURF_GRPH1PIXFMT_SHIFT,
 			      PDP_GRPH1SURF_GRPH1PIXFMT_MASK);
 	pdp_wreg32(pdp_reg, PDP_GRPH1SURF_OFFSET, value);
 	/*
 	 * Set the framebuffer size (this might be smaller than the resolution)
 	 */
-	value = REG_VALUE_SET(0, width - 1,
-			      PDP_GRPH1SIZE_GRPH1WIDTH_SHIFT,
+	value = REG_VALUE_SET(0, width - 1, PDP_GRPH1SIZE_GRPH1WIDTH_SHIFT,
 			      PDP_GRPH1SIZE_GRPH1WIDTH_MASK);
 	value = REG_VALUE_SET(value, height - 1,
 			      PDP_GRPH1SIZE_GRPH1HEIGHT_SHIFT,
@@ -195,31 +188,26 @@ void pdp_plato_set_surface(struct device *dev,
 	 * Issues with NoC sending interleaved read responses to PDP require
 	 * burst to be 1.
 	 */
-	value = REG_VALUE_SET(0, 0x02,
-			      PDP_MEMCTRL_MEMREFRESH_SHIFT,
+	value = REG_VALUE_SET(0, 0x02, PDP_MEMCTRL_MEMREFRESH_SHIFT,
 			      PDP_MEMCTRL_MEMREFRESH_MASK);
-	value = REG_VALUE_SET(value, 0x01,
-			      PDP_MEMCTRL_BURSTLEN_SHIFT,
+	value = REG_VALUE_SET(value, 0x01, PDP_MEMCTRL_BURSTLEN_SHIFT,
 			      PDP_MEMCTRL_BURSTLEN_MASK);
 	pdp_wreg32(pdp_reg, PDP_MEMCTRL_OFFSET, value);
 }
 
 void pdp_plato_mode_set(struct device *dev, void __iomem *pdp_reg,
-			u32 h_display, u32 v_display,
-			u32 hbps, u32 ht, u32 has,
-			u32 hlbs, u32 hfps, u32 hrbs,
-			u32 vbps, u32 vt, u32 vas,
-			u32 vtbs, u32 vfps, u32 vbbs,
-			bool nhsync, bool nvsync)
+			u32 h_display, u32 v_display, u32 hbps, u32 ht, u32 has,
+			u32 hlbs, u32 hfps, u32 hrbs, u32 vbps, u32 vt, u32 vas,
+			u32 vtbs, u32 vfps, u32 vbbs, bool nhsync, bool nvsync)
 {
 	u32 value;
 
 	dev_info(dev, "Set mode: %dx%d\n", h_display, v_display);
 #ifdef PDP_VERBOSE
-	dev_info(dev, " ht: %d hbps %d has %d hlbs %d hfps %d hrbs %d\n",
-		 ht, hbps, has, hlbs, hfps, hrbs);
-	dev_info(dev, " vt: %d vbps %d vas %d vtbs %d vfps %d vbbs %d\n",
-		 vt, vbps, vas, vtbs, vfps, vbbs);
+	dev_info(dev, " ht: %d hbps %d has %d hlbs %d hfps %d hrbs %d\n", ht,
+		 hbps, has, hlbs, hfps, hrbs);
+	dev_info(dev, " vt: %d vbps %d vas %d vtbs %d vfps %d vbbs %d\n", vt,
+		 vbps, vas, vtbs, vfps, vbbs);
 #endif
 
 	/* Update control */
@@ -231,109 +219,85 @@ void pdp_plato_mode_set(struct device *dev, void __iomem *pdp_reg,
 
 	/* Set hsync timings */
 	value = pdp_rreg32(pdp_reg, PDP_HSYNC1_OFFSET);
-	value = REG_VALUE_SET(value, hbps,
-			      PDP_HSYNC1_HBPS_SHIFT,
+	value = REG_VALUE_SET(value, hbps, PDP_HSYNC1_HBPS_SHIFT,
 			      PDP_HSYNC1_HBPS_MASK);
-	value = REG_VALUE_SET(value, ht,
-			      PDP_HSYNC1_HT_SHIFT,
+	value = REG_VALUE_SET(value, ht, PDP_HSYNC1_HT_SHIFT,
 			      PDP_HSYNC1_HT_MASK);
 	pdp_wreg32(pdp_reg, PDP_HSYNC1_OFFSET, value);
 
 	value = pdp_rreg32(pdp_reg, PDP_HSYNC2_OFFSET);
-	value = REG_VALUE_SET(value, has,
-			      PDP_HSYNC2_HAS_SHIFT,
+	value = REG_VALUE_SET(value, has, PDP_HSYNC2_HAS_SHIFT,
 			      PDP_HSYNC2_HAS_MASK);
-	value = REG_VALUE_SET(value, hlbs,
-			      PDP_HSYNC2_HLBS_SHIFT,
+	value = REG_VALUE_SET(value, hlbs, PDP_HSYNC2_HLBS_SHIFT,
 			      PDP_HSYNC2_HLBS_MASK);
 	pdp_wreg32(pdp_reg, PDP_HSYNC2_OFFSET, value);
 
 	value = pdp_rreg32(pdp_reg, PDP_HSYNC3_OFFSET);
-	value = REG_VALUE_SET(value, hfps,
-			      PDP_HSYNC3_HFPS_SHIFT,
+	value = REG_VALUE_SET(value, hfps, PDP_HSYNC3_HFPS_SHIFT,
 			      PDP_HSYNC3_HFPS_MASK);
-	value = REG_VALUE_SET(value, hrbs,
-			      PDP_HSYNC3_HRBS_SHIFT,
+	value = REG_VALUE_SET(value, hrbs, PDP_HSYNC3_HRBS_SHIFT,
 			      PDP_HSYNC3_HRBS_MASK);
 	pdp_wreg32(pdp_reg, PDP_HSYNC3_OFFSET, value);
 
 	/* Set vsync timings */
 	value = pdp_rreg32(pdp_reg, PDP_VSYNC1_OFFSET);
-	value = REG_VALUE_SET(value, vbps,
-			      PDP_VSYNC1_VBPS_SHIFT,
+	value = REG_VALUE_SET(value, vbps, PDP_VSYNC1_VBPS_SHIFT,
 			      PDP_VSYNC1_VBPS_MASK);
-	value = REG_VALUE_SET(value, vt,
-			      PDP_VSYNC1_VT_SHIFT,
+	value = REG_VALUE_SET(value, vt, PDP_VSYNC1_VT_SHIFT,
 			      PDP_VSYNC1_VT_MASK);
 	pdp_wreg32(pdp_reg, PDP_VSYNC1_OFFSET, value);
 
 	value = pdp_rreg32(pdp_reg, PDP_VSYNC2_OFFSET);
-	value = REG_VALUE_SET(value, vas,
-			      PDP_VSYNC2_VAS_SHIFT,
+	value = REG_VALUE_SET(value, vas, PDP_VSYNC2_VAS_SHIFT,
 			      PDP_VSYNC2_VAS_MASK);
-	value = REG_VALUE_SET(value, vtbs,
-			      PDP_VSYNC2_VTBS_SHIFT,
+	value = REG_VALUE_SET(value, vtbs, PDP_VSYNC2_VTBS_SHIFT,
 			      PDP_VSYNC2_VTBS_MASK);
 	pdp_wreg32(pdp_reg, PDP_VSYNC2_OFFSET, value);
 
 	value = pdp_rreg32(pdp_reg, PDP_VSYNC3_OFFSET);
-	value = REG_VALUE_SET(value, vfps,
-			      PDP_VSYNC3_VFPS_SHIFT,
+	value = REG_VALUE_SET(value, vfps, PDP_VSYNC3_VFPS_SHIFT,
 			      PDP_VSYNC3_VFPS_MASK);
-	value = REG_VALUE_SET(value, vbbs,
-			      PDP_VSYNC3_VBBS_SHIFT,
+	value = REG_VALUE_SET(value, vbbs, PDP_VSYNC3_VBBS_SHIFT,
 			      PDP_VSYNC3_VBBS_MASK);
 	pdp_wreg32(pdp_reg, PDP_VSYNC3_OFFSET, value);
 
 	/* Horizontal data enable */
 	value = pdp_rreg32(pdp_reg, PDP_HDECTRL_OFFSET);
-	value = REG_VALUE_SET(value, has,
-			      PDP_HDECTRL_HDES_SHIFT,
+	value = REG_VALUE_SET(value, has, PDP_HDECTRL_HDES_SHIFT,
 			      PDP_HDECTRL_HDES_MASK);
-	value = REG_VALUE_SET(value, hrbs,
-			      PDP_HDECTRL_HDEF_SHIFT,
+	value = REG_VALUE_SET(value, hrbs, PDP_HDECTRL_HDEF_SHIFT,
 			      PDP_HDECTRL_HDEF_MASK);
 	pdp_wreg32(pdp_reg, PDP_HDECTRL_OFFSET, value);
 
 	/* Vertical data enable */
 	value = pdp_rreg32(pdp_reg, PDP_VDECTRL_OFFSET);
 	value = REG_VALUE_SET(value, vtbs, /* XXX: we're setting this to VAS */
-			      PDP_VDECTRL_VDES_SHIFT,
-			      PDP_VDECTRL_VDES_MASK);
+			      PDP_VDECTRL_VDES_SHIFT, PDP_VDECTRL_VDES_MASK);
 	value = REG_VALUE_SET(value, vfps, /* XXX: set to VBBS */
-			      PDP_VDECTRL_VDEF_SHIFT,
-			      PDP_VDECTRL_VDEF_MASK);
+			      PDP_VDECTRL_VDEF_SHIFT, PDP_VDECTRL_VDEF_MASK);
 	pdp_wreg32(pdp_reg, PDP_VDECTRL_OFFSET, value);
 
 	/* Vertical event start and vertical fetch start */
 	value = 0;
-	value = REG_VALUE_SET(value, 0,
-			      PDP_VEVENT_VEVENT_SHIFT,
+	value = REG_VALUE_SET(value, 0, PDP_VEVENT_VEVENT_SHIFT,
 			      PDP_VEVENT_VEVENT_MASK);
-	value = REG_VALUE_SET(value, vbps,
-			      PDP_VEVENT_VFETCH_SHIFT,
+	value = REG_VALUE_SET(value, vbps, PDP_VEVENT_VFETCH_SHIFT,
 			      PDP_VEVENT_VFETCH_MASK);
-	value = REG_VALUE_SET(value, vfps,
-			      PDP_VEVENT_VEVENT_SHIFT,
+	value = REG_VALUE_SET(value, vfps, PDP_VEVENT_VEVENT_SHIFT,
 			      PDP_VEVENT_VEVENT_MASK);
 	pdp_wreg32(pdp_reg, PDP_VEVENT_OFFSET, value);
 
 	/* Set up polarities of sync/blank */
-	value = REG_VALUE_SET(0, 0x1,
-			      PDP_SYNCCTRL_BLNKPOL_SHIFT,
+	value = REG_VALUE_SET(0, 0x1, PDP_SYNCCTRL_BLNKPOL_SHIFT,
 			      PDP_SYNCCTRL_BLNKPOL_MASK);
 
 	if (nhsync)
-		value = REG_VALUE_SET(value, 0x1,
-				      PDP_SYNCCTRL_HSPOL_SHIFT,
+		value = REG_VALUE_SET(value, 0x1, PDP_SYNCCTRL_HSPOL_SHIFT,
 				      PDP_SYNCCTRL_HSPOL_MASK);
 
 	if (nvsync)
-		value = REG_VALUE_SET(value, 0x1,
-				      PDP_SYNCCTRL_VSPOL_SHIFT,
+		value = REG_VALUE_SET(value, 0x1, PDP_SYNCCTRL_VSPOL_SHIFT,
 				      PDP_SYNCCTRL_VSPOL_MASK);
 
-	pdp_wreg32(pdp_reg,
-		   PDP_SYNCCTRL_OFFSET,
-		   value);
+	pdp_wreg32(pdp_reg, PDP_SYNCCTRL_OFFSET, value);
 }

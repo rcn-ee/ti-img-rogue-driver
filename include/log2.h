@@ -67,7 +67,8 @@ static INLINE IMG_BOOL __const_function IsPower2_64(uint64_t n)
 }
 
 /* Code using GNU GCC intrinsics */
-#if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER))
+#if (defined(__GNUC__) || defined(__GNUG__)) && \
+	!(defined(__clang__) || defined(__INTEL_COMPILER))
 
 /* CHAR_BIT is typically found in <limits.h>. For all the platforms where
  * CHAR_BIT is not available, defined it here with the assumption that there
@@ -83,12 +84,9 @@ static INLINE IMG_BOOL __const_function IsPower2_64(uint64_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function FloorLog2(uint32_t n)
 {
-	if (unlikely(n == 0U))
-	{
+	if (unlikely(n == 0U)) {
 		return 0;
-	}
-	else
-	{
+	} else {
 		uint32_t uNumBits = (uint32_t)CHAR_BIT * (uint32_t)sizeof(n);
 		return uNumBits - (uint32_t)__builtin_clz(n) - 1U;
 	}
@@ -101,12 +99,9 @@ static INLINE uint32_t __const_function FloorLog2(uint32_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function FloorLog2_64(uint64_t n)
 {
-	if (unlikely(n == 0U))
-	{
+	if (unlikely(n == 0U)) {
 		return 0;
-	}
-	else
-	{
+	} else {
 		uint32_t uNumBits = (uint32_t)CHAR_BIT * (uint32_t)sizeof(n);
 		return uNumBits - (uint32_t)__builtin_clzll(n) - 1U;
 	}
@@ -119,12 +114,9 @@ static INLINE uint32_t __const_function FloorLog2_64(uint64_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function CeilLog2(uint32_t n)
 {
-	if (unlikely(n == 0U || n == 1U))
-	{
+	if (unlikely(n == 0U || n == 1U)) {
 		return 0;
-	}
-	else
-	{
+	} else {
 		uint32_t uNumBits = (uint32_t)CHAR_BIT * (uint32_t)sizeof(n);
 
 		n--; /* Handle powers of 2 */
@@ -139,12 +131,9 @@ static INLINE uint32_t __const_function CeilLog2(uint32_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function CeilLog2_64(uint64_t n)
 {
-	if (unlikely(n == 0U || n == 1U))
-	{
+	if (unlikely(n == 0U || n == 1U)) {
 		return 0;
-	}
-	else
-	{
+	} else {
 		uint32_t uNumBits = (uint32_t)CHAR_BIT * (uint32_t)sizeof(n);
 
 		n--; /* Handle powers of 2 */
@@ -159,7 +148,8 @@ static INLINE uint32_t __const_function CeilLog2_64(uint64_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function ExactLog2(uint32_t n)
 {
-	return (uint32_t)CHAR_BIT * (uint32_t)sizeof(n) - (uint32_t)__builtin_clz(n) - 1U;
+	return (uint32_t)CHAR_BIT * (uint32_t)sizeof(n) -
+	       (uint32_t)__builtin_clz(n) - 1U;
 }
 
 /*************************************************************************/ /*!
@@ -169,7 +159,8 @@ static INLINE uint32_t __const_function ExactLog2(uint32_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function ExactLog2_64(uint64_t n)
 {
-	return (uint32_t)CHAR_BIT * (uint32_t)sizeof(n) - (uint32_t)__builtin_clzll(n) - 1U;
+	return (uint32_t)CHAR_BIT * (uint32_t)sizeof(n) -
+	       (uint32_t)__builtin_clzll(n) - 1U;
 }
 
 /*************************************************************************/ /*!
@@ -182,18 +173,19 @@ static INLINE uint32_t __const_function RoundUpToNextPowerOfTwo(uint32_t n)
 {
 	/* Cases with n greater than 2^31 needs separate handling
 	 * as result of (1<<32) is undefined. */
-	if (unlikely( n == 0U || n > (uint32_t)1 << ((uint32_t)CHAR_BIT * sizeof(n) - 1U)))
-	{
+	if (unlikely(
+		    n == 0U ||
+		    n > (uint32_t)1 << ((uint32_t)CHAR_BIT * sizeof(n) - 1U))) {
 		return 0;
 	}
 
 	/* Return n if it is already a power of 2 */
-	if ((IMG_BOOL)((n & (n - 1U)) == 0U))
-	{
+	if ((IMG_BOOL)((n & (n - 1U)) == 0U)) {
 		return n;
 	}
 
-	return (uint32_t)1 << ((uint32_t)CHAR_BIT * sizeof(n) - (uint32_t)__builtin_clz(n));
+	return (uint32_t)1
+	       << ((uint32_t)CHAR_BIT * sizeof(n) - (uint32_t)__builtin_clz(n));
 }
 
 /*************************************************************************/ /*!
@@ -206,18 +198,19 @@ static INLINE uint64_t __const_function RoundUpToNextPowerOfTwo_64(uint64_t n)
 {
 	/* Cases with n greater than 2^63 needs separate handling
 	 * as result of (1<<64) is undefined. */
-	if (unlikely( n == 0U || n > (uint64_t)1 << ((uint32_t)CHAR_BIT * sizeof(n) - 1U)))
-	{
+	if (unlikely(
+		    n == 0U ||
+		    n > (uint64_t)1 << ((uint32_t)CHAR_BIT * sizeof(n) - 1U))) {
 		return 0;
 	}
 
 	/* Return n if it is already a power of 2 */
-	if ((IMG_BOOL)((n & (n - 1U)) == 0U))
-	{
+	if ((IMG_BOOL)((n & (n - 1U)) == 0U)) {
 		return n;
 	}
 
-	return (uint64_t)1 << ((uint64_t)CHAR_BIT * sizeof(n) - (uint64_t)__builtin_clzll(n));
+	return (uint64_t)1 << ((uint64_t)CHAR_BIT * sizeof(n) -
+			       (uint64_t)__builtin_clzll(n));
 }
 
 #else /* #if (defined(__GNUC__) || defined(__GNUG__)) && !(defined(__clang__) || defined(__INTEL_COMPILER)) */
@@ -231,10 +224,10 @@ static INLINE uint64_t __const_function RoundUpToNextPowerOfTwo_64(uint64_t n)
 static INLINE uint32_t __const_function RoundUpToNextPowerOfTwo(uint32_t n)
 {
 	n--;
-	n |= n >> 1;  /* handle  2 bit numbers */
-	n |= n >> 2;  /* handle  4 bit numbers */
-	n |= n >> 4;  /* handle  8 bit numbers */
-	n |= n >> 8;  /* handle 16 bit numbers */
+	n |= n >> 1; /* handle  2 bit numbers */
+	n |= n >> 2; /* handle  4 bit numbers */
+	n |= n >> 4; /* handle  8 bit numbers */
+	n |= n >> 8; /* handle 16 bit numbers */
 	n |= n >> 16; /* handle 32 bit numbers */
 	n++;
 
@@ -250,10 +243,10 @@ static INLINE uint32_t __const_function RoundUpToNextPowerOfTwo(uint32_t n)
 static INLINE uint64_t __const_function RoundUpToNextPowerOfTwo_64(uint64_t n)
 {
 	n--;
-	n |= n >> 1;  /* handle  2 bit numbers */
-	n |= n >> 2;  /* handle  4 bit numbers */
-	n |= n >> 4;  /* handle  8 bit numbers */
-	n |= n >> 8;  /* handle 16 bit numbers */
+	n |= n >> 1; /* handle  2 bit numbers */
+	n |= n >> 2; /* handle  4 bit numbers */
+	n |= n >> 4; /* handle  8 bit numbers */
+	n |= n >> 8; /* handle 16 bit numbers */
 	n |= n >> 16; /* handle 32 bit numbers */
 	n |= n >> 32; /* handle 64 bit numbers */
 	n++;
@@ -270,8 +263,7 @@ static INLINE uint32_t __const_function FloorLog2(uint32_t n)
 {
 	uint32_t ui32log2 = 0;
 
-	for (n >>= 1; n != 0U; n >>= 1)
-	{
+	for (n >>= 1; n != 0U; n >>= 1) {
 		ui32log2++;
 	}
 
@@ -287,8 +279,7 @@ static INLINE uint32_t __const_function FloorLog2_64(uint64_t n)
 {
 	uint32_t ui32log2 = 0;
 
-	for (n >>= 1; n != 0U; n >>= 1)
-	{
+	for (n >>= 1; n != 0U; n >>= 1) {
 		ui32log2++;
 	}
 
@@ -304,15 +295,13 @@ static INLINE uint32_t __const_function CeilLog2(uint32_t n)
 {
 	uint32_t ui32log2 = 0;
 
-	if (n == 0U)
-	{
+	if (n == 0U) {
 		return 0;
 	}
 
 	n--; /* Handle powers of 2 */
 
-	while (n != 0U)
-	{
+	while (n != 0U) {
 		ui32log2++;
 		n >>= 1;
 	}
@@ -329,15 +318,13 @@ static INLINE uint32_t __const_function CeilLog2_64(uint64_t n)
 {
 	uint32_t ui32log2 = 0;
 
-	if (n == 0U)
-	{
+	if (n == 0U) {
 		return 0;
 	}
 
 	n--; /* Handle powers of 2 */
 
-	while (n != 0U)
-	{
+	while (n != 0U) {
 		ui32log2++;
 		n >>= 1;
 	}
@@ -352,14 +339,14 @@ static INLINE uint32_t __const_function CeilLog2_64(uint64_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function ExactLog2(uint32_t n)
 {
-	static const uint32_t b[] =
-		{0xAAAAAAAAU, 0xCCCCCCCCU, 0xF0F0F0F0U, 0xFF00FF00U, 0xFFFF0000U};
+	static const uint32_t b[] = { 0xAAAAAAAAU, 0xCCCCCCCCU, 0xF0F0F0F0U,
+				      0xFF00FF00U, 0xFFFF0000U };
 	uint32_t r = (((n & b[0]) != 0U) ? 1U : 0U);
 
-	r |= (uint32_t) (((n & b[4]) != 0U) ? (1U << 4) : 0U);
-	r |= (uint32_t) (((n & b[3]) != 0U) ? (1U << 3) : 0U);
-	r |= (uint32_t) (((n & b[2]) != 0U) ? (1U << 2) : 0U);
-	r |= (uint32_t) (((n & b[1]) != 0U) ? (1U << 1) : 0U);
+	r |= (uint32_t)(((n & b[4]) != 0U) ? (1U << 4) : 0U);
+	r |= (uint32_t)(((n & b[3]) != 0U) ? (1U << 3) : 0U);
+	r |= (uint32_t)(((n & b[2]) != 0U) ? (1U << 2) : 0U);
+	r |= (uint32_t)(((n & b[1]) != 0U) ? (1U << 1) : 0U);
 
 	return r;
 }
@@ -371,17 +358,18 @@ static INLINE uint32_t __const_function ExactLog2(uint32_t n)
 */ /**************************************************************************/
 static INLINE uint32_t __const_function ExactLog2_64(uint64_t n)
 {
-	static const uint64_t b[] =
-		{0xAAAAAAAAAAAAAAAAUL, 0xCCCCCCCCCCCCCCCCUL,
-		 0xF0F0F0F0F0F0F0F0UL, 0xFF00FF00FF00FF00UL,
-		 0xFFFF0000FFFF0000UL, 0xFFFFFFFF00000000UL};
+	static const uint64_t b[] = {
+		0xAAAAAAAAAAAAAAAAUL, 0xCCCCCCCCCCCCCCCCUL,
+		0xF0F0F0F0F0F0F0F0UL, 0xFF00FF00FF00FF00UL,
+		0xFFFF0000FFFF0000UL, 0xFFFFFFFF00000000UL
+	};
 	uint32_t r = (((n & b[0]) != 0U) ? 1U : 0U);
 
-	r |= (uint32_t) (((n & b[5]) != 0U) ? (1U << 5) : 0U);
-	r |= (uint32_t) (((n & b[4]) != 0U) ? (1U << 4) : 0U);
-	r |= (uint32_t) (((n & b[3]) != 0U) ? (1U << 3) : 0U);
-	r |= (uint32_t) (((n & b[2]) != 0U) ? (1U << 2) : 0U);
-	r |= (uint32_t) (((n & b[1]) != 0U) ? (1U << 1) : 0U);
+	r |= (uint32_t)(((n & b[5]) != 0U) ? (1U << 5) : 0U);
+	r |= (uint32_t)(((n & b[4]) != 0U) ? (1U << 4) : 0U);
+	r |= (uint32_t)(((n & b[3]) != 0U) ? (1U << 3) : 0U);
+	r |= (uint32_t)(((n & b[2]) != 0U) ? (1U << 2) : 0U);
+	r |= (uint32_t)(((n & b[1]) != 0U) ? (1U << 1) : 0U);
 
 	return r;
 }
@@ -407,9 +395,10 @@ static INLINE uint32_t __const_function ExactLog2_64(uint64_t n)
 @Input          sizeX, sizeY, sizeZ
 @Return         Count of mipmap levels for given dimensions
 */ /**************************************************************************/
-static INLINE uint32_t __const_function NumMipLevels(uint32_t sizeX, uint32_t sizeY, uint32_t sizeZ)
+static INLINE uint32_t __const_function NumMipLevels(uint32_t sizeX,
+						     uint32_t sizeY,
+						     uint32_t sizeZ)
 {
-
 	uint32_t maxSize = MAX(MAX(sizeX, sizeY), sizeZ);
 	return FloorLog2(maxSize) + 1U;
 }

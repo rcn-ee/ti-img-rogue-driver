@@ -91,16 +91,16 @@ typedef struct _pvr_ion_stats_buf_ {
 	/* Node in a tree */
 	struct rb_node node;
 	/* Indicate the buffer was created from which heap */
-	IMG_UINT32     ui32HeapKey;
+	IMG_UINT32 ui32HeapKey;
 	/* A key which represents the buffer in tree */
-	uintptr_t      addr;
+	uintptr_t addr;
 	/* Size of the buffer */
-	size_t         uiBytes;
+	size_t uiBytes;
 
 #if defined(SUPPORT_PMR_DEFERRED_FREE)
 	/* Indicate if buffer is a zombie buffer (marked for free but free is
 	 * asynchronous) */
-	IMG_BOOL       bZombie;
+	IMG_BOOL bZombie;
 #endif
 
 	/* used for debugging */
@@ -156,7 +156,7 @@ static IMG_BOOL isIonBuf(const struct dma_buf *psDmaBuf)
 }
 
 static IMG_UINT32 pvr_ion_stats_query_heaps(PVR_ION_STATS_HEAP *heaps,
-		HashKeypfn pfnHashKey)
+					    HashKeypfn pfnHashKey)
 {
 	/* The heap id is good to be a hash key as it's unique. From Linux 4.12,
 	 * ION id mask has been deprecated. Getting heap ids is only supported
@@ -172,14 +172,16 @@ static IMG_UINT32 pvr_ion_stats_query_heaps(PVR_ION_STATS_HEAP *heaps,
 	PVR_ION_STATS_HEAP sDefaultIonHeaps[] = {
 #if defined(ION_DEFAULT_HEAP_NAME)
 		{
-			.szName      = ION_DEFAULT_HEAP_NAME,
-			.ui32HashKey = pfnHashKey((uintptr_t)ION_DEFAULT_HEAP_NAME),
+			.szName = ION_DEFAULT_HEAP_NAME,
+			.ui32HashKey =
+				pfnHashKey((uintptr_t)ION_DEFAULT_HEAP_NAME),
 		},
 #endif /* defined(ION_DEFAULT_HEAP_NAME) */
 #if defined(ION_FALLBACK_HEAP_NAME)
 		{
-			.szName      = ION_FALLBACK_HEAP_NAME,
-			.ui32HashKey = pfnHashKey((uintptr_t)ION_FALLBACK_HEAP_NAME),
+			.szName = ION_FALLBACK_HEAP_NAME,
+			.ui32HashKey =
+				pfnHashKey((uintptr_t)ION_FALLBACK_HEAP_NAME),
 		}
 #endif /* defined(ION_FALLBACK_HEAP_NAME) */
 	};
@@ -187,14 +189,16 @@ static IMG_UINT32 pvr_ion_stats_query_heaps(PVR_ION_STATS_HEAP *heaps,
 	PVR_ION_STATS_HEAP sDefaultIonHeaps[] = {
 #if defined(ION_DEFAULT_HEAP_ID_MASK)
 		{
-			.szName      = ION_DEFAULT_HEAP_NAME,
-			.ui32HashKey = GET_ION_HEAP_ID(ION_DEFAULT_HEAP_ID_MASK),
+			.szName = ION_DEFAULT_HEAP_NAME,
+			.ui32HashKey =
+				GET_ION_HEAP_ID(ION_DEFAULT_HEAP_ID_MASK),
 		},
 #endif /* defined(ION_DEFAULT_HEAP_ID_MASK) */
 #if defined(ION_FALLBACK_HEAP_ID_MASK)
 		{
-			.szName      = ION_FALLBACK_HEAP_NAME,
-			.ui32HashKey = GET_ION_HEAP_ID(ION_FALLBACK_HEAP_ID_MASK),
+			.szName = ION_FALLBACK_HEAP_NAME,
+			.ui32HashKey =
+				GET_ION_HEAP_ID(ION_FALLBACK_HEAP_ID_MASK),
 		}
 #endif /* defined(ION_FALLBACK_HEAP_ID_MASK) */
 	};
@@ -205,10 +209,12 @@ static IMG_UINT32 pvr_ion_stats_query_heaps(PVR_ION_STATS_HEAP *heaps,
 
 #if defined(ION_HAS_QUERY_HEAPS_KERNEL)
 	numHeapsData = ion_query_heaps_kernel(sDefaultIonHeapsData,
-			ARRAY_SIZE(sDefaultIonHeapsData));
+					      ARRAY_SIZE(sDefaultIonHeapsData));
 	for (i = 0; i < numHeapsData; i++) {
-		OSStringSafeCopy(heaps[i].szName, sDefaultIonHeapsData[i].name, sizeof(heaps[i].szName));
-		heaps[i].ui32HashKey = pfnHashKey(sDefaultIonHeapsData[i].heap_id);
+		OSStringSafeCopy(heaps[i].szName, sDefaultIonHeapsData[i].name,
+				 sizeof(heaps[i].szName));
+		heaps[i].ui32HashKey =
+			pfnHashKey(sDefaultIonHeapsData[i].heap_id);
 	}
 #else
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
@@ -252,12 +258,11 @@ static int pvr_ion_stats_show(OSDI_IMPL_ENTRY *s, void *v)
 		if (entry->psTask) {
 			get_task_comm(task_comm, entry->psTask);
 			DIPrintf(s, "%16s %8u 0x%016lx %10zu\n", task_comm,
-					task_pid_nr(entry->psTask), entry->addr,
-					entry->uiBytes);
-		}
-		else {
-			DIPrintf(s, "%16s %8u 0x%016lx %10zu\n", "kernel", entry->uiPID,
-					entry->addr, entry->uiBytes);
+				 task_pid_nr(entry->psTask), entry->addr,
+				 entry->uiBytes);
+		} else {
+			DIPrintf(s, "%16s %8u 0x%016lx %10zu\n", "kernel",
+				 entry->uiPID, entry->addr, entry->uiBytes);
 		}
 		total_size += entry->uiBytes;
 	}
@@ -270,9 +275,9 @@ static int pvr_ion_stats_show(OSDI_IMPL_ENTRY *s, void *v)
 	return 0;
 }
 
-static PVRSRV_ERROR
-ion_stats_init(PVR_ION_STATS_HEAP *heaps, IMG_UINT32 ui32NumHeaps,
-		DI_GROUP **iondir, DI_GROUP **heapsdir, DI_ENTRY *entry[])
+static PVRSRV_ERROR ion_stats_init(PVR_ION_STATS_HEAP *heaps,
+				   IMG_UINT32 ui32NumHeaps, DI_GROUP **iondir,
+				   DI_GROUP **heapsdir, DI_ENTRY *entry[])
 {
 	const DI_ITERATOR_CB iterator = {
 		.pfnShow = pvr_ion_stats_show,
@@ -299,22 +304,26 @@ ion_stats_init(PVR_ION_STATS_HEAP *heaps, IMG_UINT32 ui32NumHeaps,
 
 	eError = DICreateGroup("ion", NULL, iondir);
 	if (eError != PVRSRV_OK) {
-		PVR_DPF((PVR_DBG_ERROR, "Failed to create ion debugfs directory."));
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Failed to create ion debugfs directory."));
 		goto err_out;
 	}
 
 	eError = DICreateGroup("heaps", *iondir, heapsdir);
 	if (eError != PVRSRV_OK) {
-		PVR_DPF((PVR_DBG_ERROR, "Failed to create heaps debugfs directory."));
+		PVR_DPF((PVR_DBG_ERROR,
+			 "Failed to create heaps debugfs directory."));
 		goto err_destroy_ion_debugfs;
 	}
 
 	for (i = 0; i < ui32NumHeaps; i++) {
 		eError = DICreateEntry(heaps[i].szName, *heapsdir, &iterator,
-				&heaps[i], DI_ENTRY_TYPE_GENERIC, &entry[i]);
+				       &heaps[i], DI_ENTRY_TYPE_GENERIC,
+				       &entry[i]);
 		if (eError != PVRSRV_OK) {
-			PVR_DPF((PVR_DBG_ERROR, "Failed to create heaps %s entry.",
-						heaps[i].szName));
+			PVR_DPF((PVR_DBG_ERROR,
+				 "Failed to create heaps %s entry.",
+				 heaps[i].szName));
 			goto err_destroy_heaps_and_entry_debugfs;
 		}
 	}
@@ -357,8 +366,7 @@ static IMG_UINT32 StringHashFunc(uintptr_t input)
 	unsigned long hash = 5381;
 	int c;
 
-	while ((c = *szHeapName++))
-	{
+	while ((c = *szHeapName++)) {
 		hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
 	}
 
@@ -378,7 +386,7 @@ PVRSRV_ERROR PVRSRVIonStatsInitialise(void)
 	PVRSRV_ERROR eError;
 
 	psState->ui32NumHeaps = pvr_ion_stats_query_heaps(psState->sHeapData,
-			psState->pfnHashKey);
+							  psState->pfnHashKey);
 	if (!psState->ui32NumHeaps) {
 		PVR_DPF((PVR_DBG_WARNING, "No ION heaps are available."));
 		return PVRSRV_OK;
@@ -391,8 +399,8 @@ PVRSRV_ERROR PVRSRVIonStatsInitialise(void)
 	}
 
 	eError = ion_stats_init(psState->sHeapData, psState->ui32NumHeaps,
-			&psState->debugfs_ion, &psState->debugfs_heaps,
-			psState->debugfs_heaps_entry);
+				&psState->debugfs_ion, &psState->debugfs_heaps,
+				psState->debugfs_heaps_entry);
 	if (eError != PVRSRV_OK)
 		goto err_destroy_lock;
 
@@ -479,10 +487,10 @@ void PVRSRVIonAddMemAllocRecord(struct dma_buf *psDmaBuf)
 	}
 
 	if (pfnHashKey == StringHashFunc) {
-		psBuf->ui32HeapKey = pfnHashKey((uintptr_t)psIonBuf->heap->name);
+		psBuf->ui32HeapKey =
+			pfnHashKey((uintptr_t)psIonBuf->heap->name);
 		PVR_UNREFERENCED_PARAMETER(DefaultHashFunc);
-	}
-	else
+	} else
 		psBuf->ui32HeapKey = pfnHashKey((uintptr_t)psIonBuf->heap->id);
 
 	psBuf->addr = (uintptr_t)psDmaBuf;

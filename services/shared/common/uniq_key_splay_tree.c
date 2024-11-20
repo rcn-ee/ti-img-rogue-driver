@@ -54,15 +54,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Return the resulting tree after the splay operation.
  */
 IMG_INTERNAL
-IMG_PSPLAY_TREE PVRSRVSplay (IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
+IMG_PSPLAY_TREE PVRSRVSplay(IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 {
 	IMG_SPLAY_TREE sTmp1;
 	IMG_PSPLAY_TREE psLeft;
 	IMG_PSPLAY_TREE psRight;
 	IMG_PSPLAY_TREE psTmp2;
 
-	if (psTree == NULL)
-	{
+	if (psTree == NULL) {
 		return NULL;
 	}
 
@@ -72,24 +71,19 @@ IMG_PSPLAY_TREE PVRSRVSplay (IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 	psLeft = &sTmp1;
 	psRight = &sTmp1;
 
-	for (;;)
-	{
-		if (uiFlags < psTree->uiFlags)
-		{
-			if (psTree->psLeft == NULL)
-			{
+	for (;;) {
+		if (uiFlags < psTree->uiFlags) {
+			if (psTree->psLeft == NULL) {
 				break;
 			}
 
-			if (uiFlags < psTree->psLeft->uiFlags)
-			{
+			if (uiFlags < psTree->psLeft->uiFlags) {
 				/* if we get to this point, we need to rotate right the tree */
 				psTmp2 = psTree->psLeft;
 				psTree->psLeft = psTmp2->psRight;
 				psTmp2->psRight = psTree;
 				psTree = psTmp2;
-				if (psTree->psLeft == NULL)
-				{
+				if (psTree->psLeft == NULL) {
 					break;
 				}
 			}
@@ -98,25 +92,19 @@ IMG_PSPLAY_TREE PVRSRVSplay (IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 			psRight->psLeft = psTree;
 			psRight = psTree;
 			psTree = psTree->psLeft;
-		}
-		else
-		{
-			if (uiFlags > psTree->uiFlags)
-			{
-				if (psTree->psRight == NULL)
-				{
+		} else {
+			if (uiFlags > psTree->uiFlags) {
+				if (psTree->psRight == NULL) {
 					break;
 				}
 
-				if (uiFlags > psTree->psRight->uiFlags)
-				{
+				if (uiFlags > psTree->psRight->uiFlags) {
 					/* if we get to this point, we need to rotate left the tree */
 					psTmp2 = psTree->psRight;
 					psTree->psRight = psTmp2->psLeft;
 					psTmp2->psLeft = psTree;
 					psTree = psTmp2;
-					if (psTree->psRight == NULL)
-					{
+					if (psTree->psRight == NULL) {
 						break;
 					}
 				}
@@ -125,9 +113,7 @@ IMG_PSPLAY_TREE PVRSRVSplay (IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 				psLeft->psRight = psTree;
 				psLeft = psTree;
 				psTree = psTree->psRight;
-			}
-			else
-			{
+			} else {
 				break;
 			}
 		}
@@ -140,7 +126,6 @@ IMG_PSPLAY_TREE PVRSRVSplay (IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 	psTree->psRight = sTmp1.psLeft;
 	return psTree;
 }
-
 
 /**
  * PVRSRVInsert - insert a node into the Tree (unless it is already present, in
@@ -155,19 +140,18 @@ IMG_PSPLAY_TREE PVRSRVInsert(IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 {
 	IMG_PSPLAY_TREE psNew;
 
-	if (psTree != NULL)
-	{
+	if (psTree != NULL) {
 		psTree = PVRSRVSplay(uiFlags, psTree);
-		if (psTree->uiFlags == uiFlags)
-		{
+		if (psTree->uiFlags == uiFlags) {
 			return psTree;
 		}
 	}
 
-	psNew = (IMG_PSPLAY_TREE) OSAllocMem(sizeof(IMG_SPLAY_TREE));
-	if (psNew == NULL)
-	{
-		PVR_DPF ((PVR_DBG_ERROR, "Error: failed to allocate memory to add a node to the splay tree."));
+	psNew = (IMG_PSPLAY_TREE)OSAllocMem(sizeof(IMG_SPLAY_TREE));
+	if (psNew == NULL) {
+		PVR_DPF((
+			PVR_DBG_ERROR,
+			"Error: failed to allocate memory to add a node to the splay tree."));
 		return NULL;
 	}
 
@@ -175,32 +159,30 @@ IMG_PSPLAY_TREE PVRSRVInsert(IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 	OSCachedMemSet(&(psNew->buckets[0]), 0, sizeof(psNew->buckets));
 
 #if defined(PVR_CTZLL)
-	psNew->bHasEltsMapping = ~(((IMG_ELTS_MAPPINGS) 1 << (sizeof(psNew->buckets) / (sizeof(psNew->buckets[0])))) - 1);
+	psNew->bHasEltsMapping =
+		~(((IMG_ELTS_MAPPINGS)1
+		   << (sizeof(psNew->buckets) / (sizeof(psNew->buckets[0])))) -
+		  1);
 #endif
 
-	if (psTree == NULL)
-	{
-		psNew->psLeft  = NULL;
+	if (psTree == NULL) {
+		psNew->psLeft = NULL;
 		psNew->psRight = NULL;
 		return psNew;
 	}
 
-	if (uiFlags < psTree->uiFlags)
-	{
-		psNew->psLeft  = psTree->psLeft;
+	if (uiFlags < psTree->uiFlags) {
+		psNew->psLeft = psTree->psLeft;
 		psNew->psRight = psTree;
 		psTree->psLeft = NULL;
-	}
-	else
-	{
-		psNew->psRight  = psTree->psRight;
-		psNew->psLeft   = psTree;
+	} else {
+		psNew->psRight = psTree->psRight;
+		psNew->psLeft = psTree;
 		psTree->psRight = NULL;
 	}
 
 	return psNew;
 }
-
 
 /**
  * PVRSRVDelete - delete a node from the tree (unless it is not there, in which
@@ -214,21 +196,16 @@ IMG_INTERNAL
 IMG_PSPLAY_TREE PVRSRVDelete(IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
 {
 	IMG_PSPLAY_TREE psTmp;
-	if (psTree == NULL)
-	{
+	if (psTree == NULL) {
 		return NULL;
 	}
 
 	psTree = PVRSRVSplay(uiFlags, psTree);
-	if (uiFlags == psTree->uiFlags)
-	{
+	if (uiFlags == psTree->uiFlags) {
 		/* The value was present in the tree */
-		if (psTree->psLeft == NULL)
-		{
+		if (psTree->psLeft == NULL) {
 			psTmp = psTree->psRight;
-		}
-		else
-		{
+		} else {
 			psTmp = PVRSRVSplay(uiFlags, psTree->psLeft);
 			psTmp->psRight = psTree->psRight;
 		}
@@ -249,28 +226,24 @@ IMG_PSPLAY_TREE PVRSRVDelete(IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
  * Return the resulting tree node after the search operation.
  */
 IMG_INTERNAL
-IMG_PSPLAY_TREE PVRSRVFindNode(IMG_PSPLAY_FLAGS_T uiFlags, IMG_PSPLAY_TREE psTree)
+IMG_PSPLAY_TREE PVRSRVFindNode(IMG_PSPLAY_FLAGS_T uiFlags,
+			       IMG_PSPLAY_TREE psTree)
 {
-	if (psTree == NULL)
-	{
+	if (psTree == NULL) {
 		return NULL;
 	}
 
-	while (psTree)
-	{
-		if (uiFlags == psTree->uiFlags)
-		{
+	while (psTree) {
+		if (uiFlags == psTree->uiFlags) {
 			return psTree;
 		}
 
-		if (uiFlags < psTree->uiFlags)
-		{
+		if (uiFlags < psTree->uiFlags) {
 			psTree = psTree->psLeft;
 			continue;
 		}
 
-		if (uiFlags > psTree->uiFlags)
-		{
+		if (uiFlags > psTree->uiFlags) {
 			psTree = psTree->psRight;
 			continue;
 		}

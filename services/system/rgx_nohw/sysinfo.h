@@ -45,14 +45,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define SYSINFO_H
 
 /*!< System specific poll/timeout details */
-#define MAX_HW_TIME_US                           (500000)
-#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT  (1500)//(10000)
+#define MAX_HW_TIME_US (500000)
+#define DEVICES_WATCHDOG_POWER_ON_SLEEP_TIMEOUT (1500) //(10000)
 #define DEVICES_WATCHDOG_POWER_OFF_SLEEP_TIMEOUT (3600000)
-#define WAIT_TRY_COUNT                           (10000)
-#define EVENT_OBJECT_TIMEOUT_US                  (100000)
+#define WAIT_TRY_COUNT (10000)
+#define EVENT_OBJECT_TIMEOUT_US (100000)
 
 #if defined(__linux__)
-#define SYS_RGX_DEV_NAME    "rgxnohw"
+#define SYS_RGX_DEV_NAME "rgxnohw"
 #endif
 
-#endif	/* !defined(SYSINFO_H) */
+#endif /* !defined(SYSINFO_H) */

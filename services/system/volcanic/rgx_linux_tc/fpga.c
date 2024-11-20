@@ -51,47 +51,55 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pdump_km.h"
 #include "rgxtbdefs_km.h"
 
-
 #include "fpga.h"
 
 /*!
  ******************************************************************************
  * System FPGA parameters
  *****************************************************************************/
-static IMG_UINT32 gui32SysTBBWDropN                 = 0;
-static IMG_UINT32 gui32SysTBBWPeriod                = 0;
-static IMG_UINT32 gui32SysTBQOS0Min                 = 0;
-static IMG_UINT32 gui32SysTBQOS0Max                 = 0;
-static IMG_UINT32 gui32SysTBQOS15Min                = 0;
-static IMG_UINT32 gui32SysTBQOS15Max                = 0;
-static IMG_UINT32 gui32SysTBQOSDist                 = 0;
-static IMG_UINT32 gui32SysTBMemArbiter              = 0;
-static IMG_UINT32 gui32SysTBMaxIdOutRW              = 0;
-static IMG_UINT32 gui32SysTBMaxIdOutWr              = 0;
-static IMG_UINT32 gui32SysTBMaxIdOutRd              = 0;
+static IMG_UINT32 gui32SysTBBWDropN = 0;
+static IMG_UINT32 gui32SysTBBWPeriod = 0;
+static IMG_UINT32 gui32SysTBQOS0Min = 0;
+static IMG_UINT32 gui32SysTBQOS0Max = 0;
+static IMG_UINT32 gui32SysTBQOS15Min = 0;
+static IMG_UINT32 gui32SysTBQOS15Max = 0;
+static IMG_UINT32 gui32SysTBQOSDist = 0;
+static IMG_UINT32 gui32SysTBMemArbiter = 0;
+static IMG_UINT32 gui32SysTBMaxIdOutRW = 0;
+static IMG_UINT32 gui32SysTBMaxIdOutWr = 0;
+static IMG_UINT32 gui32SysTBMaxIdOutRd = 0;
 /* these allow raw writes to RGX_TB_QOS_RD_LATENCY and RGX_TB_QOS_WR_LATENCY */
-static IMG_UINT64 gui64SysTBQOSLatencyRd            = 0;
-static IMG_UINT64 gui64SysTBQOSLatencyWr            = 0;
+static IMG_UINT64 gui64SysTBQOSLatencyRd = 0;
+static IMG_UINT64 gui64SysTBQOSLatencyWr = 0;
 
 #if defined(__linux__)
 #include <linux/module.h>
 #include <linux/dma-mapping.h>
-module_param_named(sys_tb_bandwidth_drop,            gui32SysTBBWDropN,                 uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_bandwidth_period,          gui32SysTBBWPeriod,                uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_qos0_min,                  gui32SysTBQOS0Min,                 uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_qos0_max,                  gui32SysTBQOS0Max,                 uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_qos15_min,                 gui32SysTBQOS15Min,                uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_qos15_max,                 gui32SysTBQOS15Max,                uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_qos_dist,                  gui32SysTBQOSDist,                 uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_mem_arbiter,               gui32SysTBMemArbiter,              uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_max_id_outstanding_rdwr,   gui32SysTBMaxIdOutRW,              uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_max_id_outstanding_wr,     gui32SysTBMaxIdOutWr,              uint,   S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_max_id_outstanding_rd,     gui32SysTBMaxIdOutRd,              uint,   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_bandwidth_drop, gui32SysTBBWDropN, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_bandwidth_period, gui32SysTBBWPeriod, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos0_min, gui32SysTBQOS0Min, uint, S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos0_max, gui32SysTBQOS0Max, uint, S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos15_min, gui32SysTBQOS15Min, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos15_max, gui32SysTBQOS15Max, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos_dist, gui32SysTBQOSDist, uint, S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_mem_arbiter, gui32SysTBMemArbiter, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_max_id_outstanding_rdwr, gui32SysTBMaxIdOutRW, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_max_id_outstanding_wr, gui32SysTBMaxIdOutWr, uint,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_max_id_outstanding_rd, gui32SysTBMaxIdOutRd, uint,
+		   S_IRUGO | S_IWUSR);
 
-module_param_named(sys_tb_qos_latency_rd,            gui64SysTBQOSLatencyRd,            ullong,  S_IRUGO | S_IWUSR);
-module_param_named(sys_tb_qos_latency_wr,            gui64SysTBQOSLatencyWr,            ullong,  S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos_latency_rd, gui64SysTBQOSLatencyRd, ullong,
+		   S_IRUGO | S_IWUSR);
+module_param_named(sys_tb_qos_latency_wr, gui64SysTBQOSLatencyWr, ullong,
+		   S_IRUGO | S_IWUSR);
 #endif
-
 
 /*
  * work out the length in bits for a register field from its ~CLRMSK.
@@ -101,39 +109,47 @@ static IMG_UINT32 FieldLengthBits(IMG_UINT32 mask)
 {
 	IMG_UINT32 count = 0;
 
-	while (mask != 0)
-	{
+	while (mask != 0) {
 		count += (mask & 1);
 		mask >>= 1;
 	}
 	return count;
 }
 
-
 static IMG_UINT32 TBBandwidthLimiterGet(void)
 {
 	IMG_UINT32 ui32BandwidthLimiter = 0;
 
 	/* create bandwidth limiter reg value */
-	if (gui32SysTBBWDropN != 0  ||  gui32SysTBBWPeriod != 0)
-	{
+	if (gui32SysTBBWDropN != 0 || gui32SysTBBWPeriod != 0) {
 		IMG_UINT32 ui31DropN_ext;
 		IMG_UINT32 ui31Period_ext;
 
 		/* get EXT bits from the apphint values */
-		ui31DropN_ext = gui32SysTBBWDropN >> FieldLengthBits(~RGX_TB_BW_LIMITER_DROPN_CLRMSK);
-		ui31Period_ext = gui32SysTBBWPeriod >> FieldLengthBits(~RGX_TB_BW_LIMITER_PERIOD_CLRMSK);
+		ui31DropN_ext =
+			gui32SysTBBWDropN >>
+			FieldLengthBits(~RGX_TB_BW_LIMITER_DROPN_CLRMSK);
+		ui31Period_ext =
+			gui32SysTBBWPeriod >>
+			FieldLengthBits(~RGX_TB_BW_LIMITER_PERIOD_CLRMSK);
 
-		ui32BandwidthLimiter = (RGX_TB_BW_LIMITER_ENABLE_EN << RGX_TB_BW_LIMITER_ENABLE_SHIFT) |
-							   ((gui32SysTBBWDropN << RGX_TB_BW_LIMITER_DROPN_SHIFT) & ~RGX_TB_BW_LIMITER_DROPN_CLRMSK) |
-							   ((gui32SysTBBWPeriod << RGX_TB_BW_LIMITER_PERIOD_SHIFT) & ~RGX_TB_BW_LIMITER_PERIOD_CLRMSK) |
-							   ((ui31DropN_ext << RGX_TB_BW_LIMITER_DROPN_EXT_SHIFT) & ~RGX_TB_BW_LIMITER_DROPN_EXT_CLRMSK) |
-							   ((ui31Period_ext << RGX_TB_BW_LIMITER_PERIOD_EXT_SHIFT) & ~RGX_TB_BW_LIMITER_PERIOD_EXT_CLRMSK);
+		ui32BandwidthLimiter =
+			(RGX_TB_BW_LIMITER_ENABLE_EN
+			 << RGX_TB_BW_LIMITER_ENABLE_SHIFT) |
+			((gui32SysTBBWDropN << RGX_TB_BW_LIMITER_DROPN_SHIFT) &
+			 ~RGX_TB_BW_LIMITER_DROPN_CLRMSK) |
+			((gui32SysTBBWPeriod
+			  << RGX_TB_BW_LIMITER_PERIOD_SHIFT) &
+			 ~RGX_TB_BW_LIMITER_PERIOD_CLRMSK) |
+			((ui31DropN_ext << RGX_TB_BW_LIMITER_DROPN_EXT_SHIFT) &
+			 ~RGX_TB_BW_LIMITER_DROPN_EXT_CLRMSK) |
+			((ui31Period_ext
+			  << RGX_TB_BW_LIMITER_PERIOD_EXT_SHIFT) &
+			 ~RGX_TB_BW_LIMITER_PERIOD_EXT_CLRMSK);
 	}
 
 	return ui32BandwidthLimiter;
 }
-
 
 /*
  * These latencies can be specified in total using gui64SysTBQOSLatencyRd/Wr or in individual fields.
@@ -142,30 +158,48 @@ static IMG_UINT32 TBBandwidthLimiterGet(void)
  */
 static IMG_UINT64 TBQOSReadLatencyGet(void)
 {
-	if (gui64SysTBQOSLatencyRd != 0)
-	{
+	if (gui64SysTBQOSLatencyRd != 0) {
 		return gui64SysTBQOSLatencyRd;
 	}
 
-	return ((((IMG_UINT64)gui32SysTBQOS15Max) << RGX_TB_QOS_RD_LATENCY_MAX_15_SHIFT) & ~RGX_TB_QOS_RD_LATENCY_MAX_15_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOS15Min) << RGX_TB_QOS_RD_LATENCY_MIN_15_SHIFT) & ~RGX_TB_QOS_RD_LATENCY_MIN_15_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOS0Max)  << RGX_TB_QOS_RD_LATENCY_MAX_0_SHIFT)  & ~RGX_TB_QOS_RD_LATENCY_MAX_0_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOS0Min)  << RGX_TB_QOS_RD_LATENCY_MIN_0_SHIFT)  & ~RGX_TB_QOS_RD_LATENCY_MIN_0_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOSDist)  << RGX_TB_QOS_RD_LATENCY_DIST_SHIFT)  & ~RGX_TB_QOS_RD_LATENCY_DIST_CLRMSK);
+	return ((((IMG_UINT64)gui32SysTBQOS15Max)
+		 << RGX_TB_QOS_RD_LATENCY_MAX_15_SHIFT) &
+		~RGX_TB_QOS_RD_LATENCY_MAX_15_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOS15Min)
+		 << RGX_TB_QOS_RD_LATENCY_MIN_15_SHIFT) &
+		~RGX_TB_QOS_RD_LATENCY_MIN_15_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOS0Max)
+		 << RGX_TB_QOS_RD_LATENCY_MAX_0_SHIFT) &
+		~RGX_TB_QOS_RD_LATENCY_MAX_0_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOS0Min)
+		 << RGX_TB_QOS_RD_LATENCY_MIN_0_SHIFT) &
+		~RGX_TB_QOS_RD_LATENCY_MIN_0_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOSDist)
+		 << RGX_TB_QOS_RD_LATENCY_DIST_SHIFT) &
+		~RGX_TB_QOS_RD_LATENCY_DIST_CLRMSK);
 }
 
 static IMG_UINT64 TBQOSWriteLatencyGet(void)
 {
-	if (gui64SysTBQOSLatencyWr != 0)
-	{
+	if (gui64SysTBQOSLatencyWr != 0) {
 		return gui64SysTBQOSLatencyWr;
 	}
 
-	return ((((IMG_UINT64)gui32SysTBQOS15Max) << RGX_TB_QOS_WR_LATENCY_MAX_15_SHIFT) & ~RGX_TB_QOS_WR_LATENCY_MAX_15_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOS15Min) << RGX_TB_QOS_WR_LATENCY_MIN_15_SHIFT) & ~RGX_TB_QOS_WR_LATENCY_MIN_15_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOS0Max)  << RGX_TB_QOS_WR_LATENCY_MAX_0_SHIFT)  & ~RGX_TB_QOS_WR_LATENCY_MAX_0_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOS0Min)  << RGX_TB_QOS_WR_LATENCY_MIN_0_SHIFT)  & ~RGX_TB_QOS_WR_LATENCY_MIN_0_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBQOSDist)  << RGX_TB_QOS_WR_LATENCY_DIST_SHIFT)  & ~RGX_TB_QOS_WR_LATENCY_DIST_CLRMSK);
+	return ((((IMG_UINT64)gui32SysTBQOS15Max)
+		 << RGX_TB_QOS_WR_LATENCY_MAX_15_SHIFT) &
+		~RGX_TB_QOS_WR_LATENCY_MAX_15_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOS15Min)
+		 << RGX_TB_QOS_WR_LATENCY_MIN_15_SHIFT) &
+		~RGX_TB_QOS_WR_LATENCY_MIN_15_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOS0Max)
+		 << RGX_TB_QOS_WR_LATENCY_MAX_0_SHIFT) &
+		~RGX_TB_QOS_WR_LATENCY_MAX_0_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOS0Min)
+		 << RGX_TB_QOS_WR_LATENCY_MIN_0_SHIFT) &
+		~RGX_TB_QOS_WR_LATENCY_MIN_0_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBQOSDist)
+		 << RGX_TB_QOS_WR_LATENCY_DIST_SHIFT) &
+		~RGX_TB_QOS_WR_LATENCY_DIST_CLRMSK);
 }
 
 static IMG_UINT32 TBMemArbiterGet(void)
@@ -175,34 +209,41 @@ static IMG_UINT32 TBMemArbiterGet(void)
 
 static IMG_UINT64 TBQOSMaxIdOutstandingGet(void)
 {
-	return ((((IMG_UINT64)gui32SysTBMaxIdOutRW) << RGX_TB_MAX_ID_OUTSTANDING_RD_WR_SHIFT) & ~RGX_TB_MAX_ID_OUTSTANDING_RD_WR_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBMaxIdOutWr) << RGX_TB_MAX_ID_OUTSTANDING_WRITE_SHIFT) & ~RGX_TB_MAX_ID_OUTSTANDING_WRITE_CLRMSK) |
-	       ((((IMG_UINT64)gui32SysTBMaxIdOutRd) << RGX_TB_MAX_ID_OUTSTANDING_READ_SHIFT) & ~RGX_TB_MAX_ID_OUTSTANDING_READ_CLRMSK);
+	return ((((IMG_UINT64)gui32SysTBMaxIdOutRW)
+		 << RGX_TB_MAX_ID_OUTSTANDING_RD_WR_SHIFT) &
+		~RGX_TB_MAX_ID_OUTSTANDING_RD_WR_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBMaxIdOutWr)
+		 << RGX_TB_MAX_ID_OUTSTANDING_WRITE_SHIFT) &
+		~RGX_TB_MAX_ID_OUTSTANDING_WRITE_CLRMSK) |
+	       ((((IMG_UINT64)gui32SysTBMaxIdOutRd)
+		 << RGX_TB_MAX_ID_OUTSTANDING_READ_SHIFT) &
+		~RGX_TB_MAX_ID_OUTSTANDING_READ_CLRMSK);
 }
-
 
 PVRSRV_ERROR FPGA_Reset(struct resource *registers, IMG_BOOL bFullReset)
 {
-	IMG_CPU_PHYADDR	sWrapperRegsCpuPBase;
-	void			*pvWrapperRegs;
-	IMG_UINT32		ui32BandwidthLimiter;
-	IMG_UINT64		ui64ReadQOSLatency;
-	IMG_UINT64		ui64WriteQOSLatency;
-	IMG_UINT32		ui32MemArbiter;
-	IMG_UINT64		ui64MaxIdOutstanding;
+	IMG_CPU_PHYADDR sWrapperRegsCpuPBase;
+	void *pvWrapperRegs;
+	IMG_UINT32 ui32BandwidthLimiter;
+	IMG_UINT64 ui64ReadQOSLatency;
+	IMG_UINT64 ui64WriteQOSLatency;
+	IMG_UINT32 ui32MemArbiter;
+	IMG_UINT64 ui64MaxIdOutstanding;
 
-	sWrapperRegsCpuPBase.uiAddr = registers->start + FPGA_RGX_TB_REG_WRAPPER_OFFSET;
+	sWrapperRegsCpuPBase.uiAddr =
+		registers->start + FPGA_RGX_TB_REG_WRAPPER_OFFSET;
 
 	/*
 		Create a temporary mapping of the FPGA wrapper registers in order to reset
 		required registers.
 	*/
 	pvWrapperRegs = OSMapPhysToLin(sWrapperRegsCpuPBase,
-								   FPGA_RGX_TB_REG_WRAPPER_SIZE,
-								   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
-	if (pvWrapperRegs == NULL)
-	{
-		PVR_DPF((PVR_DBG_ERROR,"%s: Failed to create wrapper register mapping", __func__));
+				       FPGA_RGX_TB_REG_WRAPPER_SIZE,
+				       PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
+	if (pvWrapperRegs == NULL) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Failed to create wrapper register mapping",
+			 __func__));
 		return PVRSRV_ERROR_BAD_MAPPING;
 	}
 
@@ -210,46 +251,52 @@ PVRSRV_ERROR FPGA_Reset(struct resource *registers, IMG_BOOL bFullReset)
 		Set the bandwidth limiter if required.
 	*/
 	ui32BandwidthLimiter = TBBandwidthLimiterGet();
-	if (ui32BandwidthLimiter != 0)
-	{
-		OSWriteHWReg32(pvWrapperRegs, RGX_TB_BW_LIMITER, ui32BandwidthLimiter);
-		(void) OSReadHWReg32(pvWrapperRegs, RGX_TB_BW_LIMITER);
-		PVR_LOG(("%s: Bandwidth limiter = 0x%08X", __func__, OSReadHWReg32(pvWrapperRegs, RGX_TB_BW_LIMITER)));
+	if (ui32BandwidthLimiter != 0) {
+		OSWriteHWReg32(pvWrapperRegs, RGX_TB_BW_LIMITER,
+			       ui32BandwidthLimiter);
+		(void)OSReadHWReg32(pvWrapperRegs, RGX_TB_BW_LIMITER);
+		PVR_LOG(("%s: Bandwidth limiter = 0x%08X", __func__,
+			 OSReadHWReg32(pvWrapperRegs, RGX_TB_BW_LIMITER)));
 	}
 
 	/*
 		Set the read/write QoS latency values if required.
 	*/
 	ui64ReadQOSLatency = TBQOSReadLatencyGet();
-	if (ui64ReadQOSLatency != 0)
-	{
-		OSWriteHWReg64(pvWrapperRegs, RGX_TB_QOS_RD_LATENCY, ui64ReadQOSLatency);
-		(void) OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_RD_LATENCY);
-		PVR_LOG(("%s: QOS Read latency = 0x%016llX", __func__, OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_RD_LATENCY)));
+	if (ui64ReadQOSLatency != 0) {
+		OSWriteHWReg64(pvWrapperRegs, RGX_TB_QOS_RD_LATENCY,
+			       ui64ReadQOSLatency);
+		(void)OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_RD_LATENCY);
+		PVR_LOG(("%s: QOS Read latency = 0x%016llX", __func__,
+			 OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_RD_LATENCY)));
 	}
 
 	ui64WriteQOSLatency = TBQOSWriteLatencyGet();
-	if (ui64WriteQOSLatency != 0)
-	{
-		OSWriteHWReg64(pvWrapperRegs, RGX_TB_QOS_WR_LATENCY, ui64WriteQOSLatency);
-		(void) OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_WR_LATENCY);
-		PVR_LOG(("%s: QOS Write latency = 0x%016llX", __func__, OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_WR_LATENCY)));
+	if (ui64WriteQOSLatency != 0) {
+		OSWriteHWReg64(pvWrapperRegs, RGX_TB_QOS_WR_LATENCY,
+			       ui64WriteQOSLatency);
+		(void)OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_WR_LATENCY);
+		PVR_LOG(("%s: QOS Write latency = 0x%016llX", __func__,
+			 OSReadHWReg64(pvWrapperRegs, RGX_TB_QOS_WR_LATENCY)));
 	}
 
 	ui32MemArbiter = TBMemArbiterGet();
-	if (ui32MemArbiter != 0)
-	{
-		OSWriteHWReg32(pvWrapperRegs, RGX_TB_MEM_ARBITER, ui32MemArbiter);
-		(void) OSReadHWReg32(pvWrapperRegs, RGX_TB_MEM_ARBITER);
-		PVR_LOG(("%s: Mem arbiter = 0x%08X", __func__, OSReadHWReg32(pvWrapperRegs, RGX_TB_MEM_ARBITER)));
+	if (ui32MemArbiter != 0) {
+		OSWriteHWReg32(pvWrapperRegs, RGX_TB_MEM_ARBITER,
+			       ui32MemArbiter);
+		(void)OSReadHWReg32(pvWrapperRegs, RGX_TB_MEM_ARBITER);
+		PVR_LOG(("%s: Mem arbiter = 0x%08X", __func__,
+			 OSReadHWReg32(pvWrapperRegs, RGX_TB_MEM_ARBITER)));
 	}
 
 	ui64MaxIdOutstanding = TBQOSMaxIdOutstandingGet();
-	if (ui64MaxIdOutstanding != 0)
-	{
-		OSWriteHWReg64(pvWrapperRegs, RGX_TB_MAX_ID_OUTSTANDING, ui64MaxIdOutstanding);
-		(void) OSReadHWReg64(pvWrapperRegs, RGX_TB_MAX_ID_OUTSTANDING);
-		PVR_LOG(("%s: Max Id Outstanding = 0x%016llX", __func__, OSReadHWReg64(pvWrapperRegs, RGX_TB_MAX_ID_OUTSTANDING)));
+	if (ui64MaxIdOutstanding != 0) {
+		OSWriteHWReg64(pvWrapperRegs, RGX_TB_MAX_ID_OUTSTANDING,
+			       ui64MaxIdOutstanding);
+		(void)OSReadHWReg64(pvWrapperRegs, RGX_TB_MAX_ID_OUTSTANDING);
+		PVR_LOG(("%s: Max Id Outstanding = 0x%016llX", __func__,
+			 OSReadHWReg64(pvWrapperRegs,
+				       RGX_TB_MAX_ID_OUTSTANDING)));
 	}
 
 	/*
@@ -260,30 +307,37 @@ PVRSRV_ERROR FPGA_Reset(struct resource *registers, IMG_BOOL bFullReset)
 	return PVRSRV_OK;
 }
 
-
 PVRSRV_ERROR FPGA_SysDebugInfo(struct resource *registers,
-                               DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                               void *pvDumpDebugFile)
+			       DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			       void *pvDumpDebugFile)
 {
-	IMG_CPU_PHYADDR	sWrapperRegsCpuPBase;
-	void			*pvWrapperRegs;
+	IMG_CPU_PHYADDR sWrapperRegsCpuPBase;
+	void *pvWrapperRegs;
 
-	sWrapperRegsCpuPBase.uiAddr = registers->start + FPGA_RGX_TB_REG_WRAPPER_OFFSET;
+	sWrapperRegsCpuPBase.uiAddr =
+		registers->start + FPGA_RGX_TB_REG_WRAPPER_OFFSET;
 
 	/*
 		Create a temporary mapping of the FPGA wrapper registers.
 	*/
 	pvWrapperRegs = OSMapPhysToLin(sWrapperRegsCpuPBase,
-								   FPGA_RGX_TB_REG_WRAPPER_SIZE,
-								   PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
-	if (pvWrapperRegs == NULL)
-	{
-		PVR_DPF((PVR_DBG_ERROR,"%s: Failed to create wrapper register mapping", __func__));
+				       FPGA_RGX_TB_REG_WRAPPER_SIZE,
+				       PVRSRV_MEMALLOCFLAG_CPU_UNCACHED);
+	if (pvWrapperRegs == NULL) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Failed to create wrapper register mapping",
+			 __func__));
 		return PVRSRV_ERROR_BAD_MAPPING;
 	}
 
-#define SYS_FPGA_DBG_R32(R)	PVR_DUMPDEBUG_LOG("%-29s : 0x%08X", #R, (IMG_UINT32)OSReadHWReg32(pvWrapperRegs, RGX_TB_##R))
-#define SYS_FPGA_DBG_R64(R)	PVR_DUMPDEBUG_LOG("%-29s : 0x%016llX", #R, (IMG_UINT64)OSReadHWReg64(pvWrapperRegs, RGX_TB_##R))
+#define SYS_FPGA_DBG_R32(R)                                        \
+	PVR_DUMPDEBUG_LOG("%-29s : 0x%08X", #R,                    \
+			  (IMG_UINT32)OSReadHWReg32(pvWrapperRegs, \
+						    RGX_TB_##R))
+#define SYS_FPGA_DBG_R64(R)                                        \
+	PVR_DUMPDEBUG_LOG("%-29s : 0x%016llX", #R,                 \
+			  (IMG_UINT64)OSReadHWReg64(pvWrapperRegs, \
+						    RGX_TB_##R))
 
 	SYS_FPGA_DBG_R32(BW_LIMITER);
 

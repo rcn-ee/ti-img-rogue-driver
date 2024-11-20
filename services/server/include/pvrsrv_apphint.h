@@ -47,24 +47,28 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * is a global driver apphint, i.e. apphints not present in
  * APPHINT_DEBUGFS_DEVICE_ID, i.e. not per device.
  */
-#define APPHINT_OF_DRIVER_NO_DEVICE ((void*)-1U)
+#define APPHINT_OF_DRIVER_NO_DEVICE ((void *)-1U)
 
 #if defined(__linux__)
 
 #include "km_apphint.h"
 #define PVRSRVAppHintDumpState(d) pvr_apphint_dump_state(d)
-#define PVRSRVAppHintRegisterHandlersUINT64(i,q,s,d,p) pvr_apphint_register_handlers_uint64(i,q,s,d,p)
-#define PVRSRVAppHintRegisterHandlersUINT32(i,q,s,d,p) pvr_apphint_register_handlers_uint32(i,q,s,d,p)
-#define PVRSRVAppHintRegisterHandlersBOOL(i,q,s,d,p) pvr_apphint_register_handlers_bool(i,q,s,d,p)
-#define PVRSRVAppHintRegisterHandlersSTRING(i,q,s,d,p) pvr_apphint_register_handlers_string(i,q,s,d,p)
+#define PVRSRVAppHintRegisterHandlersUINT64(i, q, s, d, p) \
+	pvr_apphint_register_handlers_uint64(i, q, s, d, p)
+#define PVRSRVAppHintRegisterHandlersUINT32(i, q, s, d, p) \
+	pvr_apphint_register_handlers_uint32(i, q, s, d, p)
+#define PVRSRVAppHintRegisterHandlersBOOL(i, q, s, d, p) \
+	pvr_apphint_register_handlers_bool(i, q, s, d, p)
+#define PVRSRVAppHintRegisterHandlersSTRING(i, q, s, d, p) \
+	pvr_apphint_register_handlers_string(i, q, s, d, p)
 
 #else
 
 #define PVRSRVAppHintDumpState(d)
-#define PVRSRVAppHintRegisterHandlersUINT64(i,q,s,d,p)
-#define PVRSRVAppHintRegisterHandlersUINT32(i,q,s,d,p)
-#define PVRSRVAppHintRegisterHandlersBOOL(i,q,s,d,p)
-#define PVRSRVAppHintRegisterHandlersSTRING(i,q,s,d,p)
+#define PVRSRVAppHintRegisterHandlersUINT64(i, q, s, d, p)
+#define PVRSRVAppHintRegisterHandlersUINT32(i, q, s, d, p)
+#define PVRSRVAppHintRegisterHandlersBOOL(i, q, s, d, p)
+#define PVRSRVAppHintRegisterHandlersSTRING(i, q, s, d, p)
 
 #endif
 

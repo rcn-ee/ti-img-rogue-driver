@@ -50,38 +50,37 @@ int tc_dmabuf_heap_init(struct tc_device *tc, int mem_bar)
 {
 	struct tc_dma_heap_info dma_heap_data[TC_DMA_HEAP_COUNT] = {
 		{
-			.name          = "tc-pdp",
-			.base          = tc->pdp_heap_mem_base,
-			.size          = tc->pdp_heap_mem_size,
+			.name = "tc-pdp",
+			.base = tc->pdp_heap_mem_base,
+			.size = tc->pdp_heap_mem_size,
 			.allow_cpu_map = true,
-			.uncached      = true,
-			.priv          = (void *)tc->tc_mem.base, /* offset */
+			.uncached = true,
+			.priv = (void *)tc->tc_mem.base, /* offset */
 		},
 		{
-			.name          = "tc-rogue",
-			.base          = tc->ext_heap_mem_base,
-			.size          = tc->ext_heap_mem_size,
+			.name = "tc-rogue",
+			.base = tc->ext_heap_mem_base,
+			.size = tc->ext_heap_mem_size,
 			.allow_cpu_map = true,
-			.uncached      = true,
+			.uncached = true,
 		},
 #if defined(SUPPORT_FAKE_SECURE_DMA_HEAP)
 		{
-			.name          = "tc-secure",
-			.base          = tc->secure_heap_mem_base,
-			.size          = tc->secure_heap_mem_size,
+			.name = "tc-secure",
+			.base = tc->secure_heap_mem_base,
+			.size = tc->secure_heap_mem_size,
 			.allow_cpu_map = false,
-			.uncached      = true,
-			.priv          = (void *)tc->tc_mem.base, /* offset */
+			.uncached = true,
+			.priv = (void *)tc->tc_mem.base, /* offset */
 		},
 #endif /* defined(SUPPORT_FAKE_SECURE_DMA_HEAP) */
 	};
 	int i, err;
 
-	err = request_pci_io_addr(tc->pdev, mem_bar, 0,
-		tc->tc_mem.size);
+	err = request_pci_io_addr(tc->pdev, mem_bar, 0, tc->tc_mem.size);
 	if (err) {
-		dev_err(&tc->pdev->dev,
-			"Failed to request tc memory (%d)\n", err);
+		dev_err(&tc->pdev->dev, "Failed to request tc memory (%d)\n",
+			err);
 		goto err_out;
 	}
 
@@ -102,8 +101,8 @@ err_destroy_heaps:
 			break;
 		dma_lma_heap_destroy(tc->dma_heaps[i]);
 	}
-	release_pci_io_addr(tc->pdev, mem_bar,
-		tc->tc_mem.base, tc->tc_mem.size);
+	release_pci_io_addr(tc->pdev, mem_bar, tc->tc_mem.base,
+			    tc->tc_mem.size);
 err_out:
 	return err;
 }
@@ -115,6 +114,6 @@ void tc_dmabuf_heap_deinit(struct tc_device *tc, int mem_bar)
 	for (i = 0; i < TC_DMA_HEAP_COUNT; i++)
 		dma_lma_heap_destroy(tc->dma_heaps[i]);
 
-	release_pci_io_addr(tc->pdev, mem_bar,
-		tc->tc_mem.base, tc->tc_mem.size);
+	release_pci_io_addr(tc->pdev, mem_bar, tc->tc_mem.base,
+			    tc->tc_mem.size);
 }

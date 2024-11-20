@@ -80,13 +80,9 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 @Return         PVRSRV_OK on success, failure code otherwise.
  */ /*************************************************************************/
 PVRSRV_ERROR
-OSMMapPMR(IMG_HANDLE hBridge,
-          IMG_HANDLE hPMR,
-          IMG_DEVMEM_SIZE_T uiPMRLength,
-          PVRSRV_MEMALLOCFLAGS_T uiFlags,
-          IMG_HANDLE *phOSMMapPrivDataOut,
-          void **ppvMappingAddressOut,
-          size_t *puiMappingLengthOut);
+OSMMapPMR(IMG_HANDLE hBridge, IMG_HANDLE hPMR, IMG_DEVMEM_SIZE_T uiPMRLength,
+	  PVRSRV_MEMALLOCFLAGS_T uiFlags, IMG_HANDLE *phOSMMapPrivDataOut,
+	  void **ppvMappingAddressOut, size_t *puiMappingLengthOut);
 
 /*************************************************************************/ /*!
 @Function       OSMUnmapPMR
@@ -105,11 +101,8 @@ OSMMapPMR(IMG_HANDLE hBridge,
 @Input          uiMappingLength      The size to be unmapped.
 @Return         PVRSRV_OK on success, failure code otherwise.
  */ /*************************************************************************/
-void
-OSMUnmapPMR(IMG_HANDLE hBridge,
-            IMG_HANDLE hPMR,
-            IMG_HANDLE hOSMMapPrivData,
-            void *pvMappingAddress,
-            size_t uiMappingLength);
+void OSMUnmapPMR(IMG_HANDLE hBridge, IMG_HANDLE hPMR,
+		 IMG_HANDLE hOSMMapPrivData, void *pvMappingAddress,
+		 size_t uiMappingLength);
 
 #endif /* OSMMAP_H */

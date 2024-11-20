@@ -51,7 +51,7 @@
 #define ION_CARVEOUT_ALLOCATE_FAIL -1
 
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(4, 12, 0))
-#define	ion_phys_addr_t phys_addr_t
+#define ion_phys_addr_t phys_addr_t
 #endif
 
 #if defined(ANDROID) && (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 3, 0))
@@ -96,10 +96,8 @@ static void ion_lma_free(struct ion_heap *heap, ion_phys_addr_t addr,
 	gen_pool_free(lma_heap->pool, addr, size);
 }
 
-
 static int ion_lma_heap_allocate(struct ion_heap *heap,
-				 struct ion_buffer *buffer,
-				 unsigned long size,
+				 struct ion_buffer *buffer, unsigned long size,
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
 				 unsigned long align,
 #endif
@@ -158,7 +156,6 @@ static void ion_lma_heap_free(struct ion_buffer *buffer)
 	sg_free_table(table);
 	kfree(table);
 }
-
 
 static int ion_lma_heap_map_user(struct ion_heap *mapper,
 				 struct ion_buffer *buffer,
@@ -259,7 +256,7 @@ static int ion_lma_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
 
 	list_for_each_entry(attach, &dmabuf->attachments, node) {
 		dma_sync_sg_for_cpu(attach->dev, table->sgl, table->nents,
-				direction);
+				    direction);
 	}
 	err = 0;
 
@@ -284,7 +281,7 @@ static int ion_lma_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
 		ion_lma_heap_unmap_kernel(buffer->heap, buffer);
 		list_for_each_entry(attach, &dmabuf->attachments, node) {
 			dma_sync_sg_for_device(attach->dev, table->sgl,
-					table->nents, direction);
+					       table->nents, direction);
 		}
 		buffer->vaddr = NULL;
 	}
@@ -297,7 +294,7 @@ static int ion_lma_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
 static struct ion_heap_ops lma_heap_ops = {
 	.allocate = ion_lma_heap_allocate,
 	.free = ion_lma_heap_free,
-	/* Kernel 4.8 removed phys/map_dma/unmap_dma in favour of using the
+/* Kernel 4.8 removed phys/map_dma/unmap_dma in favour of using the
 	 * sg_table in the ion_buffer directly
 	 */
 #if !defined(ION_HAS_HEAP_DMA_BUF_OPS)
@@ -312,7 +309,7 @@ static struct ion_heap_ops lma_heap_ops = {
 static struct dma_buf_ops lma_heap_dma_buf_ops = {
 	.mmap = ion_lma_dma_buf_mmap,
 	.begin_cpu_access = ion_lma_dma_buf_begin_cpu_access,
-	.end_cpu_access =  ion_lma_dma_buf_end_cpu_access,
+	.end_cpu_access = ion_lma_dma_buf_end_cpu_access,
 };
 #endif /* defined(ION_HAS_HEAP_DMA_BUF_OPS) */
 
@@ -351,8 +348,8 @@ struct ion_heap *ion_lma_heap_create(struct ion_platform_heap *heap_data,
 	 */
 	lma_heap->offset = (ion_phys_addr_t)heap_data->priv;
 
-	gen_pool_add(lma_heap->pool,
-		     lma_heap->base - lma_heap->offset, size, -1);
+	gen_pool_add(lma_heap->pool, lma_heap->base - lma_heap->offset, size,
+		     -1);
 
 	lma_heap->heap.id = heap_data->id;
 	lma_heap->heap.ops = &lma_heap_ops;

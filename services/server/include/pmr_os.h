@@ -74,8 +74,8 @@ OSMMapPMRGeneric(PMR *psPMR, PMR_MMAP_DATA pOSMMapData);
  *
  * @Return      None
 */ /**************************************************************************/
-void
-OSLinuxPMRUnmapPageInPMR(PMR *psPMR, DLLIST_NODE *psMappingListHead, IMG_UINT32 ui32LogicalPgOffset);
+void OSLinuxPMRUnmapPageInPMR(PMR *psPMR, DLLIST_NODE *psMappingListHead,
+			      IMG_UINT32 ui32LogicalPgOffset);
 #endif
 
 #endif /* !defined(PMR_OS_H) */

@@ -52,14 +52,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "osfunc.h"
 #include "pvr_debug.h"
 
-#define ID_VALUE_MIN	1
-#define ID_VALUE_MAX	INT_MAX
+#define ID_VALUE_MIN 1
+#define ID_VALUE_MAX INT_MAX
 
-#define	ID_TO_HANDLE(i) ((IMG_HANDLE)(uintptr_t)(i))
-#define	HANDLE_TO_ID(h) ((IMG_INT)(uintptr_t)(h))
+#define ID_TO_HANDLE(i) ((IMG_HANDLE)(uintptr_t)(i))
+#define HANDLE_TO_ID(h) ((IMG_INT)(uintptr_t)(h))
 
-struct _HANDLE_IMPL_BASE_
-{
+struct _HANDLE_IMPL_BASE_ {
 	struct idr sIdr;
 
 	IMG_UINT32 ui32MaxHandleValue;
@@ -67,20 +66,20 @@ struct _HANDLE_IMPL_BASE_
 	IMG_UINT32 ui32TotalHandCount;
 };
 
-typedef struct _HANDLE_ITER_DATA_WRAPPER_
-{
+typedef struct _HANDLE_ITER_DATA_WRAPPER_ {
 	PFN_HANDLE_ITER pfnHandleIter;
 	void *pvHandleIterData;
 } HANDLE_ITER_DATA_WRAPPER;
 
-
 static int HandleIterFuncWrapper(int id, void *data, void *iter_data)
 {
-	HANDLE_ITER_DATA_WRAPPER *psIterData = (HANDLE_ITER_DATA_WRAPPER *)iter_data;
+	HANDLE_ITER_DATA_WRAPPER *psIterData =
+		(HANDLE_ITER_DATA_WRAPPER *)iter_data;
 
 	PVR_UNREFERENCED_PARAMETER(data);
 
-	return (int)psIterData->pfnHandleIter(ID_TO_HANDLE(id), psIterData->pvHandleIterData);
+	return (int)psIterData->pfnHandleIter(ID_TO_HANDLE(id),
+					      psIterData->pvHandleIterData);
 }
 
 /*!
@@ -100,8 +99,7 @@ static int HandleIterFuncWrapper(int id, void *data, void *iter_data)
 
 ******************************************************************************/
 static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE *phHandle,
-				  void *pvData)
+				  IMG_HANDLE *phHandle, void *pvData)
 {
 	int id;
 	int result;
@@ -111,17 +109,17 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
 	PVR_ASSERT(pvData != NULL);
 
 	idr_preload(GFP_KERNEL);
-	id = idr_alloc(&psBase->sIdr, pvData, ID_VALUE_MIN, psBase->ui32MaxHandleValue + 1, 0);
+	id = idr_alloc(&psBase->sIdr, pvData, ID_VALUE_MIN,
+		       psBase->ui32MaxHandleValue + 1, 0);
 	idr_preload_end();
 
 	result = id;
 
-	if (result < 0)
-	{
-		if (result == -ENOSPC)
-		{
-			PVR_DPF((PVR_DBG_ERROR, "%s: Limit of %u handles reached",
-				 __func__, psBase->ui32MaxHandleValue));
+	if (result < 0) {
+		if (result == -ENOSPC) {
+			PVR_DPF((PVR_DBG_ERROR,
+				 "%s: Limit of %u handles reached", __func__,
+				 psBase->ui32MaxHandleValue));
 
 			return PVRSRV_ERROR_UNABLE_TO_ADD_HANDLE;
 		}
@@ -152,8 +150,7 @@ static PVRSRV_ERROR AcquireHandle(HANDLE_IMPL_BASE *psBase,
  @Return	PVRSRV_OK or PVRSRV_ERROR
 
 ******************************************************************************/
-static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE hHandle,
+static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase, IMG_HANDLE hHandle,
 				  void **ppvData)
 {
 	int id = HANDLE_TO_ID(hHandle);
@@ -165,21 +162,18 @@ static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
 	   it's an invalid handle */
 
 	pvData = idr_find(&psBase->sIdr, id);
-	if (likely(pvData))
-	{
+	if (likely(pvData)) {
 		idr_remove(&psBase->sIdr, id);
 		psBase->ui32TotalHandCount--;
 	}
 
-	if (unlikely(pvData == NULL))
-	{
+	if (unlikely(pvData == NULL)) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: Handle out of range (%u > %u)",
 			 __func__, id, psBase->ui32TotalHandCount));
 		return PVRSRV_ERROR_HANDLE_INDEX_OUT_OF_RANGE;
 	}
 
-	if (ppvData)
-	{
+	if (ppvData) {
 		*ppvData = pvData;
 	}
 
@@ -202,8 +196,7 @@ static PVRSRV_ERROR ReleaseHandle(HANDLE_IMPL_BASE *psBase,
  @Return	Error code or PVRSRV_OK
 
 ******************************************************************************/
-static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE hHandle,
+static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase, IMG_HANDLE hHandle,
 				  void **ppvData)
 {
 	int id = HANDLE_TO_ID(hHandle);
@@ -213,14 +206,11 @@ static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase,
 	PVR_ASSERT(ppvData);
 
 	pvData = idr_find(&psBase->sIdr, id);
-	if (likely(pvData))
-	{
+	if (likely(pvData)) {
 		*ppvData = pvData;
 
 		return PVRSRV_OK;
-	}
-	else
-	{
+	} else {
 		return PVRSRV_ERROR_HANDLE_INDEX_OUT_OF_RANGE;
 	}
 }
@@ -239,8 +229,7 @@ static PVRSRV_ERROR GetHandleData(HANDLE_IMPL_BASE *psBase,
  @Return	Error code or PVRSRV_OK
 
 ******************************************************************************/
-static PVRSRV_ERROR SetHandleData(HANDLE_IMPL_BASE *psBase,
-				  IMG_HANDLE hHandle,
+static PVRSRV_ERROR SetHandleData(HANDLE_IMPL_BASE *psBase, IMG_HANDLE hHandle,
 				  void *pvData)
 {
 	int id = HANDLE_TO_ID(hHandle);
@@ -249,14 +238,10 @@ static PVRSRV_ERROR SetHandleData(HANDLE_IMPL_BASE *psBase,
 	PVR_ASSERT(psBase);
 
 	pvOldData = idr_replace(&psBase->sIdr, pvData, id);
-	if (IS_ERR(pvOldData))
-	{
-		if (PTR_ERR(pvOldData) == -ENOENT)
-		{
+	if (IS_ERR(pvOldData)) {
+		if (PTR_ERR(pvOldData) == -ENOENT) {
 			return PVRSRV_ERROR_HANDLE_NOT_ALLOCATED;
-		}
-		else
-		{
+		} else {
 			return PVRSRV_ERROR_HANDLE_INDEX_OUT_OF_RANGE;
 		}
 	}
@@ -264,7 +249,9 @@ static PVRSRV_ERROR SetHandleData(HANDLE_IMPL_BASE *psBase,
 	return PVRSRV_OK;
 }
 
-static PVRSRV_ERROR IterateOverHandles(HANDLE_IMPL_BASE *psBase, PFN_HANDLE_ITER pfnHandleIter, void *pvHandleIterData)
+static PVRSRV_ERROR IterateOverHandles(HANDLE_IMPL_BASE *psBase,
+				       PFN_HANDLE_ITER pfnHandleIter,
+				       void *pvHandleIterData)
 {
 	HANDLE_ITER_DATA_WRAPPER sIterData;
 
@@ -274,7 +261,8 @@ static PVRSRV_ERROR IterateOverHandles(HANDLE_IMPL_BASE *psBase, PFN_HANDLE_ITER
 	sIterData.pfnHandleIter = pfnHandleIter;
 	sIterData.pvHandleIterData = pvHandleIterData;
 
-	return (PVRSRV_ERROR)idr_for_each(&psBase->sIdr, HandleIterFuncWrapper, &sIterData);
+	return (PVRSRV_ERROR)idr_for_each(&psBase->sIdr, HandleIterFuncWrapper,
+					  &sIterData);
 }
 
 /*!
@@ -338,10 +326,10 @@ static PVRSRV_ERROR CreateHandleBase(HANDLE_IMPL_BASE **ppsBase)
 	PVR_ASSERT(ppsBase);
 
 	psBase = OSAllocZMem(sizeof(*psBase));
-	if (psBase == NULL)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Couldn't allocate generic handle base",
-				 __func__));
+	if (psBase == NULL) {
+		PVR_DPF((PVR_DBG_ERROR,
+			 "%s: Couldn't allocate generic handle base",
+			 __func__));
 
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
@@ -380,8 +368,7 @@ static PVRSRV_ERROR DestroyHandleBase(HANDLE_IMPL_BASE *psBase)
 	return PVRSRV_OK;
 }
 
-static const HANDLE_IMPL_FUNCTAB g_sHandleFuncTab =
-{
+static const HANDLE_IMPL_FUNCTAB g_sHandleFuncTab = {
 	.pfnAcquireHandle = AcquireHandle,
 	.pfnReleaseHandle = ReleaseHandle,
 	.pfnGetHandleData = GetHandleData,
@@ -397,15 +384,13 @@ PVRSRV_ERROR PVRSRVHandleGetFuncTable(HANDLE_IMPL_FUNCTAB const **ppsFuncs)
 {
 	static IMG_BOOL bAcquired = IMG_FALSE;
 
-	if (bAcquired)
-	{
+	if (bAcquired) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: Function table already acquired",
 			 __func__));
 		return PVRSRV_ERROR_RESOURCE_UNAVAILABLE;
 	}
 
-	if (ppsFuncs == NULL)
-	{
+	if (ppsFuncs == NULL) {
 		return PVRSRV_ERROR_INVALID_PARAMS;
 	}
 

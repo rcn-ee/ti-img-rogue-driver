@@ -46,7 +46,6 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 #include "pvr_debug.h"
 
-
 /*************************************************************************/ /*!
 Command Complete Notifier Interface
 */ /**************************************************************************/
@@ -71,8 +70,7 @@ PVRSRVCmdCompleteInit(void);
 @Description    Performs cleanup for the command complete notifier interface.
 @Return         PVRSRV_ERROR         PVRSRV_OK on success otherwise an error
 */ /**************************************************************************/
-void
-PVRSRVCmdCompleteDeinit(void);
+void PVRSRVCmdCompleteDeinit(void);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVRegisterCmdCompleteNotify
@@ -88,8 +86,8 @@ PVRSRVCmdCompleteDeinit(void);
 */ /**************************************************************************/
 PVRSRV_ERROR
 PVRSRVRegisterCmdCompleteNotify(IMG_HANDLE *phNotify,
-                                PFN_CMDCOMP_NOTIFY pfnCmdCompleteNotify,
-                                PVRSRV_CMDCOMP_HANDLE hPrivData);
+				PFN_CMDCOMP_NOTIFY pfnCmdCompleteNotify,
+				PVRSRV_CMDCOMP_HANDLE hPrivData);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVUnregisterCmdCompleteNotify
@@ -109,8 +107,7 @@ PVRSRVUnregisterCmdCompleteNotify(IMG_HANDLE hNotify);
                                      notified. A NULL value results in all
                                      handlers being notified.
 */ /**************************************************************************/
-void
-PVRSRVCheckStatus(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle);
+void PVRSRVCheckStatus(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVNotifyCommandCompletion
@@ -121,37 +118,34 @@ PVRSRVCheckStatus(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle);
                                      notified. A NULL value results in all
                                      handlers being notified.
 */ /**************************************************************************/
-void
-PVRSRVNotifyCommandCompletion(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle);
+void PVRSRVNotifyCommandCompletion(PVRSRV_CMDCOMP_HANDLE hCmdCompCallerHandle);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVSignalDriverWideEO
 @Description    Signals the driver wide event objects.
 */ /**************************************************************************/
-void
-PVRSRVSignalDriverWideEO(void);
-
+void PVRSRVSignalDriverWideEO(void);
 
 /*************************************************************************/ /*!
 Debug Notifier Interface
 */ /**************************************************************************/
 
-#define DEBUG_REQUEST_DC                0
-#define DEBUG_REQUEST_SYNCTRACKING      1
-#define DEBUG_REQUEST_SRV               2
-#define DEBUG_REQUEST_SYS               3
-#define DEBUG_REQUEST_RGX               4
-#define DEBUG_REQUEST_ANDROIDSYNC       5
-#define DEBUG_REQUEST_LINUXFENCE        6
-#define DEBUG_REQUEST_SYNCCHECKPOINT    7
-#define DEBUG_REQUEST_HTB               8
-#define DEBUG_REQUEST_APPHINT           9
-#define DEBUG_REQUEST_FALLBACKSYNC      10
+#define DEBUG_REQUEST_DC 0
+#define DEBUG_REQUEST_SYNCTRACKING 1
+#define DEBUG_REQUEST_SRV 2
+#define DEBUG_REQUEST_SYS 3
+#define DEBUG_REQUEST_RGX 4
+#define DEBUG_REQUEST_ANDROIDSYNC 5
+#define DEBUG_REQUEST_LINUXFENCE 6
+#define DEBUG_REQUEST_SYNCCHECKPOINT 7
+#define DEBUG_REQUEST_HTB 8
+#define DEBUG_REQUEST_APPHINT 9
+#define DEBUG_REQUEST_FALLBACKSYNC 10
 
-#define DEBUG_REQUEST_VERBOSITY_LOW     0
-#define DEBUG_REQUEST_VERBOSITY_MEDIUM  1
-#define DEBUG_REQUEST_VERBOSITY_HIGH    2
-#define DEBUG_REQUEST_VERBOSITY_MAX     DEBUG_REQUEST_VERBOSITY_HIGH
+#define DEBUG_REQUEST_VERBOSITY_LOW 0
+#define DEBUG_REQUEST_VERBOSITY_MEDIUM 1
+#define DEBUG_REQUEST_VERBOSITY_HIGH 2
+#define DEBUG_REQUEST_VERBOSITY_MAX DEBUG_REQUEST_VERBOSITY_HIGH
 
 #define DD_VERB_LVL_ENABLED(_verbLvl, _verbLvlChk) ((_verbLvl) >= (_verbLvlChk))
 
@@ -162,12 +156,11 @@ Debug Notifier Interface
  * is also required as a local variable to serve as a file identifier for the
  * printf function if required.
  */
-#define PVR_DUMPDEBUG_LOG(...)                                \
-	do                                                        \
-	{                                                         \
-		if (pfnDumpDebugPrintf)                               \
+#define PVR_DUMPDEBUG_LOG(...)                                            \
+	do {                                                              \
+		if (pfnDumpDebugPrintf)                                   \
 			pfnDumpDebugPrintf(pvDumpDebugFile, __VA_ARGS__); \
-		else                                                  \
+		else                                                      \
 			PVR_LOG((__VA_ARGS__));                           \
 	} while (0)
 
@@ -175,12 +168,12 @@ struct _PVRSRV_DEVICE_NODE_;
 
 typedef IMG_HANDLE PVRSRV_DBGREQ_HANDLE;
 #ifndef DBGNOTIFY_PFNS
-typedef void (DUMPDEBUG_PRINTF_FUNC)(void *pvDumpDebugFile,
-					const IMG_CHAR *pszFormat, ...);
+typedef void(DUMPDEBUG_PRINTF_FUNC)(void *pvDumpDebugFile,
+				    const IMG_CHAR *pszFormat, ...);
 typedef void (*PFN_DBGREQ_NOTIFY)(PVRSRV_DBGREQ_HANDLE hDebugRequestHandle,
-					IMG_UINT32 ui32VerbLevel,
-					DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-					void *pvDumpDebugFile);
+				  IMG_UINT32 ui32VerbLevel,
+				  DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+				  void *pvDumpDebugFile);
 #define DBGNOTIFY_PFNS
 #endif
 
@@ -222,16 +215,14 @@ PVRSRVRegisterDriverDbgTable(void);
                               be unregistered
 @Return         void
 */ /**************************************************************************/
-void
-PVRSRVUnregisterDeviceDbgTable(struct _PVRSRV_DEVICE_NODE_ *psDevNode);
+void PVRSRVUnregisterDeviceDbgTable(struct _PVRSRV_DEVICE_NODE_ *psDevNode);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVUnregisterDriverDbgTable
 @Description    Unregisters the driver debug requester table.
 @Return         void
 */ /**************************************************************************/
-void
-PVRSRVUnregisterDriverDbgTable(void);
+void PVRSRVUnregisterDriverDbgTable(void);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVRegisterDeviceDbgRequestNotify
@@ -254,10 +245,10 @@ PVRSRVUnregisterDriverDbgTable(void);
 */ /**************************************************************************/
 PVRSRV_ERROR
 PVRSRVRegisterDeviceDbgRequestNotify(IMG_HANDLE *phNotify,
-                                     struct _PVRSRV_DEVICE_NODE_ *psDevNode,
-                                     PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-                                     IMG_UINT32 ui32RequesterID,
-                                     PVRSRV_DBGREQ_HANDLE hDbgReqeustHandle);
+				     struct _PVRSRV_DEVICE_NODE_ *psDevNode,
+				     PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
+				     IMG_UINT32 ui32RequesterID,
+				     PVRSRV_DBGREQ_HANDLE hDbgReqeustHandle);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVRegisterDriverDbgRequestNotify
@@ -277,9 +268,9 @@ PVRSRVRegisterDeviceDbgRequestNotify(IMG_HANDLE *phNotify,
 */ /**************************************************************************/
 PVRSRV_ERROR
 PVRSRVRegisterDriverDbgRequestNotify(IMG_HANDLE *phNotify,
-									 PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
-									 IMG_UINT32 ui32RequesterID,
-									 PVRSRV_DBGREQ_HANDLE hDbgRequestHandle);
+				     PFN_DBGREQ_NOTIFY pfnDbgRequestNotify,
+				     IMG_UINT32 ui32RequesterID,
+				     PVRSRV_DBGREQ_HANDLE hDbgRequestHandle);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVUnregisterDeviceDbgRequestNotify
@@ -317,10 +308,9 @@ PVRSRVUnregisterDriverDbgRequestNotify(IMG_HANDLE hNotify);
                                     the print function if required.
 @Return         void
 */ /**************************************************************************/
-void
-PVRSRVDebugRequest(struct _PVRSRV_DEVICE_NODE_ *psDevNode,
-                   IMG_UINT32 ui32VerbLevel,
-                   DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
-                   void *pvDumpDebugFile);
+void PVRSRVDebugRequest(struct _PVRSRV_DEVICE_NODE_ *psDevNode,
+			IMG_UINT32 ui32VerbLevel,
+			DUMPDEBUG_PRINTF_FUNC *pfnDumpDebugPrintf,
+			void *pvDumpDebugFile);
 
 #endif /* !defined(PVR_NOTIFIER_H) */

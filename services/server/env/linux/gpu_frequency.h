@@ -61,26 +61,19 @@ void PVRGpuTraceDisableFreqCallback(void);
  */
 TRACE_EVENT_FN(gpu_frequency,
 
-	TP_PROTO(uint32_t state, uint32_t gpu_id),
+	       TP_PROTO(uint32_t state, uint32_t gpu_id),
 
-	TP_ARGS(state, gpu_id),
+	       TP_ARGS(state, gpu_id),
 
-	TP_STRUCT__entry(
-		__field(unsigned int, state)
-		__field(unsigned int, gpu_id)
-	),
+	       TP_STRUCT__entry(__field(unsigned int, state)
+					__field(unsigned int, gpu_id)),
 
-	TP_fast_assign(
-		__entry->state = state;
-		__entry->gpu_id = gpu_id;
-	),
+	       TP_fast_assign(__entry->state = state;
+			      __entry->gpu_id = gpu_id;),
 
-	TP_printk("state=%u gpu_id=%u",
-		__entry->state, __entry->gpu_id),
+	       TP_printk("state=%u gpu_id=%u", __entry->state, __entry->gpu_id),
 
-	PVRGpuTraceEnableFreqCallback,
-	PVRGpuTraceDisableFreqCallback
-);
+	       PVRGpuTraceEnableFreqCallback, PVRGpuTraceDisableFreqCallback);
 
 #endif /* TRACE_GPU_FREQUENCY_H */
 

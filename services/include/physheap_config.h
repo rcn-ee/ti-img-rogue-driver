@@ -62,75 +62,66 @@ typedef IMG_UINT32 PHYS_HEAP_USAGE_FLAGS;
  * g_asPhysHeapUsageFlagStrings structure within physheap.c and the
  * PHYS_HEAP_USAGE_MASK.
  */
-#define PHYS_HEAP_USAGE_CPU_LOCAL      (1U <<PVRSRV_PHYS_HEAP_CPU_LOCAL)
-#define PHYS_HEAP_USAGE_GPU_LOCAL      (1U <<PVRSRV_PHYS_HEAP_GPU_LOCAL)
-#define PHYS_HEAP_USAGE_GPU_PRIVATE    (1U <<PVRSRV_PHYS_HEAP_GPU_PRIVATE)
-#define PHYS_HEAP_USAGE_EXTERNAL       (1U <<PVRSRV_PHYS_HEAP_EXTERNAL)
-#define PHYS_HEAP_USAGE_GPU_COHERENT   (1U <<PVRSRV_PHYS_HEAP_GPU_COHERENT)
-#define PHYS_HEAP_USAGE_GPU_SECURE     (1U <<PVRSRV_PHYS_HEAP_GPU_SECURE)
-#define PHYS_HEAP_USAGE_FW_CODE        (1U <<PVRSRV_PHYS_HEAP_FW_CODE)
-#define PHYS_HEAP_USAGE_FW_PRIV_DATA   (1U <<PVRSRV_PHYS_HEAP_FW_PRIV_DATA)
-#define PHYS_HEAP_USAGE_FW_PREMAP_PT   (1U <<PVRSRV_PHYS_HEAP_FW_PREMAP_PT)
-#define PHYS_HEAP_USAGE_FW_PREMAP      (1U <<PVRSRV_PHYS_HEAP_FW_PREMAP0)
-#define PHYS_HEAP_USAGE_WRAP           (1U <<PVRSRV_PHYS_HEAP_WRAP)
-#define PHYS_HEAP_USAGE_DISPLAY        (1U <<PVRSRV_PHYS_HEAP_DISPLAY)
-#define PHYS_HEAP_USAGE_DLM            (1U <<29)
-#define PHYS_HEAP_USAGE_FW_SHARED      (1U <<30)
-#define PHYS_HEAP_USAGE_FW_PRIVATE     (1U <<31)
+#define PHYS_HEAP_USAGE_CPU_LOCAL (1U << PVRSRV_PHYS_HEAP_CPU_LOCAL)
+#define PHYS_HEAP_USAGE_GPU_LOCAL (1U << PVRSRV_PHYS_HEAP_GPU_LOCAL)
+#define PHYS_HEAP_USAGE_GPU_PRIVATE (1U << PVRSRV_PHYS_HEAP_GPU_PRIVATE)
+#define PHYS_HEAP_USAGE_EXTERNAL (1U << PVRSRV_PHYS_HEAP_EXTERNAL)
+#define PHYS_HEAP_USAGE_GPU_COHERENT (1U << PVRSRV_PHYS_HEAP_GPU_COHERENT)
+#define PHYS_HEAP_USAGE_GPU_SECURE (1U << PVRSRV_PHYS_HEAP_GPU_SECURE)
+#define PHYS_HEAP_USAGE_FW_CODE (1U << PVRSRV_PHYS_HEAP_FW_CODE)
+#define PHYS_HEAP_USAGE_FW_PRIV_DATA (1U << PVRSRV_PHYS_HEAP_FW_PRIV_DATA)
+#define PHYS_HEAP_USAGE_FW_PREMAP_PT (1U << PVRSRV_PHYS_HEAP_FW_PREMAP_PT)
+#define PHYS_HEAP_USAGE_FW_PREMAP (1U << PVRSRV_PHYS_HEAP_FW_PREMAP0)
+#define PHYS_HEAP_USAGE_WRAP (1U << PVRSRV_PHYS_HEAP_WRAP)
+#define PHYS_HEAP_USAGE_DISPLAY (1U << PVRSRV_PHYS_HEAP_DISPLAY)
+#define PHYS_HEAP_USAGE_DLM (1U << 29)
+#define PHYS_HEAP_USAGE_FW_SHARED (1U << 30)
+#define PHYS_HEAP_USAGE_FW_PRIVATE (1U << 31)
 
-#define PHYS_HEAP_USAGE_MASK (PHYS_HEAP_USAGE_CPU_LOCAL    | \
-                              PHYS_HEAP_USAGE_GPU_LOCAL    | \
-                              PHYS_HEAP_USAGE_GPU_PRIVATE  | \
-                              PHYS_HEAP_USAGE_EXTERNAL     | \
-                              PHYS_HEAP_USAGE_GPU_COHERENT | \
-                              PHYS_HEAP_USAGE_GPU_SECURE   | \
-                              PHYS_HEAP_USAGE_FW_CODE      | \
-                              PHYS_HEAP_USAGE_FW_PRIV_DATA | \
-                              PHYS_HEAP_USAGE_FW_SHARED    | \
-                              PHYS_HEAP_USAGE_FW_PRIVATE   | \
-                              PHYS_HEAP_USAGE_FW_PREMAP    | \
-                              PHYS_HEAP_USAGE_FW_PREMAP_PT | \
-                              PHYS_HEAP_USAGE_WRAP         | \
-                              PHYS_HEAP_USAGE_DISPLAY      | \
-                              PHYS_HEAP_USAGE_DLM)
+#define PHYS_HEAP_USAGE_MASK                                         \
+	(PHYS_HEAP_USAGE_CPU_LOCAL | PHYS_HEAP_USAGE_GPU_LOCAL |     \
+	 PHYS_HEAP_USAGE_GPU_PRIVATE | PHYS_HEAP_USAGE_EXTERNAL |    \
+	 PHYS_HEAP_USAGE_GPU_COHERENT | PHYS_HEAP_USAGE_GPU_SECURE | \
+	 PHYS_HEAP_USAGE_FW_CODE | PHYS_HEAP_USAGE_FW_PRIV_DATA |    \
+	 PHYS_HEAP_USAGE_FW_SHARED | PHYS_HEAP_USAGE_FW_PRIVATE |    \
+	 PHYS_HEAP_USAGE_FW_PREMAP | PHYS_HEAP_USAGE_FW_PREMAP_PT |  \
+	 PHYS_HEAP_USAGE_WRAP | PHYS_HEAP_USAGE_DISPLAY | PHYS_HEAP_USAGE_DLM)
 
-#define FIRST_PHYSHEAP_MAPPED_TO_FW_MAIN_DEVMEM    PVRSRV_PHYS_HEAP_FW_CODE
+#define FIRST_PHYSHEAP_MAPPED_TO_FW_MAIN_DEVMEM PVRSRV_PHYS_HEAP_FW_CODE
 
 typedef void (*CpuPAddrToDevPAddr)(IMG_HANDLE hPrivData,
-                                   IMG_UINT32 ui32NumOfAddr,
-                                   IMG_DEV_PHYADDR *psDevPAddr,
-                                   IMG_CPU_PHYADDR *psCpuPAddr);
+				   IMG_UINT32 ui32NumOfAddr,
+				   IMG_DEV_PHYADDR *psDevPAddr,
+				   IMG_CPU_PHYADDR *psCpuPAddr);
 
 typedef void (*DevPAddrToCpuPAddr)(IMG_HANDLE hPrivData,
-                                   IMG_UINT32 ui32NumOfAddr,
-                                   IMG_CPU_PHYADDR *psCpuPAddr,
-                                   IMG_DEV_PHYADDR *psDevPAddr);
+				   IMG_UINT32 ui32NumOfAddr,
+				   IMG_CPU_PHYADDR *psCpuPAddr,
+				   IMG_DEV_PHYADDR *psDevPAddr);
 
 /*! Structure used to hold function pointers used for run-time physical address
  * translation by Services. Gives flexibility to allow the CPU and GPU to see
  * the same pool of physical RAM and different physical bus addresses.
  * Both fields must be valid functions even if the conversion is simple.
  */
-typedef struct _PHYS_HEAP_FUNCTIONS_
-{
+typedef struct _PHYS_HEAP_FUNCTIONS_ {
 	/*! Translate CPU physical address to device physical address */
-	CpuPAddrToDevPAddr	pfnCpuPAddrToDevPAddr;
+	CpuPAddrToDevPAddr pfnCpuPAddrToDevPAddr;
 	/*! Translate device physical address to CPU physical address */
-	DevPAddrToCpuPAddr	pfnDevPAddrToCpuPAddr;
+	DevPAddrToCpuPAddr pfnDevPAddrToCpuPAddr;
 } PHYS_HEAP_FUNCTIONS;
 
 /*! Structure used to describe the IPA settings for a physical heap.
  */
-typedef struct _IPA_CONFIG_
-{
+typedef struct _IPA_CONFIG_ {
 	/*! IPA Policy Default (0-7) */
-	IMG_UINT8             ui8IPAPolicyDefault;
+	IMG_UINT8 ui8IPAPolicyDefault;
 	/*! IPA Policy Mask (3-bits for this use-case - 0x7) */
-	IMG_UINT8             ui8IPAPolicyMask;
+	IMG_UINT8 ui8IPAPolicyMask;
 	/*! IPA Policy mask shift (LSB position - policy value will be << by this amount */
-	IMG_UINT8             ui8IPAPolicyShift;
+	IMG_UINT8 ui8IPAPolicyShift;
 	/*! IPA Policy reserved byte for alignment and slop reduction */
-	IMG_UINT8             ui8IPAPolicyReserved;
+	IMG_UINT8 ui8IPAPolicyReserved;
 } IPA_CONFIG;
 
 #if defined(PVRSRV_ENABLE_XD_MEM)
@@ -148,72 +139,78 @@ typedef struct _PHYS_HEAP_SPAS_REGION_ {
 	ATOMIC_T ui32Lock;
 } PHYS_HEAP_SPAS_REGION;
 
-#define DECLARE_PHYS_HEAP_SPAS_REGION(name)            \
-PHYS_HEAP_SPAS_REGION name = {                         \
-	.ui32Lock = { 0 },                                 \
-	.sListHead = { &name.sListHead, &name.sListHead }  \
-}
+#define DECLARE_PHYS_HEAP_SPAS_REGION(name)                            \
+	PHYS_HEAP_SPAS_REGION name = { .ui32Lock = { 0 },              \
+				       .sListHead = { &name.sListHead, \
+						      &name.sListHead } }
 #endif
 
-typedef struct _PHYS_HEAP_CONFIG_LMA_
-{
-	IMG_CHAR*             pszPDumpMemspaceName; /*!< Name given to the heap's symbolic memory
+typedef struct _PHYS_HEAP_CONFIG_LMA_ {
+	IMG_CHAR *pszPDumpMemspaceName; /*!< Name given to the heap's symbolic memory
 													 space in a PDUMP enabled driver */
-	PHYS_HEAP_FUNCTIONS*  psMemFuncs;           /*!< Physical address translation functions */
-	IMG_CHAR*             pszHeapName;          /*!< Name given to the heap */
-	IMG_CPU_PHYADDR       sStartAddr;           /*!< CPU Physical base address of memory region */
-	IMG_DEV_PHYADDR       sCardBase;            /*!< Device physical base address of memory
+	PHYS_HEAP_FUNCTIONS
+		*psMemFuncs; /*!< Physical address translation functions */
+	IMG_CHAR *pszHeapName; /*!< Name given to the heap */
+	IMG_CPU_PHYADDR
+		sStartAddr; /*!< CPU Physical base address of memory region */
+	IMG_DEV_PHYADDR sCardBase; /*!< Device physical base address of memory
 													 region as seen from the PoV of the GPU */
-	IMG_UINT64            uiSize;               /*!< Size of memory region in bytes */
-	IMG_HANDLE            hPrivData;            /*!< System layer private data shared with
+	IMG_UINT64 uiSize; /*!< Size of memory region in bytes */
+	IMG_HANDLE hPrivData; /*!< System layer private data shared with
 													 psMemFuncs */
 #if defined(PVRSRV_ENABLE_XD_MEM)
-	PHYS_HEAP_SPAS_REGION *psSpasRegion;        /*!< Physheaps with the same SpasRegion are seen
+	PHYS_HEAP_SPAS_REGION
+		*psSpasRegion; /*!< Physheaps with the same SpasRegion are seen
 	                                                 to share the physical address space. */
 #endif
 } PHYS_HEAP_CONFIG_LMA;
 
-typedef struct _PHYS_HEAP_CONFIG_UMA_
-{
-	IMG_CHAR*             pszPDumpMemspaceName; /*!< Name given to the heap's symbolic memory
+typedef struct _PHYS_HEAP_CONFIG_UMA_ {
+	IMG_CHAR *pszPDumpMemspaceName; /*!< Name given to the heap's symbolic memory
 													 space in a PDUMP enabled driver */
-	PHYS_HEAP_FUNCTIONS*  psMemFuncs;           /*!< Physical address translation functions */
-	IMG_CHAR*             pszHeapName;          /*!< Name given to the heap */
-	IMG_DEV_PHYADDR       sCardBase;            /*!< Optional Device physical base address of memory
+	PHYS_HEAP_FUNCTIONS
+		*psMemFuncs; /*!< Physical address translation functions */
+	IMG_CHAR *pszHeapName; /*!< Name given to the heap */
+	IMG_DEV_PHYADDR
+		sCardBase; /*!< Optional Device physical base address of memory
 													 region as seen from the PoV of the GPU */
-	IMG_HANDLE            hPrivData;            /*!< System layer private data shared with
+	IMG_HANDLE hPrivData; /*!< System layer private data shared with
 													 psMemFuncs */
 #if defined(PVRSRV_ENABLE_XD_MEM)
-	PHYS_HEAP_SPAS_REGION *psSpasRegion;        /*!< Physheaps with the same SpasRegion are seen
+	PHYS_HEAP_SPAS_REGION
+		*psSpasRegion; /*!< Physheaps with the same SpasRegion are seen
 	                                                 to share the physical address space. */
 #endif
 } PHYS_HEAP_CONFIG_UMA;
 
-typedef struct _PHYS_HEAP_CONFIG_DLM_
-{
-	IMG_CHAR*             pszHeapName;          /*!< Name given to the heap */
-	IMG_UINT32            ui32Log2PMBSize;      /*!< PMB (Physical Memory Block) Log 2 size in bytes
+typedef struct _PHYS_HEAP_CONFIG_DLM_ {
+	IMG_CHAR *pszHeapName; /*!< Name given to the heap */
+	IMG_UINT32
+		ui32Log2PMBSize; /*!< PMB (Physical Memory Block) Log 2 size in bytes
 	                                                 for DLM heap. */
-	PHYS_HEAP_FUNCTIONS*  psMemFuncs;           /*!< Physical address translation functions */
-	IMG_CPU_PHYADDR       sStartAddr;           /*!< CPU Physical base address of memory region */
-	IMG_DEV_PHYADDR       sCardBase;            /*!< Device physical base address of memory
+	PHYS_HEAP_FUNCTIONS
+		*psMemFuncs; /*!< Physical address translation functions */
+	IMG_CPU_PHYADDR
+		sStartAddr; /*!< CPU Physical base address of memory region */
+	IMG_DEV_PHYADDR sCardBase; /*!< Device physical base address of memory
 	                                                 region as seen from the PoV of the GPU */
-	IMG_UINT64            uiSize;               /*!< Size of memory region in bytes */
-	IMG_HANDLE            hPrivData;            /*!< System layer private data shared with
+	IMG_UINT64 uiSize; /*!< Size of memory region in bytes */
+	IMG_HANDLE hPrivData; /*!< System layer private data shared with
                                                      psMemFuncs */
 } PHYS_HEAP_CONFIG_DLM;
 
-typedef struct _PHYS_HEAP_CONFIG_IMA_
-{
-	IMG_CHAR*             pszPDumpMemspaceName; /*!< Name given to the heap's symbolic memory
+typedef struct _PHYS_HEAP_CONFIG_IMA_ {
+	IMG_CHAR *pszPDumpMemspaceName; /*!< Name given to the heap's symbolic memory
 	                                                 space in a PDUMP enabled driver */
-	PHYS_HEAP_FUNCTIONS*  psMemFuncs;           /*!< Physical address translation functions */
-	IMG_CHAR*             pszHeapName;          /*!< Name given to the heap */
-	IMG_HANDLE            hPrivData;            /*!< System layer private data shared with
+	PHYS_HEAP_FUNCTIONS
+		*psMemFuncs; /*!< Physical address translation functions */
+	IMG_CHAR *pszHeapName; /*!< Name given to the heap */
+	IMG_HANDLE hPrivData; /*!< System layer private data shared with
 	                                                 psMemFuncs */
-	IMG_UINT32            ui32PMBStartingMultiple; /*!< Multiple of PMB size defined in DLM heap
+	IMG_UINT32
+		ui32PMBStartingMultiple; /*!< Multiple of PMB size defined in DLM heap
 	                                                    to be allocated on creation */
-	IMG_UINT32            uiDLMHeapIdx;         /*!< The index in the array of physheaps to a
+	IMG_UINT32 uiDLMHeapIdx; /*!< The index in the array of physheaps to a
 	                                                 DLM heap to import PMBs from. */
 } PHYS_HEAP_CONFIG_IMA;
 
@@ -226,12 +223,12 @@ typedef struct _PHYS_HEAP_CONFIG_IMA_
  * The structure fields sStartAddr, sCardBase and uiSize must be given valid
  * values for LMA and DMA physical heaps types.
  */
-typedef struct _PHYS_HEAP_CONFIG_
-{
-	PHYS_HEAP_TYPE        eType;                /*!< Class of heap and PMR factory used */
-	PHYS_HEAP_USAGE_FLAGS ui32UsageFlags;       /*!< Supported uses flags, conveys the type of
+typedef struct _PHYS_HEAP_CONFIG_ {
+	PHYS_HEAP_TYPE eType; /*!< Class of heap and PMR factory used */
+	PHYS_HEAP_USAGE_FLAGS
+		ui32UsageFlags; /*!< Supported uses flags, conveys the type of
 	                                                 buffers the physical heap can be used for */
-	IPA_CONFIG            sIPAConfig;           /*!< IPA configuration to be applied to all
+	IPA_CONFIG sIPAConfig; /*!< IPA configuration to be applied to all
 	                                                 requested physical addresses when physically
 	                                                 backed */
 	union {
@@ -250,13 +247,14 @@ typedef struct _PHYS_HEAP_CONFIG_
  * LMA and DMA heaps are the same struct, this check is not comprehensive as the structs
  * could have changed but kept the same overall size, although this is unlikely.
  */
-static_assert(sizeof(((PHYS_HEAP_CONFIG*)0)->uConfig.sLMA) == sizeof(((PHYS_HEAP_CONFIG*)0)->uConfig.sDMA),
-              "PHYS_HEAP_CONFIG sizeof sLMA != sDMA, Type has potentially changed");
+static_assert(
+	sizeof(((PHYS_HEAP_CONFIG *)0)->uConfig.sLMA) ==
+		sizeof(((PHYS_HEAP_CONFIG *)0)->uConfig.sDMA),
+	"PHYS_HEAP_CONFIG sizeof sLMA != sDMA, Type has potentially changed");
 
 static INLINE IMG_UINT64 PhysHeapConfigGetSize(PHYS_HEAP_CONFIG *psConfig)
 {
-	switch (psConfig->eType)
-	{
+	switch (psConfig->eType) {
 	case PHYS_HEAP_TYPE_LMA:
 		return psConfig->uConfig.sLMA.uiSize;
 	case PHYS_HEAP_TYPE_IMA:
@@ -277,11 +275,11 @@ static INLINE IMG_UINT64 PhysHeapConfigGetSize(PHYS_HEAP_CONFIG *psConfig)
 	}
 }
 
-static INLINE IMG_CPU_PHYADDR PhysHeapConfigGetStartAddr(PHYS_HEAP_CONFIG *psConfig)
+static INLINE IMG_CPU_PHYADDR
+PhysHeapConfigGetStartAddr(PHYS_HEAP_CONFIG *psConfig)
 {
-	IMG_CPU_PHYADDR sUnsupportedPhyAddr = {0};
-	switch (psConfig->eType)
-	{
+	IMG_CPU_PHYADDR sUnsupportedPhyAddr = { 0 };
+	switch (psConfig->eType) {
 	case PHYS_HEAP_TYPE_LMA:
 		return psConfig->uConfig.sLMA.sStartAddr;
 	case PHYS_HEAP_TYPE_IMA:
@@ -302,11 +300,11 @@ static INLINE IMG_CPU_PHYADDR PhysHeapConfigGetStartAddr(PHYS_HEAP_CONFIG *psCon
 	}
 }
 
-static INLINE IMG_DEV_PHYADDR PhysHeapConfigGetCardBase(PHYS_HEAP_CONFIG *psConfig)
+static INLINE IMG_DEV_PHYADDR
+PhysHeapConfigGetCardBase(PHYS_HEAP_CONFIG *psConfig)
 {
-	IMG_DEV_PHYADDR sUnsupportedPhyAddr = {0};
-	switch (psConfig->eType)
-	{
+	IMG_DEV_PHYADDR sUnsupportedPhyAddr = { 0 };
+	switch (psConfig->eType) {
 	case PHYS_HEAP_TYPE_LMA:
 		return psConfig->uConfig.sLMA.sCardBase;
 	case PHYS_HEAP_TYPE_IMA:

@@ -53,14 +53,14 @@ extern "C" {
 #define RGX_FW_ALIGNMENT_LSB (7U)
 
 /*! Macro to test structure size alignment */
-#define RGX_FW_STRUCT_SIZE_ASSERT(_a)	\
-	static_assert((sizeof(_a) & RGX_FW_ALIGNMENT_LSB) == 0U,	\
-				  "Size of " #_a " is not properly aligned")
+#define RGX_FW_STRUCT_SIZE_ASSERT(_a)                            \
+	static_assert((sizeof(_a) & RGX_FW_ALIGNMENT_LSB) == 0U, \
+		      "Size of " #_a " is not properly aligned")
 
 /*! Macro to test structure member alignment */
-#define RGX_FW_STRUCT_OFFSET_ASSERT(_a, _b)	\
-	static_assert((offsetof(_a, _b) & RGX_FW_ALIGNMENT_LSB) == 0U,	\
-				  "Offset of " #_a "." #_b " is not properly aligned")
+#define RGX_FW_STRUCT_OFFSET_ASSERT(_a, _b)                            \
+	static_assert((offsetof(_a, _b) & RGX_FW_ALIGNMENT_LSB) == 0U, \
+		      "Offset of " #_a "." #_b " is not properly aligned")
 
 #if defined(__cplusplus)
 }

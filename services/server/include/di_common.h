@@ -46,7 +46,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "img_types.h"
 
 /* Token that signals that a header should be printed. */
-#define DI_START_TOKEN ((void *) 1)
+#define DI_START_TOKEN ((void *)1)
 
 /* This is a public handle to an entry. */
 #ifndef DI_GROUP_DEFINED
@@ -60,12 +60,11 @@ typedef struct DI_ENTRY DI_ENTRY;
 typedef struct OSDI_IMPL_ENTRY OSDI_IMPL_ENTRY;
 
 /*! Debug Info entries types. */
-typedef enum DI_ENTRY_TYPE
-{
-    DI_ENTRY_TYPE_GENERIC,          /*!< generic entry type, implements
+typedef enum DI_ENTRY_TYPE {
+	DI_ENTRY_TYPE_GENERIC, /*!< generic entry type, implements
                                          start/stop/next/show iterator
                                          interface */
-    DI_ENTRY_TYPE_RANDOM_ACCESS,    /*!< random access entry, implements
+	DI_ENTRY_TYPE_RANDOM_ACCESS, /*!< random access entry, implements
                                          seek/read iterator interface */
 } DI_ENTRY_TYPE;
 
@@ -104,7 +103,7 @@ typedef void (*DI_PFN_STOP)(OSDI_IMPL_ENTRY *psEntry, void *pvData);
  * @InOut pui64Pos current data position in the entry
  */
 typedef void *(*DI_PFN_NEXT)(OSDI_IMPL_ENTRY *psEntry, void *pvData,
-                             IMG_UINT64 *pui64Pos);
+			     IMG_UINT64 *pui64Pos);
 
 /*! @Function DI_PFN_SHOW
  *
@@ -137,7 +136,7 @@ typedef IMG_INT64 (*DI_PFN_SEEK)(IMG_UINT64 ui64Offset, void *pvData);
  * @Input pvData private data provided during entry creation
  */
 typedef IMG_INT64 (*DI_PFN_READ)(IMG_CHAR *pszBuffer, IMG_UINT64 ui64Count,
-                                 IMG_UINT64 *pui64Pos, void *pvData);
+				 IMG_UINT64 *pui64Pos, void *pvData);
 
 /*! @Function DI_PFN_WRITE
  *
@@ -150,8 +149,8 @@ typedef IMG_INT64 (*DI_PFN_READ)(IMG_CHAR *pszBuffer, IMG_UINT64 ui64Count,
  * @Input pvData private data provided during entry creation
  */
 typedef IMG_INT64 (*DI_PFN_WRITE)(const IMG_CHAR *pszBuffer,
-                                  IMG_UINT64 ui64Count, IMG_UINT64 *pui64Pos,
-                                  void *pvData);
+				  IMG_UINT64 ui64Count, IMG_UINT64 *pui64Pos,
+				  void *pvData);
 
 /*! Debug info entry iterator.
  *
@@ -211,25 +210,24 @@ typedef IMG_INT64 (*DI_PFN_WRITE)(const IMG_CHAR *pszBuffer,
  *     .pfnShow = SingleShowCb, .pfnWrite = WriteCb
  *   };
  */
-typedef struct DI_ITERATOR_CB
-{
-    /* Generic entry interface. */
+typedef struct DI_ITERATOR_CB {
+	/* Generic entry interface. */
 
-    DI_PFN_START pfnStart; /*!< Starts iteration and returns first element
+	DI_PFN_START pfnStart; /*!< Starts iteration and returns first element
                                 of entry's data. */
-    DI_PFN_STOP pfnStop;   /*!< Stops iteration. */
-    DI_PFN_NEXT pfnNext;   /*!< Returns next element of entry's data. */
-    DI_PFN_SHOW pfnShow;   /*!< Shows current data element of an entry. */
+	DI_PFN_STOP pfnStop; /*!< Stops iteration. */
+	DI_PFN_NEXT pfnNext; /*!< Returns next element of entry's data. */
+	DI_PFN_SHOW pfnShow; /*!< Shows current data element of an entry. */
 
-    /* Optional random access entry interface. */
+	/* Optional random access entry interface. */
 
-    DI_PFN_SEEK pfnSeek;   /*!< Sets data pointer in an entry. */
-    DI_PFN_READ pfnRead;   /*!< Reads data from an entry. */
+	DI_PFN_SEEK pfnSeek; /*!< Sets data pointer in an entry. */
+	DI_PFN_READ pfnRead; /*!< Reads data from an entry. */
 
-    /* Optional writing to entry interface. Null terminated. */
+	/* Optional writing to entry interface. Null terminated. */
 
-    DI_PFN_WRITE pfnWrite; /*!< Performs write operation on an entry. */
-    IMG_UINT32   ui32WriteLenMax; /*!< Maximum char length of entry
+	DI_PFN_WRITE pfnWrite; /*!< Performs write operation on an entry. */
+	IMG_UINT32 ui32WriteLenMax; /*!< Maximum char length of entry
                                        accepted for write. Includes \0 */
 } DI_ITERATOR_CB;
 

@@ -59,8 +59,8 @@ int pvr_sw_sync_create_fence_ioctl(struct drm_device *dev, void *arg,
 int pvr_sw_sync_inc_ioctl(struct drm_device *dev, void *arg,
 			  struct drm_file *file);
 int pvr_sync_ioctl_force_exp_only(struct drm_device *dev, void *arg,
-			  struct drm_file *file);
+				  struct drm_file *file);
 int pvr_export_fence_sync_create_fence_ioctl(struct drm_device *dev, void *arg,
-			  struct drm_file *file);
+					     struct drm_file *file);
 
 #endif /* _PVR_SYNC_IOCTL_DRM_H */

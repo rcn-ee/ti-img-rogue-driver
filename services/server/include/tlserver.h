@@ -57,38 +57,33 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 PVRSRV_ERROR TLServerConnectKM(CONNECTION_DATA *psConnection);
 PVRSRV_ERROR TLServerDisconnectKM(CONNECTION_DATA *psConnection);
 
-PVRSRV_ERROR TLServerOpenStreamKM(const IMG_CHAR* pszName,
-			   IMG_UINT32 ui32Mode,
-			   PTL_STREAM_DESC* ppsSD,
-			   PMR** ppsTLPMR);
+PVRSRV_ERROR TLServerOpenStreamKM(const IMG_CHAR *pszName, IMG_UINT32 ui32Mode,
+				  PTL_STREAM_DESC *ppsSD, PMR **ppsTLPMR);
 
 PVRSRV_ERROR TLServerCloseStreamKM(PTL_STREAM_DESC psSD);
 
 PVRSRV_ERROR TLServerDiscoverStreamsKM(const IMG_CHAR *pszNamePattern,
-                          IMG_UINT32 ui32Max,
-                          IMG_CHAR *pszStreams,
-                          IMG_UINT32 *pui32NumFound);
+				       IMG_UINT32 ui32Max, IMG_CHAR *pszStreams,
+				       IMG_UINT32 *pui32NumFound);
 
 PVRSRV_ERROR TLServerReserveStreamKM(PTL_STREAM_DESC psSD,
-                                     IMG_UINT32* ui32BufferOffset,
-                                     IMG_UINT32 ui32Size,
-                                     IMG_UINT32 ui32SizeMin,
-                                     IMG_UINT32* pui32Available);
+				     IMG_UINT32 *ui32BufferOffset,
+				     IMG_UINT32 ui32Size,
+				     IMG_UINT32 ui32SizeMin,
+				     IMG_UINT32 *pui32Available);
 
-PVRSRV_ERROR TLServerCommitStreamKM(PTL_STREAM_DESC psSD,
-                                    IMG_UINT32 ui32Size);
+PVRSRV_ERROR TLServerCommitStreamKM(PTL_STREAM_DESC psSD, IMG_UINT32 ui32Size);
 
 PVRSRV_ERROR TLServerAcquireDataKM(PTL_STREAM_DESC psSD,
-			   IMG_UINT32* puiReadOffset,
-			   IMG_UINT32* puiReadLen);
+				   IMG_UINT32 *puiReadOffset,
+				   IMG_UINT32 *puiReadLen);
 
 PVRSRV_ERROR TLServerReleaseDataKM(PTL_STREAM_DESC psSD,
-				 IMG_UINT32 uiReadOffset,
-				 IMG_UINT32 uiReadLen);
+				   IMG_UINT32 uiReadOffset,
+				   IMG_UINT32 uiReadLen);
 
-PVRSRV_ERROR TLServerWriteDataKM(PTL_STREAM_DESC psSD,
-                                 IMG_UINT32 ui32Size,
-                                 IMG_BYTE *pui8Data);
+PVRSRV_ERROR TLServerWriteDataKM(PTL_STREAM_DESC psSD, IMG_UINT32 ui32Size,
+				 IMG_BYTE *pui8Data);
 
 #endif /* TLSERVER_H */
 

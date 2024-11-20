@@ -111,10 +111,9 @@ static struct sg_table *dup_sg_table(struct sg_table *table)
 }
 
 static int lma_heap_attach(struct dma_buf *dmabuf,
-		struct dma_buf_attachment *attachment)
+			   struct dma_buf_attachment *attachment)
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 	struct lma_dma_heap_attachment *attach;
 	struct sg_table *table;
 
@@ -143,12 +142,11 @@ static int lma_heap_attach(struct dma_buf *dmabuf,
 }
 
 static void lma_heap_detach(struct dma_buf *dmabuf,
-		struct dma_buf_attachment *attachment)
+			    struct dma_buf_attachment *attachment)
 {
 	struct lma_dma_heap_attachment *attach =
 		(struct lma_dma_heap_attachment *)attachment->priv;
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 
 	mutex_lock(&buffer->lock);
 	list_del(&attach->list);
@@ -161,7 +159,7 @@ static void lma_heap_detach(struct dma_buf *dmabuf,
 
 static struct sg_table *
 lma_heap_map_dma_buf(struct dma_buf_attachment *attachment,
-		enum dma_data_direction direction)
+		     enum dma_data_direction direction)
 {
 	struct lma_dma_heap_attachment *attach =
 		(struct lma_dma_heap_attachment *)attachment->priv;
@@ -182,8 +180,8 @@ lma_heap_map_dma_buf(struct dma_buf_attachment *attachment,
 }
 
 static void lma_heap_unmap_dma_buf(struct dma_buf_attachment *attachment,
-		struct sg_table *table,
-		enum dma_data_direction direction)
+				   struct sg_table *table,
+				   enum dma_data_direction direction)
 {
 	struct lma_dma_heap_attachment *attach =
 		(struct lma_dma_heap_attachment *)attachment->priv;
@@ -196,10 +194,9 @@ static void lma_heap_unmap_dma_buf(struct dma_buf_attachment *attachment,
 }
 
 static int lma_heap_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
-		 enum dma_data_direction direction)
+					     enum dma_data_direction direction)
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 	struct lma_dma_heap_attachment *attach;
 
 	mutex_lock(&buffer->lock);
@@ -211,7 +208,8 @@ static int lma_heap_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
 		list_for_each_entry(attach, &buffer->attachments, list) {
 			if (!attach->mapped)
 				continue;
-			dma_sync_sgtable_for_cpu(attach->dev, attach->table, direction);
+			dma_sync_sgtable_for_cpu(attach->dev, attach->table,
+						 direction);
 		}
 	}
 
@@ -221,10 +219,9 @@ static int lma_heap_dma_buf_begin_cpu_access(struct dma_buf *dmabuf,
 }
 
 static int lma_heap_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
-		enum dma_data_direction direction)
+					   enum dma_data_direction direction)
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 	struct lma_dma_heap_attachment *attach;
 
 	mutex_lock(&buffer->lock);
@@ -236,7 +233,8 @@ static int lma_heap_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
 		list_for_each_entry(attach, &buffer->attachments, list) {
 			if (!attach->mapped)
 				continue;
-			dma_sync_sgtable_for_device(attach->dev, attach->table, direction);
+			dma_sync_sgtable_for_device(attach->dev, attach->table,
+						    direction);
 		}
 	}
 
@@ -247,8 +245,7 @@ static int lma_heap_dma_buf_end_cpu_access(struct dma_buf *dmabuf,
 
 static int lma_heap_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 	struct sg_table *table = buffer->table;
 	struct dma_lma_heap *lma_heap;
 	struct page *page;
@@ -272,9 +269,10 @@ static int lma_heap_mmap(struct dma_buf *dmabuf, struct vm_area_struct *vma)
 	/* add the offset to get the real host cpu physical address */
 	paddr += lma_heap->offset;
 
-	err = remap_pfn_range(vma, vma->vm_start, PFN_DOWN(paddr) + vma->vm_pgoff,
-			vma->vm_end - vma->vm_start,
-			pgprot_writecombine(vma->vm_page_prot));
+	err = remap_pfn_range(vma, vma->vm_start,
+			      PFN_DOWN(paddr) + vma->vm_pgoff,
+			      vma->vm_end - vma->vm_start,
+			      pgprot_writecombine(vma->vm_page_prot));
 	if (err)
 		pr_err("%s: Failed to map buffer to userspace\n", __func__);
 
@@ -289,8 +287,7 @@ static void *lma_heap_vmap(struct dma_buf *dmabuf)
 static int lma_heap_vmap(struct dma_buf *dmabuf, struct iosys_map *map)
 #endif /* LINUX_VERSION_CODE < KERNEL_VERSION(5, 11, 0) */
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 	struct dma_lma_heap *lma_heap;
 	__maybe_unused int ret = 0;
 	struct sg_table *table;
@@ -348,8 +345,7 @@ static void lma_heap_vunmap(struct dma_buf *dmabuf, struct iosys_map *map)
 static void lma_heap_vunmap(struct dma_buf *dmabuf, void *vaddr)
 #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 11, 0) */
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 
 	mutex_lock(&buffer->lock);
 
@@ -369,8 +365,7 @@ static void lma_heap_vunmap(struct dma_buf *dmabuf, void *vaddr)
 
 static void lma_heap_dma_buf_release(struct dma_buf *dmabuf)
 {
-	struct lma_heap_buffer *buffer =
-		(struct lma_heap_buffer *)dmabuf->priv;
+	struct lma_heap_buffer *buffer = (struct lma_heap_buffer *)dmabuf->priv;
 	struct dma_lma_heap *lma_heap;
 	struct sg_table *table;
 	struct page *page;
@@ -408,18 +403,16 @@ static const struct dma_buf_ops lma_heap_buf_ops = {
 	.release = lma_heap_dma_buf_release,
 };
 
-#if (defined(ANDROID) && \
-	((LINUX_VERSION_CODE > KERNEL_VERSION(6, 6, 0)) && \
-	 (LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0))))
+#if (defined(ANDROID) && ((LINUX_VERSION_CODE > KERNEL_VERSION(6, 6, 0)) && \
+			  (LINUX_VERSION_CODE < KERNEL_VERSION(6, 7, 0))))
 static struct dma_buf *lma_heap_allocate(struct dma_heap *heap,
-		unsigned long len,
-		u32 fd_flags,
-		u64 heap_flags)
+					 unsigned long len, u32 fd_flags,
+					 u64 heap_flags)
 #else
 static struct dma_buf *lma_heap_allocate(struct dma_heap *heap,
-		unsigned long len,
-		unsigned long fd_flags,
-		unsigned long heap_flags)
+					 unsigned long len,
+					 unsigned long fd_flags,
+					 unsigned long heap_flags)
 #endif
 {
 	struct dma_lma_heap *lma_heap = dma_heap_get_drvdata(heap);
@@ -520,8 +513,8 @@ struct dma_heap *dma_lma_heap_create(struct tc_dma_heap_info *heap_data)
 	 */
 	lma_heap->offset = (phys_addr_t)heap_data->priv;
 
-	gen_pool_add(lma_heap->pool,
-		     lma_heap->base - lma_heap->offset, size, -1);
+	gen_pool_add(lma_heap->pool, lma_heap->base - lma_heap->offset, size,
+		     -1);
 
 	lma_heap->allow_cpu_map = heap_data->allow_cpu_map;
 	lma_heap->uncached = heap_data->uncached;

@@ -53,7 +53,7 @@
 /* This header must always be included last */
 #include "kernel_compatibility.h"
 
-#define	FILE_NAME "pvr_sync_ioctl_dev"
+#define FILE_NAME "pvr_sync_ioctl_dev"
 
 static const struct file_operations pvr_sync_fops;
 
@@ -83,8 +83,7 @@ pvr_sync_connection_private_data(void *connection_data)
 	return NULL;
 }
 
-struct pvr_sync_file_data *
-pvr_sync_get_private_data(struct file *file)
+struct pvr_sync_file_data *pvr_sync_get_private_data(struct file *file)
 {
 	if (file) {
 		struct pvr_sync_file_data *fdata = file->private_data;
@@ -124,8 +123,8 @@ static int pvr_sync_close(struct inode *inode, struct file *file)
 	return pvr_sync_close_common(connection_data);
 }
 
-static long
-pvr_sync_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
+static long pvr_sync_ioctl(struct file *file, unsigned int cmd,
+			   unsigned long arg)
 {
 	void __user *user_data = (void __user *)arg;
 
@@ -141,24 +140,25 @@ pvr_sync_ioctl(struct file *file, unsigned int cmd, unsigned long arg)
 	case DRM_IOCTL_PVR_EXP_FENCE_SYNC_FORCE_CMD:
 		return pvr_sync_ioctl_common_force_exp_only(file, user_data);
 	case DRM_IOCTL_PVR_SYNC_CREATE_EXPORT_FENCE_CMD:
-		return pvr_sync_ioctl_common_create_export_fence(file, user_data);
+		return pvr_sync_ioctl_common_create_export_fence(file,
+								 user_data);
 	default:
 		return -ENOTTY;
 	}
 }
 
 static const struct file_operations pvr_sync_fops = {
-	.owner          = THIS_MODULE,
-	.open           = pvr_sync_open,
-	.release        = pvr_sync_close,
+	.owner = THIS_MODULE,
+	.open = pvr_sync_open,
+	.release = pvr_sync_close,
 	.unlocked_ioctl = pvr_sync_ioctl,
-	.compat_ioctl   = pvr_sync_ioctl,
+	.compat_ioctl = pvr_sync_ioctl,
 };
 
 static struct miscdevice pvr_sync_device = {
-	.minor          = MISC_DYNAMIC_MINOR,
-	.name           = PVRSYNC_MODNAME,
-	.fops           = &pvr_sync_fops,
+	.minor = MISC_DYNAMIC_MINOR,
+	.name = PVRSYNC_MODNAME,
+	.fops = &pvr_sync_fops,
 };
 
 int pvr_sync_ioctl_init(void)
@@ -167,7 +167,8 @@ int pvr_sync_ioctl_init(void)
 
 	err = misc_register(&pvr_sync_device);
 	if (err)
-		pr_err(FILE_NAME ": %s: Failed to register pvr_sync device (%d)\n",
+		pr_err(FILE_NAME
+		       ": %s: Failed to register pvr_sync device (%d)\n",
 		       __func__, err);
 
 	return err;

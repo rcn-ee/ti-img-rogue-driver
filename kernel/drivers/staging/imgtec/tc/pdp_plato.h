@@ -45,16 +45,15 @@
 #include <linux/device.h>
 #include <linux/types.h>
 
-#define PLATO_PDP_PIXEL_FORMAT_G        (0x00)
-#define PLATO_PDP_PIXEL_FORMAT_ARGB4    (0x04)
+#define PLATO_PDP_PIXEL_FORMAT_G (0x00)
+#define PLATO_PDP_PIXEL_FORMAT_ARGB4 (0x04)
 #define PLATO_PDP_PIXEL_FORMAT_ARGB1555 (0x05)
-#define PLATO_PDP_PIXEL_FORMAT_RGB8     (0x06)
-#define PLATO_PDP_PIXEL_FORMAT_RGB565   (0x07)
-#define PLATO_PDP_PIXEL_FORMAT_ARGB8    (0x08)
-#define PLATO_PDP_PIXEL_FORMAT_AYUV8    (0x10)
-#define PLATO_PDP_PIXEL_FORMAT_YUV10    (0x15)
-#define PLATO_PDP_PIXEL_FORMAT_RGBA8    (0x16)
-
+#define PLATO_PDP_PIXEL_FORMAT_RGB8 (0x06)
+#define PLATO_PDP_PIXEL_FORMAT_RGB565 (0x07)
+#define PLATO_PDP_PIXEL_FORMAT_ARGB8 (0x08)
+#define PLATO_PDP_PIXEL_FORMAT_AYUV8 (0x10)
+#define PLATO_PDP_PIXEL_FORMAT_YUV10 (0x15)
+#define PLATO_PDP_PIXEL_FORMAT_RGBA8 (0x16)
 
 void pdp_plato_set_syncgen_enabled(struct device *dev, void __iomem *pdp_reg,
 				   bool enable);
@@ -68,19 +67,14 @@ bool pdp_plato_check_and_clear_vblank(struct device *dev,
 void pdp_plato_set_plane_enabled(struct device *dev, void __iomem *pdp_reg,
 				 u32 plane, bool enable);
 
-void pdp_plato_set_surface(struct device *dev,
-			   void __iomem *pdp_reg, void __iomem *pdp_bif_reg,
-			   u32 plane, u64 address,
-			   u32 posx, u32 posy,
-			   u32 width, u32 height, u32 stride,
-			   u32 format, u32 alpha, bool blend);
+void pdp_plato_set_surface(struct device *dev, void __iomem *pdp_reg,
+			   void __iomem *pdp_bif_reg, u32 plane, u64 address,
+			   u32 posx, u32 posy, u32 width, u32 height,
+			   u32 stride, u32 format, u32 alpha, bool blend);
 
 void pdp_plato_mode_set(struct device *dev, void __iomem *pdp_reg,
-			u32 h_display, u32 v_display,
-			u32 hbps, u32 ht, u32 has,
-			u32 hlbs, u32 hfps, u32 hrbs,
-			u32 vbps, u32 vt, u32 vas,
-			u32 vtbs, u32 vfps, u32 vbbs,
-			bool nhsync, bool nvsync);
+			u32 h_display, u32 v_display, u32 hbps, u32 ht, u32 has,
+			u32 hlbs, u32 hfps, u32 hrbs, u32 vbps, u32 vt, u32 vas,
+			u32 vtbs, u32 vfps, u32 vbbs, bool nhsync, bool nvsync);
 
 #endif /* __PDP_PLATO_H__ */

@@ -56,13 +56,13 @@ struct ion_fbcdc_alloc_data {
 };
 
 #if !defined(__KERNEL__)
-static
-int ion_fbcdc_alloc(int fd, size_t len, size_t align, unsigned int heap_mask,
-					unsigned int flags, size_t tiles, int *handlefd) __attribute__((unused));
+static int ion_fbcdc_alloc(int fd, size_t len, size_t align,
+			   unsigned int heap_mask, unsigned int flags,
+			   size_t tiles, int *handlefd) __attribute__((unused));
 
-static
-int ion_fbcdc_alloc(int fd, size_t len, size_t align, unsigned int heap_mask,
-					unsigned int flags, size_t tiles, int *handlefd)
+static int ion_fbcdc_alloc(int fd, size_t len, size_t align,
+			   unsigned int heap_mask, unsigned int flags,
+			   size_t tiles, int *handlefd)
 {
 	int err;
 	struct ion_fbcdc_alloc_data payload = {
@@ -90,12 +90,13 @@ int ion_fbcdc_alloc(int fd, size_t len, size_t align, unsigned int heap_mask,
 	return err;
 }
 
-static int ion_custom_alloc(int fd, size_t len, size_t align, unsigned int heap_mask,
-							unsigned int flags, size_t tiles, int *handlefd)
+static int ion_custom_alloc(int fd, size_t len, size_t align,
+			    unsigned int heap_mask, unsigned int flags,
+			    size_t tiles, int *handlefd)
 {
-
 #if defined(PVR_ANDROID_ION_FBCDC_ALLOC)
-	return ion_fbcdc_alloc(fd, len, align, heap_mask, flags, tiles, handlefd);
+	return ion_fbcdc_alloc(fd, len, align, heap_mask, flags, tiles,
+			       handlefd);
 #else /* defined(PVR_ANDROID_ION_FBCDC_ALLOC) */
 	PVR_UNREFERENCED_PARAMETER(tiles);
 	return ion_alloc_fd(fd, len, align, heap_mask, flags, handlefd);

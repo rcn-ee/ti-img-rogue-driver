@@ -63,7 +63,7 @@ struct ion_platform_heap {
 #endif
 
 struct ion_heap *ion_lma_heap_create(struct ion_platform_heap *heap_data,
-	bool allow_cpu_map);
+				     bool allow_cpu_map);
 void ion_lma_heap_destroy(struct ion_heap *heap);
 
 #endif /* __ION_LMA_HEAP__ */

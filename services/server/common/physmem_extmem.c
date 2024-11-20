@@ -46,25 +46,18 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "pvrsrv.h"
 #include "physmem_extmem.h"
 
-
 #if defined(LMA)
-#pragma message "WARNING! You are compiling SUPPORT_WRAP_EXTMEM on a platform with LMA. " \
+#pragma message                                                                   \
+	"WARNING! You are compiling SUPPORT_WRAP_EXTMEM on a platform with LMA. " \
 	"Make sure the memory you wrap is actually accessible by the GPU!"
 #endif
 
 PVRSRV_ERROR
-PhysmemWrapExtMem(CONNECTION_DATA * psConnection,
-                  PVRSRV_DEVICE_NODE *psDevNode,
-                  IMG_DEVMEM_SIZE_T uiSize,
-                  IMG_UINT64 pvCpuVAddr,
-                  PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                  PMR **ppsPMRPtr)
+PhysmemWrapExtMem(CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+		  IMG_DEVMEM_SIZE_T uiSize, IMG_UINT64 pvCpuVAddr,
+		  PVRSRV_MEMALLOCFLAGS_T uiFlags, PMR **ppsPMRPtr)
 {
-	return PhysmemWrapExtMemOS(psConnection,
-	                           psDevNode,
-	                           uiSize,
-	                           (IMG_CPU_VIRTADDR)(uintptr_t)pvCpuVAddr,
-	                           uiFlags,
-	                           ppsPMRPtr);
-
+	return PhysmemWrapExtMemOS(psConnection, psDevNode, uiSize,
+				   (IMG_CPU_VIRTADDR)(uintptr_t)pvCpuVAddr,
+				   uiFlags, ppsPMRPtr);
 }

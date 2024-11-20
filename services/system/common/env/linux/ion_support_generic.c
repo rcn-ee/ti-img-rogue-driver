@@ -65,8 +65,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 static struct ion_platform_data generic_config = {
 	.nr = 2,
 	.heaps =
-		(struct ion_platform_heap [])
-		{
+		(struct ion_platform_heap[]){
 			{
 				.type = ION_HEAP_TYPE_SYSTEM_CONTIG,
 				.name = "system_contig",
@@ -76,8 +75,7 @@ static struct ion_platform_data generic_config = {
 				.type = ION_HEAP_TYPE_SYSTEM,
 				.name = "system",
 				.id = ION_HEAP_TYPE_SYSTEM,
-			}
-		}
+			} }
 };
 
 struct ion_heap **g_apsIonHeaps;
@@ -89,27 +87,26 @@ PVRSRV_ERROR IonInit(void *pvPrivateData)
 	int uiError;
 	int i;
 
-	g_apsIonHeaps = kzalloc(sizeof(struct ion_heap *) * uiHeapCount, GFP_KERNEL);
+	g_apsIonHeaps =
+		kzalloc(sizeof(struct ion_heap *) * uiHeapCount, GFP_KERNEL);
 
 	/* Create the ion devicenode */
 	g_psIonDev = ion_device_create(NULL);
-	if (IS_ERR_OR_NULL(g_psIonDev))
-	{
+	if (IS_ERR_OR_NULL(g_psIonDev)) {
 		kfree(g_apsIonHeaps);
 		return PVRSRV_ERROR_OUT_OF_MEMORY;
 	}
 
 	/* Register all the heaps */
-	for (i = 0; i < generic_config.nr; i++)
-	{
-		struct ion_platform_heap *psPlatHeapData = &generic_config.heaps[i];
+	for (i = 0; i < generic_config.nr; i++) {
+		struct ion_platform_heap *psPlatHeapData =
+			&generic_config.heaps[i];
 
 		/* Pass down the 'struct device *' for the heaps that use it */
 		psPlatHeapData->priv = pvPrivateData;
 
 		g_apsIonHeaps[i] = ion_heap_create(psPlatHeapData);
-		if (IS_ERR_OR_NULL(g_apsIonHeaps[i]))
-		{
+		if (IS_ERR_OR_NULL(g_apsIonHeaps[i])) {
 			uiError = PTR_ERR(g_apsIonHeaps[i]);
 			goto failHeapCreate;
 		}
@@ -121,8 +118,7 @@ PVRSRV_ERROR IonInit(void *pvPrivateData)
 
 failHeapCreate:
 	for (i = 0; i < uiHeapCount; i++) {
-		if (g_apsIonHeaps[i])
-		{
+		if (g_apsIonHeaps[i]) {
 			ion_heap_destroy(g_apsIonHeaps[i]);
 		}
 	}
@@ -149,8 +145,7 @@ void IonDeinit(void)
 	int i;
 
 	for (i = 0; i < uiHeapCount; i++) {
-		if (g_apsIonHeaps[i])
-		{
+		if (g_apsIonHeaps[i]) {
 			ion_heap_destroy(g_apsIonHeaps[i]);
 		}
 	}

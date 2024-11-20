@@ -47,7 +47,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /* Declaring function here to avoid dependencies that are introduced by
  * including osfunc.h. */
 IMG_INT32 OSStringNCompare(const IMG_CHAR *pStr1, const IMG_CHAR *pStr2,
-                           size_t uiSize);
+			   size_t uiSize);
 
 IMG_UINT32 HASH_Djb2_Hash(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen)
 {
@@ -57,8 +57,7 @@ IMG_UINT32 HASH_Djb2_Hash(size_t uKeySize, void *pKey, IMG_UINT32 uHashTabLen)
 	PVR_UNREFERENCED_PARAMETER(uKeySize);
 	PVR_UNREFERENCED_PARAMETER(uHashTabLen);
 
-	while ((ui32Char = *pszStr++) != '\0')
-	{
+	while ((ui32Char = *pszStr++) != '\0') {
 		ui32Hash = ((ui32Hash << 5) + ui32Hash) + ui32Char;
 	}
 

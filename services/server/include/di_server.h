@@ -44,15 +44,15 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define DI_SERVER_H
 
 #if defined(__KERNEL__) && defined(__linux__)
- #include <linux/version.h>
+#include <linux/version.h>
 
- #if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
-  #include <linux/stdarg.h>
- #else
-  #include <stdarg.h>
- #endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0))
+#include <linux/stdarg.h>
 #else
- #include <stdarg.h>
+#include <stdarg.h>
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(5, 15, 0) */
+#else
+#include <stdarg.h>
 #endif /* __KERNEL__ && __linux__ */
 
 #include "di_common.h"
@@ -101,12 +101,9 @@ void DIDeInit(void);
  *
  * @Return   PVRSRV_ERROR error code
  */
-PVRSRV_ERROR DICreateEntry(const IMG_CHAR *pszName,
-                           DI_GROUP *psGroup,
-                           const DI_ITERATOR_CB *psIterCb,
-                           void *psPriv,
-                           DI_ENTRY_TYPE eType,
-                           DI_ENTRY **ppsEntry);
+PVRSRV_ERROR DICreateEntry(const IMG_CHAR *pszName, DI_GROUP *psGroup,
+			   const DI_ITERATOR_CB *psIterCb, void *psPriv,
+			   DI_ENTRY_TYPE eType, DI_ENTRY **ppsEntry);
 
 /*! @Function DIDestroyEntry
  *
@@ -133,9 +130,8 @@ void DIDestroyEntry(DI_ENTRY *psEntry);
  *
  * @Return   PVRSRV_ERROR error code
  */
-PVRSRV_ERROR DICreateGroup(const IMG_CHAR *pszName,
-                           DI_GROUP *psParent,
-                           DI_GROUP **ppsGroup);
+PVRSRV_ERROR DICreateGroup(const IMG_CHAR *pszName, DI_GROUP *psParent,
+			   DI_GROUP **ppsGroup);
 
 /*! @Function DIDestroyGroup
  *
@@ -171,7 +167,7 @@ void *DIGetPrivData(const OSDI_IMPL_ENTRY *psEntry);
  * @Input uiSize pvData length
  */
 void DIWrite(const OSDI_IMPL_ENTRY *psEntry, const void *pvData,
-             IMG_UINT32 uiSize);
+	     IMG_UINT32 uiSize);
 
 /*! @Function DIPrintf
  *
@@ -181,8 +177,8 @@ void DIWrite(const OSDI_IMPL_ENTRY *psEntry, const void *pvData,
  * @Input psEntry pointer to OSDI_IMPL_ENTRY object
  * @Input pszFmt NUL-terminated format string
  */
-__printf(2, 3)
-void DIPrintf(const OSDI_IMPL_ENTRY *psEntry, const IMG_CHAR *pszFmt, ...);
+__printf(2, 3) void DIPrintf(const OSDI_IMPL_ENTRY *psEntry,
+			     const IMG_CHAR *pszFmt, ...);
 
 /*! @Function DIVPrintf
  *
@@ -194,9 +190,8 @@ void DIPrintf(const OSDI_IMPL_ENTRY *psEntry, const IMG_CHAR *pszFmt, ...);
  * @Input pszFmt NUL-terminated format string
  * @Input pArgs vs_list object
  */
-__printf(2, 0)
-void DIVPrintf(const OSDI_IMPL_ENTRY *psEntry, const IMG_CHAR *pszFmt,
-               va_list pArgs);
+__printf(2, 0) void DIVPrintf(const OSDI_IMPL_ENTRY *psEntry,
+			      const IMG_CHAR *pszFmt, va_list pArgs);
 
 /*! @Function DIPrintf
  *

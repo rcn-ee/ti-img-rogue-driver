@@ -59,18 +59,13 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  */
 PVRSRV_ERROR
 PhysmemWrapExtMemOS(CONNECTION_DATA *psConnection,
-                    PVRSRV_DEVICE_NODE *psDevNode,
-                    IMG_DEVMEM_SIZE_T uiSize,
-                    IMG_CPU_VIRTADDR pvCpuVAddr,
-                    PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                    PMR **ppsPMRPtr);
+		    PVRSRV_DEVICE_NODE *psDevNode, IMG_DEVMEM_SIZE_T uiSize,
+		    IMG_CPU_VIRTADDR pvCpuVAddr, PVRSRV_MEMALLOCFLAGS_T uiFlags,
+		    PMR **ppsPMRPtr);
 
 PVRSRV_ERROR
-PhysmemWrapExtMem(CONNECTION_DATA *psConnection,
-                  PVRSRV_DEVICE_NODE *psDevNode,
-                  IMG_DEVMEM_SIZE_T uiSize,
-                  IMG_UINT64 pvCpuVAddr,
-                  PVRSRV_MEMALLOCFLAGS_T uiFlags,
-                  PMR **ppsPMROut);
+PhysmemWrapExtMem(CONNECTION_DATA *psConnection, PVRSRV_DEVICE_NODE *psDevNode,
+		  IMG_DEVMEM_SIZE_T uiSize, IMG_UINT64 pvCpuVAddr,
+		  PVRSRV_MEMALLOCFLAGS_T uiFlags, PMR **ppsPMROut);
 
 #endif /* SRVSRV_PHYSMEM_EXTMEM_H */

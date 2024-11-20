@@ -46,13 +46,11 @@
 
 /*#define PDP_VERBOSE*/
 
-#define REG_VALUE_GET(v, s, m) \
-	(u32)(((v) & (m)) >> (s))
+#define REG_VALUE_GET(v, s, m) (u32)(((v) & (m)) >> (s))
 #define REG_VALUE_SET(v, b, s, m) \
-	(u32)(((v) & (u32)~(m)) | (u32)(((b) << (s)) & (m)))
+	(u32)(((v) & (u32) ~(m)) | (u32)(((b) << (s)) & (m)))
 /* Active low */
-#define REG_VALUE_LO(v, b, s, m) \
-	(u32)((v) & ~(u32)(((b) << (s)) & (m)))
+#define REG_VALUE_LO(v, b, s, m) (u32)((v) & ~(u32)(((b) << (s)) & (m)))
 
 enum pdp_version {
 	PDP_VERSION_APOLLO,

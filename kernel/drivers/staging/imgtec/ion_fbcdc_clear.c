@@ -52,7 +52,7 @@
 #include <linux/err.h>
 
 #if defined(SUPPORT_FAKE_SECURE_ION_HEAP)
-#define ION_HEAP_TC_SECURE   (ION_HEAP_TYPE_CUSTOM+3)
+#define ION_HEAP_TC_SECURE (ION_HEAP_TYPE_CUSTOM + 3)
 #endif
 
 long ion_custom_fbcdc_alloc(struct ion_client *client, unsigned long arg)
@@ -61,14 +61,14 @@ long ion_custom_fbcdc_alloc(struct ion_client *client, unsigned long arg)
 	struct ion_handle *handle;
 	long err = 0;
 
-	if (copy_from_user(&data, (void __user *)arg,
-					   sizeof(data)))
+	if (copy_from_user(&data, (void __user *)arg, sizeof(data)))
 		return -EFAULT;
 
 	/* Note: The underlying ion allocation should not clear the memory.
 	 * Otherwise this will be done twice which is a waste of processing power.
 	 */
-	handle = ion_alloc(client, data.len, data.align, data.heap_id_mask, data.flags);
+	handle = ion_alloc(client, data.len, data.align, data.heap_id_mask,
+			   data.flags);
 	if (IS_ERR(handle))
 		return PTR_ERR(handle);
 
@@ -94,7 +94,8 @@ long ion_custom_fbcdc_alloc(struct ion_client *client, unsigned long arg)
 			for (j = 0; j < tiles; j++)
 				pu32addr[j] = 0x04104101;
 			/* Clear the data region to black */
-			memset(&pu32addr[tiles], 0, data.len - tiles * sizeof(*pu32addr));
+			memset(&pu32addr[tiles], 0,
+			       data.len - tiles * sizeof(*pu32addr));
 #elif (RGX_FEATURE_FBCDC_ARCHITECTURE == 2)
 			/* Note: This only works in direct mode (8 bit header) */
 			u8 *pu8addr = paddr;
@@ -102,10 +103,12 @@ long ion_custom_fbcdc_alloc(struct ion_client *client, unsigned long arg)
 			/* Write the header first */
 			memset(pu8addr, 0xc7, tiles * sizeof(*pu8addr));
 			/* Clear the data region to black */
-			memset(&pu8addr[tiles], 0, data.len - tiles * sizeof(*pu8addr));
+			memset(&pu8addr[tiles], 0,
+			       data.len - tiles * sizeof(*pu8addr));
 #else
-			printk_once(KERN_WARNING "Clearing of buffers not implemented for "
-					"given FBCDC architecture");
+			printk_once(KERN_WARNING
+				    "Clearing of buffers not implemented for "
+				    "given FBCDC architecture");
 			memset(paddr, 0, data.len);
 #endif
 		} else

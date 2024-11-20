@@ -49,20 +49,21 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #if defined(SUPPORT_LINUX_FDINFO)
 
 #include <drm/drm_print.h>
-typedef void (DKF_VPRINTF_FUNC)(struct drm_printer *p, const char *fmt, va_list *va) __printf(2, 0);
+typedef void(DKF_VPRINTF_FUNC)(struct drm_printer *p, const char *fmt,
+			       va_list *va) __printf(2, 0);
 
 #else /* !defined(SUPPORT_LINUX_FDINFO) */
-typedef void (DKF_VPRINTF_FUNC)(void *p, const char *fmt, ...) __printf(2, 3);
+typedef void(DKF_VPRINTF_FUNC)(void *p, const char *fmt, ...) __printf(2, 3);
 
-#endif	/* defined(SUPPORT_LINUX_FDINFO) */
+#endif /* defined(SUPPORT_LINUX_FDINFO) */
 struct _PVRSRV_DEVICE_NODE_;
 
 typedef IMG_UINT32 DKF_CONNECTION_FLAGS;
 
-#define DKF_CONNECTION_FLAG_SYNC        BIT(0)
-#define DKF_CONNECTION_FLAG_SERVICES    BIT(1)
+#define DKF_CONNECTION_FLAG_SYNC BIT(0)
+#define DKF_CONNECTION_FLAG_SERVICES BIT(1)
 
-#define DKF_CONNECTION_FLAG_INVALID     IMG_UINT32_C(0)
+#define DKF_CONNECTION_FLAG_INVALID IMG_UINT32_C(0)
 
 /*! @Function PVRDKFTraverse
  *
@@ -78,11 +79,9 @@ typedef IMG_UINT32 DKF_CONNECTION_FLAGS;
  * @Input   ui32ConnectionType  A value indicating the PVR connection type
  *                              (sync or services).
  */
-void PVRDKFTraverse(DKF_VPRINTF_FUNC *pfnPrint,
-                    void *pvArg,
-                    struct _PVRSRV_DEVICE_NODE_ *psDevNode,
-                    IMG_PID pid,
-                    DKF_CONNECTION_FLAGS ui32ConnectionType);
+void PVRDKFTraverse(DKF_VPRINTF_FUNC *pfnPrint, void *pvArg,
+		    struct _PVRSRV_DEVICE_NODE_ *psDevNode, IMG_PID pid,
+		    DKF_CONNECTION_FLAGS ui32ConnectionType);
 
 /* @Function PVRDKFInit
  *

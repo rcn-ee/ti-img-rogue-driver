@@ -48,11 +48,10 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*
  * CPU to Device physical address translation
  */
-static
-void UMAPhysHeapCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
-				   IMG_UINT32 ui32NumOfAddr,
-				   IMG_DEV_PHYADDR *psDevPAddr,
-				   IMG_CPU_PHYADDR *psCpuPAddr)
+static void UMAPhysHeapCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
+					  IMG_UINT32 ui32NumOfAddr,
+					  IMG_DEV_PHYADDR *psDevPAddr,
+					  IMG_CPU_PHYADDR *psCpuPAddr)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	/* Optimise common case */
@@ -66,11 +65,10 @@ void UMAPhysHeapCpuPAddrToDevPAddr(IMG_HANDLE hPrivData,
 /*
  * Device to CPU physical address translation
  */
-static
-void UMAPhysHeapDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
-				   IMG_UINT32 ui32NumOfAddr,
-				   IMG_CPU_PHYADDR *psCpuPAddr,
-				   IMG_DEV_PHYADDR *psDevPAddr)
+static void UMAPhysHeapDevPAddrToCpuPAddr(IMG_HANDLE hPrivData,
+					  IMG_UINT32 ui32NumOfAddr,
+					  IMG_CPU_PHYADDR *psCpuPAddr,
+					  IMG_DEV_PHYADDR *psDevPAddr)
 {
 	PVR_UNREFERENCED_PARAMETER(hPrivData);
 	/* Optimise common case */

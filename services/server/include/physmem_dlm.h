@@ -55,16 +55,14 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
  * Destroys a given PMB used to represent a block of memory
  * obtained from a DLM heap.
  */
-void
-PMBDestroy(PMB *psPMB);
+void PMBDestroy(PMB *psPMB);
 
 /* PMBGetAnnotation
  *
  * Obtain the annotation of the allocation represented
  * by this PMB
  */
-const IMG_CHAR *
-PMBGetAnnotation(PMB *psPMB);
+const IMG_CHAR *PMBGetAnnotation(PMB *psPMB);
 
 /* DLM */
 
@@ -79,10 +77,8 @@ PMBGetAnnotation(PMB *psPMB);
 @Return         PVRSRV_ERROR PVRSRV_OK or error code
 */ /**************************************************************************/
 PVRSRV_ERROR
-PhysmemCreateHeapDLM(PVRSRV_DEVICE_NODE *psDevNode,
-                     PHYS_HEAP_POLICY uiPolicy,
-                     PHYS_HEAP_CONFIG *psConfig,
-                     IMG_CHAR *pszLabel,
-                     PHYS_HEAP **ppsPhysHeap);
+PhysmemCreateHeapDLM(PVRSRV_DEVICE_NODE *psDevNode, PHYS_HEAP_POLICY uiPolicy,
+		     PHYS_HEAP_CONFIG *psConfig, IMG_CHAR *pszLabel,
+		     PHYS_HEAP **ppsPhysHeap);
 
 #endif /* #ifndef PHYSMEM_DLM_H */

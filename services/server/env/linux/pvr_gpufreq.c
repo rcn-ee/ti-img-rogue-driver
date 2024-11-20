@@ -53,25 +53,24 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #define MAX_EVENT_SIZE (16)
 
 typedef struct _PVR_GPU_FREQ_EVENT_ {
-	IMG_UINT32               ui32GpuId;
-	IMG_UINT64               ui64ClockSpeedInKHz;
+	IMG_UINT32 ui32GpuId;
+	IMG_UINT64 ui64ClockSpeedInKHz;
 } PVR_GPU_FREQ_EVENT;
 
-typedef struct
-{
+typedef struct {
 	/* The actual data and refer to gpu frequency metric here. */
-	PVR_GPU_FREQ_EVENT       sEvents[MAX_EVENT_SIZE];
+	PVR_GPU_FREQ_EVENT sEvents[MAX_EVENT_SIZE];
 	/* The index suggests the next read position. */
-	IMG_UINT32               ui32ReadIndex;
+	IMG_UINT32 ui32ReadIndex;
 	/* The index suggests the next write position. */
-	IMG_UINT32               ui32WriteIndex;
+	IMG_UINT32 ui32WriteIndex;
 	/* Safe to use for multiple threads. */
-	POS_SPINLOCK             hBufferLock;
+	POS_SPINLOCK hBufferLock;
 } PVR_GPU_FREQ_EVENT_QUEUE;
 
 typedef struct _PVR_GPU_FREQ_DATA_ {
-	ATOMIC_T                 hTraceEnabled;
-	IMG_HANDLE               hMISR;
+	ATOMIC_T hTraceEnabled;
+	IMG_HANDLE hMISR;
 	PVR_GPU_FREQ_EVENT_QUEUE sFreqEventQueue;
 } PVR_GPU_FREQ_DATA;
 
@@ -82,8 +81,7 @@ _InitGpuFreqEventQueue(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue)
 {
 	PVRSRV_ERROR eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 
-	if (!psEventQueue)
-	{
+	if (!psEventQueue) {
 		goto err_out;
 	}
 
@@ -91,52 +89,47 @@ _InitGpuFreqEventQueue(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue)
 	psEventQueue->ui32WriteIndex = 0;
 
 	eError = OSSpinLockCreate(&psEventQueue->hBufferLock);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to create a lock.", __func__));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to create a lock.",
+			 __func__));
 	}
 
 err_out:
 	return eError;
 }
 
-static void
-_DeInitGpuFreqEventQueue(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue)
+static void _DeInitGpuFreqEventQueue(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue)
 {
-	if (!psEventQueue)
-	{
+	if (!psEventQueue) {
 		return;
 	}
 
 	psEventQueue->ui32ReadIndex = 0;
 	psEventQueue->ui32WriteIndex = 0;
 
-	if (psEventQueue->hBufferLock)
-	{
+	if (psEventQueue->hBufferLock) {
 		OSSpinLockDestroy(psEventQueue->hBufferLock);
 	}
 }
 
-static PVRSRV_ERROR
-_AddGpuFreqEvent(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue,
-		PVR_GPU_FREQ_EVENT sEvent)
+static PVRSRV_ERROR _AddGpuFreqEvent(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue,
+				     PVR_GPU_FREQ_EVENT sEvent)
 {
 	PVRSRV_ERROR eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 	IMG_UINT32 ui32NextWriteIndex;
 	OS_SPINLOCK_FLAGS uiFlags;
 
-	if (!psEventQueue || !psEventQueue->hBufferLock)
-	{
+	if (!psEventQueue || !psEventQueue->hBufferLock) {
 		goto err_out;
 	}
 
 	OSSpinLockAcquire(psEventQueue->hBufferLock, uiFlags);
 
-	ui32NextWriteIndex = (psEventQueue->ui32WriteIndex + 1) % MAX_EVENT_SIZE;
+	ui32NextWriteIndex =
+		(psEventQueue->ui32WriteIndex + 1) % MAX_EVENT_SIZE;
 
 	/* Check if the buffer is full. */
-	if (ui32NextWriteIndex == psEventQueue->ui32ReadIndex)
-	{
+	if (ui32NextWriteIndex == psEventQueue->ui32ReadIndex) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: The buffer is full.", __func__));
 
 		goto err_release_lock;
@@ -156,23 +149,20 @@ err_out:
 	return eError;
 }
 
-static PVRSRV_ERROR
-_GetGpuFreqEvent(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue,
-		PVR_GPU_FREQ_EVENT *psEvent)
+static PVRSRV_ERROR _GetGpuFreqEvent(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue,
+				     PVR_GPU_FREQ_EVENT *psEvent)
 {
 	PVRSRV_ERROR eError = PVRSRV_ERROR_OUT_OF_MEMORY;
 	OS_SPINLOCK_FLAGS uiFlags;
 
-	if (!psEventQueue || !psEventQueue->hBufferLock)
-	{
+	if (!psEventQueue || !psEventQueue->hBufferLock) {
 		goto err_out;
 	}
 
 	OSSpinLockAcquire(psEventQueue->hBufferLock, uiFlags);
 
 	/* Check if the buffer is empty. */
-	if (psEventQueue->ui32ReadIndex == psEventQueue->ui32WriteIndex)
-	{
+	if (psEventQueue->ui32ReadIndex == psEventQueue->ui32WriteIndex) {
 		PVR_DPF((PVR_DBG_ERROR, "%s: The buffer is empty.", __func__));
 
 		goto err_release_lock;
@@ -181,7 +171,8 @@ _GetGpuFreqEvent(PVR_GPU_FREQ_EVENT_QUEUE *psEventQueue,
 	psEvent->ui32GpuId =
 		psEventQueue->sEvents[psEventQueue->ui32ReadIndex].ui32GpuId;
 	psEvent->ui64ClockSpeedInKHz =
-		psEventQueue->sEvents[psEventQueue->ui32ReadIndex].ui64ClockSpeedInKHz;
+		psEventQueue->sEvents[psEventQueue->ui32ReadIndex]
+			.ui64ClockSpeedInKHz;
 
 	psEventQueue->ui32ReadIndex =
 		(psEventQueue->ui32ReadIndex + 1) % MAX_EVENT_SIZE;
@@ -196,14 +187,14 @@ err_out:
 
 void GpuTraceFrequency(IMG_UINT32 ui32GpuId, IMG_UINT64 ui64NewClockSpeedInKHz)
 {
-	PVR_GPU_FREQ_EVENT sEvent = {ui32GpuId, ui64NewClockSpeedInKHz};
+	PVR_GPU_FREQ_EVENT sEvent = { ui32GpuId, ui64NewClockSpeedInKHz };
 	PVR_GPU_FREQ_DATA *psGpuFreqData = &gGpuFreqPrivData;
 
 	if (OSAtomicRead(&psGpuFreqData->hTraceEnabled) == IMG_FALSE)
 		return;
 
-	if (_AddGpuFreqEvent(&psGpuFreqData->sFreqEventQueue, sEvent) == PVRSRV_OK)
-	{
+	if (_AddGpuFreqEvent(&psGpuFreqData->sFreqEventQueue, sEvent) ==
+	    PVRSRV_OK) {
 		OSScheduleMISR(psGpuFreqData->hMISR);
 	}
 }
@@ -216,10 +207,9 @@ static void _EventEmitter(void *pvData)
 	PVRSRV_ERROR eError;
 
 	eError = _GetGpuFreqEvent(&psGpuFreqData->sFreqEventQueue, &sFreqEvent);
-	if (eError == PVRSRV_OK)
-	{
+	if (eError == PVRSRV_OK) {
 		trace_gpu_frequency(sFreqEvent.ui64ClockSpeedInKHz,
-				sFreqEvent.ui32GpuId);
+				    sFreqEvent.ui32GpuId);
 	}
 }
 
@@ -236,31 +226,32 @@ void PVRGpuTraceEnableFreqCallback(void)
 	OSAtomicWrite(&psGpuFreqData->hTraceEnabled, IMG_FALSE);
 
 	eError = _InitGpuFreqEventQueue(&psGpuFreqData->sFreqEventQueue);
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to init an event queue.", __func__));
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to init an event queue.",
+			 __func__));
 		goto err_out;
 	}
 
-	eError = OSInstallMISR(&psGpuFreqData->hMISR, _EventEmitter, psGpuFreqData,
-			"PVR_GPUFreq");
-	if (eError != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to create misr.", __func__));
+	eError = OSInstallMISR(&psGpuFreqData->hMISR, _EventEmitter,
+			       psGpuFreqData, "PVR_GPUFreq");
+	if (eError != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to create misr.",
+			 __func__));
 		goto err_deinit_queue;
 	}
 
 	OSAtomicWrite(&psGpuFreqData->hTraceEnabled, IMG_TRUE);
 
-	for (i = 0; i < PVRSRV_MAX_DEVICES; i++)
-	{
+	for (i = 0; i < PVRSRV_MAX_DEVICES; i++) {
 		PVRSRV_DEVICE_NODE *psDevNode = PVRSRVGetDeviceInstance(i);
 		RGX_DATA *psRGXData;
 
-		if (psDevNode)
-		{
-			psRGXData = (RGX_DATA *)psDevNode->psDevConfig->hDevData;
-			GpuTraceFrequency(i, psRGXData->psRGXTimingInfo->ui32CoreClockSpeed);
+		if (psDevNode) {
+			psRGXData =
+				(RGX_DATA *)psDevNode->psDevConfig->hDevData;
+			GpuTraceFrequency(
+				i,
+				psRGXData->psRGXTimingInfo->ui32CoreClockSpeed);
 		}
 	}
 
@@ -286,9 +277,9 @@ void PVRGpuTraceDisableFreqCallback(void)
 
 	OSAtomicWrite(&psGpuFreqData->hTraceEnabled, IMG_FALSE);
 
-	if (OSUninstallMISR(psGpuFreqData->hMISR) != PVRSRV_OK)
-	{
-		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to uninstall misr.", __func__));
+	if (OSUninstallMISR(psGpuFreqData->hMISR) != PVRSRV_OK) {
+		PVR_DPF((PVR_DBG_ERROR, "%s: Failed to uninstall misr.",
+			 __func__));
 	}
 	psGpuFreqData->hMISR = NULL;
 

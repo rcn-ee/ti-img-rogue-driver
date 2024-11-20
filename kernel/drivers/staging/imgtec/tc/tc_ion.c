@@ -54,8 +54,8 @@
 
 #include "ion_fbcdc_clear.h"
 
-static long tc_ion_custom_ioctl(struct ion_client *client,
-				unsigned int cmd, unsigned long arg)
+static long tc_ion_custom_ioctl(struct ion_client *client, unsigned int cmd,
+				unsigned long arg)
 {
 	switch (cmd) {
 	case ION_IOC_FBCDC_ALLOC:
@@ -134,17 +134,15 @@ int tc_ion_init(struct tc_device *tc, int mem_bar)
 		 "Adding custom ION heaps. This module cannot be unloaded.\n");
 
 	if (!try_module_get(THIS_MODULE)) {
-		dev_err(&tc->pdev->dev,
-			"Failed to take module reference\n");
+		dev_err(&tc->pdev->dev, "Failed to take module reference\n");
 		err = -EBUSY;
 		goto err_out;
 	}
 #endif
-	err = request_pci_io_addr(tc->pdev, mem_bar, 0,
-		tc->tc_mem.size);
+	err = request_pci_io_addr(tc->pdev, mem_bar, 0, tc->tc_mem.size);
 	if (err) {
-		dev_err(&tc->pdev->dev,
-			"Failed to request tc memory (%d)\n", err);
+		dev_err(&tc->pdev->dev, "Failed to request tc memory (%d)\n",
+			err);
 		goto err_free_device;
 	}
 
@@ -168,8 +166,8 @@ int tc_ion_init(struct tc_device *tc, int mem_bar)
 #endif
 			allow_cpu_map = false;
 #endif
-		tc->ion_heaps[i] = ion_lma_heap_create(&ion_heap_data[i],
-			allow_cpu_map);
+		tc->ion_heaps[i] =
+			ion_lma_heap_create(&ion_heap_data[i], allow_cpu_map);
 		if (IS_ERR_OR_NULL(tc->ion_heaps[i])) {
 			err = PTR_ERR(tc->ion_heaps[i]);
 			tc->ion_heaps[i] = NULL;
@@ -195,8 +193,8 @@ err_free_heaps:
 		ion_lma_heap_destroy(tc->ion_heaps[i]);
 	}
 
-	release_pci_io_addr(tc->pdev, mem_bar,
-		tc->tc_mem.base, tc->tc_mem.size);
+	release_pci_io_addr(tc->pdev, mem_bar, tc->tc_mem.base,
+			    tc->tc_mem.size);
 err_free_device:
 #if (LINUX_VERSION_CODE < KERNEL_VERSION(4, 12, 0))
 	ion_device_destroy(tc->ion_device);
@@ -219,8 +217,8 @@ void tc_ion_deinit(struct tc_device *tc, int mem_bar)
 	ion_heap_destroy(tc->ion_heaps[0]);
 	for (i = 1; i < TC_ION_HEAP_COUNT; i++)
 		ion_lma_heap_destroy(tc->ion_heaps[i]);
-	release_pci_io_addr(tc->pdev, mem_bar,
-		tc->tc_mem.base, tc->tc_mem.size);
+	release_pci_io_addr(tc->pdev, mem_bar, tc->tc_mem.base,
+			    tc->tc_mem.size);
 #else
 	/*
 	 * The module reference taken in tc_ion_init should prevent us

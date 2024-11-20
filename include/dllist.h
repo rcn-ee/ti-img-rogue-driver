@@ -50,8 +50,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 /*!
 	Pointer to a linked list node
 */
-typedef struct DLLIST_NODE_TAG	*PDLLIST_NODE;
-
+typedef struct DLLIST_NODE_TAG *PDLLIST_NODE;
 
 /*!
 	Node in a linked list.
@@ -78,18 +77,15 @@ typedef struct DLLIST_NODE_TAG	*PDLLIST_NODE;
  * used in a structure shared between host and device.
  * Consider such clients if any changes are made to this structure.
  */
-typedef struct DLLIST_NODE_TAG
-{
-	struct DLLIST_NODE_TAG	*psPrevNode;
-	struct DLLIST_NODE_TAG	*psNextNode;
+typedef struct DLLIST_NODE_TAG {
+	struct DLLIST_NODE_TAG *psPrevNode;
+	struct DLLIST_NODE_TAG *psNextNode;
 } DLLIST_NODE;
-
 
 /*!
 	Static initialiser
 */
-#define DECLARE_DLLIST(n) \
-DLLIST_NODE (n) = {&(n), &(n)}
+#define DECLARE_DLLIST(n) DLLIST_NODE(n) = { &(n), &(n) }
 
 /*************************************************************************/ /*!
 @Function       dllist_foreach_node
@@ -103,16 +99,15 @@ DLLIST_NODE (n) = {&(n), &(n)}
 
 */
 /*****************************************************************************/
-#define dllist_foreach_node(list_head, node, next)						\
-	for ((node) = (list_head)->psNextNode, (next) = (node)->psNextNode;		\
-		 (node) != (list_head);											\
-		 (node) = (next), (next) = (node)->psNextNode)
+#define dllist_foreach_node(list_head, node, next)                          \
+	for ((node) = (list_head)->psNextNode, (next) = (node)->psNextNode; \
+	     (node) != (list_head);                                         \
+	     (node) = (next), (next) = (node)->psNextNode)
 
-#define dllist_foreach_node_backwards(list_head, node, prev)			\
-	for ((node) = (list_head)->psPrevNode, (prev) = (node)->psPrevNode;		\
-		 (node) != (list_head);											\
-		 (node) = (prev), (prev) = (node)->psPrevNode)
-
+#define dllist_foreach_node_backwards(list_head, node, prev)                \
+	for ((node) = (list_head)->psPrevNode, (prev) = (node)->psPrevNode; \
+	     (node) != (list_head);                                         \
+	     (node) = (prev), (prev) = (node)->psPrevNode)
 
 /*************************************************************************/ /*!
 @Function       dllist_foreach
@@ -127,17 +122,19 @@ DLLIST_NODE (n) = {&(n), &(n)}
 
 */
 /*****************************************************************************/
-#define dllist_foreach(list_head)	\
-	for (DLLIST_NODE *DllCurNode = (list_head).psNextNode, *DllNextNode = DllCurNode->psNextNode;		\
-		 DllCurNode != &(list_head);																\
-		 DllCurNode = DllNextNode, DllNextNode = DllCurNode->psNextNode)
+#define dllist_foreach(list_head)                               \
+	for (DLLIST_NODE *DllCurNode = (list_head).psNextNode,  \
+			 *DllNextNode = DllCurNode->psNextNode; \
+	     DllCurNode != &(list_head);                        \
+	     DllCurNode = DllNextNode, DllNextNode = DllCurNode->psNextNode)
 
-#define dllist_foreach_backwards(list_head)	\
-	for (DLLIST_NODE *DllCurNode = (list_head).psPrevNode, *DllPrevNode = DllCurNode->psPrevNode;		\
-		 DllCurNode != &(list_head);																\
-		 DllCurNode = DllPrevNode, DllPrevNode = DllCurNode->psPrevNode)
+#define dllist_foreach_backwards(list_head)                     \
+	for (DLLIST_NODE *DllCurNode = (list_head).psPrevNode,  \
+			 *DllPrevNode = DllCurNode->psPrevNode; \
+	     DllCurNode != &(list_head);                        \
+	     DllCurNode = DllPrevNode, DllPrevNode = DllCurNode->psPrevNode)
 
-#define dllist_cur(type, member)	IMG_CONTAINER_OF(DllCurNode, type, member)
+#define dllist_cur(type, member) IMG_CONTAINER_OF(DllCurNode, type, member)
 
 /*************************************************************************/ /*!
 @Function       dllist_init
@@ -148,8 +145,7 @@ DLLIST_NODE (n) = {&(n), &(n)}
 
 */
 /*****************************************************************************/
-static INLINE
-void dllist_init(PDLLIST_NODE psListHead)
+static INLINE void dllist_init(PDLLIST_NODE psListHead)
 {
 	psListHead->psPrevNode = psListHead;
 	psListHead->psNextNode = psListHead;
@@ -164,8 +160,7 @@ void dllist_init(PDLLIST_NODE psListHead)
 
 */
 /*****************************************************************************/
-static INLINE
-bool dllist_is_empty(const DLLIST_NODE *const psListHead)
+static INLINE bool dllist_is_empty(const DLLIST_NODE *const psListHead)
 {
 	return (psListHead->psPrevNode == psListHead);
 }
@@ -180,8 +175,8 @@ bool dllist_is_empty(const DLLIST_NODE *const psListHead)
 
 */
 /*****************************************************************************/
-static INLINE
-void dllist_add_to_head(PDLLIST_NODE psListHead, PDLLIST_NODE psNewNode)
+static INLINE void dllist_add_to_head(PDLLIST_NODE psListHead,
+				      PDLLIST_NODE psNewNode)
 {
 	PDLLIST_NODE psTmp;
 
@@ -194,7 +189,6 @@ void dllist_add_to_head(PDLLIST_NODE psListHead, PDLLIST_NODE psNewNode)
 	psNewNode->psPrevNode = psListHead;
 }
 
-
 /*************************************************************************/ /*!
 @Function       dllist_add_to_tail
 
@@ -205,8 +199,8 @@ void dllist_add_to_head(PDLLIST_NODE psListHead, PDLLIST_NODE psNewNode)
 
 */
 /*****************************************************************************/
-static INLINE
-void dllist_add_to_tail(PDLLIST_NODE psListHead, PDLLIST_NODE psNewNode)
+static INLINE void dllist_add_to_tail(PDLLIST_NODE psListHead,
+				      PDLLIST_NODE psNewNode)
 {
 	PDLLIST_NODE psTmp;
 
@@ -228,8 +222,7 @@ void dllist_add_to_tail(PDLLIST_NODE psListHead, PDLLIST_NODE psNewNode)
 
 */
 /*****************************************************************************/
-static INLINE
-bool dllist_node_is_in_list(const DLLIST_NODE *const psNode)
+static INLINE bool dllist_node_is_in_list(const DLLIST_NODE *const psNode)
 {
 	return (psNode->psNextNode != NULL);
 }
@@ -244,15 +237,11 @@ bool dllist_node_is_in_list(const DLLIST_NODE *const psNode)
 
 */
 /*****************************************************************************/
-static INLINE
-PDLLIST_NODE dllist_get_next_node(PDLLIST_NODE psListHead)
+static INLINE PDLLIST_NODE dllist_get_next_node(PDLLIST_NODE psListHead)
 {
-	if (psListHead->psNextNode == psListHead)
-	{
+	if (psListHead->psNextNode == psListHead) {
 		return NULL;
-	}
-	else
-	{
+	} else {
 		return psListHead->psNextNode;
 	}
 }
@@ -267,15 +256,11 @@ PDLLIST_NODE dllist_get_next_node(PDLLIST_NODE psListHead)
 
 */
 /*****************************************************************************/
-static INLINE
-PDLLIST_NODE dllist_get_prev_node(PDLLIST_NODE psListHead)
+static INLINE PDLLIST_NODE dllist_get_prev_node(PDLLIST_NODE psListHead)
 {
-	if (psListHead->psPrevNode == psListHead)
-	{
+	if (psListHead->psPrevNode == psListHead) {
 		return NULL;
-	}
-	else
-	{
+	} else {
 		return psListHead->psPrevNode;
 	}
 }
@@ -289,8 +274,7 @@ PDLLIST_NODE dllist_get_prev_node(PDLLIST_NODE psListHead)
 
 */
 /*****************************************************************************/
-static INLINE
-void dllist_remove_node(PDLLIST_NODE psListNode)
+static INLINE void dllist_remove_node(PDLLIST_NODE psListNode)
 {
 	psListNode->psNextNode->psPrevNode = psListNode->psPrevNode;
 	psListNode->psPrevNode->psNextNode = psListNode->psNextNode;
@@ -312,16 +296,13 @@ void dllist_remove_node(PDLLIST_NODE psListNode)
 
 */
 /*****************************************************************************/
-static INLINE
-void dllist_replace_head(PDLLIST_NODE psOldHead, PDLLIST_NODE psNewHead)
+static INLINE void dllist_replace_head(PDLLIST_NODE psOldHead,
+				       PDLLIST_NODE psNewHead)
 {
-	if (dllist_is_empty(psOldHead))
-	{
+	if (dllist_is_empty(psOldHead)) {
 		psNewHead->psNextNode = psNewHead;
 		psNewHead->psPrevNode = psNewHead;
-	}
-	else
-	{
+	} else {
 		/* Change the neighbouring nodes */
 		psOldHead->psNextNode->psPrevNode = psNewHead;
 		psOldHead->psPrevNode->psNextNode = psNewHead;
@@ -349,14 +330,13 @@ void dllist_replace_head(PDLLIST_NODE psOldHead, PDLLIST_NODE psNewHead)
 @Input          psInHead        List node to be inserted to psOutHead.
                                 After this operation this becomes an empty list.
 */ /***************************************************************************/
-static INLINE
-void dllist_insert_list_at_head(PDLLIST_NODE psOutHead, PDLLIST_NODE psInHead)
+static INLINE void dllist_insert_list_at_head(PDLLIST_NODE psOutHead,
+					      PDLLIST_NODE psInHead)
 {
 	PDLLIST_NODE psInHeadNextNode = psInHead->psNextNode;
 	PDLLIST_NODE psOutHeadNextNode = psOutHead->psNextNode;
 
-	if (!dllist_is_empty(psInHead))
-	{
+	if (!dllist_is_empty(psInHead)) {
 		psOutHead->psNextNode = psInHeadNextNode;
 		psInHeadNextNode->psPrevNode = psOutHead;
 
@@ -365,14 +345,15 @@ void dllist_insert_list_at_head(PDLLIST_NODE psOutHead, PDLLIST_NODE psInHead)
 
 		dllist_init(psInHead);
 	}
- }
+}
 
 /*************************************************************************/ /*!
 @Description    Pointer to a dllist comparison callback function.
 @Input          psNode  Pointer to a node in a dllist.
 @Input          psNext  Pointer to psNode's next neighbour.
 */ /**************************************************************************/
-typedef bool (*DLLIST_CMP_CB)(const DLLIST_NODE *psNode, const DLLIST_NODE *psNext);
+typedef bool (*DLLIST_CMP_CB)(const DLLIST_NODE *psNode,
+			      const DLLIST_NODE *psNext);
 
 /*************************************************************************/ /*!
 @Function       dllist_sort
@@ -389,8 +370,7 @@ typedef bool (*DLLIST_CMP_CB)(const DLLIST_NODE *psNode, const DLLIST_NODE *psNe
 
 */
 /*****************************************************************************/
-static INLINE void dllist_sort(PDLLIST_NODE psListHead,
-                        DLLIST_CMP_CB cmpr)
+static INLINE void dllist_sort(PDLLIST_NODE psListHead, DLLIST_CMP_CB cmpr)
 {
 	DLLIST_NODE *node, *next;
 	DLLIST_NODE sTempHead;
@@ -403,14 +383,12 @@ static INLINE void dllist_sort(PDLLIST_NODE psListHead,
 		dllist_add_to_head(&sTempHead, node);
 	}
 
-	while (!dllist_is_empty(&sTempHead))
-	{
+	while (!dllist_is_empty(&sTempHead)) {
 		DLLIST_NODE *psSmallestNode = NULL;
 
 		dllist_foreach_node(&sTempHead, node, next)
 		{
-			if (!psSmallestNode || cmpr(psSmallestNode, node))
-			{
+			if (!psSmallestNode || cmpr(psSmallestNode, node)) {
 				psSmallestNode = node;
 			}
 		}

@@ -84,9 +84,7 @@ static void pdp_tmds_encoder_destroy(struct drm_encoder *encoder)
 {
 	struct pdp_drm_private *dev_priv = encoder->dev->dev_private;
 
-	DRM_DEBUG_DRIVER("[ENCODER:%d:%s]\n",
-			 encoder->base.id,
-			 encoder->name);
+	DRM_DEBUG_DRIVER("[ENCODER:%d:%s]\n", encoder->base.id, encoder->name);
 
 	drm_encoder_cleanup(encoder);
 
@@ -109,8 +107,7 @@ static const struct drm_encoder_funcs pdp_tmds_encoder_funcs = {
 	.destroy = pdp_tmds_encoder_destroy,
 };
 
-struct drm_encoder *
-pdp_tmds_encoder_create(struct drm_device *dev)
+struct drm_encoder *pdp_tmds_encoder_create(struct drm_device *dev)
 {
 	struct drm_encoder *encoder;
 	int err;
@@ -119,11 +116,8 @@ pdp_tmds_encoder_create(struct drm_device *dev)
 	if (!encoder)
 		return ERR_PTR(-ENOMEM);
 
-	err = drm_encoder_init(dev,
-			       encoder,
-			       &pdp_tmds_encoder_funcs,
-			       DRM_MODE_ENCODER_TMDS,
-			       NULL);
+	err = drm_encoder_init(dev, encoder, &pdp_tmds_encoder_funcs,
+			       DRM_MODE_ENCODER_TMDS, NULL);
 	if (err) {
 		DRM_ERROR("Failed to initialise encoder");
 		return ERR_PTR(err);
@@ -136,9 +130,7 @@ pdp_tmds_encoder_create(struct drm_device *dev)
 	 */
 	encoder->possible_crtcs = 0x1;
 
-	DRM_DEBUG_DRIVER("[ENCODER:%d:%s]\n",
-			 encoder->base.id,
-			 encoder->name);
+	DRM_DEBUG_DRIVER("[ENCODER:%d:%s]\n", encoder->base.id, encoder->name);
 
 	return encoder;
 }

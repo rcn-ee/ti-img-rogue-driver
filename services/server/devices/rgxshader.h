@@ -67,9 +67,8 @@ PVRSRVTQLoadShaders(PVRSRV_DEVICE_NODE *psDeviceNode);
 @Input          psDeviceNode Device node
 @Output         ppsCLIPMRMem Shader data used by CPU client side.
 */ /**************************************************************************/
-void
-PVRSRVTQAcquireShaders(PVRSRV_DEVICE_NODE  *psDeviceNode,
-                       PMR                **ppsCLIPMRMem);
+void PVRSRVTQAcquireShaders(PVRSRV_DEVICE_NODE *psDeviceNode,
+			    PMR **ppsCLIPMRMem);
 
 /*************************************************************************/ /*!
 @Function       PVRSRVTQUnLoadShaders

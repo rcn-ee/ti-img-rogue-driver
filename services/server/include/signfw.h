@@ -43,19 +43,17 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 #include "rgx_fw_info.h"
 
-struct FirmwareSignatureHeader
-{
+struct FirmwareSignatureHeader {
 	uint8_t ui8Algo;
 	uint8_t ui8HashAlgo;
-	uint8_t ui8IDType;         /* Public key type (X.509) */
-	uint8_t ui8SignerLen;      /* Length of Signer in bytes */
-	uint8_t ui8KeyIDLen;       /* Length of KeyID in bytes */
+	uint8_t ui8IDType; /* Public key type (X.509) */
+	uint8_t ui8SignerLen; /* Length of Signer in bytes */
+	uint8_t ui8KeyIDLen; /* Length of KeyID in bytes */
 	uint8_t __ui8Padding[3];
 	uint32_t ui32SignatureLen; /* Big-endian length of signature data */
 	/* Signer bytes    */
 	/* KeyID bytes     */
 	/* Signature bytes */
-}
-__attribute__((packed));
+} __attribute__((packed));
 
 #endif /* SIGNFW_H */
