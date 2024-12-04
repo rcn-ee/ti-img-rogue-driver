@@ -218,6 +218,13 @@ static int pvr_remove(struct platform_device *pdev)
 	return 0;
 }
 
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
+static void pvr_remove_void(struct platform_device *pdev)
+{
+	pvr_remove(pdev);
+}
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0) */
+
 static void pvr_shutdown(struct platform_device *pdev)
 {
 	struct drm_device *ddev = platform_get_drvdata(pdev);
@@ -271,7 +278,11 @@ static struct platform_driver pvr_platform_driver = {
 	},
 	.id_table		= pvr_platform_ids,
 	.probe			= pvr_probe,
+#if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0))
+	.remove			= pvr_remove_void,
+#else
 	.remove			= pvr_remove,
+#endif /* LINUX_VERSION_CODE >= KERNEL_VERSION(6, 11, 0) */
 	.shutdown		= pvr_shutdown,
 };
 
