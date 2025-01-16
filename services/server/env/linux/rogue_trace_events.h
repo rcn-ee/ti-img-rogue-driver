@@ -49,6 +49,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <linux/tracepoint.h>
 #include <linux/time.h>
 
+#include "kernel_compatibility.h"
+
 #define show_secs_from_ns(ns)                     \
 	({                                        \
 		u64 t = ns + (NSEC_PER_USEC / 2); \
@@ -83,8 +85,8 @@ TRACE_EVENT_FN(
 				 __field(u32, offset) __field(u32, sync_fwaddr)
 					 __field(u32, sync_value)),
 
-	TP_fast_assign(__assign_str(comm, comm); __assign_str(cmd, cmd);
-		       __assign_str(dm, dm); __entry->gpu_id = gpu_id;
+	TP_fast_assign(__pvr_assign_str(comm, comm); __pvr_assign_str(cmd, cmd);
+		       __pvr_assign_str(dm, dm); __entry->gpu_id = gpu_id;
 		       __entry->ctx_id = ctx_id; __entry->offset = offset;
 		       __entry->sync_fwaddr = sync_fwaddr;
 		       __entry->sync_value = sync_value;),
@@ -120,8 +122,8 @@ TRACE_EVENT_FN(
 				 __field(u32, offset) __field(u32, sync_fwaddr)
 					 __field(u32, sync_value)),
 
-	TP_fast_assign(__assign_str(comm, comm); __assign_str(cmd, cmd);
-		       __assign_str(dm, dm); __entry->gpu_id = gpu_id;
+	TP_fast_assign(__pvr_assign_str(comm, comm); __pvr_assign_str(cmd, cmd);
+		       __pvr_assign_str(dm, dm); __entry->gpu_id = gpu_id;
 		       __entry->ctx_id = ctx_id; __entry->offset = offset;
 		       __entry->sync_fwaddr = sync_fwaddr;
 		       __entry->sync_value = sync_value;),
@@ -150,7 +152,7 @@ TRACE_EVENT(rogue_job_enqueue,
 
 	    TP_fast_assign(__entry->gpu_id = gpu_id; __entry->ctx_id = ctx_id;
 			   __entry->int_id = int_id; __entry->ext_id = ext_id;
-			   __assign_str(kick_type, kick_type);),
+			   __pvr_assign_str(kick_type, kick_type);),
 
 	    TP_printk("gpu=%lu, ctx_id=%lu int_id=%lu ext_id=%lu kick_type=%s",
 		      (unsigned long)__entry->gpu_id,
@@ -175,7 +177,7 @@ TRACE_EVENT(
 					 __field(u32, next_int_id)
 						 __field(u32, next_ext_id)),
 
-	TP_fast_assign(__assign_str(work_type, work_type);
+	TP_fast_assign(__pvr_assign_str(work_type, work_type);
 		       __entry->switch_type = switch_type;
 		       __entry->timestamp = timestamp; __entry->gpu_id = gpu_id;
 		       __entry->next_ctx_id = next_ctx_id;
@@ -206,7 +208,7 @@ TRACE_EVENT(rogue_create_fw_context,
 	    TP_STRUCT__entry(__string(comm, comm) __string(dm, dm)
 				     __field(u32, gpu_id) __field(u32, ctx_id)),
 
-	    TP_fast_assign(__assign_str(comm, comm); __assign_str(dm, dm);
+	    TP_fast_assign(__pvr_assign_str(comm, comm); __pvr_assign_str(dm, dm);
 			   __entry->gpu_id = gpu_id; __entry->ctx_id = ctx_id;),
 
 	    TP_printk("comm=%s dm=%s gpu=%lu ctx_id=%lu", __get_str(comm),
@@ -421,7 +423,7 @@ TRACE_EVENT_FN(
 				 __string(task, task) __field(u32, fw_event)),
 
 	TP_fast_assign(__entry->timestamp = timestamp; __entry->gpu_id = gpu_id;
-		       __assign_str(task, task); __entry->fw_event = fw_event;),
+		       __pvr_assign_str(task, task); __entry->fw_event = fw_event;),
 
 	TP_printk("ts=%llu.%06lu gpu=%lu task=%s event=%s",
 		  (unsigned long long)show_secs_from_ns(__entry->timestamp),

@@ -382,6 +382,12 @@ static inline void pvr_vm_flags_clear(struct vm_area_struct *vma,
 				     0)
 #endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(6, 6, 0)) */
 
+#if (LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0))
+#define __pvr_assign_str __assign_str
+#else
+#define __pvr_assign_str(dst, src) __assign_str(dst);
+#endif /* (LINUX_VERSION_CODE < KERNEL_VERSION(6, 10, 0)) */
+
 #if defined(__GNUC__)
 #define GCC_VERSION_AT_LEAST(major, minor) \
 	(__GNUC__ > (major) ||             \

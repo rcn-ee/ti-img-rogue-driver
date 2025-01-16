@@ -47,6 +47,8 @@
 
 #include <linux/tracepoint.h>
 
+#include "kernel_compatibility.h"
+
 struct pvr_fence;
 struct pvr_fence_context;
 
@@ -57,7 +59,7 @@ DECLARE_EVENT_CLASS(
 
 	TP_STRUCT__entry(__string(name, fctx->name) __array(char, val, 128)),
 
-	TP_fast_assign(__assign_str(name, fctx->name)
+	TP_fast_assign(__pvr_assign_str(name, fctx->name)
 			       pvr_context_value_str(fctx, __entry->val,
 						     sizeof(__entry->val));),
 
@@ -84,9 +86,9 @@ DECLARE_EVENT_CLASS(
 						   &fence->base))
 				__array(char, val, 128) __field(u64, context)),
 
-	TP_fast_assign(__assign_str(driver, fence->base.ops->get_driver_name(
+	TP_fast_assign(__pvr_assign_str(driver, fence->base.ops->get_driver_name(
 						    &fence->base))
-			       __assign_str(timeline,
+			       __pvr_assign_str(timeline,
 					    fence->base.ops->get_timeline_name(
 						    &fence->base))
 				       fence->base.ops->fence_value_str(
@@ -132,20 +134,20 @@ DECLARE_EVENT_CLASS(
 						__field(u64, foreign_context)),
 
 	TP_fast_assign(
-		__assign_str(driver,
+		__pvr_assign_str(driver,
 			     fence->base.ops->get_driver_name(&fence->base))
-			__assign_str(timeline,
+			__pvr_assign_str(timeline,
 				     fence->base.ops->get_timeline_name(
 					     &fence->base)) fence->base.ops
 				->fence_value_str(&fence->base, __entry->val,
 						  sizeof(__entry->val));
 		__entry->context = fence->base.context;
-		__assign_str(foreign_driver,
+		__pvr_assign_str(foreign_driver,
 			     fence->fence->ops->get_driver_name ?
 				     fence->fence->ops->get_driver_name(
 					     fence->fence) :
 				     "unknown")
-				__assign_str(
+				__pvr_assign_str(
 					foreign_timeline,
 					fence->fence->ops->get_timeline_name ?
 						fence->fence->ops
