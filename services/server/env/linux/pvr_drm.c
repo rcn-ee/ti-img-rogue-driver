@@ -488,8 +488,13 @@ static void pvr_show_fdinfo(struct seq_file *seq_file, struct file *file)
 	priv = (struct pvr_drm_private *)dev->dev_private;
 
 	/* Generate driver-specific keys */
-	PVRDKFTraverse((DKF_VPRINTF_FUNC *)drm_vprintf, &p, priv->dev_node,
-		       my_pid, pvr_connection->ui32Type);
+	if (pvr_connection) {
+		PVRDKFTraverse((DKF_VPRINTF_FUNC *)drm_vprintf, &p, priv->dev_node,
+			       my_pid, pvr_connection->ui32Type);
+	} else {
+		DRM_DEBUG_DRIVER("pid %i has descriptor not attached to pvrsrvkm: %s\n",
+				 my_pid, file->f_path.dentry->d_name.name);
+	}
 
 	/* Call into OS-specific drm_show_fdinfo if it is supported */
 #if (LINUX_VERSION_CODE >= KERNEL_VERSION(6, 5, 0))
